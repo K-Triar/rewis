@@ -410,9 +410,21 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     const startKeys = [];
     startStation.lines.forEach(line => {
         filters.allowedTrainTypes.forEach(trainType => {
-            startKeys.push(`${startStation.stationId}_${line.lineId}_${trainType}`);
+            const key = `${startStation.stationId}_${line.lineId}_${trainType}`;
+            // adjacencyListに存在する場合のみ追加
+            if (preprocessedData.adjacencyList.has(key)) {
+                startKeys.push(key);
+            }
         });
     });
+
+    // デバッグ: 探索開始点
+    if (startKeys.length === 0) {
+        console.warn('探索開始点がありません（出発駅の路線×種別に合致するsegmentがない）');
+        return [];
+    }
+
+    console.log('探索開始ノード:', startKeys);
 
     // 各開始点から探索
     startKeys.forEach(startKey => {
@@ -435,7 +447,6 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     console.log(`${uniqueRoutes.length}件の経路が見つかりました`);
     return uniqueRoutes.slice(0, maxRoutes);
 }
-
 // ========================================
 // Dijkstra法による経路探索
 // ========================================
