@@ -395,11 +395,17 @@ function findStationByName(name) {
 // ========================================
 // 経路探索アルゴリズム（修正Dijkstra法）
 // ========================================
+
 function findRoutes(startStation, endStation, viaStations, filters) {
-    console.log('経路探索開始:', startStation.stationName, '→', endStation.stationName);
-    
+    console.log('\n--- 経路探索開始 ---');
+    console.log('出発駅:', startStation.stationName, startStation.stationId);
+    console.log('到着駅:', endStation.stationName, endStation.stationId);
+    console.log('経由駅:', viaStations.map(s => s.stationName));
+    console.log('フィルタ:', filters);
+
     // 経由駅がある場合は区間ごとに検索
     if (viaStations.length > 0) {
+        console.log('経由駅指定あり: 区間分割検索');
         return findRoutesWithVia(startStation, endStation, viaStations, filters);
     }
 
@@ -411,45 +417,47 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     startStation.lines.forEach(line => {
         filters.allowedTrainTypes.forEach(trainType => {
             const key = `${startStation.stationId}_${line.lineId}_${trainType}`;
-            // adjacencyListに存在する場合のみ追加
             if (preprocessedData.adjacencyList.has(key)) {
                 startKeys.push(key);
+            } else {
+                console.warn(`開始ノードが隣接リストに存在しません: ${key}`);
             }
         });
     });
 
-    // デバッグ: 探索開始点
+    console.log('探索開始ノード（startKeys）:', startKeys);
+
     if (startKeys.length === 0) {
-        console.warn('探索開始点がありません（出発駅の路線×種別に合致するsegmentがない）');
+        console.error('探索開始点がありません（出発駅の路線×種別に合致するsegmentがない）');
         return [];
     }
 
-    console.log('探索開始ノード:', startKeys);
-
     // 各開始点から探索
     startKeys.forEach(startKey => {
+        console.log(`Dijkstra探索開始: ${startKey}`);
         const route = dijkstraSearch(startKey, endStation.stationId, filters);
         if (route) {
+            console.log('探索成功: 経路情報', route);
             routes.push(route);
+        } else {
+            console.warn(`経路が見つかりませんでした: ${startKey}`);
         }
     });
 
     // 重複除去とソート
     const uniqueRoutes = deduplicateRoutes(routes);
     uniqueRoutes.sort((a, b) => {
-        // 所要時間優先、次に乗換回数
         if (a.totalDuration !== b.totalDuration) {
             return a.totalDuration - b.totalDuration;
         }
         return a.transferCount - b.transferCount;
     });
 
+    console.log('--- 探索結果 ---');
     console.log(`${uniqueRoutes.length}件の経路が見つかりました`);
     return uniqueRoutes.slice(0, maxRoutes);
 }
-// ========================================
-// Dijkstra法による経路探索
-// ========================================
+
 function dijkstraSearch(startKey, endStationId, filters) {
     const distances = new Map();
     const previous = new Map();
@@ -459,28 +467,41 @@ function dijkstraSearch(startKey, endStationId, filters) {
     distances.set(startKey, 0);
     queue.enqueue(startKey, 0);
 
+    let step = 0;
+    let found = false;
+
     while (!queue.isEmpty()) {
+        step++;
         const currentKey = queue.dequeue();
-        
         if (visited.has(currentKey)) continue;
         visited.add(currentKey);
 
         const currentDistance = distances.get(currentKey);
         const [currentStationId, currentLineId, currentTrainType] = currentKey.split('_');
+        console.log(`[Step ${step}] 現在ノード: ${currentKey} 距離: ${currentDistance}`);
 
         // 目的地に到達
         if (currentStationId === endStationId) {
+            console.log(`到着駅に到達: ${currentKey}`);
+            found = true;
             return reconstructRoute(startKey, currentKey, previous);
         }
 
         // 隣接ノードを探索
         const neighbors = preprocessedData.adjacencyList.get(currentKey) || [];
-        
+        console.log(`  隣接ノード数: ${neighbors.length}`);
+
         for (let neighbor of neighbors) {
-            if (visited.has(neighbor.toKey)) continue;
+            if (visited.has(neighbor.toKey)) {
+                console.log(`    スキップ（訪問済）: ${neighbor.toKey}`);
+                continue;
+            }
 
             // フィルター適用
-            if (!passesFilter(neighbor, filters)) continue;
+            if (!passesFilter(neighbor, filters)) {
+                console.log(`    フィルタ除外: ${neighbor.toKey}（種別:${neighbor.trainType}, 路線:${neighbor.lineId}）`);
+                continue;
+            }
 
             const newDistance = currentDistance + neighbor.duration;
             const oldDistance = distances.get(neighbor.toKey);
@@ -489,13 +510,16 @@ function dijkstraSearch(startKey, endStationId, filters) {
                 distances.set(neighbor.toKey, newDistance);
                 previous.set(neighbor.toKey, { key: currentKey, edge: neighbor });
                 queue.enqueue(neighbor.toKey, newDistance);
+                console.log(`    キュー追加: ${neighbor.toKey} 距離: ${newDistance}`);
             }
         }
     }
 
+    if (!found) {
+        console.warn('Dijkstra探索終了：到着駅に到達できませんでした');
+    }
     return null; // 経路が見つからない
 }
-
 // ========================================
 // 優先度キュー（簡易実装）
 // ========================================
