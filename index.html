@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>東都鉄道 乗換案内システム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚆 東都鉄道 乗換案内システム</h1>
+            <p class="subtitle">架空の鉄道路線による経路検索デモ</p>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <div class="station-input-group">
+                    <div class="input-wrapper">
+                        <label for="departure">出発駅</label>
+                        <input 
+                            type="text" 
+                            id="departure" 
+                            class="station-input" 
+                            placeholder="駅名を入力"
+                            autocomplete="off"
+                        >
+                        <div class="suggestions" id="departure-suggestions"></div>
+                    </div>
+
+                    <div class="swap-button-wrapper">
+                        <button type="button" class="swap-button" id="swap-stations" title="出発駅と到着駅を入れ替え">
+                            ⇅
+                        </button>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="arrival">到着駅</label>
+                        <input 
+                            type="text" 
+                            id="arrival" 
+                            class="station-input" 
+                            placeholder="駅名を入力"
+                            autocomplete="off"
+                        >
+                        <div class="suggestions" id="arrival-suggestions"></div>
+                    </div>
+                </div>
+
+                <div class="via-stations" id="via-stations">
+                    <!-- 経由駅は動的に追加 -->
+                </div>
+
+                <button type="button" class="add-via-button" id="add-via">
+                    ➕ 経由駅を追加
+                </button>
+
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="own-company-only">
+                            <span>自社線（東都鉄道）のみ</span>
+                        </label>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>列車種別:</label>
+                        <div class="train-type-filters">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="type-express" checked>
+                                <span class="train-type-badge express">特急</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="type-rapid" checked>
+                                <span class="train-type-badge rapid">快速</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="type-local" checked>
+                                <span class="train-type-badge local">各駅停車</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="search-button" id="search-button">
+                    🔍 経路を検索
+                </button>
+            </section>
+
+            <section class="results-section" id="results-section" style="display: none;">
+                <h2>検索結果</h2>
+                <div class="results-info">
+                    <span id="results-count"></span>
+                </div>
+                <div class="results-container" id="results-container">
+                    <!-- 検索結果は動的に追加 -->
+                </div>
+            </section>
+
+            <section class="error-section" id="error-section" style="display: none;">
+                <div class="error-message" id="error-message"></div>
+            </section>
+
+            <section class="loading-section" id="loading-section" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>経路を検索中...</p>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2025 東都鉄道（架空） | データは全てフィクションです</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,641 @@
+/* ========================================
+   リセット & ベーススタイル
+======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0078C8;
+    --secondary-color: #9ACD32;
+    --danger-color: #E60012;
+    --warning-color: #FF6600;
+    --success-color: #00A040;
+    --text-color: #333;
+    --border-color: #ddd;
+    --bg-gray: #f5f5f5;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 
+                 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* ========================================
+   ヘッダー
+======================================== */
+header {
+    background: linear-gradient(135deg, var(--primary-color), #005fa3);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* ========================================
+   メインコンテンツ
+======================================== */
+main {
+    padding: 30px;
+}
+
+/* ========================================
+   検索セクション
+======================================== */
+.search-section {
+    background: var(--bg-gray);
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.station-input-group {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 15px;
+    align-items: end;
+    margin-bottom: 20px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.station-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.station-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: var(--shadow);
+}
+
+.suggestions.active {
+    display: block;
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-item:hover {
+    background: #f8f9fa;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.station-name {
+    font-weight: 600;
+    display: block;
+}
+
+.station-lines {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 3px;
+}
+
+.swap-button-wrapper {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 12px;
+}
+
+.swap-button {
+    background: white;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.swap-button:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: rotate(180deg);
+}
+
+/* 経由駅 */
+.via-stations {
+    margin-bottom: 15px;
+}
+
+.via-station-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 10px;
+}
+
+.remove-via-button {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: opacity 0.3s;
+    margin-bottom: 0;
+}
+
+.remove-via-button:hover {
+    opacity: 0.8;
+}
+
+.add-via-button {
+    background: white;
+    color: var(--primary-color);
+    border: 2px dashed var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+}
+
+.add-via-button:hover {
+    background: var(--primary-color);
+    color: white;
+    border-style: solid;
+}
+
+/* フィルター */
+.filter-section {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group > label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 20px;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.train-type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.train-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+}
+
+.train-type-badge.express {
+    background: var(--danger-color);
+}
+
+.train-type-badge.rapid {
+    background: var(--warning-color);
+}
+
+.train-type-badge.local {
+    background: var(--success-color);
+}
+
+/* 検索ボタン */
+.search-button {
+    width: 100%;
+    padding: 15px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.search-button:hover {
+    background: #005fa3;
+}
+
+.search-button:active {
+    transform: scale(0.98);
+}
+
+/* ========================================
+   結果セクション
+======================================== */
+.results-section {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.results-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.results-info {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.route-card {
+    background: var(--bg-gray);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.route-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+}
+
+.route-number {
+    background: var(--primary-color);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.route-summary {
+    display: flex;
+    gap: 20px;
+    font-size: 0.95rem;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.summary-item strong {
+    color: var(--primary-color);
+}
+
+.route-path {
+    margin-bottom: 15px;
+}
+
+.route-leg {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.route-leg::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 35px;
+    width: 3px;
+    height: calc(100% - 20px);
+    background: var(--border-color);
+}
+
+.route-leg:last-child::before {
+    display: none;
+}
+
+.station-marker {
+    min-width: 40px;
+    height: 40px;
+    background: white;
+    border: 3px solid var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-right: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.station-marker.transfer {
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+
+.station-marker.arrival {
+    background: var(--danger-color);
+    border-color: var(--danger-color);
+    color: white;
+}
+
+.leg-info {
+    flex: 1;
+    padding-top: 5px;
+}
+
+.station-name-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.line-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: white;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.line-color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.duration-display {
+    color: #666;
+    font-size: 0.9rem;
+    margin-left: 5px;
+}
+
+.transfer-info {
+    color: var(--warning-color);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 3px;
+}
+
+.toggle-stops-button {
+    background: white;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.toggle-stops-button:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.stops-detail {
+    margin-top: 10px;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    display: none;
+}
+
+.stops-detail.active {
+    display: block;
+}
+
+.stop-item {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stop-item:last-child {
+    border-bottom: none;
+}
+
+.stop-marker {
+    width: 10px;
+    height: 10px;
+    background: var(--border-color);
+    border-radius: 50%;
+}
+
+/* ========================================
+   エラー・ローディング
+======================================== */
+.error-section {
+    animation: fadeIn 0.5s;
+}
+
+.error-message {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 20px;
+    border-radius: 6px;
+    color: #856404;
+}
+
+.loading-section {
+    text-align: center;
+    padding: 40px;
+    animation: fadeIn 0.5s;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   フッター
+======================================== */
+footer {
+    background: #f8f9fa;
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ========================================
+   レスポンシブ対応
+======================================== */
+@media (max-width: 768px) {
+    .station-input-group {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .swap-button-wrapper {
+        order: 3;
+        padding-bottom: 0;
+        padding-top: 10px;
+    }
+
+    .swap-button {
+        width: 100%;
+        border-radius: 6px;
+    }
+
+    .route-summary {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    main {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        border-radius: 8px;
+    }
+
+    header {
+        padding: 20px;
+    }
+
+    .search-section {
+        padding: 15px;
+    }
+
+    .route-card {
+        padding: 15px;
+    }
+}

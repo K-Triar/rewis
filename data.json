@@ -1,0 +1,653 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "ownCompanyId": "TOHTO",
+    "lastUpdated": "2025-10-21",
+    "appName": "東都鉄道 乗換案内システム"
+  },
+  "companies": [
+    {
+      "companyId": "TOHTO",
+      "companyName": "東都鉄道",
+      "isOwnCompany": true
+    },
+    {
+      "companyId": "HOKUBU",
+      "companyName": "北部急行",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "NANKAI",
+      "companyName": "南海鉄道",
+      "isOwnCompany": false
+    }
+  ],
+  "trainTypes": [
+    {
+      "trainTypeId": "EXPRESS",
+      "trainTypeName": "特急",
+      "trainTypeNameShort": "特",
+      "priority": 1,
+      "color": "#E60012"
+    },
+    {
+      "trainTypeId": "RAPID",
+      "trainTypeName": "快速",
+      "trainTypeNameShort": "快",
+      "priority": 2,
+      "color": "#FF6600"
+    },
+    {
+      "trainTypeId": "LOCAL",
+      "trainTypeName": "各駅停車",
+      "trainTypeNameShort": "各",
+      "priority": 3,
+      "color": "#00A040"
+    }
+  ],
+  "lines": [
+    {
+      "lineId": "TOHTO_MAIN",
+      "lineName": "東都本線",
+      "companyId": "TOHTO",
+      "lineColor": "#0078C8",
+      "throughServices": []
+    },
+    {
+      "lineId": "TOHTO_LOOP",
+      "lineName": "東都環状線",
+      "companyId": "TOHTO",
+      "lineColor": "#9ACD32",
+      "throughServices": []
+    },
+    {
+      "lineId": "HOKUBU_LINE",
+      "lineName": "北部急行線",
+      "companyId": "HOKUBU",
+      "lineColor": "#C9171E",
+      "throughServices": ["TOHTO_MAIN"]
+    },
+    {
+      "lineId": "NANKAI_LINE",
+      "lineName": "南海鉄道本線",
+      "companyId": "NANKAI",
+      "lineColor": "#FFA500",
+      "throughServices": []
+    }
+  ],
+  "stations": [
+    {
+      "stationId": "STA_001",
+      "stationName": "西端駅",
+      "stationNameKana": "さいたんえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.6800,
+      "longitude": 139.7000
+    },
+    {
+      "stationId": "STA_002",
+      "stationName": "西新宿駅",
+      "stationNameKana": "にししんじゅくえき",
+      "lines": [
+        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.6850,
+      "longitude": 139.7100
+    },
+    {
+      "stationId": "STA_003",
+      "stationName": "中央駅",
+      "stationNameKana": "ちゅうおうえき",
+      "lines": [
+        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"},
+        {"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}
+      ],
+      "latitude": 35.6900,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_004",
+      "stationName": "東新宿駅",
+      "stationNameKana": "ひがししんじゅくえき",
+      "lines": [
+        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.6950,
+      "longitude": 139.7300
+    },
+    {
+      "stationId": "STA_005",
+      "stationName": "東端駅",
+      "stationNameKana": "とうたんえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.7000,
+      "longitude": 139.7400
+    },
+    {
+      "stationId": "STA_006",
+      "stationName": "新橋駅",
+      "stationNameKana": "しんばしえき",
+      "lines": [
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"},
+        {"lineId": "NANKAI_LINE", "companyId": "NANKAI"}
+      ],
+      "latitude": 35.6750,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_007",
+      "stationName": "南口駅",
+      "stationNameKana": "みなみぐちえき",
+      "lines": [
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.6700,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_008",
+      "stationName": "北口駅",
+      "stationNameKana": "きたぐちえき",
+      "lines": [
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.7050,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_009",
+      "stationName": "北部中央駅",
+      "stationNameKana": "ほくぶちゅうおうえき",
+      "lines": [{"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}],
+      "latitude": 35.7100,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_010",
+      "stationName": "北部終点駅",
+      "stationNameKana": "ほくぶしゅうてんえき",
+      "lines": [{"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}],
+      "latitude": 35.7200,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_011",
+      "stationName": "海岸駅",
+      "stationNameKana": "かいがんえき",
+      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
+      "latitude": 35.6600,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_012",
+      "stationName": "港町駅",
+      "stationNameKana": "みなとまちえき",
+      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
+      "latitude": 35.6500,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_013",
+      "stationName": "南端駅",
+      "stationNameKana": "なんたんえき",
+      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
+      "latitude": 35.6400,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_014",
+      "stationName": "西郊外駅",
+      "stationNameKana": "にしこうがいえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.6820,
+      "longitude": 139.7050
+    },
+    {
+      "stationId": "STA_015",
+      "stationName": "東郊外駅",
+      "stationNameKana": "ひがしこうがいえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.6970,
+      "longitude": 139.7350
+    }
+  ],
+  "segments": [
+    {
+      "segmentId": "SEG_001",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_001",
+      "toStationId": "STA_002",
+      "trainType": "EXPRESS",
+      "duration": 8,
+      "distance": 5.0,
+      "stopsAt": ["STA_001", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_002",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_001",
+      "toStationId": "STA_002",
+      "trainType": "RAPID",
+      "duration": 10,
+      "distance": 5.0,
+      "stopsAt": ["STA_001", "STA_014", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_003",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_001",
+      "toStationId": "STA_002",
+      "trainType": "LOCAL",
+      "duration": 12,
+      "distance": 5.0,
+      "stopsAt": ["STA_001", "STA_014", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_004",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_003",
+      "trainType": "EXPRESS",
+      "duration": 5,
+      "distance": 4.0,
+      "stopsAt": ["STA_002", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_005",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_003",
+      "trainType": "RAPID",
+      "duration": 6,
+      "distance": 4.0,
+      "stopsAt": ["STA_002", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_006",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_003",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 4.0,
+      "stopsAt": ["STA_002", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_007",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_004",
+      "trainType": "EXPRESS",
+      "duration": 5,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_008",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_004",
+      "trainType": "RAPID",
+      "duration": 6,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_009",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_004",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_010",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_005",
+      "trainType": "EXPRESS",
+      "duration": 8,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_005"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_011",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_005",
+      "trainType": "RAPID",
+      "duration": 10,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_015", "STA_005"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_012",
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_005",
+      "trainType": "LOCAL",
+      "duration": 12,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_015", "STA_005"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_013",
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_007",
+      "trainType": "LOCAL",
+      "duration": 6,
+      "distance": 3.5,
+      "stopsAt": ["STA_002", "STA_007"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_014",
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_007",
+      "toStationId": "STA_006",
+      "trainType": "LOCAL",
+      "duration": 4,
+      "distance": 2.5,
+      "stopsAt": ["STA_007", "STA_006"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_015",
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_006",
+      "toStationId": "STA_003",
+      "trainType": "LOCAL",
+      "duration": 5,
+      "distance": 3.0,
+      "stopsAt": ["STA_006", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_016",
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_008",
+      "trainType": "LOCAL",
+      "duration": 7,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_008"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_017",
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_008",
+      "toStationId": "STA_004",
+      "trainType": "LOCAL",
+      "duration": 5,
+      "distance": 3.0,
+      "stopsAt": ["STA_008", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_018",
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_002",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_019",
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_009",
+      "trainType": "EXPRESS",
+      "duration": 8,
+      "distance": 6.0,
+      "stopsAt": ["STA_003", "STA_009"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_020",
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_009",
+      "trainType": "LOCAL",
+      "duration": 12,
+      "distance": 6.0,
+      "stopsAt": ["STA_003", "STA_009"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_021",
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_009",
+      "toStationId": "STA_010",
+      "trainType": "EXPRESS",
+      "duration": 10,
+      "distance": 8.0,
+      "stopsAt": ["STA_009", "STA_010"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_022",
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_009",
+      "toStationId": "STA_010",
+      "trainType": "LOCAL",
+      "duration": 15,
+      "distance": 8.0,
+      "stopsAt": ["STA_009", "STA_010"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_023",
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_006",
+      "toStationId": "STA_011",
+      "trainType": "RAPID",
+      "duration": 5,
+      "distance": 3.0,
+      "stopsAt": ["STA_006", "STA_011"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_024",
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_006",
+      "toStationId": "STA_011",
+      "trainType": "LOCAL",
+      "duration": 7,
+      "distance": 3.0,
+      "stopsAt": ["STA_006", "STA_011"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_025",
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_011",
+      "toStationId": "STA_012",
+      "trainType": "RAPID",
+      "duration": 6,
+      "distance": 4.0,
+      "stopsAt": ["STA_011", "STA_012"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_026",
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_011",
+      "toStationId": "STA_012",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 4.0,
+      "stopsAt": ["STA_011", "STA_012"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_027",
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_012",
+      "toStationId": "STA_013",
+      "trainType": "RAPID",
+      "duration": 7,
+      "distance": 5.0,
+      "stopsAt": ["STA_012", "STA_013"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_028",
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_012",
+      "toStationId": "STA_013",
+      "trainType": "LOCAL",
+      "duration": 10,
+      "distance": 5.0,
+      "stopsAt": ["STA_012", "STA_013"],
+      "isBidirectional": true
+    }
+  ],
+  "transfers": [
+    {
+      "transferId": "TRF_001",
+      "stationId": "STA_002",
+      "fromLineId": "TOHTO_MAIN",
+      "toLineId": "TOHTO_LOOP",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_002",
+      "stationId": "STA_002",
+      "fromLineId": "TOHTO_LOOP",
+      "toLineId": "TOHTO_MAIN",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_003",
+      "stationId": "STA_003",
+      "fromLineId": "TOHTO_MAIN",
+      "toLineId": "TOHTO_LOOP",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_004",
+      "stationId": "STA_003",
+      "fromLineId": "TOHTO_LOOP",
+      "toLineId": "TOHTO_MAIN",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_005",
+      "stationId": "STA_003",
+      "fromLineId": "TOHTO_MAIN",
+      "toLineId": "HOKUBU_LINE",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "TRF_006",
+      "stationId": "STA_003",
+      "fromLineId": "HOKUBU_LINE",
+      "toLineId": "TOHTO_MAIN",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "TRF_007",
+      "stationId": "STA_003",
+      "fromLineId": "TOHTO_LOOP",
+      "toLineId": "HOKUBU_LINE",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_008",
+      "stationId": "STA_003",
+      "fromLineId": "HOKUBU_LINE",
+      "toLineId": "TOHTO_LOOP",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_009",
+      "stationId": "STA_004",
+      "fromLineId": "TOHTO_MAIN",
+      "toLineId": "TOHTO_LOOP",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_010",
+      "stationId": "STA_004",
+      "fromLineId": "TOHTO_LOOP",
+      "toLineId": "TOHTO_MAIN",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_011",
+      "stationId": "STA_006",
+      "fromLineId": "TOHTO_LOOP",
+      "toLineId": "NANKAI_LINE",
+      "transferTime": 5,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "TRF_012",
+      "stationId": "STA_006",
+      "fromLineId": "NANKAI_LINE",
+      "toLineId": "TOHTO_LOOP",
+      "transferTime": 5,
+      "isDirectThrough": false
+    }
+  ]
+}
