@@ -878,19 +878,19 @@ function createSegmentElement(leg, elapsed, isLast) {
 // ========================================
 function createTransferSegment(leg, elapsed) {
     const segment = document.createElement('div');
-    segment.className = 'transfer-info-segment';
-    const walkTime = leg.transferTime > 0 ? `徒歩${leg.transferTime}分` : '同一ホーム';
-    // 1行で乗換情報＋出発時刻
+    segment.className = 'route-segment';
+    // タイムライン記号は青丸で統一
     segment.innerHTML = `
-        <div class="transfer-timeline">
-            <div class="transfer-line"></div>
-            <div class="transfer-marker">🔄</div>
-            <div class="transfer-line"></div>
+        <div class="segment-timeline">
+            <div class="segment-time">${elapsed - leg.duration}分</div>
+            <div class="segment-marker"></div>
         </div>
-        <div class="transfer-details">
-            <div class="transfer-label">
-                🚶 乗り換え（${walkTime}）｜出発 ${elapsed}分
+        <div class="segment-details">
+            <div class="segment-station">${leg.stationName}</div>
+            <div class="transfer-label" style="margin-bottom: 4px;">
+                🚶 乗り換え（${leg.transferTime > 0 ? `徒歩${leg.transferTime}分` : '同一ホーム'}）
             </div>
+            <div class="segment-time" style="margin-top: 6px; color: #0078C8; font-weight: bold;">出発 ${elapsed}分</div>
         </div>
     `;
     return segment;
