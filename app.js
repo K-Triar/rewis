@@ -864,12 +864,18 @@ function createTableSegmentRow(leg) {
         <div class="table-marker">
             <span class="segment-line" style="background:${leg.lineColor};"></span>
         </div>
-        <div class="table-content">
-            <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
-            <span class="line-name">${leg.lineName}</span>
-            <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
-            <span class="segment-detail">🕐${Math.round(leg.duration)}分・🏢${stopsCount}駅</span>
-            ${createStopsButton(leg, 0)}
+        <div class="table-content segment-block">
+            <div class="segment-line-row">
+                <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
+                <span class="line-name">${leg.lineName}</span>
+                <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
+            </div>
+            <div class="segment-meta-row">
+                <span class="segment-detail">🕐${Math.round(leg.duration)}分・🏢${stopsCount}駅目で降りる</span>
+            </div>
+            <div class="segment-stops-row">
+                ${createStopsButton(leg, 0)}
+            </div>
         </div>
     `;
     return row;
