@@ -800,13 +800,85 @@ function createRouteCard(route, routeNumber) {
     route.legs.forEach((leg, index) => {
         const isLast = index === route.legs.length - 1;
         if (leg.type === 'start') {
-            // 出発駅（時刻表示なし）
+            // 出発駅
             const segment = createDepartureSegment(leg);
             path.appendChild(segment);
+            
+            // 出発駅の直後に線と路線情報を追加
+            const nextSegment = route.legs[index + 1];
+            if (nextSegment && nextSegment.type === 'segment') {
+                const stopsCount = nextSegment.stopsAt ? nextSegment.stopsAt.length : 0;
+                const lineSegment = document.createElement('div');
+                lineSegment.className = 'route-segment';
+                lineSegment.innerHTML = `
+                    <div class="segment-timeline">
+                        <div class="segment-line" style="background: ${nextSegment.lineColor};"></div>
+                    </div>
+                    <div class="segment-details">
+                        <div class="segment-train-info">
+                            <div class="train-line">
+                                <div class="line-icon" style="background: ${nextSegment.lineColor};">
+                                    ${nextSegment.lineName.charAt(0)}
+                                </div>
+                                <div>
+                                    <strong style="font-size: 1.05rem;">${nextSegment.lineName}</strong>
+                                    <span class="train-type-label ${nextSegment.trainType.toLowerCase()}">${nextSegment.trainTypeName}</span>
+                                </div>
+                            </div>
+                            <div class="train-duration">
+                                <div class="duration-item">
+                                    🕐 <strong>${Math.round(nextSegment.duration)}分</strong>
+                                </div>
+                                <div class="duration-item">
+                                    🏢 <strong>${stopsCount}駅</strong>
+                                </div>
+                            </div>
+                        </div>
+                        ${createStopsButton(nextSegment, elapsed)}
+                    </div>
+                `;
+                path.appendChild(lineSegment);
+            }
         } else if (leg.type === 'transfer') {
             elapsed += leg.duration;
             const transferSeg = createTransferSegment(leg, elapsed);
             path.appendChild(transferSeg);
+            
+            // 乗換の後に線と路線情報を追加
+            const nextSegment = route.legs[index + 1];
+            if (nextSegment && nextSegment.type === 'segment') {
+                const stopsCount = nextSegment.stopsAt ? nextSegment.stopsAt.length : 0;
+                const lineSegment = document.createElement('div');
+                lineSegment.className = 'route-segment';
+                lineSegment.innerHTML = `
+                    <div class="segment-timeline">
+                        <div class="segment-line" style="background: ${nextSegment.lineColor};"></div>
+                    </div>
+                    <div class="segment-details">
+                        <div class="segment-train-info">
+                            <div class="train-line">
+                                <div class="line-icon" style="background: ${nextSegment.lineColor};">
+                                    ${nextSegment.lineName.charAt(0)}
+                                </div>
+                                <div>
+                                    <strong style="font-size: 1.05rem;">${nextSegment.lineName}</strong>
+                                    <span class="train-type-label ${nextSegment.trainType.toLowerCase()}">${nextSegment.trainTypeName}</span>
+                                </div>
+                            </div>
+                            <div class="train-duration">
+                                <div class="duration-item">
+                                    🕐 <strong>${Math.round(nextSegment.duration)}分</strong>
+                                </div>
+                                <div class="duration-item">
+                                    🏢 <strong>${stopsCount}駅</strong>
+                                </div>
+                            </div>
+                        </div>
+                        ${createStopsButton(nextSegment, elapsed)}
+                    </div>
+                `;
+                path.appendChild(lineSegment);
+            }
         } else if (leg.type === 'segment') {
             elapsed += leg.duration;
             const segment = createSegmentElement(leg, elapsed, isLast);
@@ -824,6 +896,7 @@ function createRouteCard(route, routeNumber) {
 function createDepartureSegment(leg) {
     const segment = document.createElement('div');
     segment.className = 'route-segment';
+    const lineColor = leg.lineColor || '#4CAF50';
     segment.innerHTML = `
         <div class="segment-timeline">
             <div class="segment-marker departure"></div>
@@ -843,31 +916,17 @@ function createSegmentElement(leg, elapsed, isLast) {
     segment.className = 'route-segment';
     const lineColor = leg.lineColor || '#999';
     const markerClass = isLast ? 'arrival' : '';
+    
+    // 停車駅数を計算（途中駅のみ）
+    const stopsCount = leg.stopsAt ? leg.stopsAt.length : 0;
+    
     segment.innerHTML = `
         <div class="segment-timeline">
-            <div class="segment-line" style="background: ${lineColor};"></div>
             <div class="segment-time">${elapsed}分</div>
             <div class="segment-marker ${markerClass}"></div>
         </div>
         <div class="segment-details">
-            <div class="segment-train-info">
-                <div class="train-line">
-                    <div class="line-icon" style="background: ${lineColor};">
-                        ${leg.lineName.charAt(0)}
-                    </div>
-                    <div>
-                        <strong style="font-size: 1.05rem;">${leg.lineName}</strong>
-                        <span class="train-type-label ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
-                    </div>
-                </div>
-                <div class="train-duration">
-                    <div class="duration-item">
-                        🕐 <strong>${Math.round(leg.duration)}分</strong>
-                    </div>
-                </div>
-            </div>
-            ${createStopsButton(leg, elapsed - leg.duration)}
-            <div class="segment-station" style="margin-top: 15px;">${leg.stationName}</div>
+            <div class="segment-station">${leg.stationName}</div>
         </div>
     `;
     return segment;
@@ -878,20 +937,19 @@ function createSegmentElement(leg, elapsed, isLast) {
 // ========================================
 function createTransferSegment(leg, elapsed) {
     const segment = document.createElement('div');
-    segment.className = 'route-segment';
+    segment.className = 'transfer-info-segment';
     segment.innerHTML = `
         <div class="segment-timeline">
-            <div class="segment-time">${elapsed - leg.duration}分</div>
-            <div class="segment-marker"></div>
+            <div class="segment-time">${elapsed}分</div>
+            <div class="segment-marker transfer"></div>
         </div>
         <div class="segment-details">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2px;">
+            <div class="transfer-station-row">
                 <div class="segment-station">${leg.stationName}</div>
-                <div class="transfer-label" style="margin: 0;">
-                    🚶 乗り換え（${leg.transferTime > 0 ? `徒歩${leg.transferTime}分` : '同一ホーム'}）
+                <div class="transfer-info">
+                    🚶 乗り換え（徒歩${leg.transferTime}分）
                 </div>
             </div>
-            <div class="segment-time" style="margin-top: 2px; color: #0078C8; font-weight: bold;">出発 ${elapsed}分</div>
         </div>
     `;
     return segment;
