@@ -796,6 +796,11 @@ footer {
     border-bottom: none;
 }
 
+/* 駅行のみ中央揃え */
+.table-row.station-row {
+    align-items: center;
+}
+
 .table-time {
     text-align: right;
     color: #1976d2;
@@ -828,6 +833,13 @@ footer {
 .table-station, .table-content {
     padding: 10px 0 10px 0;
     font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 駅行の駅名とのりばを中央揃え */
+.table-station {
     display: flex;
     align-items: center;
     gap: 10px;
