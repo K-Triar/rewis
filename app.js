@@ -796,6 +796,8 @@ function createRouteCard(route, routeNumber) {
 
     // 経過分数管理
     let elapsed = 0;
+    // 乗換駅の重複表示防止のため、直前の駅IDを追跡
+    let lastTransferStationId = null;
 
     route.legs.forEach((leg, index) => {
         const isLast = index === route.legs.length - 1;
@@ -803,11 +805,12 @@ function createRouteCard(route, routeNumber) {
             // 出発駅
             const segment = createDepartureSegment(leg);
             path.appendChild(segment);
-            
+
             // 出発駅の直後に線と路線情報を追加
             const nextSegment = route.legs[index + 1];
             if (nextSegment && nextSegment.type === 'segment') {
-                const stopsCount = nextSegment.stopsAt ? nextSegment.stopsAt.length : 0;
+                // 駅数カウントは出発駅を除外
+                const stopsCount = nextSegment.stopsAt ? Math.max(nextSegment.stopsAt.length - 1, 0) : 0;
                 const lineSegment = document.createElement('div');
                 lineSegment.className = 'route-segment';
                 lineSegment.innerHTML = `
@@ -840,14 +843,20 @@ function createRouteCard(route, routeNumber) {
                 path.appendChild(lineSegment);
             }
         } else if (leg.type === 'transfer') {
+            // 直前の乗換駅と同じ場合はスキップ（重複防止）
+            if (lastTransferStationId === leg.stationId) {
+                return;
+            }
             elapsed += leg.duration;
             const transferSeg = createTransferSegment(leg, elapsed);
             path.appendChild(transferSeg);
-            
+            lastTransferStationId = leg.stationId;
+
             // 乗換の後に線と路線情報を追加
             const nextSegment = route.legs[index + 1];
             if (nextSegment && nextSegment.type === 'segment') {
-                const stopsCount = nextSegment.stopsAt ? nextSegment.stopsAt.length : 0;
+                // 駅数カウントは出発駅を除外
+                const stopsCount = nextSegment.stopsAt ? Math.max(nextSegment.stopsAt.length - 1, 0) : 0;
                 const lineSegment = document.createElement('div');
                 lineSegment.className = 'route-segment';
                 lineSegment.innerHTML = `
@@ -881,7 +890,14 @@ function createRouteCard(route, routeNumber) {
             }
         } else if (leg.type === 'segment') {
             elapsed += leg.duration;
-            const segment = createSegmentElement(leg, elapsed, isLast);
+            // 駅数カウントは出発駅を除外
+            const stopsCount = leg.stopsAt ? Math.max(leg.stopsAt.length - 1, 0) : 0;
+            // 降車駅表示
+            let arrivalText = '';
+            if (isLast) {
+                arrivalText = `<div class="getoff-info">●${stopsCount}駅目で降りる</div>`;
+            }
+            const segment = createSegmentElement(leg, elapsed, isLast, arrivalText);
             path.appendChild(segment);
         }
     });
@@ -911,15 +927,11 @@ function createDepartureSegment(leg) {
 // ========================================
 // 移動区間セグメント
 // ========================================
-function createSegmentElement(leg, elapsed, isLast) {
+function createSegmentElement(leg, elapsed, isLast, arrivalText = '') {
     const segment = document.createElement('div');
     segment.className = 'route-segment';
     const lineColor = leg.lineColor || '#999';
     const markerClass = isLast ? 'arrival' : '';
-    
-    // 停車駅数を計算（途中駅のみ）
-    const stopsCount = leg.stopsAt ? leg.stopsAt.length : 0;
-    
     segment.innerHTML = `
         <div class="segment-timeline">
             <div class="segment-time">${elapsed}分</div>
@@ -927,6 +939,7 @@ function createSegmentElement(leg, elapsed, isLast) {
         </div>
         <div class="segment-details">
             <div class="segment-station">${leg.stationName}</div>
+            ${arrivalText}
         </div>
     `;
     return segment;
