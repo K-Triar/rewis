@@ -905,11 +905,11 @@ function createStopsButton(leg, elapsedStart) {
     if (!leg.stopsAt || leg.stopsAt.length <= 2) {
         return '';
     }
-    const stops = leg.stopsAt.slice(1, -1);
+    const stops = leg.stopsAt.slice(1, -1); // 中間駅
     if (stops.length === 0) return '';
-    
+
     const stopsId = `stops-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     setTimeout(() => {
         const button = document.getElementById(`btn-${stopsId}`);
         const detail = document.getElementById(stopsId);
@@ -922,19 +922,24 @@ function createStopsButton(leg, elapsedStart) {
             });
         }
     }, 0);
-    
+
     let stopsHTML = '';
     let acc = elapsedStart;
     const perHop = leg.duration / (leg.stopsAt.length - 1);
-    
+
     stops.forEach((stopId) => {
         acc += perHop;
         const station = preprocessedData.stationMap.get(stopId);
         if (station) {
-            stopsHTML += `<div class="stop-item">${station.stationName}</div>`;
+            stopsHTML += `
+                <div class="stop-row">
+                    <span class="stop-name">${station.stationName}</span>
+                    <span class="stop-elapsed">${Math.round(acc)}分</span>
+                </div>
+            `;
         }
     });
-    
+
     return `
         <button class="toggle-stops-btn" id="btn-${stopsId}">
             ▼ 停車駅を表示
@@ -944,7 +949,6 @@ function createStopsButton(leg, elapsedStart) {
         </div>
     `;
 }
-
 // ========================================
 // UI制御関数
 // ========================================
