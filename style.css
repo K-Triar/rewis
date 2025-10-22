@@ -897,6 +897,30 @@ footer {
     color: #666;
     font-size: 0.9rem;
 }
+
 .stop-item:last-child {
     border-bottom: none;
+}
+
+.segment-block {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.segment-line-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.segment-meta-row {
+    font-size: 0.93rem;
+    color: #888;
+    margin-left: 38px; /* 路線記号の分だけ字下げ */
+}
+
+.segment-stops-row {
+    margin-left: 38px;
 }
