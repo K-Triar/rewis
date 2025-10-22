@@ -924,3 +924,68 @@ footer {
 .segment-stops-row {
     margin-left: 38px;
 }
+
+/* 全体の左寄せ */
+.table-content,
+.segment-block,
+.segment-line-row,
+.segment-meta-row,
+.segment-stops-row,
+.stops-list,
+.stop-row {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+/* 停車駅リスト（駅名＋分数） */
+.stops-list {
+    display: none;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+    min-width: 120px;
+}
+.stops-list.active {
+    display: block;
+}
+.stop-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.96rem;
+    color: #444;
+    padding: 3px 0;
+}
+.stop-name {
+    flex: 1;
+    min-width: 60px;
+}
+.stop-elapsed {
+    color: #1976d2;
+    font-weight: 500;
+    min-width: 36px;
+    text-align: right;
+}
+
+.segment-block {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+}
+.segment-line-row,
+.segment-meta-row,
+.segment-stops-row {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+}
+.segment-meta-row,
+.segment-stops-row {
+    margin-left: 38px;
+}
