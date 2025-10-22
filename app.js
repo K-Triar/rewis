@@ -569,94 +569,130 @@ function reconstructRoute(startKey, endKey, previous) {
 // ========================================
 // 経路情報構築
 // ========================================
+// 既存の buildRouteInfo をこの実装に置き換えてください
 function buildRouteInfo(path) {
     const legs = [];
     let totalDuration = 0;
-    let transferCount = 0;
-    let currentLine = null;
+
+    // 「直前の乗車（segment）レグ」を追跡してマージ判定に使う
+    let lastRideLeg = null;
 
     for (let i = 0; i < path.length; i++) {
         const node = path[i];
-        // ★ split('|') に変更
         const [stationId, lineId, trainType] = node.key.split('|');
         const station = preprocessedData.stationMap.get(stationId);
         const line = preprocessedData.lineMap.get(lineId);
         const trainTypeInfo = preprocessedData.trainTypeMap.get(trainType);
+        const edge = node.edge;
 
         if (i === 0) {
-            currentLine = lineId;
+            // 開始点は必ず start レグとして独立させる（ここに乗車時間を入れない）
             legs.push({
                 type: 'start',
-                stationId: stationId,
-                stationName: station.stationName,
-                lineId: lineId,
-                lineName: line.lineName,
-                lineColor: line.lineColor,
-                trainType: trainType,
-                trainTypeName: trainTypeInfo.trainTypeName,
+                stationId,
+                stationName: station?.stationName || stationId,
+                lineId,
+                lineName: line?.lineName || lineId,
+                lineColor: line?.lineColor || '#ccc',
+                trainType,
+                trainTypeName: trainTypeInfo?.trainTypeName || trainType,
                 duration: 0,
                 stopsAt: []
             });
-        } else {
-            const edge = node.edge;
-            
-            if (edge.type === 'segment') {
-                if (currentLine !== lineId) {
-                    transferCount++;
+            lastRideLeg = null; // 乗車レグはまだ始まっていない
+            continue;
+        }
+
+        if (!edge) continue; // 念のため
+
+        if (edge.type === 'segment') {
+            // 乗車レグを新規開始or直前の乗車とマージするか判定
+            const isMergeable =
+                lastRideLeg &&
+                lastRideLeg.lineId === lineId &&
+                lastRideLeg.trainType === trainType;
+
+            if (isMergeable) {
+                // 直前の同一路線・同種別の乗車レグにマージ
+                lastRideLeg.duration += edge.duration;
+                // 最終到着駅を更新
+                lastRideLeg.stationId = stationId;
+                lastRideLeg.stationName = station?.stationName || stationId;
+                // 停車駅に hopTo を追加（重複回避）
+                const hopTo = edge.segment?.hopTo;
+                if (hopTo && lastRideLeg.stopsAt[lastRideLeg.stopsAt.length - 1] !== hopTo) {
+                    lastRideLeg.stopsAt.push(hopTo);
                 }
-                
-                const prevLeg = legs[legs.length - 1];
-                
-                if (prevLeg.lineId === lineId && prevLeg.trainType === trainType) {
-                    prevLeg.duration += edge.duration;
-                    if (edge.segment && edge.segment.hopTo) {
-                        prevLeg.stopsAt = prevLeg.stopsAt.concat([edge.segment.hopTo]);
-                    }
-                } else {
-                    legs.push({
-                        type: 'segment',
-                        stationId: stationId,
-                        stationName: station ? station.stationName : stationId,
-                        lineId: lineId,
-                        lineName: line ? line.lineName : lineId,
-                        lineColor: line ? line.lineColor : '#ccc',
-                        trainType: trainType,
-                        trainTypeName: trainTypeInfo ? trainTypeInfo.trainTypeName : trainType,
-                        duration: edge.duration,
-                        stopsAt: edge.segment && edge.segment.hopFrom ? [edge.segment.hopFrom, edge.segment.hopTo] : []
-                    });
-                }
-                
-                totalDuration += edge.duration;
-                currentLine = lineId;
-                
-            } else if (edge.type === 'transfer') {
-                totalDuration += edge.duration;
-                
-                legs.push({
-                    type: 'transfer',
-                    stationId: stationId,
-                    stationName: station ? station.stationName : stationId,
-                    lineId: lineId,
-                    lineName: preprocessedData.lineMap.get(lineId)?.lineName || lineId,
-                    lineColor: preprocessedData.lineMap.get(lineId)?.lineColor || '#ccc',
-                    trainType: trainType,
-                    trainTypeName: preprocessedData.trainTypeMap.get(trainType)?.trainTypeName || trainType,
+            } else {
+                // 新しい乗車レグを追加
+                const newRide = {
+                    type: 'segment',
+                    stationId, // 現在ノード＝この乗車レグの「現時点での到着駅」
+                    stationName: station?.stationName || stationId,
+                    lineId,
+                    lineName: line?.lineName || lineId,
+                    lineColor: line?.lineColor || '#ccc',
+                    trainType,
+                    trainTypeName: trainTypeInfo?.trainTypeName || trainType,
                     duration: edge.duration,
-                    transferTime: edge.duration,
-                    isDirectThrough: edge.transfer?.isDirectThrough || false,
-                    stopsAt: []
-                });
-                
-                currentLine = lineId;
+                    // 停車駅は hopFrom -> hopTo からスタート。以後マージ時に hopTo を追加
+                    stopsAt: (edge.segment?.hopFrom && edge.segment?.hopTo)
+                        ? [edge.segment.hopFrom, edge.segment.hopTo]
+                        : []
+                };
+
+                // 直前の乗車レグが存在していて路線が変わるなら「乗換回数+1」
+                // （transferエッジ自体では+1せず、実際に別路線に乗車を開始したタイミングで+1）
+                const lastSegmentLeg = legs.slice().reverse().find(l => l.type === 'segment');
+                if (lastSegmentLeg && lastSegmentLeg.lineId !== lineId) {
+                    // 新しいプロパティ transferCount がまだなければ route 組み立て完了後に集計する方式でもよいが
+                    // ここでは legs 配列とは別にカウントしないため、後で集計する
+                }
+
+                legs.push(newRide);
+                lastRideLeg = newRide;
             }
+
+            totalDuration += edge.duration;
+
+        } else if (edge.type === 'transfer') {
+            // 乗換レグはそのまま追加
+            legs.push({
+                type: 'transfer',
+                stationId,
+                stationName: station?.stationName || stationId,
+                lineId,
+                lineName: line?.lineName || lineId,
+                lineColor: line?.lineColor || '#ccc',
+                trainType,
+                trainTypeName: trainTypeInfo?.trainTypeName || trainType,
+                duration: edge.duration,
+                transferTime: edge.duration,
+                isDirectThrough: edge.transfer?.isDirectThrough || false,
+                stopsAt: []
+            });
+            totalDuration += edge.duration;
+
+            // 乗換の後は、新しい乗車レグが始まるまで lastRideLeg は据え置きでOK
+            // （次の乗車レグ作成時に路線が変われば実質的な「乗換」とみなす）
         }
     }
 
+    // 乗換回数を legs から後集計（連続する segment 間で路線が変わった回数）
+    let transferCount = 0;
+    let prevSegLine = null;
+    for (const leg of legs) {
+        if (leg.type !== 'segment') continue;
+        if (prevSegLine !== null && prevSegLine !== leg.lineId) {
+            transferCount++;
+        }
+        prevSegLine = leg.lineId;
+    }
+
     return {
-        legs: legs,
+        legs,
         totalDuration: Math.round(totalDuration),
-        transferCount: transferCount
+        transferCount
     };
 }
 
