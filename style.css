@@ -345,149 +345,282 @@ main {
 }
 
 .route-card {
-    background: var(--bg-gray);
+    background: white;
     border-radius: 8px;
     padding: 20px;
     box-shadow: var(--shadow);
     transition: transform 0.3s, box-shadow 0.3s;
+    border: 2px solid #f0f0f0;
 }
 
 .route-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
 }
 
 .route-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 .route-number {
     background: var(--primary-color);
     color: white;
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .route-summary {
     display: flex;
-    gap: 20px;
-    font-size: 0.95rem;
+    gap: 25px;
+    font-size: 1rem;
 }
 
 .summary-item {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    font-weight: 500;
 }
 
 .summary-item strong {
     color: var(--primary-color);
+    font-size: 1.2rem;
 }
 
+/* ========================================
+   乗換案内風の経路表示（改善版）
+======================================== */
 .route-path {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
-.route-leg {
+.route-segment {
     display: flex;
-    align-items: flex-start;
-    margin-bottom: 12px;
+    gap: 15px;
     position: relative;
 }
 
-.route-leg::before {
-    content: '';
-    position: absolute;
-    left: 19px;
-    top: 35px;
-    width: 3px;
-    height: calc(100% - 20px);
-    background: var(--border-color);
+.route-segment:not(:last-child) {
+    margin-bottom: 0;
 }
 
-.route-leg:last-child::before {
-    display: none;
+/* 左側のタイムライン部分 */
+.segment-timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+    position: relative;
 }
 
-.station-marker {
-    min-width: 40px;
-    height: 40px;
+.segment-time {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 8px;
+    white-space: nowrap;
+}
+
+.segment-marker {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
     background: white;
-    border: 3px solid var(--primary-color);
+    border: 4px solid var(--primary-color);
+    z-index: 2;
+    position: relative;
+}
+
+.segment-marker.departure {
+    border-color: #4CAF50;
+    background: #4CAF50;
+}
+
+.segment-marker.arrival {
+    border-color: var(--danger-color);
+    background: var(--danger-color);
+}
+
+.segment-line {
+    width: 8px;
+    flex: 1;
+    margin: 5px 0;
+    border-radius: 4px;
+    min-height: 60px;
+    position: relative;
+}
+
+/* 右側の詳細情報 */
+.segment-details {
+    flex: 1;
+    padding: 5px 0;
+}
+
+.segment-station {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.segment-train-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.train-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.line-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: white;
+}
+
+.line-icon {
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-right: 15px;
-    position: relative;
-    z-index: 1;
-}
-
-.station-marker.transfer {
-    border-color: var(--warning-color);
-    color: var(--warning-color);
-}
-
-.station-marker.arrival {
-    background: var(--danger-color);
-    border-color: var(--danger-color);
+    font-weight: 700;
+    font-size: 0.85rem;
     color: white;
+    flex-shrink: 0;
 }
 
-.leg-info {
-    flex: 1;
-    padding-top: 5px;
-}
-
-.station-name-display {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-
-.line-info {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 10px;
-    background: white;
+.train-type-label {
+    display: inline-block;
+    padding: 3px 10px;
     border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+    margin-left: 8px;
+}
+
+.train-type-label.express {
+    background: var(--danger-color);
+}
+
+.train-type-label.rapid {
+    background: var(--warning-color);
+}
+
+.train-type-label.local {
+    background: var(--success-color);
+}
+
+.train-duration {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     font-size: 0.9rem;
+    color: #666;
     margin-top: 5px;
 }
 
-.line-color-box {
+.duration-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.duration-item strong {
+    color: var(--text-color);
+}
+
+/* 乗換情報 */
+.transfer-info-segment {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+}
+
+.transfer-timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+}
+
+.transfer-marker {
     width: 20px;
     height: 20px;
-    border-radius: 3px;
-    border: 1px solid rgba(0,0,0,0.1);
+    background: var(--warning-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
 }
 
-.duration-display {
-    color: #666;
+.transfer-line {
+    width: 3px;
+    height: 30px;
+    background: repeating-linear-gradient(
+        to bottom,
+        #ddd 0px,
+        #ddd 5px,
+        transparent 5px,
+        transparent 10px
+    );
+    margin: 5px 0;
+}
+
+.transfer-details {
+    flex: 1;
+    padding: 5px 0;
+}
+
+.transfer-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: #fff3e0;
+    border-left: 4px solid var(--warning-color);
+    border-radius: 4px;
+    font-weight: 600;
+    color: #e65100;
+}
+
+.transfer-walk-time {
     font-size: 0.9rem;
-    margin-left: 5px;
+    color: #666;
+    margin-top: 5px;
 }
 
-.transfer-info {
-    color: var(--warning-color);
-    font-size: 0.85rem;
-    font-style: italic;
-    margin-top: 3px;
-}
-
+/* 停車駅表示ボタン */
 .toggle-stops-button {
     background: white;
     color: var(--primary-color);
@@ -510,11 +643,19 @@ main {
     padding: 15px;
     background: white;
     border-radius: 6px;
+    border: 1px solid #e0e0e0;
     display: none;
 }
 
 .stops-detail.active {
     display: block;
+}
+
+.stops-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #666;
+    font-size: 0.9rem;
 }
 
 .stop-item {
@@ -530,9 +671,9 @@ main {
 }
 
 .stop-marker {
-    width: 10px;
-    height: 10px;
-    background: var(--border-color);
+    width: 8px;
+    height: 8px;
+    background: #bbb;
     border-radius: 50%;
 }
 
@@ -616,6 +757,18 @@ footer {
     main {
         padding: 20px;
     }
+
+    .segment-timeline {
+        min-width: 50px;
+    }
+
+    .segment-time {
+        font-size: 0.95rem;
+    }
+
+    .segment-station {
+        font-size: 1.05rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -637,5 +790,11 @@ footer {
 
     .route-card {
         padding: 15px;
+    }
+
+    .train-duration {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
     }
 }
