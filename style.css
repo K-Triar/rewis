@@ -735,12 +735,13 @@ footer {
         min-width: 50px;
     }
 
-    .segment-time {
-        font-size: 0.95rem;
-    }
-
-    .segment-station {
-        font-size: 1.05rem;
+    .segment-line {
+        width: 8px;
+        height: 100%;
+        min-height: 60px;
+        border-radius: 4px;
+        margin: 0 auto;
+        display: block;
     }
 }
 
