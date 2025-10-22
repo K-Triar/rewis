@@ -1,3 +1,17 @@
+/* 番線表示 */
+.station-platform {
+    display: inline-block;
+    background: #f3f6fa;
+    color: #1976d2;
+    border: 1px solid #bcd;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: 600;
+    padding: 2px 10px;
+    margin-left: 8px;
+    margin-top: 2px;
+    vertical-align: middle;
+}
 /* ========================================
    リセット & ベーススタイル
 ======================================== */
@@ -902,11 +916,6 @@ footer {
     border-bottom: none;
 }
 
-.segment-block {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
 
 .segment-line-row {
     display: flex;
@@ -972,12 +981,6 @@ footer {
     text-align: right;
 }
 
-.segment-block {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    align-items: flex-start;
-}
 .segment-line-row,
 .segment-meta-row,
 .segment-stops-row {
