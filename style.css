@@ -922,17 +922,21 @@ footer {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 0;
+    margin-bottom: 0.5em;
 }
 
 .segment-meta-row {
-    font-size: 0.93rem;
-    color: #888;
+    display: block;
+    font-size: 0.95rem;
+    color: #666;
     margin-left: 38px; /* 路線記号の分だけ字下げ */
+    margin-bottom: 0.2em;
+    line-height: 1.7;
 }
 
 .segment-stops-row {
     margin-left: 38px;
+    margin-bottom: 0.5em;
 }
 
 /* 全体の左寄せ */
