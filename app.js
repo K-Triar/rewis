@@ -585,8 +585,14 @@ function buildRouteInfo(path) {
         const trainTypeInfo = preprocessedData.trainTypeMap.get(trainType);
         const edge = node.edge;
 
+        // 直前のsegmentのplatforms情報を参照するためにsegment参照を保持
+        let prevSegment = null;
+        if (i > 0 && path[i-1].edge && path[i-1].edge.type === 'segment') {
+            prevSegment = path[i-1].edge.segment;
+        }
+
         if (i === 0) {
-            // 開始点は必ず start レグとして独立させる（ここに乗車時間を入れない）
+            // 開始点は必ず start レグとして独立させる
             legs.push({
                 type: 'start',
                 stationId,
@@ -597,13 +603,14 @@ function buildRouteInfo(path) {
                 trainType,
                 trainTypeName: trainTypeInfo?.trainTypeName || trainType,
                 duration: 0,
-                stopsAt: []
+                stopsAt: [],
+                platform: null // 出発駅は乗車番線を次のsegmentで参照
             });
-            lastRideLeg = null; // 乗車レグはまだ始まっていない
+            lastRideLeg = null;
             continue;
         }
 
-        if (!edge) continue; // 念のため
+        if (!edge) continue;
 
         if (edge.type === 'segment') {
             // 乗車レグを新規開始or直前の乗車とマージするか判定
@@ -612,10 +619,14 @@ function buildRouteInfo(path) {
                 lastRideLeg.lineId === lineId &&
                 lastRideLeg.trainType === trainType;
 
+            // 番線情報取得
+            let platform = null;
+            if (edge.segment && edge.segment.platforms && edge.segment.platforms[stationId]) {
+                platform = edge.segment.platforms[stationId];
+            }
+
             if (isMergeable) {
-                // 直前の同一路線・同種別の乗車レグにマージ
                 lastRideLeg.duration += edge.duration;
-                // 最終到着駅を更新
                 lastRideLeg.stationId = stationId;
                 lastRideLeg.stationName = station?.stationName || stationId;
                 // 停車駅に hopTo を追加（重複回避）
@@ -623,11 +634,13 @@ function buildRouteInfo(path) {
                 if (hopTo && lastRideLeg.stopsAt[lastRideLeg.stopsAt.length - 1] !== hopTo) {
                     lastRideLeg.stopsAt.push(hopTo);
                 }
+                // 到着駅の番線を更新
+                lastRideLeg.platform = platform;
             } else {
                 // 新しい乗車レグを追加
                 const newRide = {
                     type: 'segment',
-                    stationId, // 現在ノード＝この乗車レグの「現時点での到着駅」
+                    stationId,
                     stationName: station?.stationName || stationId,
                     lineId,
                     lineName: line?.lineName || lineId,
@@ -635,28 +648,22 @@ function buildRouteInfo(path) {
                     trainType,
                     trainTypeName: trainTypeInfo?.trainTypeName || trainType,
                     duration: edge.duration,
-                    // 停車駅は hopFrom -> hopTo からスタート。以後マージ時に hopTo を追加
                     stopsAt: (edge.segment?.hopFrom && edge.segment?.hopTo)
                         ? [edge.segment.hopFrom, edge.segment.hopTo]
-                        : []
+                        : [],
+                    platform: platform
                 };
-
-                // 直前の乗車レグが存在していて路線が変わるなら「乗換回数+1」
-                // （transferエッジ自体では+1せず、実際に別路線に乗車を開始したタイミングで+1）
-                const lastSegmentLeg = legs.slice().reverse().find(l => l.type === 'segment');
-                if (lastSegmentLeg && lastSegmentLeg.lineId !== lineId) {
-                    // 新しいプロパティ transferCount がまだなければ route 組み立て完了後に集計する方式でもよいが
-                    // ここでは legs 配列とは別にカウントしないため、後で集計する
-                }
-
                 legs.push(newRide);
                 lastRideLeg = newRide;
             }
-
             totalDuration += edge.duration;
-
         } else if (edge.type === 'transfer') {
-            // 乗換レグはそのまま追加
+            // 乗換レグ
+            // 直前のsegmentのplatformsから乗換駅の番線を取得
+            let platform = null;
+            if (prevSegment && prevSegment.platforms && prevSegment.platforms[stationId]) {
+                platform = prevSegment.platforms[stationId];
+            }
             legs.push({
                 type: 'transfer',
                 stationId,
@@ -669,12 +676,10 @@ function buildRouteInfo(path) {
                 duration: edge.duration,
                 transferTime: edge.duration,
                 isDirectThrough: edge.transfer?.isDirectThrough || false,
-                stopsAt: []
+                stopsAt: [],
+                platform: platform
             });
             totalDuration += edge.duration;
-
-            // 乗換の後は、新しい乗車レグが始まるまで lastRideLeg は据え置きでOK
-            // （次の乗車レグ作成時に路線が変われば実質的な「乗換」とみなす）
         }
     }
 
@@ -799,30 +804,34 @@ function createRouteCard(route, routeNumber) {
     table.appendChild(createTableStationRow({
         elapsed,
         stationName: firstLeg.stationName,
-        marker: 'start'
+        marker: 'start',
+        platform: route.legs[1]?.platform || null // 乗車番線（最初のsegmentの出発駅）
     }));
 
     // 2. 区間・乗換ごとにtable行を出力
     for (let i = 1; i < route.legs.length; i++) {
         const leg = route.legs[i];
-
         if (leg.type === 'segment') {
-            // 区間行
             table.appendChild(createTableSegmentRow(leg));
             elapsed += Math.round(leg.duration);
-
             // 到着駅（この区間の終点駅）
             table.appendChild(createTableStationRow({
                 elapsed,
                 stationName: leg.stationName,
-                marker: (i === route.legs.length - 1) ? 'end' : 'via'
+                marker: (i === route.legs.length - 1) ? 'end' : 'via',
+                platform: leg.platform || null // 到着番線
             }));
-
         } else if (leg.type === 'transfer') {
-            // 乗換行
             table.appendChild(createTableTransferRow(leg));
             elapsed += Math.round(leg.transferTime || leg.duration);
-            // 乗換後の駅は次のsegment区間の到着駅で表示される（ここでは出力しない）
+            // 乗換後の駅は次のsegment区間の到着駅で表示される
+            // 乗換駅の番線はtransfer legのplatformで表示
+            table.appendChild(createTableStationRow({
+                elapsed,
+                stationName: leg.stationName,
+                marker: 'via',
+                platform: leg.platform || null
+            }));
         }
     }
 
@@ -831,7 +840,7 @@ function createRouteCard(route, routeNumber) {
 }
 
 // 駅行
-function createTableStationRow({ elapsed, stationName, marker }) {
+function createTableStationRow({ elapsed, stationName, marker, platform }) {
     const row = document.createElement('div');
     row.className = 'table-row station-row';
 
@@ -847,6 +856,7 @@ function createTableStationRow({ elapsed, stationName, marker }) {
         </div>
         <div class="table-station">
             <span class="station-name">${stationName}</span>
+            ${platform ? `<span class="station-platform">${platform}</span>` : ''}
         </div>
     `;
     return row;
