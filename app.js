@@ -869,15 +869,10 @@ function createTableSegmentRow(leg) {
 
     // 停車駅数（乗車駅を除き降車駅を含む）
     let stopsCount = 0;
-    if (leg.stopsAt && leg.fromStationId && leg.toStationId) {
-        const fromIdx = leg.stopsAt.indexOf(leg.fromStationId);
-        const toIdx = leg.stopsAt.indexOf(leg.toStationId);
-        if (fromIdx !== -1 && toIdx !== -1 && toIdx > fromIdx) {
-            stopsCount = toIdx - fromIdx;
-        } else if (fromIdx !== -1 && toIdx !== -1 && fromIdx > toIdx) {
-            // 逆方向
-            stopsCount = fromIdx - toIdx;
-        }
+    if (leg.stopsAt && leg.stopsAt.length >= 2) {
+        // stopsAtの最初の駅が乗車駅、最後の駅が降車駅
+        // 乗車駅を除き降車駅を含むので、length - 1
+        stopsCount = leg.stopsAt.length - 1;
     }
 
     // table-time（空）
@@ -892,7 +887,7 @@ function createTableSegmentRow(leg) {
     segmentLine.className = 'segment-line';
     segmentLine.style.background = leg.lineColor;
     segmentLine.style.height = '100%';
-    segmentLine.style.minHeight = '60px';
+    segmentLine.style.minHeight = '80px';
     segmentLine.style.display = 'block';
     markerDiv.appendChild(segmentLine);
     row.appendChild(markerDiv);
@@ -915,7 +910,7 @@ function createTableSegmentRow(leg) {
     const metaRow = document.createElement('div');
     metaRow.className = 'segment-meta-row';
     metaRow.innerHTML = `
-        <span class="segment-detail">${leg.duration}分 乗車</span>
+        <span class="segment-detail">${Math.round(leg.duration)}分 乗車</span>
         <span class="segment-detail">${stopsCount}駅目で降車</span>
     `;
     contentDiv.appendChild(metaRow);
@@ -923,9 +918,9 @@ function createTableSegmentRow(leg) {
     // 3行目: 停車駅表示ボタン
     const stopsRow = document.createElement('div');
     stopsRow.className = 'segment-stops-row';
-    const stopsBtn = createStopsButton(leg, leg.elapsedStart);
-    if (stopsBtn instanceof Node) {
-        stopsRow.appendChild(stopsBtn);
+    const stopsButton = createStopsButton(leg, leg.elapsedStart);
+    if (stopsButton) {
+        stopsRow.appendChild(stopsButton);
     }
     contentDiv.appendChild(stopsRow);
 
@@ -965,53 +960,67 @@ function createTableTransferRow(leg) {
 // ========================================
 // 停車駅ボタン作成
 // ========================================
-function createStopsButton(leg, elapsedStart) {
+function createStopsButton(leg, elapsedStart = 0) {
     if (!leg.stopsAt || leg.stopsAt.length <= 2) {
-        return '';
+        return null;
     }
     const stops = leg.stopsAt.slice(1, -1); // 中間駅
-    if (stops.length === 0) return '';
+    if (stops.length === 0) return null;
 
     const stopsId = `stops-${Math.random().toString(36).substr(2, 9)}`;
+    const btnId = `btn-${stopsId}`;
 
-    setTimeout(() => {
-        const button = document.getElementById(`btn-${stopsId}`);
-        const detail = document.getElementById(stopsId);
-        if (button && detail) {
-            button.addEventListener('click', () => {
-                detail.classList.toggle('active');
-                button.textContent = detail.classList.contains('active') 
-                    ? '▲ 停車駅を非表示' 
-                    : '▼ 停車駅を表示';
-            });
-        }
-    }, 0);
+    // コンテナを作成
+    const container = document.createElement('div');
+    container.style.display = 'block';
 
-    let stopsHTML = '';
-    let acc = elapsedStart;
+    // ボタンを作成
+    const button = document.createElement('button');
+    button.className = 'toggle-stops-btn';
+    button.id = btnId;
+    button.textContent = '▼ 停車駅を表示';
+
+    // 停車駅リストを作成
+    const stopsList = document.createElement('div');
+    stopsList.className = 'stops-list';
+    stopsList.id = stopsId;
+
+    let acc = elapsedStart || 0;
     const perHop = leg.duration / (leg.stopsAt.length - 1);
 
     stops.forEach((stopId) => {
         acc += perHop;
         const station = preprocessedData.stationMap.get(stopId);
         if (station) {
-            stopsHTML += `
-                <div class="stop-row">
-                    <span class="stop-name">${station.stationName}</span>
-                    <span class="stop-elapsed">${Math.round(acc)}分</span>
-                </div>
-            `;
+            const stopRow = document.createElement('div');
+            stopRow.className = 'stop-row';
+            
+            const stopName = document.createElement('span');
+            stopName.className = 'stop-name';
+            stopName.textContent = station.stationName;
+            
+            const stopElapsed = document.createElement('span');
+            stopElapsed.className = 'stop-elapsed';
+            stopElapsed.textContent = `${Math.round(acc)}分`;
+            
+            stopRow.appendChild(stopName);
+            stopRow.appendChild(stopElapsed);
+            stopsList.appendChild(stopRow);
         }
     });
 
-    return `
-        <button class="toggle-stops-btn" id="btn-${stopsId}">
-            ▼ 停車駅を表示
-        </button>
-        <div class="stops-list" id="${stopsId}">
-            ${stopsHTML}
-        </div>
-    `;
+    // イベントリスナーを追加
+    button.addEventListener('click', () => {
+        stopsList.classList.toggle('active');
+        button.textContent = stopsList.classList.contains('active') 
+            ? '▲ 停車駅を非表示' 
+            : '▼ 停車駅を表示';
+    });
+
+    container.appendChild(button);
+    container.appendChild(stopsList);
+
+    return container;
 }
 // ========================================
 // UI制御関数
