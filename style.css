@@ -757,3 +757,146 @@ footer {
         gap: 5px;
     }
 }
+
+/* ========================================
+   駅・路線交互テーブル形式
+======================================== */
+.route-table {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 60px 36px 1fr;
+    align-items: center;
+    min-height: 46px;
+    border-bottom: 1px solid #f2f2f2;
+    background: transparent;
+}
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.table-time {
+    text-align: right;
+    color: #1976d2;
+    font-size: 1.08rem;
+    font-weight: 700;
+    padding-right: 8px;
+}
+.table-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+.station-marker {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.segment-line {
+    width: 7px;
+    height: 36px;
+    border-radius: 4px;
+    display: inline-block;
+}
+.transfer-icon {
+    font-size: 1.2rem;
+    color: #FF9800;
+}
+.table-station, .table-content {
+    padding: 10px 0 10px 0;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.station-name {
+    font-weight: 700;
+    font-size: 1.13rem;
+    color: #333;
+}
+.line-symbol {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.line-name {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #222;
+}
+.train-type-badge {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.87rem;
+    font-weight: 600;
+    color: white;
+}
+.train-type-badge.express { background: #E60012; }
+.train-type-badge.rapid { background: #FF6600; }
+.train-type-badge.local { background: #00A040; }
+
+.segment-detail {
+    color: #888;
+    font-size: 0.93rem;
+    margin-left: 10px;
+}
+
+.transfer-label {
+    background: #fff7e0;
+    color: #e65100;
+    padding: 7px 13px;
+    border-radius: 16px;
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+.toggle-stops-btn {
+    background: white;
+    color: #1976d2;
+    border: 1px solid #1976d2;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    margin-left: 10px;
+    font-weight: 500;
+}
+.toggle-stops-btn:hover {
+    background: #e3f2fd;
+}
+.stops-list {
+    display: none;
+    margin-top: 8px;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+.stops-list.active {
+    display: block;
+}
+.stop-item {
+    padding: 5px 0;
+    border-bottom: 1px dashed #eee;
+    color: #666;
+    font-size: 0.9rem;
+}
+.stop-item:last-child {
+    border-bottom: none;
+}
