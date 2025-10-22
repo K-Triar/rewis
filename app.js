@@ -768,7 +768,7 @@ function displayResults(routes) {
 }
 
 // ========================================
-// 経路カード作成（改善版）
+// 経路カード作成（画像のUIに合わせて修正）
 // ========================================
 function createRouteCard(route, routeNumber) {
     const card = document.createElement('div');
@@ -780,130 +780,176 @@ function createRouteCard(route, routeNumber) {
     header.innerHTML = `
         <div class="route-number">${routeNumber}</div>
         <div class="route-summary">
-            <div class="summary-item">
-                ⏱️ <strong>${route.totalDuration}分</strong>
-            </div>
-            <div class="summary-item">
-                🔄 乗換 <strong>${route.transferCount}回</strong>
-            </div>
+            <span class="summary-item">
+                <span class="icon-clock"></span> 
+                <span style="color:#0078C8;font-weight:bold;">${route.totalDuration}分</span>
+            </span>
+            <span class="summary-item">
+                <span class="icon-transfer"></span> 
+                <span style="color:#1976d2;font-weight:bold;">乗換 ${route.transferCount}回</span>
+            </span>
         </div>
     `;
     card.appendChild(header);
 
-    // 経路詳細（タイムライン形式）
+    // タイムライン
     const path = document.createElement('div');
     path.className = 'route-path';
 
-    // 経過分数管理
     let elapsed = 0;
-    // 乗換駅の重複表示防止のため、直前の駅IDを追跡
-    let lastTransferStationId = null;
+    for (let i = 0; i < route.legs.length; i++) {
+        const leg = route.legs[i];
+        const isFirst = i === 0;
+        const isLast = i === route.legs.length - 1;
 
-    route.legs.forEach((leg, index) => {
-        const isLast = index === route.legs.length - 1;
+        // 1. 出発駅（最初のみ）
         if (leg.type === 'start') {
-            // 出発駅
-            const segment = createDepartureSegment(leg);
-            path.appendChild(segment);
-
-            // 出発駅の直後に線と路線情報を追加
-            const nextSegment = route.legs[index + 1];
-            if (nextSegment && nextSegment.type === 'segment') {
-                // 駅数カウントは出発駅を除外
-                const stopsCount = nextSegment.stopsAt ? Math.max(nextSegment.stopsAt.length - 1, 0) : 0;
-                const lineSegment = document.createElement('div');
-                lineSegment.className = 'route-segment';
-                lineSegment.innerHTML = `
-                    <div class="segment-timeline">
-                        <div class="segment-line" style="background: ${nextSegment.lineColor};"></div>
-                    </div>
-                    <div class="segment-details">
-                        <div class="segment-train-info">
-                            <div class="train-line">
-                                <div class="line-icon" style="background: ${nextSegment.lineColor};">
-                                    ${nextSegment.lineName.charAt(0)}
-                                </div>
-                                <div>
-                                    <strong style="font-size: 1.05rem;">${nextSegment.lineName}</strong>
-                                    <span class="train-type-label ${nextSegment.trainType.toLowerCase()}">${nextSegment.trainTypeName}</span>
-                                </div>
-                            </div>
-                            <div class="train-duration">
-                                <div class="duration-item">
-                                    🕐 <strong>${Math.round(nextSegment.duration)}分</strong>
-                                </div>
-                                <div class="duration-item">
-                                    🏢 <strong>${stopsCount}駅</strong>
-                                </div>
-                            </div>
-                        </div>
-                        ${createStopsButton(nextSegment, elapsed)}
-                    </div>
-                `;
-                path.appendChild(lineSegment);
-            }
-        } else if (leg.type === 'transfer') {
-            // 直前の乗換駅と同じ場合はスキップ（重複防止）
-            if (lastTransferStationId === leg.stationId) {
-                return;
-            }
-            elapsed += leg.duration;
-            const transferSeg = createTransferSegment(leg, elapsed);
-            path.appendChild(transferSeg);
-            lastTransferStationId = leg.stationId;
-
-            // 乗換の後に線と路線情報を追加
-            const nextSegment = route.legs[index + 1];
-            if (nextSegment && nextSegment.type === 'segment') {
-                // 駅数カウントは出発駅を除外
-                const stopsCount = nextSegment.stopsAt ? Math.max(nextSegment.stopsAt.length - 1, 0) : 0;
-                const lineSegment = document.createElement('div');
-                lineSegment.className = 'route-segment';
-                lineSegment.innerHTML = `
-                    <div class="segment-timeline">
-                        <div class="segment-line" style="background: ${nextSegment.lineColor};"></div>
-                    </div>
-                    <div class="segment-details">
-                        <div class="segment-train-info">
-                            <div class="train-line">
-                                <div class="line-icon" style="background: ${nextSegment.lineColor};">
-                                    ${nextSegment.lineName.charAt(0)}
-                                </div>
-                                <div>
-                                    <strong style="font-size: 1.05rem;">${nextSegment.lineName}</strong>
-                                    <span class="train-type-label ${nextSegment.trainType.toLowerCase()}">${nextSegment.trainTypeName}</span>
-                                </div>
-                            </div>
-                            <div class="train-duration">
-                                <div class="duration-item">
-                                    🕐 <strong>${Math.round(nextSegment.duration)}分</strong>
-                                </div>
-                                <div class="duration-item">
-                                    🏢 <strong>${stopsCount}駅</strong>
-                                </div>
-                            </div>
-                        </div>
-                        ${createStopsButton(nextSegment, elapsed)}
-                    </div>
-                `;
-                path.appendChild(lineSegment);
-            }
-        } else if (leg.type === 'segment') {
-            elapsed += leg.duration;
-            // 駅数カウントは出発駅を除外
-            const stopsCount = leg.stopsAt ? Math.max(leg.stopsAt.length - 1, 0) : 0;
-            // 降車駅表示
-            let arrivalText = '';
-            if (isLast) {
-                arrivalText = `<div class="getoff-info">●${stopsCount}駅目で降りる</div>`;
-            }
-            const segment = createSegmentElement(leg, elapsed, isLast, arrivalText);
-            path.appendChild(segment);
+            path.appendChild(createTimelineRow({
+                elapsed: 0,
+                stationName: leg.stationName,
+                marker: 'start',
+                color: getLineColor(route.legs[i + 1]),
+                isFirst,
+                isLast: false
+            }));
+            continue;
         }
-    });
+
+        // 2. 移動区間（segment）
+        if (leg.type === 'segment') {
+            elapsed += Math.round(leg.duration);
+
+            // 乗車区間のパネル
+            path.appendChild(createTimelineRow({
+                elapsed: null, // 区間パネルはラベル無し
+                content: createSegmentPanel(leg),
+                color: getLineColor(leg),
+                marker: null,
+                isFirst: false,
+                isLast: false
+            }));
+
+            // 次が最後（降車駅）または乗換なら、その後に駅名＋マーカー＋累積分数
+            const nextLeg = route.legs[i + 1];
+            if (!nextLeg || nextLeg.type === 'transfer') {
+                // 降車or乗換駅
+                path.appendChild(createTimelineRow({
+                    elapsed,
+                    stationName: leg.stationName,
+                    marker: nextLeg && nextLeg.type === 'transfer' ? 'transfer' : 'end',
+                    color: getLineColor(leg),
+                    isFirst: false,
+                    isLast: !nextLeg
+                }));
+            }
+            continue;
+        }
+
+        // 3. 乗換（transfer）
+        if (leg.type === 'transfer') {
+            // 乗換インラインパネル
+            path.appendChild(createTimelineRow({
+                elapsed,
+                content: createTransferPanel(leg),
+                marker: 'transfer',
+                color: getLineColor(route.legs[i + 1]),
+                isFirst: false,
+                isLast: false
+            }));
+        }
+    }
 
     card.appendChild(path);
     return card;
+}
+
+// タイムライン1行生成
+function createTimelineRow({ elapsed, stationName, content, marker, color, isFirst, isLast }) {
+    const row = document.createElement('div');
+    row.className = 'timeline-row';
+
+    // 時間ラベル
+    const timeLabel = document.createElement('div');
+    timeLabel.className = 'timeline-elapsed';
+    timeLabel.textContent = elapsed !== null && elapsed !== undefined ? `${elapsed}分` : '';
+    row.appendChild(timeLabel);
+
+    // タイムラインアイコン
+    const timeline = document.createElement('div');
+    timeline.className = 'timeline-marker';
+    if (marker === 'start') {
+        timeline.innerHTML = `<span class="marker marker-start"></span>`;
+    } else if (marker === 'end') {
+        timeline.innerHTML = `<span class="marker marker-end"></span>`;
+    } else if (marker === 'transfer') {
+        timeline.innerHTML = `<span class="marker marker-transfer"></span>`;
+    } else {
+        timeline.innerHTML = `<span class="marker" style="border-color:${color};"></span>`;
+    }
+    if (color) timeline.style.borderColor = color;
+    row.appendChild(timeline);
+
+    // 駅名 or パネル
+    const main = document.createElement('div');
+    main.className = 'timeline-main';
+    if (stationName) {
+        main.innerHTML = `<span class="station-name-timeline">${stationName}</span>`;
+    }
+    if (content) {
+        main.appendChild(content);
+    }
+    row.appendChild(main);
+
+    return row;
+}
+
+// 路線区間パネル
+function createSegmentPanel(leg) {
+    const div = document.createElement('div');
+    div.className = 'segment-panel';
+
+    // 路線記号
+    const lineSymbol = getLineSymbol(leg.lineName, leg.lineColor);
+    // 列車種別バッジ
+    const typeBadge = `<span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>`;
+    // 駅数
+    const stopsCount = leg.stopsAt ? Math.max(leg.stopsAt.length - 1, 0) : 0;
+
+    div.innerHTML = `
+        <div class="segline">
+            ${lineSymbol}
+            <span class="segline-name">${leg.lineName}</span>
+            ${typeBadge}
+        </div>
+        <div class="segline-info">
+            <span class="segline-time"><span class="icon-clock"></span> ${Math.round(leg.duration)}分</span>
+            <span class="segline-stops"><span class="icon-station"></span> ${stopsCount}駅</span>
+        </div>
+        ${createStopsButton(leg, 0)}
+    `;
+    return div;
+}
+
+// 乗換パネル
+function createTransferPanel(leg) {
+    const div = document.createElement('div');
+    div.className = 'transfer-panel';
+    div.innerHTML = `
+        <span class="icon-walk"></span>
+        <span class="transfer-label">
+            乗り換え（徒歩${leg.transferTime}分）
+        </span>
+    `;
+    return div;
+}
+
+// 路線記号
+function getLineSymbol(lineName, lineColor) {
+    const initial = lineName.charAt(0);
+    return `<span class="line-symbol" style="background:${lineColor};">${initial}</span>`;
+}
+function getLineColor(leg) {
+    return leg && leg.lineColor ? leg.lineColor : '#ccc';
 }
 
 // ========================================
