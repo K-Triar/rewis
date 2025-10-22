@@ -793,35 +793,36 @@ function createRouteCard(route, routeNumber) {
     const table = document.createElement('div');
     table.className = 'route-table';
 
+    // 1. 最初の駅
+    const firstLeg = route.legs[0];
     let elapsed = 0;
+    table.appendChild(createTableStationRow({
+        elapsed,
+        stationName: firstLeg.stationName,
+        marker: 'start'
+    }));
 
-    // 駅→路線→駅→…→到着駅 の順で組み立て
-    for (let i = 0; i < route.legs.length; i++) {
+    // 2. 区間・乗換ごとにtable行を出力
+    for (let i = 1; i < route.legs.length; i++) {
         const leg = route.legs[i];
-        const prevLeg = route.legs[i - 1];
-        const isFirst = (i === 0);
-        const isLast = (i === route.legs.length - 1);
 
-        // ------ 駅行 ------
-        if (leg.type === 'start' || leg.type === 'segment' || leg.type === 'transfer') {
-            // 駅行
+        if (leg.type === 'segment') {
+            // 区間行
+            table.appendChild(createTableSegmentRow(leg));
+            elapsed += Math.round(leg.duration);
+
+            // 到着駅（この区間の終点駅）
             table.appendChild(createTableStationRow({
                 elapsed,
                 stationName: leg.stationName,
-                marker: isFirst ? 'start' : isLast ? 'end' : 'via'
+                marker: (i === route.legs.length - 1) ? 'end' : 'via'
             }));
-        }
 
-        // ------ 区間 or 乗換（路線行） ------
-        if (leg.type === 'segment' && !isLast) {
-            // 路線区間行
-            table.appendChild(createTableSegmentRow(leg));
-            elapsed += Math.round(leg.duration);
-        }
-        if (leg.type === 'transfer' && !isLast) {
+        } else if (leg.type === 'transfer') {
             // 乗換行
             table.appendChild(createTableTransferRow(leg));
-            elapsed += Math.round(leg.duration);
+            elapsed += Math.round(leg.transferTime || leg.duration);
+            // 乗換後の駅は次のsegment区間の到着駅で表示される（ここでは出力しない）
         }
     }
 
