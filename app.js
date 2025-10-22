@@ -770,6 +770,9 @@ function displayResults(routes) {
 // ========================================
 // 経路カード作成（画像参考の洗練版）
 // ========================================
+// ========================================
+// 駅・路線が交互に並ぶ表形式タイムライン
+// ========================================
 function createRouteCard(route, routeNumber) {
     const card = document.createElement('div');
     card.className = 'route-card';
@@ -786,128 +789,103 @@ function createRouteCard(route, routeNumber) {
     `;
     card.appendChild(header);
 
-    // タイムライン
-    const timeline = document.createElement('div');
-    timeline.className = 'route-timeline';
+    // タイムラインテーブル
+    const table = document.createElement('div');
+    table.className = 'route-table';
 
     let elapsed = 0;
 
+    // 駅→路線→駅→…→到着駅 の順で組み立て
     for (let i = 0; i < route.legs.length; i++) {
         const leg = route.legs[i];
-        const nextLeg = route.legs[i + 1];
-        const isLast = i === route.legs.length - 1;
+        const prevLeg = route.legs[i - 1];
+        const isFirst = (i === 0);
+        const isLast = (i === route.legs.length - 1);
 
-        // 1. 出発駅
-        if (leg.type === 'start') {
-            timeline.appendChild(createTimelineStation({
-                elapsed: 0,
-                stationName: leg.stationName,
-                marker: 'start'
-            }));
-
-            // 次の区間情報
-            if (nextLeg && nextLeg.type === 'segment') {
-                timeline.appendChild(createTimelineSegment(nextLeg, elapsed));
-            }
-            continue;
-        }
-
-        // 2. 乗車区間
-        if (leg.type === 'segment') {
-            elapsed += Math.round(leg.duration);
-
-            // 到着駅（最終または乗換駅）
-            const markerType = isLast ? 'end' : 'via';
-            timeline.appendChild(createTimelineStation({
+        // ------ 駅行 ------
+        if (leg.type === 'start' || leg.type === 'segment' || leg.type === 'transfer') {
+            // 駅行
+            table.appendChild(createTableStationRow({
                 elapsed,
                 stationName: leg.stationName,
-                marker: markerType
+                marker: isFirst ? 'start' : isLast ? 'end' : 'via'
             }));
+        }
 
-            // 次が乗換なら乗換情報を追加
-            if (nextLeg && nextLeg.type === 'transfer') {
-                elapsed += Math.round(nextLeg.duration);
-                timeline.appendChild(createTimelineTransfer(nextLeg, elapsed));
-            }
-
-            // 乗換後の次の区間情報
-            const afterTransfer = route.legs[i + 2];
-            if (afterTransfer && afterTransfer.type === 'segment') {
-                timeline.appendChild(createTimelineSegment(afterTransfer, elapsed));
-            }
+        // ------ 区間 or 乗換（路線行） ------
+        if (leg.type === 'segment' && !isLast) {
+            // 路線区間行
+            table.appendChild(createTableSegmentRow(leg));
+            elapsed += Math.round(leg.duration);
+        }
+        if (leg.type === 'transfer' && !isLast) {
+            // 乗換行
+            table.appendChild(createTableTransferRow(leg));
+            elapsed += Math.round(leg.duration);
         }
     }
 
-    card.appendChild(timeline);
+    card.appendChild(table);
     return card;
 }
 
-// タイムライン：駅表示
-function createTimelineStation({ elapsed, stationName, marker }) {
+// 駅行
+function createTableStationRow({ elapsed, stationName, marker }) {
     const row = document.createElement('div');
-    row.className = 'timeline-row station-row';
+    row.className = 'table-row station-row';
 
-    const markerClass = marker === 'start' ? 'marker-start' : 
-                       marker === 'end' ? 'marker-end' : 'marker-via';
+    // マーカー色
+    let markerColor = '#1976d2';
+    if (marker === 'start') markerColor = '#4CAF50';
+    if (marker === 'end') markerColor = '#E60012';
 
     row.innerHTML = `
-        <div class="timeline-time">${elapsed}分</div>
-        <div class="timeline-icon">
-            <div class="timeline-marker ${markerClass}"></div>
+        <div class="table-time">${elapsed}分</div>
+        <div class="table-marker">
+            <span class="station-marker" style="background:${markerColor};"></span>
         </div>
-        <div class="timeline-content">
-            <div class="station-name">${stationName}</div>
+        <div class="table-station">
+            <span class="station-name">${stationName}</span>
         </div>
     `;
     return row;
 }
 
-// タイムライン：区間情報
-function createTimelineSegment(leg, elapsedStart) {
+// 路線区間行
+function createTableSegmentRow(leg) {
     const row = document.createElement('div');
-    row.className = 'timeline-row segment-row';
+    row.className = 'table-row segment-row';
 
     const stopsCount = leg.stopsAt ? Math.max(leg.stopsAt.length - 1, 0) : 0;
 
     row.innerHTML = `
-        <div class="timeline-time"></div>
-        <div class="timeline-icon">
-            <div class="timeline-line" style="background: ${leg.lineColor};"></div>
+        <div class="table-time"></div>
+        <div class="table-marker">
+            <span class="segment-line" style="background:${leg.lineColor};"></span>
         </div>
-        <div class="timeline-content">
-            <div class="segment-info">
-                <div class="segment-line-name">
-                    <span class="line-symbol" style="background: ${leg.lineColor};">
-                        ${leg.lineName.charAt(0)}
-                    </span>
-                    <span class="line-text">${leg.lineName}</span>
-                    <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
-                </div>
-                <div class="segment-details-row">
-                    <span class="segment-duration">🕐 ${Math.round(leg.duration)}分</span>
-                    <span class="segment-stops">🏢 ${stopsCount}駅</span>
-                </div>
-                ${createStopsButton(leg, elapsedStart)}
-            </div>
+        <div class="table-content">
+            <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
+            <span class="line-name">${leg.lineName}</span>
+            <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
+            <span class="segment-detail">🕐${Math.round(leg.duration)}分・🏢${stopsCount}駅</span>
+            ${createStopsButton(leg, 0)}
         </div>
     `;
     return row;
 }
 
-// タイムライン：乗換情報
-function createTimelineTransfer(leg, elapsed) {
+// 乗換行
+function createTableTransferRow(leg) {
     const row = document.createElement('div');
-    row.className = 'timeline-row transfer-row';
+    row.className = 'table-row transfer-row';
 
     row.innerHTML = `
-        <div class="timeline-time">${elapsed}分</div>
-        <div class="timeline-icon">
-            <div class="timeline-marker marker-transfer"></div>
+        <div class="table-time"></div>
+        <div class="table-marker">
+            <span class="transfer-icon">🚶</span>
         </div>
-        <div class="timeline-content">
-            <div class="transfer-badge">
-                🚶 乗り換え（徒歩${leg.transferTime}分）
-            </div>
+        <div class="table-content">
+            <span class="transfer-label">乗り換え（徒歩${leg.transferTime}分）</span>
         </div>
     `;
     return row;
