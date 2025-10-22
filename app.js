@@ -923,7 +923,10 @@ function createTableSegmentRow(leg) {
     // 3行目: 停車駅表示ボタン
     const stopsRow = document.createElement('div');
     stopsRow.className = 'segment-stops-row';
-    stopsRow.appendChild(createStopsButton(leg, leg.elapsedStart));
+    const stopsBtn = createStopsButton(leg, leg.elapsedStart);
+    if (stopsBtn instanceof Node) {
+        stopsRow.appendChild(stopsBtn);
+    }
     contentDiv.appendChild(stopsRow);
 
     row.appendChild(contentDiv);
