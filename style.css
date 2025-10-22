@@ -787,7 +787,7 @@ footer {
 .table-row {
     display: grid;
     grid-template-columns: 60px 36px 1fr;
-    align-items: center;
+    align-items: start;
     min-height: 46px;
     border-bottom: 1px solid #f2f2f2;
     background: transparent;
@@ -922,20 +922,25 @@ footer {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 0.5em;
+    margin-bottom: 8px;
 }
 
 .segment-meta-row {
     display: block;
     font-size: 0.95rem;
     color: #666;
-    margin-left: 38px; /* 路線記号の分だけ字下げ */
-    margin-bottom: 0.2em;
+    margin-left: 0;
+    margin-bottom: 8px;
     line-height: 1.7;
 }
 
+.segment-meta-row .segment-detail {
+    display: inline-block;
+    margin-right: 16px;
+}
+
 .segment-stops-row {
-    margin-left: 38px;
+    margin-left: 0;
     margin-bottom: 0.5em;
 }
 
@@ -950,6 +955,12 @@ footer {
     align-items: flex-start;
     justify-content: flex-start;
     text-align: left;
+}
+
+.segment-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 /* 停車駅リスト（駅名＋分数） */
@@ -995,5 +1006,5 @@ footer {
 }
 .segment-meta-row,
 .segment-stops-row {
-    margin-left: 38px;
+    margin-left: 0;
 }
