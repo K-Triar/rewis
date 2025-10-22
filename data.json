@@ -217,6 +217,10 @@
   "segments": [
     {
       "segmentId": "SEG_001",
+      "platforms": {
+        "STA_001": "1番のりば",
+        "STA_002": "2番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_001",
@@ -229,6 +233,11 @@
     },
     {
       "segmentId": "SEG_002",
+      "platforms": {
+        "STA_001": "2番のりば",
+        "STA_014": "3番のりば",
+        "STA_002": "4番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_001",
@@ -241,6 +250,11 @@
     },
     {
       "segmentId": "SEG_003",
+      "platforms": {
+        "STA_001": "3番のりば",
+        "STA_014": "3番のりば",
+        "STA_002": "5番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_001",
@@ -253,6 +267,10 @@
     },
     {
       "segmentId": "SEG_004",
+      "platforms": {
+        "STA_002": "1番のりば",
+        "STA_003": "2番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_002",
@@ -265,6 +283,10 @@
     },
     {
       "segmentId": "SEG_005",
+      "platforms": {
+        "STA_002": "2番のりば",
+        "STA_003": "3番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_002",
@@ -277,6 +299,10 @@
     },
     {
       "segmentId": "SEG_006",
+      "platforms": {
+        "STA_002": "3番のりば",
+        "STA_003": "4番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_002",
@@ -289,6 +315,10 @@
     },
     {
       "segmentId": "SEG_007",
+      "platforms": {
+        "STA_003": "1番のりば",
+        "STA_004": "2番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_003",
@@ -301,6 +331,10 @@
     },
     {
       "segmentId": "SEG_008",
+      "platforms": {
+        "STA_003": "2番のりば",
+        "STA_004": "3番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_003",
@@ -313,6 +347,10 @@
     },
     {
       "segmentId": "SEG_009",
+      "platforms": {
+        "STA_003": "3番のりば",
+        "STA_004": "4番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_003",
@@ -325,6 +363,10 @@
     },
     {
       "segmentId": "SEG_010",
+      "platforms": {
+        "STA_004": "1番のりば",
+        "STA_005": "2番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_004",
@@ -337,6 +379,11 @@
     },
     {
       "segmentId": "SEG_011",
+      "platforms": {
+        "STA_004": "2番のりば",
+        "STA_015": "3番のりば",
+        "STA_005": "4番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_004",
@@ -349,6 +396,11 @@
     },
     {
       "segmentId": "SEG_012",
+      "platforms": {
+        "STA_004": "3番のりば",
+        "STA_015": "3番のりば",
+        "STA_005": "5番のりば"
+      },
       "lineId": "TOHTO_MAIN",
       "companyId": "TOHTO",
       "fromStationId": "STA_004",
@@ -361,6 +413,10 @@
     },
     {
       "segmentId": "SEG_013",
+      "platforms": {
+        "STA_002": "6番のりば",
+        "STA_007": "1番のりば"
+      },
       "lineId": "TOHTO_LOOP",
       "companyId": "TOHTO",
       "fromStationId": "STA_002",
@@ -373,6 +429,10 @@
     },
     {
       "segmentId": "SEG_014",
+      "platforms": {
+        "STA_007": "2番のりば",
+        "STA_006": "3番のりば"
+      },
       "lineId": "TOHTO_LOOP",
       "companyId": "TOHTO",
       "fromStationId": "STA_007",
@@ -385,6 +445,10 @@
     },
     {
       "segmentId": "SEG_015",
+      "platforms": {
+        "STA_006": "1番のりば",
+        "STA_003": "5番のりば"
+      },
       "lineId": "TOHTO_LOOP",
       "companyId": "TOHTO",
       "fromStationId": "STA_006",
@@ -397,6 +461,10 @@
     },
     {
       "segmentId": "SEG_016",
+      "platforms": {
+        "STA_003": "6番のりば",
+        "STA_008": "1番のりば"
+      },
       "lineId": "TOHTO_LOOP",
       "companyId": "TOHTO",
       "fromStationId": "STA_003",
@@ -409,6 +477,10 @@
     },
     {
       "segmentId": "SEG_017",
+      "platforms": {
+        "STA_008": "2番のりば",
+        "STA_004": "6番のりば"
+      },
       "lineId": "TOHTO_LOOP",
       "companyId": "TOHTO",
       "fromStationId": "STA_008",
@@ -421,6 +493,10 @@
     },
     {
       "segmentId": "SEG_018",
+      "platforms": {
+        "STA_004": "7番のりば",
+        "STA_002": "7番のりば"
+      },
       "lineId": "TOHTO_LOOP",
       "companyId": "TOHTO",
       "fromStationId": "STA_004",
@@ -433,6 +509,10 @@
     },
     {
       "segmentId": "SEG_019",
+      "platforms": {
+        "STA_003": "8番のりば",
+        "STA_009": "1番のりば"
+      },
       "lineId": "HOKUBU_LINE",
       "companyId": "HOKUBU",
       "fromStationId": "STA_003",
@@ -445,6 +525,10 @@
     },
     {
       "segmentId": "SEG_020",
+      "platforms": {
+        "STA_003": "9番のりば",
+        "STA_009": "2番のりば"
+      },
       "lineId": "HOKUBU_LINE",
       "companyId": "HOKUBU",
       "fromStationId": "STA_003",
@@ -457,6 +541,10 @@
     },
     {
       "segmentId": "SEG_021",
+      "platforms": {
+        "STA_009": "3番のりば",
+        "STA_010": "1番のりば"
+      },
       "lineId": "HOKUBU_LINE",
       "companyId": "HOKUBU",
       "fromStationId": "STA_009",
@@ -469,6 +557,10 @@
     },
     {
       "segmentId": "SEG_022",
+      "platforms": {
+        "STA_009": "4番のりば",
+        "STA_010": "2番のりば"
+      },
       "lineId": "HOKUBU_LINE",
       "companyId": "HOKUBU",
       "fromStationId": "STA_009",
@@ -481,6 +573,10 @@
     },
     {
       "segmentId": "SEG_023",
+      "platforms": {
+        "STA_006": "4番のりば",
+        "STA_011": "1番のりば"
+      },
       "lineId": "NANKAI_LINE",
       "companyId": "NANKAI",
       "fromStationId": "STA_006",
@@ -493,6 +589,10 @@
     },
     {
       "segmentId": "SEG_024",
+      "platforms": {
+        "STA_006": "5番のりば",
+        "STA_011": "2番のりば"
+      },
       "lineId": "NANKAI_LINE",
       "companyId": "NANKAI",
       "fromStationId": "STA_006",
@@ -505,6 +605,10 @@
     },
     {
       "segmentId": "SEG_025",
+      "platforms": {
+        "STA_011": "3番のりば",
+        "STA_012": "1番のりば"
+      },
       "lineId": "NANKAI_LINE",
       "companyId": "NANKAI",
       "fromStationId": "STA_011",
@@ -517,6 +621,10 @@
     },
     {
       "segmentId": "SEG_026",
+      "platforms": {
+        "STA_011": "4番のりば",
+        "STA_012": "2番のりば"
+      },
       "lineId": "NANKAI_LINE",
       "companyId": "NANKAI",
       "fromStationId": "STA_011",
@@ -529,6 +637,10 @@
     },
     {
       "segmentId": "SEG_027",
+      "platforms": {
+        "STA_012": "3番のりば",
+        "STA_013": "1番のりば"
+      },
       "lineId": "NANKAI_LINE",
       "companyId": "NANKAI",
       "fromStationId": "STA_012",
@@ -541,6 +653,10 @@
     },
     {
       "segmentId": "SEG_028",
+      "platforms": {
+        "STA_012": "4番のりば",
+        "STA_013": "2番のりば"
+      },
       "lineId": "NANKAI_LINE",
       "companyId": "NANKAI",
       "fromStationId": "STA_012",
