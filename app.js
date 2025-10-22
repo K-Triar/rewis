@@ -70,45 +70,63 @@ function preprocessData() {
     // 隣接リスト作成（駅×路線×種別をノードとする）
     const adjacencyList = new Map();
 
-    appData.segments.forEach(segment => {
-        const fromKey = `${segment.fromStationId}_${segment.lineId}_${segment.trainType}`;
-        const toKey = `${segment.toStationId}_${segment.lineId}_${segment.trainType}`;
+    // Helper: add adjacency entry
+    function addEdge(fromStationId, toStationId, lineId, trainType, duration, segmentRef) {
+        const fromKey = `${fromStationId}_${lineId}_${trainType}`;
+        const toKey = `${toStationId}_${lineId}_${trainType}`;
 
-        if (!adjacencyList.has(fromKey)) {
-            adjacencyList.set(fromKey, []);
-        }
+        if (!adjacencyList.has(fromKey)) adjacencyList.set(fromKey, []);
         adjacencyList.get(fromKey).push({
             type: 'segment',
             toKey: toKey,
-            toStationId: segment.toStationId,
-            lineId: segment.lineId,
-            trainType: segment.trainType,
-            duration: segment.duration,
-            segment: segment
+            toStationId: toStationId,
+            lineId: lineId,
+            trainType: trainType,
+            duration: duration,
+            segment: segmentRef
         });
+    }
 
-        // 双方向の場合は逆方向も追加
-        if (segment.isBidirectional) {
-            if (!adjacencyList.has(toKey)) {
-                adjacencyList.set(toKey, []);
-            }
-            adjacencyList.get(toKey).push({
-                type: 'segment',
-                toKey: fromKey,
-                toStationId: segment.fromStationId,
-                lineId: segment.lineId,
-                trainType: segment.trainType,
-                duration: segment.duration,
-                segment: segment
+    appData.segments.forEach(segment => {
+        // If stopsAt is defined and contains station sequence, create edges between adjacent stops.
+        const stops = Array.isArray(segment.stopsAt) && segment.stopsAt.length >= 2
+            ? segment.stopsAt
+            : [segment.fromStationId, segment.toStationId];
+
+        const hopCount = stops.length - 1;
+        // Avoid division by zero; if hopCount is 0, skip.
+        if (hopCount <= 0) return;
+
+        // Distribute duration evenly across hops (float allowed)
+        const perHopDuration = segment.duration / hopCount;
+
+        for (let i = 0; i < hopCount; i++) {
+            const a = stops[i];
+            const b = stops[i + 1];
+            // Add forward hop
+            addEdge(a, b, segment.lineId, segment.trainType, perHopDuration, {
+                ...segment,
+                hopFrom: a,
+                hopTo: b,
+                originalStops: segment.stopsAt || [segment.fromStationId, segment.toStationId]
             });
+
+            // If bidirectional, add reverse hop too
+            if (segment.isBidirectional) {
+                addEdge(b, a, segment.lineId, segment.trainType, perHopDuration, {
+                    ...segment,
+                    hopFrom: b,
+                    hopTo: a,
+                    originalStops: segment.stopsAt || [segment.fromStationId, segment.toStationId]
+                });
+            }
         }
     });
 
     // 乗換情報を隣接リストに追加
     appData.transfers.forEach(transfer => {
-        // fromLineの各種別からtoLineの各種別への乗換を追加
         const fromStationId = transfer.stationId;
-        
+
         appData.trainTypes.forEach(fromTrainType => {
             appData.trainTypes.forEach(toTrainType => {
                 const fromKey = `${fromStationId}_${transfer.fromLineId}_${fromTrainType.trainTypeId}`;
@@ -140,7 +158,7 @@ function preprocessData() {
     };
 
     console.log('データ前処理完了');
-    console.log('隣接リスト:', adjacencyList);
+    console.log('隣接リストサイズ:', adjacencyList.size);
 }
 
 // ========================================
@@ -395,7 +413,6 @@ function findStationByName(name) {
 // ========================================
 // 経路探索アルゴリズム（修正Dijkstra法）
 // ========================================
-
 function findRoutes(startStation, endStation, viaStations, filters) {
     console.log('\n--- 経路探索開始 ---');
     console.log('出発駅:', startStation.stationName, startStation.stationId);
@@ -447,6 +464,7 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     // 重複除去とソート
     const uniqueRoutes = deduplicateRoutes(routes);
     uniqueRoutes.sort((a, b) => {
+        // 所要時間優先、次に乗換回数
         if (a.totalDuration !== b.totalDuration) {
             return a.totalDuration - b.totalDuration;
         }
@@ -458,6 +476,9 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     return uniqueRoutes.slice(0, maxRoutes);
 }
 
+// ========================================
+// Dijkstra法による経路探索
+// ========================================
 function dijkstraSearch(startKey, endStationId, filters) {
     const distances = new Map();
     const previous = new Map();
@@ -520,6 +541,7 @@ function dijkstraSearch(startKey, endStationId, filters) {
     }
     return null; // 経路が見つからない
 }
+
 // ========================================
 // 優先度キュー（簡易実装）
 // ========================================
@@ -628,7 +650,10 @@ function buildRouteInfo(path) {
                 if (prevLeg.lineId === lineId && prevLeg.trainType === trainType) {
                     // 同じ路線・種別なら継続
                     prevLeg.duration += edge.duration;
-                    if (edge.segment && edge.segment.stopsAt) {
+                    if (edge.segment && edge.segment.originalStops) {
+                        // edge.segment.originalStops may contain full stops list; but for hop store hopFrom/hopTo
+                        prevLeg.stopsAt = prevLeg.stopsAt.concat([edge.segment.hopTo]);
+                    } else if (edge.segment && edge.segment.stopsAt) {
                         prevLeg.stopsAt = prevLeg.stopsAt.concat(
                             edge.segment.stopsAt.slice(1)
                         );
@@ -638,14 +663,14 @@ function buildRouteInfo(path) {
                     legs.push({
                         type: 'segment',
                         stationId: stationId,
-                        stationName: station.stationName,
+                        stationName: station ? station.stationName : stationId,
                         lineId: lineId,
-                        lineName: line.lineName,
-                        lineColor: line.lineColor,
+                        lineName: line ? line.lineName : lineId,
+                        lineColor: line ? line.lineColor : '#ccc',
                         trainType: trainType,
-                        trainTypeName: trainTypeInfo.trainTypeName,
+                        trainTypeName: trainTypeInfo ? trainTypeInfo.trainTypeName : trainType,
                         duration: edge.duration,
-                        stopsAt: edge.segment?.stopsAt || []
+                        stopsAt: edge.segment && edge.segment.hopFrom ? [edge.segment.hopFrom, edge.segment.hopTo] : (edge.segment?.stopsAt || [])
                     });
                 }
                 
@@ -659,12 +684,12 @@ function buildRouteInfo(path) {
                 legs.push({
                     type: 'transfer',
                     stationId: stationId,
-                    stationName: station.stationName,
+                    stationName: station ? station.stationName : stationId,
                     lineId: lineId,
-                    lineName: line.lineName,
-                    lineColor: line.lineColor,
+                    lineName: preprocessedData.lineMap.get(lineId)?.lineName || lineId,
+                    lineColor: preprocessedData.lineMap.get(lineId)?.lineColor || '#ccc',
                     trainType: trainType,
-                    trainTypeName: trainTypeInfo.trainTypeName,
+                    trainTypeName: preprocessedData.trainTypeMap.get(trainType)?.trainTypeName || trainType,
                     duration: edge.duration,
                     transferTime: edge.duration,
                     isDirectThrough: edge.transfer?.isDirectThrough || false,
@@ -678,7 +703,7 @@ function buildRouteInfo(path) {
 
     return {
         legs: legs,
-        totalDuration: totalDuration,
+        totalDuration: Math.round(totalDuration),
         transferCount: transferCount
     };
 }
