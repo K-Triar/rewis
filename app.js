@@ -68,12 +68,13 @@ function preprocessData() {
     });
 
     // 隣接リスト作成（駅×路線×種別をノードとする）
+    // ★ 区切り文字を _ から | に変更
     const adjacencyList = new Map();
 
     // Helper: add adjacency entry
     function addEdge(fromStationId, toStationId, lineId, trainType, duration, segmentRef) {
-        const fromKey = `${fromStationId}_${lineId}_${trainType}`;
-        const toKey = `${toStationId}_${lineId}_${trainType}`;
+        const fromKey = `${fromStationId}|${lineId}|${trainType}`;
+        const toKey = `${toStationId}|${lineId}|${trainType}`;
 
         if (!adjacencyList.has(fromKey)) adjacencyList.set(fromKey, []);
         adjacencyList.get(fromKey).push({
@@ -88,22 +89,18 @@ function preprocessData() {
     }
 
     appData.segments.forEach(segment => {
-        // If stopsAt is defined and contains station sequence, create edges between adjacent stops.
         const stops = Array.isArray(segment.stopsAt) && segment.stopsAt.length >= 2
             ? segment.stopsAt
             : [segment.fromStationId, segment.toStationId];
 
         const hopCount = stops.length - 1;
-        // Avoid division by zero; if hopCount is 0, skip.
         if (hopCount <= 0) return;
 
-        // Distribute duration evenly across hops (float allowed)
         const perHopDuration = segment.duration / hopCount;
 
         for (let i = 0; i < hopCount; i++) {
             const a = stops[i];
             const b = stops[i + 1];
-            // Add forward hop
             addEdge(a, b, segment.lineId, segment.trainType, perHopDuration, {
                 ...segment,
                 hopFrom: a,
@@ -111,7 +108,6 @@ function preprocessData() {
                 originalStops: segment.stopsAt || [segment.fromStationId, segment.toStationId]
             });
 
-            // If bidirectional, add reverse hop too
             if (segment.isBidirectional) {
                 addEdge(b, a, segment.lineId, segment.trainType, perHopDuration, {
                     ...segment,
@@ -129,8 +125,8 @@ function preprocessData() {
 
         appData.trainTypes.forEach(fromTrainType => {
             appData.trainTypes.forEach(toTrainType => {
-                const fromKey = `${fromStationId}_${transfer.fromLineId}_${fromTrainType.trainTypeId}`;
-                const toKey = `${fromStationId}_${transfer.toLineId}_${toTrainType.trainTypeId}`;
+                const fromKey = `${fromStationId}|${transfer.fromLineId}|${fromTrainType.trainTypeId}`;
+                const toKey = `${fromStationId}|${transfer.toLineId}|${toTrainType.trainTypeId}`;
 
                 if (!adjacencyList.has(fromKey)) {
                     adjacencyList.set(fromKey, []);
@@ -165,20 +161,12 @@ function preprocessData() {
 // UI初期化
 // ========================================
 function initializeUI() {
-    // 駅名入力の自動補完設定
     setupStationInput('departure');
     setupStationInput('arrival');
-
-    // 駅入れ替えボタン
     document.getElementById('swap-stations').addEventListener('click', swapStations);
-
-    // 経由駅追加ボタン
     document.getElementById('add-via').addEventListener('click', addViaStation);
-
-    // 検索ボタン
     document.getElementById('search-button').addEventListener('click', performSearch);
 
-    // Enterキーで検索
     ['departure', 'arrival'].forEach(id => {
         document.getElementById(id).addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -208,7 +196,6 @@ function setupStationInput(inputId) {
         displaySuggestions(matchingStations, suggestionsDiv, input);
     });
 
-    // フォーカスが外れたら候補を非表示
     input.addEventListener('blur', () => {
         setTimeout(() => {
             suggestionsDiv.classList.remove('active');
@@ -223,7 +210,7 @@ function searchStations(query) {
         return station.stationName.includes(query) ||
                station.stationNameKana.includes(lowerQuery) ||
                convertToHiragana(station.stationName).includes(lowerQuery);
-    }).slice(0, 10); // 最大10件
+    }).slice(0, 10);
 }
 
 function displaySuggestions(stations, suggestionsDiv, input) {
@@ -258,7 +245,6 @@ function displaySuggestions(stations, suggestionsDiv, input) {
     suggestionsDiv.classList.add('active');
 }
 
-// 簡易的なひらがな変換（実際の実装ではより高度な変換が必要）
 function convertToHiragana(text) {
     return text.toLowerCase();
 }
@@ -307,8 +293,6 @@ function addViaStation() {
     `;
     
     viaStationsDiv.appendChild(viaItem);
-    
-    // 自動補完設定
     setupStationInput(viaId);
 }
 
@@ -326,11 +310,9 @@ function performSearch() {
     hideError();
     hideResults();
 
-    // 入力値取得
     const departureStation = findStationByName(document.getElementById('departure').value.trim());
     const arrivalStation = findStationByName(document.getElementById('arrival').value.trim());
 
-    // バリデーション
     if (!departureStation) {
         showError('出発駅が正しく入力されていません');
         return;
@@ -344,7 +326,6 @@ function performSearch() {
         return;
     }
 
-    // 経由駅取得
     const viaStations = [];
     const viaItems = document.querySelectorAll('.via-station-item');
     for (let item of viaItems) {
@@ -360,7 +341,6 @@ function performSearch() {
         }
     }
 
-    // フィルター取得
     const filters = {
         onlyOwnCompany: document.getElementById('own-company-only').checked,
         allowedTrainTypes: new Set()
@@ -381,7 +361,6 @@ function performSearch() {
         return;
     }
 
-    // 検索実行
     showLoading();
     
     setTimeout(() => {
@@ -402,9 +381,6 @@ function performSearch() {
     }, 100);
 }
 
-// ========================================
-// 駅名から駅情報を検索
-// ========================================
 function findStationByName(name) {
     if (!name) return null;
     return appData.stations.find(s => s.stationName === name);
@@ -420,20 +396,18 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     console.log('経由駅:', viaStations.map(s => s.stationName));
     console.log('フィルタ:', filters);
 
-    // 経由駅がある場合は区間ごとに検索
     if (viaStations.length > 0) {
         console.log('経由駅指定あり: 区間分割検索');
         return findRoutesWithVia(startStation, endStation, viaStations, filters);
     }
 
     const routes = [];
-    const maxRoutes = 5; // 最大5経路
+    const maxRoutes = 5;
 
-    // 開始駅の全路線×全種別からスタート
     const startKeys = [];
     startStation.lines.forEach(line => {
         filters.allowedTrainTypes.forEach(trainType => {
-            const key = `${startStation.stationId}_${line.lineId}_${trainType}`;
+            const key = `${startStation.stationId}|${line.lineId}|${trainType}`;
             if (preprocessedData.adjacencyList.has(key)) {
                 startKeys.push(key);
             } else {
@@ -445,11 +419,10 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     console.log('探索開始ノード（startKeys）:', startKeys);
 
     if (startKeys.length === 0) {
-        console.error('探索開始点がありません（出発駅の路線×種別に合致するsegmentがない）');
+        console.error('探索開始点がありません');
         return [];
     }
 
-    // 各開始点から探索
     startKeys.forEach(startKey => {
         console.log(`Dijkstra探索開始: ${startKey}`);
         const route = dijkstraSearch(startKey, endStation.stationId, filters);
@@ -461,10 +434,8 @@ function findRoutes(startStation, endStation, viaStations, filters) {
         }
     });
 
-    // 重複除去とソート
     const uniqueRoutes = deduplicateRoutes(routes);
     uniqueRoutes.sort((a, b) => {
-        // 所要時間優先、次に乗換回数
         if (a.totalDuration !== b.totalDuration) {
             return a.totalDuration - b.totalDuration;
         }
@@ -489,7 +460,6 @@ function dijkstraSearch(startKey, endStationId, filters) {
     queue.enqueue(startKey, 0);
 
     let step = 0;
-    let found = false;
 
     while (!queue.isEmpty()) {
         step++;
@@ -498,17 +468,16 @@ function dijkstraSearch(startKey, endStationId, filters) {
         visited.add(currentKey);
 
         const currentDistance = distances.get(currentKey);
-        const [currentStationId, currentLineId, currentTrainType] = currentKey.split('_');
-        console.log(`[Step ${step}] 現在ノード: ${currentKey} 距離: ${currentDistance}`);
+        // ★ split('|') に変更
+        const [currentStationId, currentLineId, currentTrainType] = currentKey.split('|');
+        console.log(`[Step ${step}] 現在ノード: ${currentKey} (駅ID: ${currentStationId}) 距離: ${currentDistance}`);
 
-        // 目的地に到達
+        // 到着判定
         if (currentStationId === endStationId) {
-            console.log(`到着駅に到達: ${currentKey}`);
-            found = true;
+            console.log(`✅ 到達駅に到達: ${currentKey}`);
             return reconstructRoute(startKey, currentKey, previous);
         }
 
-        // 隣接ノードを探索
         const neighbors = preprocessedData.adjacencyList.get(currentKey) || [];
         console.log(`  隣接ノード数: ${neighbors.length}`);
 
@@ -518,9 +487,8 @@ function dijkstraSearch(startKey, endStationId, filters) {
                 continue;
             }
 
-            // フィルター適用
             if (!passesFilter(neighbor, filters)) {
-                console.log(`    フィルタ除外: ${neighbor.toKey}（種別:${neighbor.trainType}, 路線:${neighbor.lineId}）`);
+                console.log(`    フィルタ除外: ${neighbor.toKey}`);
                 continue;
             }
 
@@ -536,10 +504,8 @@ function dijkstraSearch(startKey, endStationId, filters) {
         }
     }
 
-    if (!found) {
-        console.warn('Dijkstra探索終了：到着駅に到達できませんでした');
-    }
-    return null; // 経路が見つからない
+    console.warn('Dijkstra探索終了：到着駅に到達できませんでした');
+    return null;
 }
 
 // ========================================
@@ -568,12 +534,10 @@ class MinPriorityQueue {
 // フィルター判定
 // ========================================
 function passesFilter(neighbor, filters) {
-    // 列車種別フィルター
     if (!filters.allowedTrainTypes.has(neighbor.trainType)) {
         return false;
     }
 
-    // 自社線フィルター
     if (filters.onlyOwnCompany) {
         const lineInfo = preprocessedData.lineMap.get(neighbor.lineId);
         if (lineInfo && lineInfo.companyId !== appData.meta.ownCompanyId) {
@@ -598,10 +562,7 @@ function reconstructRoute(startKey, endKey, previous) {
         currentKey = prev.key;
     }
 
-    // 開始点を追加
     path.unshift({ key: startKey, edge: null });
-
-    // 経路情報を構築
     return buildRouteInfo(path);
 }
 
@@ -616,13 +577,13 @@ function buildRouteInfo(path) {
 
     for (let i = 0; i < path.length; i++) {
         const node = path[i];
-        const [stationId, lineId, trainType] = node.key.split('_');
+        // ★ split('|') に変更
+        const [stationId, lineId, trainType] = node.key.split('|');
         const station = preprocessedData.stationMap.get(stationId);
         const line = preprocessedData.lineMap.get(lineId);
         const trainTypeInfo = preprocessedData.trainTypeMap.get(trainType);
 
         if (i === 0) {
-            // 開始駅
             currentLine = lineId;
             legs.push({
                 type: 'start',
@@ -640,7 +601,6 @@ function buildRouteInfo(path) {
             const edge = node.edge;
             
             if (edge.type === 'segment') {
-                // 路線移動
                 if (currentLine !== lineId) {
                     transferCount++;
                 }
@@ -648,18 +608,11 @@ function buildRouteInfo(path) {
                 const prevLeg = legs[legs.length - 1];
                 
                 if (prevLeg.lineId === lineId && prevLeg.trainType === trainType) {
-                    // 同じ路線・種別なら継続
                     prevLeg.duration += edge.duration;
-                    if (edge.segment && edge.segment.originalStops) {
-                        // edge.segment.originalStops may contain full stops list; but for hop store hopFrom/hopTo
+                    if (edge.segment && edge.segment.hopTo) {
                         prevLeg.stopsAt = prevLeg.stopsAt.concat([edge.segment.hopTo]);
-                    } else if (edge.segment && edge.segment.stopsAt) {
-                        prevLeg.stopsAt = prevLeg.stopsAt.concat(
-                            edge.segment.stopsAt.slice(1)
-                        );
                     }
                 } else {
-                    // 新しい区間
                     legs.push({
                         type: 'segment',
                         stationId: stationId,
@@ -670,7 +623,7 @@ function buildRouteInfo(path) {
                         trainType: trainType,
                         trainTypeName: trainTypeInfo ? trainTypeInfo.trainTypeName : trainType,
                         duration: edge.duration,
-                        stopsAt: edge.segment && edge.segment.hopFrom ? [edge.segment.hopFrom, edge.segment.hopTo] : (edge.segment?.stopsAt || [])
+                        stopsAt: edge.segment && edge.segment.hopFrom ? [edge.segment.hopFrom, edge.segment.hopTo] : []
                     });
                 }
                 
@@ -678,7 +631,6 @@ function buildRouteInfo(path) {
                 currentLine = lineId;
                 
             } else if (edge.type === 'transfer') {
-                // 乗換
                 totalDuration += edge.duration;
                 
                 legs.push({
@@ -712,7 +664,6 @@ function buildRouteInfo(path) {
 // 経由駅対応の経路探索
 // ========================================
 function findRoutesWithVia(startStation, endStation, viaStations, filters) {
-    // 出発→経由1→経由2→...→到着 の順で検索
     const allStations = [startStation, ...viaStations, endStation];
     let combinedRoute = null;
 
@@ -723,15 +674,14 @@ function findRoutesWithVia(startStation, endStation, viaStations, filters) {
         const segmentRoutes = findRoutes(from, to, [], filters);
         
         if (segmentRoutes.length === 0) {
-            return []; // 一部でも経路が見つからなければ全体も失敗
+            return [];
         }
 
-        const bestSegment = segmentRoutes[0]; // 最短経路を使用
+        const bestSegment = segmentRoutes[0];
 
         if (!combinedRoute) {
             combinedRoute = bestSegment;
         } else {
-            // 経路を結合
             combinedRoute.legs = combinedRoute.legs.concat(bestSegment.legs.slice(1));
             combinedRoute.totalDuration += bestSegment.totalDuration;
             combinedRoute.transferCount += bestSegment.transferCount;
@@ -750,8 +700,8 @@ function deduplicateRoutes(routes) {
 
     for (let route of routes) {
         const signature = route.legs
-            .map(leg => `${leg.stationId}_${leg.lineId}_${leg.trainType}`)
-            .join('|');
+            .map(leg => `${leg.stationId}|${leg.lineId}|${leg.trainType}`)
+            .join('||');
         
         if (!seen.has(signature)) {
             seen.add(signature);
@@ -788,7 +738,6 @@ function createRouteCard(route, routeNumber) {
     const card = document.createElement('div');
     card.className = 'route-card';
 
-    // ヘッダー
     const header = document.createElement('div');
     header.className = 'route-header';
     header.innerHTML = `
@@ -804,7 +753,6 @@ function createRouteCard(route, routeNumber) {
     `;
     card.appendChild(header);
 
-    // 経路詳細
     const path = document.createElement('div');
     path.className = 'route-path';
 
@@ -815,7 +763,6 @@ function createRouteCard(route, routeNumber) {
     });
 
     card.appendChild(path);
-
     return card;
 }
 
@@ -826,7 +773,6 @@ function createLegElement(leg, isLast) {
     const legDiv = document.createElement('div');
     legDiv.className = 'route-leg';
 
-    // 駅マーカー
     const marker = document.createElement('div');
     marker.className = 'station-marker';
     
@@ -844,7 +790,6 @@ function createLegElement(leg, isLast) {
 
     legDiv.appendChild(marker);
 
-    // 駅情報
     const info = document.createElement('div');
     info.className = 'leg-info';
 
@@ -868,12 +813,11 @@ function createLegElement(leg, isLast) {
 
         const duration = document.createElement('span');
         duration.className = 'duration-display';
-        duration.textContent = `${leg.duration}分`;
+        duration.textContent = `${Math.round(leg.duration)}分`;
         lineInfo.appendChild(duration);
 
         info.appendChild(lineInfo);
 
-        // 乗換情報
         if (leg.type === 'transfer' && leg.transferTime > 0) {
             const transferInfo = document.createElement('div');
             transferInfo.className = 'transfer-info';
@@ -881,7 +825,6 @@ function createLegElement(leg, isLast) {
             info.appendChild(transferInfo);
         }
 
-        // 停車駅表示ボタン
         if (leg.stopsAt && leg.stopsAt.length > 2) {
             const toggleButton = document.createElement('button');
             toggleButton.className = 'toggle-stops-button';
@@ -916,7 +859,6 @@ function createLegElement(leg, isLast) {
     }
 
     legDiv.appendChild(info);
-
     return legDiv;
 }
 
