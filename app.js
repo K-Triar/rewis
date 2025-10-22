@@ -869,25 +869,26 @@ function createTableSegmentRow(leg) {
 
     const stopsCount = leg.stopsAt ? Math.max(leg.stopsAt.length - 1, 0) : 0;
 
-    row.innerHTML = `
-        <div class="table-time"></div>
-        <div class="table-marker">
-            <span class="segment-line" style="background:${leg.lineColor};"></span>
-        </div>
-        <div class="table-content segment-block">
-            <div class="segment-line-row">
-                <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
-                <span class="line-name">${leg.lineName}</span>
-                <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
+        row.innerHTML = `
+            <div class="table-time"></div>
+            <div class="table-marker">
+                <span class="segment-line" style="background:${leg.lineColor};"></span>
             </div>
-            <div class="segment-meta-row">
-                <span class="segment-detail">🕐${Math.round(leg.duration)}分・🏢${stopsCount}駅目で降りる</span>
+            <div class="table-content segment-block">
+                <div class="segment-line-row">
+                    <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
+                    <span class="line-name">${leg.lineName}</span>
+                    <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
+                </div>
+                <div class="segment-meta-row">
+                    <span class="segment-detail">${leg.duration}分 乗車</span>
+                    <span class="segment-detail">${leg.exitOrder}駅目で降車</span>
+                </div>
+                <div class="segment-stops-row">
+                    ${createStopsButton(leg, 0)}
+                </div>
             </div>
-            <div class="segment-stops-row">
-                ${createStopsButton(leg, 0)}
-            </div>
-        </div>
-    `;
+        `;
     return row;
 }
 
@@ -896,15 +897,27 @@ function createTableTransferRow(leg) {
     const row = document.createElement('div');
     row.className = 'table-row transfer-row';
 
-    row.innerHTML = `
-        <div class="table-time"></div>
-        <div class="table-marker">
-            <span class="transfer-icon">🚶</span>
-        </div>
-        <div class="table-content">
-            <span class="transfer-label">乗り換え（徒歩${leg.transferTime}分）</span>
-        </div>
-    `;
+    if (leg.isDirectThrough) {
+        row.innerHTML = `
+            <div class="table-time"></div>
+            <div class="table-marker">
+                <span class="transfer-icon">⇄</span>
+            </div>
+            <div class="table-content">
+                <span class="transfer-label">乗換不要(直通)</span>
+            </div>
+        `;
+    } else {
+        row.innerHTML = `
+            <div class="table-time"></div>
+            <div class="table-marker">
+                <span class="transfer-icon">🚶</span>
+            </div>
+            <div class="table-content">
+                <span class="transfer-label">乗り換え（徒歩${leg.transferTime}分）</span>
+            </div>
+        `;
+    }
     return row;
 }
 
