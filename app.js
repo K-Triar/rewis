@@ -867,28 +867,66 @@ function createTableSegmentRow(leg) {
     const row = document.createElement('div');
     row.className = 'table-row segment-row';
 
-    const stopsCount = leg.stopsAt ? Math.max(leg.stopsAt.length - 1, 0) : 0;
+    // 停車駅数（乗車駅を除き降車駅を含む）
+    let stopsCount = 0;
+    if (leg.stopsAt && leg.fromStationId && leg.toStationId) {
+        const fromIdx = leg.stopsAt.indexOf(leg.fromStationId);
+        const toIdx = leg.stopsAt.indexOf(leg.toStationId);
+        if (fromIdx !== -1 && toIdx !== -1 && toIdx > fromIdx) {
+            stopsCount = toIdx - fromIdx;
+        } else if (fromIdx !== -1 && toIdx !== -1 && fromIdx > toIdx) {
+            // 逆方向
+            stopsCount = fromIdx - toIdx;
+        }
+    }
 
-        row.innerHTML = `
-            <div class="table-time"></div>
-            <div class="table-marker">
-                <span class="segment-line" style="background:${leg.lineColor};"></span>
-            </div>
-            <div class="table-content segment-block">
-                <div class="segment-line-row">
-                    <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
-                    <span class="line-name">${leg.lineName}</span>
-                    <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
-                </div>
-                <div class="segment-meta-row">
-                    <span class="segment-detail">${leg.duration}分 乗車</span>
-                    <span class="segment-detail">${leg.exitOrder}駅目で降車</span>
-                </div>
-                <div class="segment-stops-row">
-                    ${createStopsButton(leg, 0)}
-                </div>
-            </div>
-        `;
+    // table-time（空）
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'table-time';
+    row.appendChild(timeDiv);
+
+    // table-marker（縦線）
+    const markerDiv = document.createElement('div');
+    markerDiv.className = 'table-marker';
+    const segmentLine = document.createElement('span');
+    segmentLine.className = 'segment-line';
+    segmentLine.style.background = leg.lineColor;
+    segmentLine.style.height = '100%';
+    segmentLine.style.minHeight = '60px';
+    segmentLine.style.display = 'block';
+    markerDiv.appendChild(segmentLine);
+    row.appendChild(markerDiv);
+
+    // table-content（3行に分割）
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'table-content segment-block';
+
+    // 1行目: 路線名・種別
+    const lineRow = document.createElement('div');
+    lineRow.className = 'segment-line-row';
+    lineRow.innerHTML = `
+        <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
+        <span class="line-name">${leg.lineName}</span>
+        <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
+    `;
+    contentDiv.appendChild(lineRow);
+
+    // 2行目: 乗車時間・停車駅数
+    const metaRow = document.createElement('div');
+    metaRow.className = 'segment-meta-row';
+    metaRow.innerHTML = `
+        <span class="segment-detail">${leg.duration}分 乗車</span>
+        <span class="segment-detail">${stopsCount}駅目で降車</span>
+    `;
+    contentDiv.appendChild(metaRow);
+
+    // 3行目: 停車駅表示ボタン
+    const stopsRow = document.createElement('div');
+    stopsRow.className = 'segment-stops-row';
+    stopsRow.appendChild(createStopsButton(leg, leg.elapsedStart));
+    contentDiv.appendChild(stopsRow);
+
+    row.appendChild(contentDiv);
     return row;
 }
 
