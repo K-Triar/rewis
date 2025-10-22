@@ -392,6 +392,7 @@ main {
     align-items: center;
     gap: 6px;
     font-weight: 500;
+    color: var(--primary-color);
 }
 
 .summary-item strong {
@@ -412,6 +413,7 @@ main {
     display: flex;
     gap: 15px;
     position: relative;
+    padding: 5px 0;
 }
 
 .route-segment:not(:last-child) {
@@ -428,11 +430,11 @@ main {
 }
 
 .segment-time {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--text-color);
-    margin-bottom: 8px;
     white-space: nowrap;
+    margin-bottom: 5px;
 }
 
 .segment-marker {
@@ -453,6 +455,13 @@ main {
 .segment-marker.arrival {
     border-color: var(--danger-color);
     background: var(--danger-color);
+}
+
+.segment-marker.transfer {
+    width: 20px;
+    height: 20px;
+    border-color: var(--primary-color);
+    background: var(--primary-color);
 }
 
 .segment-line {
@@ -481,10 +490,11 @@ main {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 6px;
+    padding: 14px;
+    background: white;
+    border-radius: 8px;
     margin-top: 10px;
+    border: 1px solid #e0e0e0;
 }
 
 .train-line {
@@ -505,16 +515,18 @@ main {
 }
 
 .line-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: white;
     flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .train-type-label {
@@ -562,7 +574,7 @@ main {
 .transfer-info-segment {
     display: flex;
     gap: 15px;
-    padding: 15px 0;
+    padding: 5px 0;
 }
 
 .transfer-timeline {
@@ -573,15 +585,16 @@ main {
 }
 
 .transfer-marker {
-    width: 20px;
-    height: 20px;
-    background: var(--warning-color);
+    width: 16px;
+    height: 16px;
+    background: var(--primary-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 0.8rem;
+    border: 4px solid var(--primary-color);
 }
 
 .transfer-line {
@@ -620,6 +633,37 @@ main {
     margin-top: 5px;
 }
 
+/* 乗換駅表示用のスタイル */
+.transfer-station-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.transfer-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #fff3e0;
+    border-radius: 16px;
+    color: #e65100;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.transfer-time {
+    margin-top: 4px;
+    color: #0078C8;
+    font-weight: bold;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* 停車駅表示ボタン */
 .toggle-stops-button {
     background: white;
@@ -631,11 +675,11 @@ main {
     font-size: 0.9rem;
     transition: all 0.3s;
     margin-top: 10px;
+    font-weight: 500;
 }
 
 .toggle-stops-button:hover {
-    background: var(--primary-color);
-    color: white;
+    background: #e3f2fd;
 }
 
 .stops-detail {
