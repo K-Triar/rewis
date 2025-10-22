@@ -768,7 +768,7 @@ function displayResults(routes) {
 }
 
 // ========================================
-// 経路カード作成（画像のUIに合わせて修正）
+// 経路カード作成（画像参考の洗練版）
 // ========================================
 function createRouteCard(route, routeNumber) {
     const card = document.createElement('div');
@@ -780,238 +780,137 @@ function createRouteCard(route, routeNumber) {
     header.innerHTML = `
         <div class="route-number">${routeNumber}</div>
         <div class="route-summary">
-            <span class="summary-item">
-                <span class="icon-clock"></span> 
-                <span style="color:#0078C8;font-weight:bold;">${route.totalDuration}分</span>
-            </span>
-            <span class="summary-item">
-                <span class="icon-transfer"></span> 
-                <span style="color:#1976d2;font-weight:bold;">乗換 ${route.transferCount}回</span>
-            </span>
+            <span class="summary-time">⏱️ ${route.totalDuration}分</span>
+            <span class="summary-transfer">🔄 乗換 ${route.transferCount}回</span>
         </div>
     `;
     card.appendChild(header);
 
     // タイムライン
-    const path = document.createElement('div');
-    path.className = 'route-path';
+    const timeline = document.createElement('div');
+    timeline.className = 'route-timeline';
 
     let elapsed = 0;
+
     for (let i = 0; i < route.legs.length; i++) {
         const leg = route.legs[i];
-        const isFirst = i === 0;
+        const nextLeg = route.legs[i + 1];
         const isLast = i === route.legs.length - 1;
 
-        // 1. 出発駅（最初のみ）
+        // 1. 出発駅
         if (leg.type === 'start') {
-            path.appendChild(createTimelineRow({
+            timeline.appendChild(createTimelineStation({
                 elapsed: 0,
                 stationName: leg.stationName,
-                marker: 'start',
-                color: getLineColor(route.legs[i + 1]),
-                isFirst,
-                isLast: false
-            }));
-            continue;
-        }
-
-        // 2. 移動区間（segment）
-        if (leg.type === 'segment') {
-            elapsed += Math.round(leg.duration);
-
-            // 乗車区間のパネル
-            path.appendChild(createTimelineRow({
-                elapsed: null, // 区間パネルはラベル無し
-                content: createSegmentPanel(leg),
-                color: getLineColor(leg),
-                marker: null,
-                isFirst: false,
-                isLast: false
+                marker: 'start'
             }));
 
-            // 次が最後（降車駅）または乗換なら、その後に駅名＋マーカー＋累積分数
-            const nextLeg = route.legs[i + 1];
-            if (!nextLeg || nextLeg.type === 'transfer') {
-                // 降車or乗換駅
-                path.appendChild(createTimelineRow({
-                    elapsed,
-                    stationName: leg.stationName,
-                    marker: nextLeg && nextLeg.type === 'transfer' ? 'transfer' : 'end',
-                    color: getLineColor(leg),
-                    isFirst: false,
-                    isLast: !nextLeg
-                }));
+            // 次の区間情報
+            if (nextLeg && nextLeg.type === 'segment') {
+                timeline.appendChild(createTimelineSegment(nextLeg, elapsed));
             }
             continue;
         }
 
-        // 3. 乗換（transfer）
-        if (leg.type === 'transfer') {
-            // 乗換インラインパネル
-            path.appendChild(createTimelineRow({
+        // 2. 乗車区間
+        if (leg.type === 'segment') {
+            elapsed += Math.round(leg.duration);
+
+            // 到着駅（最終または乗換駅）
+            const markerType = isLast ? 'end' : 'via';
+            timeline.appendChild(createTimelineStation({
                 elapsed,
-                content: createTransferPanel(leg),
-                marker: 'transfer',
-                color: getLineColor(route.legs[i + 1]),
-                isFirst: false,
-                isLast: false
+                stationName: leg.stationName,
+                marker: markerType
             }));
+
+            // 次が乗換なら乗換情報を追加
+            if (nextLeg && nextLeg.type === 'transfer') {
+                elapsed += Math.round(nextLeg.duration);
+                timeline.appendChild(createTimelineTransfer(nextLeg, elapsed));
+            }
+
+            // 乗換後の次の区間情報
+            const afterTransfer = route.legs[i + 2];
+            if (afterTransfer && afterTransfer.type === 'segment') {
+                timeline.appendChild(createTimelineSegment(afterTransfer, elapsed));
+            }
         }
     }
 
-    card.appendChild(path);
+    card.appendChild(timeline);
     return card;
 }
 
-// タイムライン1行生成
-function createTimelineRow({ elapsed, stationName, content, marker, color, isFirst, isLast }) {
+// タイムライン：駅表示
+function createTimelineStation({ elapsed, stationName, marker }) {
     const row = document.createElement('div');
-    row.className = 'timeline-row';
+    row.className = 'timeline-row station-row';
 
-    // 時間ラベル
-    const timeLabel = document.createElement('div');
-    timeLabel.className = 'timeline-elapsed';
-    timeLabel.textContent = elapsed !== null && elapsed !== undefined ? `${elapsed}分` : '';
-    row.appendChild(timeLabel);
+    const markerClass = marker === 'start' ? 'marker-start' : 
+                       marker === 'end' ? 'marker-end' : 'marker-via';
 
-    // タイムラインアイコン
-    const timeline = document.createElement('div');
-    timeline.className = 'timeline-marker';
-    if (marker === 'start') {
-        timeline.innerHTML = `<span class="marker marker-start"></span>`;
-    } else if (marker === 'end') {
-        timeline.innerHTML = `<span class="marker marker-end"></span>`;
-    } else if (marker === 'transfer') {
-        timeline.innerHTML = `<span class="marker marker-transfer"></span>`;
-    } else {
-        timeline.innerHTML = `<span class="marker" style="border-color:${color};"></span>`;
-    }
-    if (color) timeline.style.borderColor = color;
-    row.appendChild(timeline);
-
-    // 駅名 or パネル
-    const main = document.createElement('div');
-    main.className = 'timeline-main';
-    if (stationName) {
-        main.innerHTML = `<span class="station-name-timeline">${stationName}</span>`;
-    }
-    if (content) {
-        main.appendChild(content);
-    }
-    row.appendChild(main);
-
+    row.innerHTML = `
+        <div class="timeline-time">${elapsed}分</div>
+        <div class="timeline-icon">
+            <div class="timeline-marker ${markerClass}"></div>
+        </div>
+        <div class="timeline-content">
+            <div class="station-name">${stationName}</div>
+        </div>
+    `;
     return row;
 }
 
-// 路線区間パネル
-function createSegmentPanel(leg) {
-    const div = document.createElement('div');
-    div.className = 'segment-panel';
+// タイムライン：区間情報
+function createTimelineSegment(leg, elapsedStart) {
+    const row = document.createElement('div');
+    row.className = 'timeline-row segment-row';
 
-    // 路線記号
-    const lineSymbol = getLineSymbol(leg.lineName, leg.lineColor);
-    // 列車種別バッジ
-    const typeBadge = `<span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>`;
-    // 駅数
     const stopsCount = leg.stopsAt ? Math.max(leg.stopsAt.length - 1, 0) : 0;
 
-    div.innerHTML = `
-        <div class="segline">
-            ${lineSymbol}
-            <span class="segline-name">${leg.lineName}</span>
-            ${typeBadge}
+    row.innerHTML = `
+        <div class="timeline-time"></div>
+        <div class="timeline-icon">
+            <div class="timeline-line" style="background: ${leg.lineColor};"></div>
         </div>
-        <div class="segline-info">
-            <span class="segline-time"><span class="icon-clock"></span> ${Math.round(leg.duration)}分</span>
-            <span class="segline-stops"><span class="icon-station"></span> ${stopsCount}駅</span>
-        </div>
-        ${createStopsButton(leg, 0)}
-    `;
-    return div;
-}
-
-// 乗換パネル
-function createTransferPanel(leg) {
-    const div = document.createElement('div');
-    div.className = 'transfer-panel';
-    div.innerHTML = `
-        <span class="icon-walk"></span>
-        <span class="transfer-label">
-            乗り換え（徒歩${leg.transferTime}分）
-        </span>
-    `;
-    return div;
-}
-
-// 路線記号
-function getLineSymbol(lineName, lineColor) {
-    const initial = lineName.charAt(0);
-    return `<span class="line-symbol" style="background:${lineColor};">${initial}</span>`;
-}
-function getLineColor(leg) {
-    return leg && leg.lineColor ? leg.lineColor : '#ccc';
-}
-
-// ========================================
-// 出発駅セグメント
-// ========================================
-function createDepartureSegment(leg) {
-    const segment = document.createElement('div');
-    segment.className = 'route-segment';
-    const lineColor = leg.lineColor || '#4CAF50';
-    segment.innerHTML = `
-        <div class="segment-timeline">
-            <div class="segment-marker departure"></div>
-        </div>
-        <div class="segment-details">
-            <div class="segment-station">${leg.stationName}</div>
-        </div>
-    `;
-    return segment;
-}
-
-// ========================================
-// 移動区間セグメント
-// ========================================
-function createSegmentElement(leg, elapsed, isLast, arrivalText = '') {
-    const segment = document.createElement('div');
-    segment.className = 'route-segment';
-    const lineColor = leg.lineColor || '#999';
-    const markerClass = isLast ? 'arrival' : '';
-    segment.innerHTML = `
-        <div class="segment-timeline">
-            <div class="segment-time">${elapsed}分</div>
-            <div class="segment-marker ${markerClass}"></div>
-        </div>
-        <div class="segment-details">
-            <div class="segment-station">${leg.stationName}</div>
-            ${arrivalText}
-        </div>
-    `;
-    return segment;
-}
-
-// ========================================
-// 乗換セグメント
-// ========================================
-function createTransferSegment(leg, elapsed) {
-    const segment = document.createElement('div');
-    segment.className = 'transfer-info-segment';
-    segment.innerHTML = `
-        <div class="segment-timeline">
-            <div class="segment-time">${elapsed}分</div>
-            <div class="segment-marker transfer"></div>
-        </div>
-        <div class="segment-details">
-            <div class="transfer-station-row">
-                <div class="segment-station">${leg.stationName}</div>
-                <div class="transfer-info">
-                    🚶 乗り換え（徒歩${leg.transferTime}分）
+        <div class="timeline-content">
+            <div class="segment-info">
+                <div class="segment-line-name">
+                    <span class="line-symbol" style="background: ${leg.lineColor};">
+                        ${leg.lineName.charAt(0)}
+                    </span>
+                    <span class="line-text">${leg.lineName}</span>
+                    <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
                 </div>
+                <div class="segment-details-row">
+                    <span class="segment-duration">🕐 ${Math.round(leg.duration)}分</span>
+                    <span class="segment-stops">🏢 ${stopsCount}駅</span>
+                </div>
+                ${createStopsButton(leg, elapsedStart)}
             </div>
         </div>
     `;
-    return segment;
+    return row;
+}
+
+// タイムライン：乗換情報
+function createTimelineTransfer(leg, elapsed) {
+    const row = document.createElement('div');
+    row.className = 'timeline-row transfer-row';
+
+    row.innerHTML = `
+        <div class="timeline-time">${elapsed}分</div>
+        <div class="timeline-icon">
+            <div class="timeline-marker marker-transfer"></div>
+        </div>
+        <div class="timeline-content">
+            <div class="transfer-badge">
+                🚶 乗り換え（徒歩${leg.transferTime}分）
+            </div>
+        </div>
+    `;
+    return row;
 }
 
 // ========================================
@@ -1021,10 +920,11 @@ function createStopsButton(leg, elapsedStart) {
     if (!leg.stopsAt || leg.stopsAt.length <= 2) {
         return '';
     }
-    // 出発駅・到着駅(乗換駅)を除外
     const stops = leg.stopsAt.slice(1, -1);
     if (stops.length === 0) return '';
+    
     const stopsId = `stops-${Math.random().toString(36).substr(2, 9)}`;
+    
     setTimeout(() => {
         const button = document.getElementById(`btn-${stopsId}`);
         const detail = document.getElementById(stopsId);
@@ -1033,50 +933,31 @@ function createStopsButton(leg, elapsedStart) {
                 detail.classList.toggle('active');
                 button.textContent = detail.classList.contains('active') 
                     ? '▲ 停車駅を非表示' 
-                    : `▼ 停車駅を表示`;
+                    : '▼ 停車駅を表示';
             });
         }
     }, 0);
-    let stopsHTML = '<div class="stops-title">停車駅一覧</div>';
+    
+    let stopsHTML = '';
     let acc = elapsedStart;
     const perHop = leg.duration / (leg.stopsAt.length - 1);
-    stops.forEach((stopId, idx) => {
+    
+    stops.forEach((stopId) => {
         acc += perHop;
         const station = preprocessedData.stationMap.get(stopId);
         if (station) {
-            stopsHTML += `
-                <div class="stop-item">
-                    <span class="stop-marker"></span>
-                    <span>${station.stationName}（${Math.round(acc)}分）</span>
-                </div>
-            `;
+            stopsHTML += `<div class="stop-item">${station.stationName}</div>`;
         }
     });
+    
     return `
-        <button class="toggle-stops-button" id="btn-${stopsId}">
+        <button class="toggle-stops-btn" id="btn-${stopsId}">
             ▼ 停車駅を表示
         </button>
-        <div class="stops-detail" id="${stopsId}">
+        <div class="stops-list" id="${stopsId}">
             ${stopsHTML}
         </div>
     `;
-}
-
-// ========================================
-// 時刻フォーマット
-// ========================================
-function formatTime(date) {
-    const h = String(date.getHours()).padStart(2, '0');
-    const m = String(date.getMinutes()).padStart(2, '0');
-    return `${h}:${m}`;
-}
-
-function addMinutes(date, minutes) {
-    return new Date(date.getTime() + minutes * 60000);
-}
-
-function subtractMinutes(date, minutes) {
-    return new Date(date.getTime() - minutes * 60000);
 }
 
 // ========================================
