@@ -119,28 +119,93 @@ function preprocessData() {
         }
     });
 
+    // のりば間乗換時間マップを作成
+    const platformTransferMap = new Map();
+    if (appData.platformTransfers) {
+        appData.platformTransfers.forEach(transfer => {
+            const key = `${transfer.stationId}|${transfer.fromPlatform}|${transfer.toPlatform}`;
+            platformTransferMap.set(key, transfer);
+        });
+    }
+
+    // 駅・のりばからセグメント情報を引くマップ
+    const platformToSegments = new Map();
+    appData.segments.forEach(segment => {
+        Object.entries(segment.platforms).forEach(([stationId, platform]) => {
+            const key = `${stationId}|${platform}`;
+            if (!platformToSegments.has(key)) {
+                platformToSegments.set(key, []);
+            }
+            platformToSegments.get(key).push(segment);
+        });
+    });
+
     // 乗換情報を隣接リストに追加
-    appData.transfers.forEach(transfer => {
-        const fromStationId = transfer.stationId;
+    // 異なる路線への乗換と、同一路線・異なる種別への乗換の両方を処理
+    appData.segments.forEach(fromSegment => {
+        Object.entries(fromSegment.platforms).forEach(([stationId, fromPlatform]) => {
+            const fromKey = `${stationId}|${fromSegment.lineId}|${fromSegment.trainType}`;
+            
+            if (!adjacencyList.has(fromKey)) {
+                adjacencyList.set(fromKey, []);
+            }
 
-        appData.trainTypes.forEach(fromTrainType => {
-            appData.trainTypes.forEach(toTrainType => {
-                const fromKey = `${fromStationId}|${transfer.fromLineId}|${fromTrainType.trainTypeId}`;
-                const toKey = `${fromStationId}|${transfer.toLineId}|${toTrainType.trainTypeId}`;
+            // 同じ駅の他のセグメントを探す
+            appData.segments.forEach(toSegment => {
+                if (toSegment.platforms[stationId]) {
+                    const toPlatform = toSegment.platforms[stationId];
+                    const toKey = `${stationId}|${toSegment.lineId}|${toSegment.trainType}`;
 
-                if (!adjacencyList.has(fromKey)) {
-                    adjacencyList.set(fromKey, []);
+                    // 同じノードへの乗換は不要
+                    if (fromKey === toKey) return;
+
+                    // のりば間の乗換時間を取得
+                    let transferTime = 0;
+                    let isDirectThrough = false;
+
+                    if (fromPlatform === toPlatform) {
+                        // 同じのりばの場合
+                        if (fromSegment.lineId === toSegment.lineId) {
+                            // 同一路線・同一のりば → 種別変更で1分
+                            transferTime = 1;
+                            isDirectThrough = false;
+                        } else {
+                            // 異なる路線・同一のりば → 直通の可能性
+                            const transferKey = `${stationId}|${fromPlatform}|${toPlatform}`;
+                            const transfer = platformTransferMap.get(transferKey);
+                            if (transfer) {
+                                transferTime = transfer.transferTime;
+                                isDirectThrough = transfer.isDirectThrough;
+                            } else {
+                                // 定義がない場合は1分
+                                transferTime = 1;
+                            }
+                        }
+                    } else {
+                        // 異なるのりばの場合
+                        const transferKey = `${stationId}|${fromPlatform}|${toPlatform}`;
+                        const transfer = platformTransferMap.get(transferKey);
+                        if (transfer) {
+                            transferTime = transfer.transferTime;
+                            isDirectThrough = transfer.isDirectThrough;
+                        } else {
+                            // 定義がない場合はデフォルト3分
+                            transferTime = 3;
+                        }
+                    }
+
+                    adjacencyList.get(fromKey).push({
+                        type: 'transfer',
+                        toKey: toKey,
+                        toStationId: stationId,
+                        lineId: toSegment.lineId,
+                        trainType: toSegment.trainType,
+                        duration: transferTime,
+                        fromPlatform: fromPlatform,
+                        toPlatform: toPlatform,
+                        isDirectThrough: isDirectThrough
+                    });
                 }
-
-                adjacencyList.get(fromKey).push({
-                    type: 'transfer',
-                    toKey: toKey,
-                    toStationId: fromStationId,
-                    lineId: transfer.toLineId,
-                    trainType: toTrainType.trainTypeId,
-                    duration: transfer.transferTime,
-                    transfer: transfer
-                });
             });
         });
     });
@@ -659,11 +724,6 @@ function buildRouteInfo(path) {
             totalDuration += edge.duration;
         } else if (edge.type === 'transfer') {
             // 乗換レグ
-            // 直前のsegmentのplatformsから乗換駅の番線を取得
-            let platform = null;
-            if (prevSegment && prevSegment.platforms && prevSegment.platforms[stationId]) {
-                platform = prevSegment.platforms[stationId];
-            }
             legs.push({
                 type: 'transfer',
                 stationId,
@@ -675,9 +735,11 @@ function buildRouteInfo(path) {
                 trainTypeName: trainTypeInfo?.trainTypeName || trainType,
                 duration: edge.duration,
                 transferTime: edge.duration,
-                isDirectThrough: edge.transfer?.isDirectThrough || false,
+                isDirectThrough: edge.isDirectThrough || false,
+                fromPlatform: edge.fromPlatform,
+                toPlatform: edge.toPlatform,
                 stopsAt: [],
-                platform: platform
+                platform: edge.fromPlatform
             });
             totalDuration += edge.duration;
         }
@@ -934,23 +996,39 @@ function createTableTransferRow(leg) {
     row.className = 'table-row transfer-row';
 
     if (leg.isDirectThrough) {
+        // 直通の場合
+        const platformInfo = leg.fromPlatform === leg.toPlatform 
+            ? `（${leg.fromPlatform}）` 
+            : `（${leg.fromPlatform} → ${leg.toPlatform}）`;
         row.innerHTML = `
             <div class="table-time"></div>
             <div class="table-marker">
                 <span class="transfer-icon">⇄</span>
             </div>
             <div class="table-content">
-                <span class="transfer-label">乗換不要(直通)</span>
+                <span class="transfer-label">乗換不要(直通) ${platformInfo}</span>
+            </div>
+        `;
+    } else if (leg.fromPlatform === leg.toPlatform) {
+        // 同一のりばでの乗換（種別変更）
+        row.innerHTML = `
+            <div class="table-time"></div>
+            <div class="table-marker">
+                <span class="transfer-icon">🔄</span>
+            </div>
+            <div class="table-content">
+                <span class="transfer-label">種別変更（${leg.fromPlatform}・${leg.transferTime}分）</span>
             </div>
         `;
     } else {
+        // 通常の乗換
         row.innerHTML = `
             <div class="table-time"></div>
             <div class="table-marker">
                 <span class="transfer-icon">🚶</span>
             </div>
             <div class="table-content">
-                <span class="transfer-label">乗り換え（徒歩${leg.transferTime}分）</span>
+                <span class="transfer-label">のりば移動（${leg.fromPlatform} → ${leg.toPlatform}・${leg.transferTime}分）</span>
             </div>
         `;
     }
