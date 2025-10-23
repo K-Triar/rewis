@@ -37,8 +37,9 @@ async function loadData() {
         if (!response.ok) {
             throw new Error('データファイルが見つかりません');
         }
-        appData = await response.json();
-        console.log('データ読み込み完了:', appData);
+        const data = await response.json();
+        console.log('データ読み込み完了:', data);
+        return data;
     } catch (error) {
         console.error('データ読み込みエラー:', error);
         throw error;
