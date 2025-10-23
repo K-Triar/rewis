@@ -9,146 +9,233 @@
 <body>
     <div class="container">
         <header>
-            <h1>📝 路線データ編集システム</h1>
-            <p class="subtitle">鉄道事業者向けデータ管理ツール</p>
+            <h1>路線データ編集システム - data.json　<span style=”color:red;”>編集用ページのプレビューです。jsonファイルの上書きはできません。</span></h1>
+            <div id="server-status" style="font-size: 10px; margin-top: 3px;">接続確認中...</div>
         </header>
 
         <nav class="main-nav">
-            <button class="nav-btn active" data-section="companies">🏢 鉄道会社</button>
-            <button class="nav-btn" data-section="train-types">🚄 列車種別</button>
-            <button class="nav-btn" data-section="lines">🛤️ 路線</button>
-            <button class="nav-btn" data-section="stations">🚉 駅</button>
-            <button class="nav-btn" data-section="segments">📏 区間</button>
-            <button class="nav-btn" data-section="through-services">🔄 直通運転</button>
-            <button class="nav-btn" data-section="platform-transfers">🚶 のりば乗換</button>
-            <button class="nav-btn" data-section="export">💾 保存/読込</button>
+            <button class="nav-btn active" data-section="companies">鉄道会社</button>
+            <button class="nav-btn" data-section="train-types">列車種別</button>
+            <button class="nav-btn" data-section="lines">路線</button>
+            <button class="nav-btn" data-section="stations">駅</button>
+            <button class="nav-btn" data-section="segments">区間</button>
+            <button class="nav-btn" data-section="through-services">直通運転</button>
+            <button class="nav-btn" data-section="platform-transfers">のりば乗換</button>
+            <button class="nav-btn" data-section="export">保存/読込</button>
         </nav>
 
         <main>
             <!-- 鉄道会社セクション -->
             <section id="companies" class="edit-section active">
                 <div class="section-header">
-                    <h2>🏢 鉄道会社管理</h2>
-                    <button class="add-btn" onclick="addCompany()">➕ 新しい会社を追加</button>
+                    <h2>鉄道会社</h2>
+                    <button class="add-btn" onclick="addCompany()">+ 追加</button>
                 </div>
-                <div class="help-text">
-                    💡 ヒント: 会社IDは短い英数字（例: KT, JR）、会社名は正式名称を入力してください。
+                <div class="table-container">
+                    <table class="data-table" id="companies-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 120px;">会社ID</th>
+                                <th style="width: 250px;">会社名</th>
+                                <th style="width: 80px;">自社</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="companies-tbody"></tbody>
+                    </table>
                 </div>
-                <div id="companies-list" class="data-list"></div>
             </section>
 
             <!-- 列車種別セクション -->
             <section id="train-types" class="edit-section">
                 <div class="section-header">
-                    <h2>🚄 列車種別管理</h2>
-                    <button class="add-btn" onclick="addTrainType()">➕ 新しい種別を追加</button>
+                    <h2>列車種別</h2>
+                    <button class="add-btn" onclick="addTrainType()">+ 追加</button>
                 </div>
-                <div class="help-text">
-                    💡 ヒント: 優先度は数字が小さいほど速い列車です（1=特急、2=快速、3=普通など）。
+                <div class="table-container">
+                    <table class="data-table" id="train-types-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 120px;">種別ID</th>
+                                <th style="width: 150px;">種別名</th>
+                                <th style="width: 100px;">略称</th>
+                                <th style="width: 80px;">優先度</th>
+                                <th style="width: 100px;">色</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="train-types-tbody"></tbody>
+                    </table>
                 </div>
-                <div id="train-types-list" class="data-list"></div>
             </section>
 
             <!-- 路線セクション -->
             <section id="lines" class="edit-section">
                 <div class="section-header">
-                    <h2>🛤️ 路線管理</h2>
-                    <button class="add-btn" onclick="addLine()">➕ 新しい路線を追加</button>
+                    <h2>路線</h2>
+                    <button class="add-btn" onclick="addLine()">+ 追加</button>
                 </div>
-                <div class="help-text">
-                    💡 ヒント: 路線IDは「会社ID-路線記号」形式（例: KT-L）、色はカラーコードで指定します。
+                <div class="table-container">
+                    <table class="data-table" id="lines-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 120px;">路線ID</th>
+                                <th style="width: 250px;">路線名</th>
+                                <th style="width: 150px;">運営会社ID</th>
+                                <th style="width: 100px;">路線カラー</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lines-tbody"></tbody>
+                    </table>
                 </div>
-                <div id="lines-list" class="data-list"></div>
             </section>
 
             <!-- 駅セクション -->
             <section id="stations" class="edit-section">
                 <div class="section-header">
-                    <h2>🚉 駅管理</h2>
-                    <button class="add-btn" onclick="addStation()">➕ 新しい駅を追加</button>
-                </div>
-                <div class="help-text">
-                    💡 ヒント: 駅IDは路線記号+番号（例: KL01）、緯度経度は地図で確認できます。
+                    <h2>駅</h2>
+                    <button class="add-btn" onclick="addStation()">+ 追加</button>
                 </div>
                 <div class="search-box">
-                    <input type="text" id="station-search" placeholder="🔍 駅名で検索..." oninput="filterStations()">
+                    <input type="text" id="station-search" placeholder="検索..." oninput="filterStations()">
                 </div>
-                <div id="stations-list" class="data-list"></div>
+                <div class="table-container">
+                    <table class="data-table" id="stations-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 100px;">駅ID</th>
+                                <th style="width: 200px;">駅名</th>
+                                <th style="width: 200px;">駅名カナ</th>
+                                <th style="width: 100px;">緯度</th>
+                                <th style="width: 100px;">経度</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stations-tbody"></tbody>
+                    </table>
+                </div>
             </section>
 
             <!-- 区間セクション -->
             <section id="segments" class="edit-section">
                 <div class="section-header">
-                    <h2>📏 区間管理</h2>
-                    <button class="add-btn" onclick="addSegment()">➕ 新しい区間を追加</button>
-                </div>
-                <div class="help-text">
-                    💡 ヒント: 区間は駅と駅を結ぶ線路です。双方向運転の場合は「双方向」にチェックを入れてください。
+                    <h2>区間</h2>
+                    <button class="add-btn" onclick="addSegment()">+ 追加</button>
                 </div>
                 <div class="filter-box">
-                    <label>路線で絞り込み: </label>
+                    <label>路線: </label>
                     <select id="segment-line-filter" onchange="filterSegments()">
-                        <option value="">すべて表示</option>
+                        <option value="">全て</option>
                     </select>
                 </div>
-                <div id="segments-list" class="data-list"></div>
+                <div class="table-container">
+                    <table class="data-table" id="segments-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 150px;">区間ID</th>
+                                <th style="width: 100px;">路線ID</th>
+                                <th style="width: 100px;">会社ID</th>
+                                <th style="width: 100px;">始点駅ID</th>
+                                <th style="width: 100px;">始点駅のりば</th>
+                                <th style="width: 100px;">終点駅ID</th>
+                                <th style="width: 100px;">終点駅のりば</th>
+                                <th style="width: 100px;">列車種別</th>
+                                <th style="width: 80px;">所要時間</th>
+                                <th style="width: 80px;">距離</th>
+                                <th style="width: 80px;">双方向</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="segments-tbody"></tbody>
+                    </table>
+                </div>
             </section>
 
             <!-- 直通運転セクション -->
             <section id="through-services" class="edit-section">
                 <div class="section-header">
-                    <h2>🔄 直通運転設定</h2>
-                    <button class="add-btn" onclick="addThroughService()">➕ 新しい直通運転を追加</button>
+                    <h2>直通運転</h2>
+                    <button class="add-btn" onclick="addThroughService()">+ 追加</button>
                 </div>
-                <div class="help-text">
-                    💡 ヒント: 直通運転は異なる路線間で列車がそのまま乗り入れる設定です。
+                <div class="table-container">
+                    <table class="data-table" id="through-services-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 150px;">設定ID</th>
+                                <th style="width: 120px;">乗入元路線</th>
+                                <th style="width: 120px;">乗入先路線</th>
+                                <th style="width: 120px;">元列車種別</th>
+                                <th style="width: 120px;">先列車種別</th>
+                                <th style="width: 100px;">直通方向</th>
+                                <th style="width: 200px;">説明</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="through-services-tbody"></tbody>
+                    </table>
                 </div>
-                <div id="through-services-list" class="data-list"></div>
             </section>
 
             <!-- のりば乗換セクション -->
             <section id="platform-transfers" class="edit-section">
                 <div class="section-header">
-                    <h2>🚶 のりば間乗換時間</h2>
-                    <button class="add-btn" onclick="addPlatformTransfer()">➕ 新しい乗換を追加</button>
+                    <h2>のりば乗換</h2>
+                    <button class="add-btn" onclick="addPlatformTransfer()">+ 追加</button>
                 </div>
-                <div class="help-text">
-                    💡 ヒント: 同じ駅内で異なるのりば間の乗換にかかる時間を設定します。
+                <div class="table-container">
+                    <table class="data-table" id="platform-transfers-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 150px;">乗換ID</th>
+                                <th style="width: 120px;">駅ID</th>
+                                <th style="width: 150px;">乗換元のりば</th>
+                                <th style="width: 150px;">乗換先のりば</th>
+                                <th style="width: 100px;">乗換時間</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="platform-transfers-tbody"></tbody>
+                    </table>
                 </div>
-                <div id="platform-transfers-list" class="data-list"></div>
             </section>
 
             <!-- 保存/読込セクション -->
             <section id="export" class="edit-section">
                 <div class="section-header">
-                    <h2>💾 データの保存と読込</h2>
+                    <h2>保存/読込</h2>
                 </div>
                 
                 <div class="export-card">
-                    <h3>📥 データファイルを読み込む</h3>
-                    <p>既存のdata.jsonファイルを読み込んで編集できます。</p>
+                    <h3>読込</h3>
+                    <p>data.jsonファイルを読込</p>
                     <input type="file" id="file-input" accept=".json" onchange="loadDataFile()">
-                    <label for="file-input" class="file-label">ファイルを選択</label>
+                    <label for="file-input" class="file-label">ファイル選択</label>
                 </div>
 
                 <div class="export-card">
-                    <h3>💾 編集したデータを保存</h3>
-                    <p>編集した内容をdata.jsonファイルとしてダウンロードします。</p>
-                    <button class="export-btn" onclick="exportData()">📥 data.jsonをダウンロード</button>
+                    <h3>保存</h3>
+                    <p>サーバーに直接保存（サーバー起動時）/ ダウンロード（ローカル時）</p>
+                    <button class="export-btn" onclick="exportData()">保存</button>
                 </div>
 
                 <div class="export-card">
-                    <h3>👁️ データプレビュー</h3>
-                    <p>現在のデータをJSON形式で確認できます。</p>
-                    <button class="preview-btn" onclick="togglePreview()">プレビューを表示/非表示</button>
+                    <h3>プレビュー</h3>
+                    <button class="preview-btn" onclick="togglePreview()">表示/非表示</button>
                     <pre id="json-preview" style="display: none;"></pre>
                 </div>
             </section>
         </main>
 
         <footer>
-            <p>© 2025 Kトライア交通グループ 路線データ編集システム</p>
-            <p class="warning">⚠️ データを編集したら必ず保存してください。ページを閉じると変更は失われます。</p>
+            <p>路線データ編集システム | <span class="warning">変更後は必ず保存してください</span></p>
         </footer>
     </div>
 
