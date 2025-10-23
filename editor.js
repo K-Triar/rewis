@@ -1,4 +1,4 @@
-﻿// グローバル変数
+// グローバル変数
 let appData = {
     meta: {
         version: "1.0.0",
@@ -255,6 +255,7 @@ function renderSection(sectionId) {
         case 'segments': renderSegments(); break;
         case 'through-services': renderThroughServices(); break;
         case 'platform-transfers': renderPlatformTransfers(); break;
+        case 'help': break; // 使い方セクションは静的HTMLなので処理不要
     }
     // 各テーブルのヘッダにソートボタンを有効化（表示のみのクライアントソート）
     enableTableSorting();
