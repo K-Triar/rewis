@@ -22,11 +22,12 @@
 }
 
 :root {
-    --primary-color: #0078C8;
-    --secondary-color: #9ACD32;
+    --primary-color: #0078D7;
+    --secondary-color: #E67E22;
     --danger-color: #E60012;
-    --warning-color: #FF6600;
-    --success-color: #00A040;
+    --warning-color: #404040;
+    --success-color: #808080;
+    --sr-rapid-color: #202020;
     --text-color: #333;
     --border-color: #ddd;
     --bg-gray: #f5f5f5;
@@ -294,16 +295,18 @@ main {
     color: white;
 }
 
+/* 列車種別バッジ色（output.json仕様） */
 .train-type-badge.express {
-    background: var(--danger-color);
+    background: #E60012;
 }
-
 .train-type-badge.rapid {
-    background: var(--warning-color);
+    background: #404040;
 }
-
 .train-type-badge.local {
-    background: var(--success-color);
+    background: #808080;
+}
+.train-type-badge.srapid {
+    background: #202020;
 }
 
 /* 検索ボタン */
@@ -545,8 +548,9 @@ main {
 }
 
 .train-type-badge.express { background: #E60012; }
-.train-type-badge.rapid { background: #FF6600; }
-.train-type-badge.local { background: #00A040; }
+.train-type-badge.rapid { background: #404040; }
+.train-type-badge.local { background: #808080; }
+.train-type-badge.srapid { background: #202020; }
 
 .segment-details-row {
     display: flex;
@@ -890,6 +894,18 @@ footer {
     border-radius: 16px;
     font-size: 0.98rem;
     font-weight: 600;
+}
+
+/* 直通運転ラベル */
+.transfer-label.through-service {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* 種別変更ラベル */
+.transfer-label.type-change {
+    background: #e3f2fd;
+    color: #1565c0;
 }
 
 .toggle-stops-btn {
