@@ -668,100 +668,284 @@
       "isBidirectional": true
     }
   ],
-  "transfers": [
+  "platformTransfers": [
     {
-      "transferId": "TRF_001",
+      "transferId": "PTF_001",
       "stationId": "STA_002",
-      "fromLineId": "TOHTO_MAIN",
-      "toLineId": "TOHTO_LOOP",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "1番のりば",
       "transferTime": 3,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_002",
+      "transferId": "PTF_002",
       "stationId": "STA_002",
-      "fromLineId": "TOHTO_LOOP",
-      "toLineId": "TOHTO_MAIN",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "1番のりば",
       "transferTime": 3,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_003",
+      "transferId": "PTF_003",
+      "stationId": "STA_002",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_004",
+      "stationId": "STA_002",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_005",
+      "stationId": "STA_002",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_006",
+      "stationId": "STA_002",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_007",
+      "stationId": "STA_002",
+      "fromPlatform": "7番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_008",
+      "stationId": "STA_002",
+      "fromPlatform": "7番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_009",
+      "stationId": "STA_002",
+      "fromPlatform": "7番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_010",
       "stationId": "STA_003",
-      "fromLineId": "TOHTO_MAIN",
-      "toLineId": "TOHTO_LOOP",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "5番のりば",
       "transferTime": 2,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_004",
+      "transferId": "PTF_011",
       "stationId": "STA_003",
-      "fromLineId": "TOHTO_LOOP",
-      "toLineId": "TOHTO_MAIN",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "5番のりば",
       "transferTime": 2,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_005",
+      "transferId": "PTF_012",
       "stationId": "STA_003",
-      "fromLineId": "TOHTO_MAIN",
-      "toLineId": "HOKUBU_LINE",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_013",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_014",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_015",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_016",
+      "stationId": "STA_003",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "1番のりば",
       "transferTime": 0,
       "isDirectThrough": true
     },
     {
-      "transferId": "TRF_006",
+      "transferId": "PTF_017",
       "stationId": "STA_003",
-      "fromLineId": "HOKUBU_LINE",
-      "toLineId": "TOHTO_MAIN",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "1番のりば",
       "transferTime": 0,
       "isDirectThrough": true
     },
     {
-      "transferId": "TRF_007",
+      "transferId": "PTF_018",
       "stationId": "STA_003",
-      "fromLineId": "TOHTO_LOOP",
-      "toLineId": "HOKUBU_LINE",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_019",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_020",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_021",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_022",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "1番のりば",
       "transferTime": 4,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_008",
+      "transferId": "PTF_023",
       "stationId": "STA_003",
-      "fromLineId": "HOKUBU_LINE",
-      "toLineId": "TOHTO_LOOP",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "2番のりば",
       "transferTime": 4,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_009",
+      "transferId": "PTF_024",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_025",
+      "stationId": "STA_003",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_026",
       "stationId": "STA_004",
-      "fromLineId": "TOHTO_MAIN",
-      "toLineId": "TOHTO_LOOP",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "6番のりば",
       "transferTime": 3,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_010",
+      "transferId": "PTF_027",
       "stationId": "STA_004",
-      "fromLineId": "TOHTO_LOOP",
-      "toLineId": "TOHTO_MAIN",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "6番のりば",
       "transferTime": 3,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_011",
+      "transferId": "PTF_028",
+      "stationId": "STA_004",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "6番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_029",
+      "stationId": "STA_004",
+      "fromPlatform": "6番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_030",
+      "stationId": "STA_004",
+      "fromPlatform": "6番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_031",
+      "stationId": "STA_004",
+      "fromPlatform": "6番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_032",
       "stationId": "STA_006",
-      "fromLineId": "TOHTO_LOOP",
-      "toLineId": "NANKAI_LINE",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "1番のりば",
       "transferTime": 5,
       "isDirectThrough": false
     },
     {
-      "transferId": "TRF_012",
+      "transferId": "PTF_033",
       "stationId": "STA_006",
-      "fromLineId": "NANKAI_LINE",
-      "toLineId": "TOHTO_LOOP",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 5,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_034",
+      "stationId": "STA_006",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 5,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_035",
+      "stationId": "STA_006",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "3番のりば",
       "transferTime": 5,
       "isDirectThrough": false
     }
