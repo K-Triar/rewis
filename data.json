@@ -1,24 +1,44 @@
 {
   "meta": {
     "version": "1.0.0",
-    "ownCompanyId": "TOHTO",
+    "ownCompanyId": "KT",
     "lastUpdated": "2025-10-21",
-    "appName": "東都鉄道 乗換案内システム"
+    "appName": "Kトライア瑠璃 乗換案内システム"
   },
   "companies": [
     {
-      "companyId": "TOHTO",
-      "companyName": "東都鉄道",
+      "companyId": "KT",
+      "companyName": "Kトライア瑠璃",
       "isOwnCompany": true
     },
     {
-      "companyId": "HOKUBU",
-      "companyName": "北部急行",
+      "companyId": "HRA",
+      "companyName": "ヘルヴェティア交通局",
       "isOwnCompany": false
     },
     {
-      "companyId": "NANKAI",
-      "companyName": "南海鉄道",
+      "companyId": "CR",
+      "companyName": "ころりん鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "ERB",
+      "companyName": "エメラルド国有鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "DKR",
+      "companyName": "ダイヤきらめき鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "JR",
+      "companyName": "ジストリオ鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "SUI",
+      "companyName": "翠玉電気鉄道",
       "isOwnCompany": false
     }
   ],
@@ -35,942 +55,1759 @@
       "trainTypeName": "快速",
       "trainTypeNameShort": "快",
       "priority": 2,
-      "color": "#FF6600"
+      "color": "#404040"
     },
     {
       "trainTypeId": "LOCAL",
-      "trainTypeName": "各駅停車",
-      "trainTypeNameShort": "各",
+      "trainTypeName": "普通",
+      "trainTypeNameShort": "普",
       "priority": 3,
-      "color": "#00A040"
+      "color": "#808080"
+    },
+    {
+      "trainTypeId": "SRAPID",
+      "trainTypeName": "新快速",
+      "trainTypeNameShort": "新快",
+      "priority": 1,
+      "color": "#202020"
     }
   ],
   "lines": [
     {
-      "lineId": "TOHTO_MAIN",
-      "lineName": "東都本線",
-      "companyId": "TOHTO",
-      "lineColor": "#0078C8",
+      "lineId": "KT-B",
+      "lineName": "貿易港線",
+      "companyId": "KT",
+      "lineColor": "#E67E22",
       "throughServices": []
     },
     {
-      "lineId": "TOHTO_LOOP",
-      "lineName": "東都環状線",
-      "companyId": "TOHTO",
-      "lineColor": "#9ACD32",
+      "lineId": "KT-L",
+      "lineName": "瑠璃線",
+      "companyId": "KT",
+      "lineColor": "#0078D7",
       "throughServices": []
     },
     {
-      "lineId": "HOKUBU_LINE",
-      "lineName": "北部急行線",
-      "companyId": "HOKUBU",
-      "lineColor": "#C9171E",
+      "lineId": "KT-U",
+      "lineName": "地下鉄中央線",
+      "companyId": "KT",
+      "lineColor": "#1B4AC2",
       "throughServices": []
     },
     {
-      "lineId": "NANKAI_LINE",
-      "lineName": "南海鉄道本線",
-      "companyId": "NANKAI",
-      "lineColor": "#FFA500",
+      "lineId": "SUI-S",
+      "lineName": "翠鉄城東線",
+      "companyId": "SUI",
+      "lineColor": "#009E60",
+      "throughServices": []
+    },
+    {
+      "lineId": "HRA-H",
+      "lineName": "HRA赤石線",
+      "companyId": "HRA",
+      "lineColor": "#C53030",
+      "throughServices": []
+    },
+    {
+      "lineId": "CR-K",
+      "lineName": "ころりん鉄道アカシア線",
+      "companyId": "CR",
+      "lineColor": "#8E44AD",
       "throughServices": []
     }
   ],
   "throughServiceConfigs": [
     {
-      "configId": "TS_001",
-      "fromLineId": "TOHTO_MAIN",
-      "toLineId": "HOKUBU_LINE",
-      "fromTrainType": "EXPRESS",
-      "toTrainType": "EXPRESS",
-      "description": "東都本線特急と北部急行線特急の相互直通運転"
+      "configId": "TS-A-LCL",
+      "fromLineId": "SUI-S",
+      "toLineId": "KT-L",
+      "fromTrainType": "LOCAL",
+      "toTrainType": "LOCAL",
+      "description": "SUI→KT（普通）"
     },
     {
-      "configId": "TS_002",
-      "fromLineId": "HOKUBU_LINE",
-      "toLineId": "TOHTO_MAIN",
-      "fromTrainType": "EXPRESS",
-      "toTrainType": "EXPRESS",
-      "description": "北部急行線特急と東都本線特急の相互直通運転"
+      "configId": "TS-A-RAP",
+      "fromLineId": "SUI-S",
+      "toLineId": "KT-L",
+      "fromTrainType": "RAPID",
+      "toTrainType": "RAPID",
+      "description": "SUI→KT（快速）"
+    },
+    {
+      "configId": "TS-A-CR",
+      "fromLineId": "KT-L",
+      "toLineId": "CR-K",
+      "fromTrainType": "LOCAL",
+      "toTrainType": "LOCAL",
+      "description": "KT→CR（普通）"
+    },
+    {
+      "configId": "TS-A-CRR",
+      "fromLineId": "KT-L",
+      "toLineId": "CR-K",
+      "fromTrainType": "RAPID",
+      "toTrainType": "RAPID",
+      "description": "KT→CR（快速）"
+    },
+    {
+      "configId": "TS-B-LCL",
+      "fromLineId": "HRA-H",
+      "toLineId": "KT-L",
+      "fromTrainType": "LOCAL",
+      "toTrainType": "RAPID",
+      "description": "HRA→KT（KT内は快速）"
+    },
+    {
+      "configId": "TS-D-SR",
+      "fromLineId": "KT-L",
+      "toLineId": "KT-U",
+      "fromTrainType": "SRAPID",
+      "toTrainType": "SRAPID",
+      "description": "KT→U（新快速）"
+    },
+    {
+      "configId": "TS-E-LCL1",
+      "fromLineId": "KT-B",
+      "toLineId": "KT-L",
+      "fromTrainType": "LOCAL",
+      "toTrainType": "LOCAL",
+      "description": "B→L（普通）"
+    },
+    {
+      "configId": "TS-E-LCL2",
+      "fromLineId": "KT-L",
+      "toLineId": "KT-U",
+      "fromTrainType": "LOCAL",
+      "toTrainType": "LOCAL",
+      "description": "L→U（普通）"
     }
   ],
   "stations": [
     {
-      "stationId": "STA_001",
-      "stationName": "西端駅",
-      "stationNameKana": "さいたんえき",
-      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
-      "latitude": 35.6800,
-      "longitude": 139.7000
-    },
-    {
-      "stationId": "STA_002",
-      "stationName": "西新宿駅",
-      "stationNameKana": "にししんじゅくえき",
+      "stationId": "KL01",
+      "stationName": "アカシア島",
+      "stationNameKana": "あかしあとう",
       "lines": [
-        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
-        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        },
+        {
+          "lineId": "CR-K",
+          "companyId": "CR"
+        }
       ],
-      "latitude": 35.6850,
-      "longitude": 139.7100
+      "latitude": 35.0,
+      "longitude": 139.0
     },
     {
-      "stationId": "STA_003",
-      "stationName": "中央駅",
-      "stationNameKana": "ちゅうおうえき",
+      "stationId": "KL02",
+      "stationName": "オット",
+      "stationNameKana": "おっと",
       "lines": [
-        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
-        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"},
-        {"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
       ],
-      "latitude": 35.6900,
-      "longitude": 139.7200
+      "latitude": 35.004,
+      "longitude": 139.004
     },
     {
-      "stationId": "STA_004",
-      "stationName": "東新宿駅",
-      "stationNameKana": "ひがししんじゅくえき",
+      "stationId": "KL03",
+      "stationName": "瑠前TT",
+      "stationNameKana": "るぜんてぃーてぃー",
       "lines": [
-        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
-        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
       ],
-      "latitude": 35.6950,
-      "longitude": 139.7300
+      "latitude": 35.008,
+      "longitude": 139.008
     },
     {
-      "stationId": "STA_005",
-      "stationName": "東端駅",
-      "stationNameKana": "とうたんえき",
-      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
-      "latitude": 35.7000,
-      "longitude": 139.7400
-    },
-    {
-      "stationId": "STA_006",
-      "stationName": "新橋駅",
-      "stationNameKana": "しんばしえき",
+      "stationId": "KL04",
+      "stationName": "瑠璃中央",
+      "stationNameKana": "るりちゅうおう",
       "lines": [
-        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"},
-        {"lineId": "NANKAI_LINE", "companyId": "NANKAI"}
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
       ],
-      "latitude": 35.6750,
-      "longitude": 139.7250
+      "latitude": 35.012,
+      "longitude": 139.012
     },
     {
-      "stationId": "STA_007",
-      "stationName": "南口駅",
-      "stationNameKana": "みなみぐちえき",
+      "stationId": "KL05",
+      "stationName": "セナポンタウン",
+      "stationNameKana": "せなぽんたうん",
       "lines": [
-        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
       ],
-      "latitude": 35.6700,
-      "longitude": 139.7200
+      "latitude": 35.016,
+      "longitude": 139.016
     },
     {
-      "stationId": "STA_008",
-      "stationName": "北口駅",
-      "stationNameKana": "きたぐちえき",
+      "stationId": "KL07",
+      "stationName": "クォーツ",
+      "stationNameKana": "くぉーつ",
       "lines": [
-        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
       ],
-      "latitude": 35.7050,
-      "longitude": 139.7200
+      "latitude": 35.02,
+      "longitude": 139.02
     },
     {
-      "stationId": "STA_009",
-      "stationName": "北部中央駅",
-      "stationNameKana": "ほくぶちゅうおうえき",
-      "lines": [{"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}],
-      "latitude": 35.7100,
-      "longitude": 139.7200
+      "stationId": "KL08",
+      "stationName": "クォーツ南口",
+      "stationNameKana": "くぉーつみなみぐち",
+      "lines": [
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.024,
+      "longitude": 139.024
     },
     {
-      "stationId": "STA_010",
-      "stationName": "北部終点駅",
-      "stationNameKana": "ほくぶしゅうてんえき",
-      "lines": [{"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}],
-      "latitude": 35.7200,
-      "longitude": 139.7200
+      "stationId": "KL09",
+      "stationName": "瑠交研前",
+      "stationNameKana": "るこうけんまえ",
+      "lines": [
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.028,
+      "longitude": 139.028
     },
     {
-      "stationId": "STA_011",
-      "stationName": "海岸駅",
-      "stationNameKana": "かいがんえき",
-      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
-      "latitude": 35.6600,
-      "longitude": 139.7250
+      "stationId": "KB01",
+      "stationName": "瑠順中央",
+      "stationNameKana": "るじゅんちゅうおう",
+      "lines": [
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        },
+        {
+          "lineId": "KT-B",
+          "companyId": "KT"
+        },
+        {
+          "lineId": "HRA-H",
+          "companyId": "HRA"
+        }
+      ],
+      "latitude": 35.032,
+      "longitude": 139.032
     },
     {
-      "stationId": "STA_012",
-      "stationName": "港町駅",
-      "stationNameKana": "みなとまちえき",
-      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
-      "latitude": 35.6500,
-      "longitude": 139.7250
+      "stationId": "KL11",
+      "stationName": "瑠順農園",
+      "stationNameKana": "るじゅんのうえん",
+      "lines": [
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.036,
+      "longitude": 139.036
     },
     {
-      "stationId": "STA_013",
-      "stationName": "南端駅",
-      "stationNameKana": "なんたんえき",
-      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
-      "latitude": 35.6400,
-      "longitude": 139.7250
+      "stationId": "KL12",
+      "stationName": "瑠順要塞",
+      "stationNameKana": "るじゅんようさい",
+      "lines": [
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.04,
+      "longitude": 139.04
     },
     {
-      "stationId": "STA_014",
-      "stationName": "西郊外駅",
-      "stationNameKana": "にしこうがいえき",
-      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
-      "latitude": 35.6820,
-      "longitude": 139.7050
+      "stationId": "KL13",
+      "stationName": "エメラルド城",
+      "stationNameKana": "えめらるどじょう",
+      "lines": [
+        {
+          "lineId": "KT-L",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.044,
+      "longitude": 139.044
     },
     {
-      "stationId": "STA_015",
-      "stationName": "東郊外駅",
-      "stationNameKana": "ひがしこうがいえき",
-      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
-      "latitude": 35.6970,
-      "longitude": 139.7350
+      "stationId": "KU06",
+      "stationName": "二労",
+      "stationNameKana": "にぎらい",
+      "lines": [
+        {
+          "lineId": "KT-U",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.02,
+      "longitude": 139.0
+    },
+    {
+      "stationId": "KU05",
+      "stationName": "羊ノ森",
+      "stationNameKana": "ようのもり",
+      "lines": [
+        {
+          "lineId": "KT-U",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.017,
+      "longitude": 139.002
+    },
+    {
+      "stationId": "KU04",
+      "stationName": "鍛冶ヶ淵",
+      "stationNameKana": "たんがやぶち",
+      "lines": [
+        {
+          "lineId": "KT-U",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.014,
+      "longitude": 139.004
+    },
+    {
+      "stationId": "KU03",
+      "stationName": "クロアチア",
+      "stationNameKana": "くろあちあ",
+      "lines": [
+        {
+          "lineId": "KT-U",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.011,
+      "longitude": 139.006
+    },
+    {
+      "stationId": "KU02",
+      "stationName": "瑠璃要塞",
+      "stationNameKana": "るりようさい",
+      "lines": [
+        {
+          "lineId": "KT-U",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.008,
+      "longitude": 139.008
+    },
+    {
+      "stationId": "KU01",
+      "stationName": "瑠璃中央",
+      "stationNameKana": "るりちゅうおう",
+      "lines": [
+        {
+          "lineId": "KT-U",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 35.005,
+      "longitude": 139.01
+    },
+    {
+      "stationId": "KB02",
+      "stationName": "南瑠順",
+      "stationNameKana": "みなみるじゅん",
+      "lines": [
+        {
+          "lineId": "KT-B",
+          "companyId": "KT"
+        },
+        {
+          "lineId": "HRA-H",
+          "companyId": "HRA"
+        }
+      ],
+      "latitude": 34.987,
+      "longitude": 139.032
+    },
+    {
+      "stationId": "KB03",
+      "stationName": "瑠順採掘場",
+      "stationNameKana": "るじゅんさいくつじょう",
+      "lines": [
+        {
+          "lineId": "KT-B",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 34.984,
+      "longitude": 139.034
+    },
+    {
+      "stationId": "KB04",
+      "stationName": "貿易港",
+      "stationNameKana": "ぼうえきこう",
+      "lines": [
+        {
+          "lineId": "KT-B",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 34.981,
+      "longitude": 139.036
+    },
+    {
+      "stationId": "KB05",
+      "stationName": "東ヘルべチア",
+      "stationNameKana": "ひがしへるべちあ",
+      "lines": [
+        {
+          "lineId": "KT-B",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 34.978,
+      "longitude": 139.038
+    },
+    {
+      "stationId": "KB06",
+      "stationName": "ラピスTT",
+      "stationNameKana": "らぴすてぃーてぃー",
+      "lines": [
+        {
+          "lineId": "KT-B",
+          "companyId": "KT"
+        }
+      ],
+      "latitude": 34.975,
+      "longitude": 139.04
+    },
+    {
+      "stationId": "LM-1",
+      "stationName": "エメラルド城",
+      "stationNameKana": "えめらるどじょう",
+      "lines": [
+        {
+          "lineId": "SUI-S",
+          "companyId": "SUI"
+        }
+      ],
+      "latitude": 35.01,
+      "longitude": 139.04
+    },
+    {
+      "stationId": "LM-2",
+      "stationName": "セブマ開発区",
+      "stationNameKana": "せぶまかいはつく",
+      "lines": [
+        {
+          "lineId": "SUI-S",
+          "companyId": "SUI"
+        }
+      ],
+      "latitude": 35.012,
+      "longitude": 139.046
+    },
+    {
+      "stationId": "LM-3",
+      "stationName": "匿茶ノ水",
+      "stationNameKana": "とくちゃのみず",
+      "lines": [
+        {
+          "lineId": "SUI-S",
+          "companyId": "SUI"
+        }
+      ],
+      "latitude": 35.014,
+      "longitude": 139.052
+    },
+    {
+      "stationId": "LM-4",
+      "stationName": "トクテルダム中央",
+      "stationNameKana": "とくてるだむちゅうおう",
+      "lines": [
+        {
+          "lineId": "SUI-S",
+          "companyId": "SUI"
+        }
+      ],
+      "latitude": 35.016,
+      "longitude": 139.058
+    },
+    {
+      "stationId": "H-03",
+      "stationName": "クォーツ湖",
+      "stationNameKana": "くぉーつこ",
+      "lines": [
+        {
+          "lineId": "HRA-H",
+          "companyId": "HRA"
+        }
+      ],
+      "latitude": 34.985,
+      "longitude": 139.016
+    },
+    {
+      "stationId": "H-04",
+      "stationName": "セブ地峡",
+      "stationNameKana": "せぶちきょう",
+      "lines": [
+        {
+          "lineId": "HRA-H",
+          "companyId": "HRA"
+        }
+      ],
+      "latitude": 34.9875,
+      "longitude": 139.019
+    },
+    {
+      "stationId": "H-05",
+      "stationName": "水高地港",
+      "stationNameKana": "みずこうちこう",
+      "lines": [
+        {
+          "lineId": "HRA-H",
+          "companyId": "HRA"
+        }
+      ],
+      "latitude": 34.99,
+      "longitude": 139.022
+    },
+    {
+      "stationId": "H-06",
+      "stationName": "学園新樫樺",
+      "stationNameKana": "がくえんしんかしかば",
+      "lines": [
+        {
+          "lineId": "HRA-H",
+          "companyId": "HRA"
+        }
+      ],
+      "latitude": 34.9925,
+      "longitude": 139.025
+    },
+    {
+      "stationId": "NSC",
+      "stationName": "西水中央",
+      "stationNameKana": "にしみずちゅうおう",
+      "lines": [
+        {
+          "lineId": "HRA-H",
+          "companyId": "HRA"
+        }
+      ],
+      "latitude": 34.995,
+      "longitude": 139.028
+    },
+    {
+      "stationId": "IIA",
+      "stationName": "洲璃府",
+      "stationNameKana": "すりぷ",
+      "lines": [
+        {
+          "lineId": "CR-K",
+          "companyId": "CR"
+        }
+      ],
+      "latitude": 35.0,
+      "longitude": 138.99
     }
   ],
   "segments": [
     {
-      "segmentId": "SEG_001",
+      "segmentId": "LM-4-LM-3-LOCAL",
       "platforms": {
-        "STA_001": "1番のりば",
-        "STA_002": "2番のりば"
+        "LM-4": "翠鉄設定番線",
+        "LM-3": "翠鉄設定番線"
       },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_001",
-      "toStationId": "STA_002",
-      "trainType": "EXPRESS",
-      "duration": 8,
-      "distance": 5.0,
-      "stopsAt": ["STA_001", "STA_002"],
+      "lineId": "SUI-S",
+      "companyId": "SUI",
+      "fromStationId": "LM-4",
+      "toStationId": "LM-3",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.99,
+      "stopsAt": [
+        "LM-4",
+        "LM-3"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_002",
+      "segmentId": "LM-3-LM-2-LOCAL",
       "platforms": {
-        "STA_001": "2番のりば",
-        "STA_014": "3番のりば",
-        "STA_002": "4番のりば"
+        "LM-3": "翠鉄設定番線",
+        "LM-2": "翠鉄設定番線"
       },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_001",
-      "toStationId": "STA_002",
+      "lineId": "SUI-S",
+      "companyId": "SUI",
+      "fromStationId": "LM-3",
+      "toStationId": "LM-2",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 2.35,
+      "stopsAt": [
+        "LM-3",
+        "LM-2"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "LM-4-LM-3-RAPID",
+      "platforms": {
+        "LM-4": "翠鉄設定番線",
+        "LM-3": "翠鉄設定番線"
+      },
+      "lineId": "SUI-S",
+      "companyId": "SUI",
+      "fromStationId": "LM-4",
+      "toStationId": "LM-3",
       "trainType": "RAPID",
-      "duration": 10,
-      "distance": 5.0,
-      "stopsAt": ["STA_001", "STA_014", "STA_002"],
+      "duration": 3,
+      "distance": 1.12,
+      "stopsAt": [
+        "LM-4",
+        "LM-3"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_003",
+      "segmentId": "LM-3-LM-2-RAPID",
       "platforms": {
-        "STA_001": "3番のりば",
-        "STA_014": "3番のりば",
-        "STA_002": "5番のりば"
+        "LM-3": "翠鉄設定番線",
+        "LM-2": "翠鉄設定番線"
       },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_001",
-      "toStationId": "STA_002",
-      "trainType": "LOCAL",
-      "duration": 12,
-      "distance": 5.0,
-      "stopsAt": ["STA_001", "STA_014", "STA_002"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_004",
-      "platforms": {
-        "STA_002": "1番のりば",
-        "STA_003": "2番のりば"
-      },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_002",
-      "toStationId": "STA_003",
-      "trainType": "EXPRESS",
-      "duration": 5,
-      "distance": 4.0,
-      "stopsAt": ["STA_002", "STA_003"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_005",
-      "platforms": {
-        "STA_002": "2番のりば",
-        "STA_003": "3番のりば"
-      },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_002",
-      "toStationId": "STA_003",
+      "lineId": "SUI-S",
+      "companyId": "SUI",
+      "fromStationId": "LM-3",
+      "toStationId": "LM-2",
       "trainType": "RAPID",
-      "duration": 6,
-      "distance": 4.0,
-      "stopsAt": ["STA_002", "STA_003"],
+      "duration": 2,
+      "distance": 2.04,
+      "stopsAt": [
+        "LM-3",
+        "LM-2"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_006",
+      "segmentId": "KL13-KL12-LOCAL",
       "platforms": {
-        "STA_002": "3番のりば",
-        "STA_003": "4番のりば"
+        "KL13": "1番線",
+        "KL12": "2番線"
       },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_002",
-      "toStationId": "STA_003",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL13",
+      "toStationId": "KL12",
       "trainType": "LOCAL",
-      "duration": 8,
-      "distance": 4.0,
-      "stopsAt": ["STA_002", "STA_003"],
+      "duration": 3,
+      "distance": 1.01,
+      "stopsAt": [
+        "KL13",
+        "KL12"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_007",
+      "segmentId": "KL12-KL11-LOCAL",
       "platforms": {
-        "STA_003": "1番のりば",
-        "STA_004": "2番のりば"
+        "KL12": "2番線",
+        "KL11": "2番線"
       },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_003",
-      "toStationId": "STA_004",
-      "trainType": "EXPRESS",
-      "duration": 5,
-      "distance": 4.0,
-      "stopsAt": ["STA_003", "STA_004"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_008",
-      "platforms": {
-        "STA_003": "2番のりば",
-        "STA_004": "3番のりば"
-      },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_003",
-      "toStationId": "STA_004",
-      "trainType": "RAPID",
-      "duration": 6,
-      "distance": 4.0,
-      "stopsAt": ["STA_003", "STA_004"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_009",
-      "platforms": {
-        "STA_003": "3番のりば",
-        "STA_004": "4番のりば"
-      },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_003",
-      "toStationId": "STA_004",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL12",
+      "toStationId": "KL11",
       "trainType": "LOCAL",
-      "duration": 8,
-      "distance": 4.0,
-      "stopsAt": ["STA_003", "STA_004"],
+      "duration": 2,
+      "distance": 0.94,
+      "stopsAt": [
+        "KL12",
+        "KL11"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_010",
+      "segmentId": "KL11-KL10-LOCAL",
       "platforms": {
-        "STA_004": "1番のりば",
-        "STA_005": "2番のりば"
+        "KL11": "2番線",
+        "KL10": "2番線"
       },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_004",
-      "toStationId": "STA_005",
-      "trainType": "EXPRESS",
-      "duration": 8,
-      "distance": 5.0,
-      "stopsAt": ["STA_004", "STA_005"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_011",
-      "platforms": {
-        "STA_004": "2番のりば",
-        "STA_015": "3番のりば",
-        "STA_005": "4番のりば"
-      },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_004",
-      "toStationId": "STA_005",
-      "trainType": "RAPID",
-      "duration": 10,
-      "distance": 5.0,
-      "stopsAt": ["STA_004", "STA_015", "STA_005"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_012",
-      "platforms": {
-        "STA_004": "3番のりば",
-        "STA_015": "3番のりば",
-        "STA_005": "5番のりば"
-      },
-      "lineId": "TOHTO_MAIN",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_004",
-      "toStationId": "STA_005",
-      "trainType": "LOCAL",
-      "duration": 12,
-      "distance": 5.0,
-      "stopsAt": ["STA_004", "STA_015", "STA_005"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_013",
-      "platforms": {
-        "STA_002": "6番のりば",
-        "STA_007": "1番のりば"
-      },
-      "lineId": "TOHTO_LOOP",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_002",
-      "toStationId": "STA_007",
-      "trainType": "LOCAL",
-      "duration": 6,
-      "distance": 3.5,
-      "stopsAt": ["STA_002", "STA_007"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_014",
-      "platforms": {
-        "STA_007": "2番のりば",
-        "STA_006": "3番のりば"
-      },
-      "lineId": "TOHTO_LOOP",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_007",
-      "toStationId": "STA_006",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL11",
+      "toStationId": "KL10",
       "trainType": "LOCAL",
       "duration": 4,
-      "distance": 2.5,
-      "stopsAt": ["STA_007", "STA_006"],
+      "distance": 1.63,
+      "stopsAt": [
+        "KL11",
+        "KL10"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_015",
+      "segmentId": "KL10-KL09-LOCAL",
       "platforms": {
-        "STA_006": "1番のりば",
-        "STA_003": "5番のりば"
+        "KL10": "2番線",
+        "KL09": "2番線"
       },
-      "lineId": "TOHTO_LOOP",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_006",
-      "toStationId": "STA_003",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL09",
       "trainType": "LOCAL",
-      "duration": 5,
-      "distance": 3.0,
-      "stopsAt": ["STA_006", "STA_003"],
+      "duration": 4,
+      "distance": 1.9,
+      "stopsAt": [
+        "KL10",
+        "KL09"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_016",
+      "segmentId": "KL09-KL08-LOCAL",
       "platforms": {
-        "STA_003": "6番のりば",
-        "STA_008": "1番のりば"
+        "KL09": "2番線",
+        "KL08": "1番線"
       },
-      "lineId": "TOHTO_LOOP",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_003",
-      "toStationId": "STA_008",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL08",
       "trainType": "LOCAL",
-      "duration": 7,
-      "distance": 4.0,
-      "stopsAt": ["STA_003", "STA_008"],
+      "duration": 6,
+      "distance": 1.78,
+      "stopsAt": [
+        "KL09",
+        "KL08"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_017",
+      "segmentId": "KL08-KL07-LOCAL",
       "platforms": {
-        "STA_008": "2番のりば",
-        "STA_004": "6番のりば"
+        "KL08": "1番線",
+        "KL07": "3番線"
       },
-      "lineId": "TOHTO_LOOP",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_008",
-      "toStationId": "STA_004",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL08",
+      "toStationId": "KL07",
       "trainType": "LOCAL",
-      "duration": 5,
-      "distance": 3.0,
-      "stopsAt": ["STA_008", "STA_004"],
+      "duration": 3,
+      "distance": 1.76,
+      "stopsAt": [
+        "KL08",
+        "KL07"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_018",
+      "segmentId": "KL07-KL06-LOCAL",
       "platforms": {
-        "STA_004": "7番のりば",
-        "STA_002": "7番のりば"
+        "KL07": "3番線",
+        "KL06": "2番線"
       },
-      "lineId": "TOHTO_LOOP",
-      "companyId": "TOHTO",
-      "fromStationId": "STA_004",
-      "toStationId": "STA_002",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL06",
       "trainType": "LOCAL",
-      "duration": 8,
-      "distance": 5.0,
-      "stopsAt": ["STA_004", "STA_002"],
+      "duration": 6,
+      "distance": 1.74,
+      "stopsAt": [
+        "KL07",
+        "KL06"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_019",
+      "segmentId": "KL06-KL05-LOCAL",
       "platforms": {
-        "STA_003": "8番のりば",
-        "STA_009": "1番のりば"
+        "KL06": "2番線",
+        "KL05": "3番線"
       },
-      "lineId": "HOKUBU_LINE",
-      "companyId": "HOKUBU",
-      "fromStationId": "STA_003",
-      "toStationId": "STA_009",
-      "trainType": "EXPRESS",
-      "duration": 8,
-      "distance": 6.0,
-      "stopsAt": ["STA_003", "STA_009"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_020",
-      "platforms": {
-        "STA_003": "9番のりば",
-        "STA_009": "2番のりば"
-      },
-      "lineId": "HOKUBU_LINE",
-      "companyId": "HOKUBU",
-      "fromStationId": "STA_003",
-      "toStationId": "STA_009",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL06",
+      "toStationId": "KL05",
       "trainType": "LOCAL",
-      "duration": 12,
-      "distance": 6.0,
-      "stopsAt": ["STA_003", "STA_009"],
+      "duration": 4,
+      "distance": 1.76,
+      "stopsAt": [
+        "KL06",
+        "KL05"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_021",
+      "segmentId": "KL05-KL04-LOCAL",
       "platforms": {
-        "STA_009": "3番のりば",
-        "STA_010": "1番のりば"
+        "KL05": "3番線",
+        "KL04": "5番線"
       },
-      "lineId": "HOKUBU_LINE",
-      "companyId": "HOKUBU",
-      "fromStationId": "STA_009",
-      "toStationId": "STA_010",
-      "trainType": "EXPRESS",
-      "duration": 10,
-      "distance": 8.0,
-      "stopsAt": ["STA_009", "STA_010"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_022",
-      "platforms": {
-        "STA_009": "4番のりば",
-        "STA_010": "2番のりば"
-      },
-      "lineId": "HOKUBU_LINE",
-      "companyId": "HOKUBU",
-      "fromStationId": "STA_009",
-      "toStationId": "STA_010",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
       "trainType": "LOCAL",
-      "duration": 15,
-      "distance": 8.0,
-      "stopsAt": ["STA_009", "STA_010"],
+      "duration": 3,
+      "distance": 2.22,
+      "stopsAt": [
+        "KL05",
+        "KL04"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_023",
+      "segmentId": "KL04-KL03-LOCAL",
       "platforms": {
-        "STA_006": "4番のりば",
-        "STA_011": "1番のりば"
+        "KL04": "5番線",
+        "KL03": "2番線"
       },
-      "lineId": "NANKAI_LINE",
-      "companyId": "NANKAI",
-      "fromStationId": "STA_006",
-      "toStationId": "STA_011",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL03",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.99,
+      "stopsAt": [
+        "KL04",
+        "KL03"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL03-KL02-LOCAL",
+      "platforms": {
+        "KL03": "2番線",
+        "KL02": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL03",
+      "toStationId": "KL02",
+      "trainType": "LOCAL",
+      "duration": 6,
+      "distance": 0.84,
+      "stopsAt": [
+        "KL03",
+        "KL02"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL02-KL01-LOCAL",
+      "platforms": {
+        "KL02": "2番線",
+        "KL01": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL02",
+      "toStationId": "KL01",
+      "trainType": "LOCAL",
+      "duration": 2,
+      "distance": 1.97,
+      "stopsAt": [
+        "KL02",
+        "KL01"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL01-IIA-LOCAL",
+      "platforms": {
+        "KL01": "2番線",
+        "IIA": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL01",
+      "toStationId": "IIA",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.78,
+      "stopsAt": [
+        "KL01",
+        "IIA"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL13-KL12-RAPID",
+      "platforms": {
+        "KL13": "1番線",
+        "KL12": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL13",
+      "toStationId": "KL12",
+      "trainType": "RAPID",
+      "duration": 3,
+      "distance": 2.26,
+      "stopsAt": [
+        "KL13",
+        "KL12"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL12-KL10-RAPID",
+      "platforms": {
+        "KL12": "2番線",
+        "KL10": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL12",
+      "toStationId": "KL10",
       "trainType": "RAPID",
       "duration": 5,
-      "distance": 3.0,
-      "stopsAt": ["STA_006", "STA_011"],
+      "distance": 1.68,
+      "stopsAt": [
+        "KL12",
+        "KL10"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_024",
+      "segmentId": "KL10-KL09-RAPID",
       "platforms": {
-        "STA_006": "5番のりば",
-        "STA_011": "2番のりば"
+        "KL10": "2番線",
+        "KL09": "2番線"
       },
-      "lineId": "NANKAI_LINE",
-      "companyId": "NANKAI",
-      "fromStationId": "STA_006",
-      "toStationId": "STA_011",
-      "trainType": "LOCAL",
-      "duration": 7,
-      "distance": 3.0,
-      "stopsAt": ["STA_006", "STA_011"],
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL09",
+      "trainType": "RAPID",
+      "duration": 5,
+      "distance": 1.54,
+      "stopsAt": [
+        "KL10",
+        "KL09"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_025",
+      "segmentId": "KL09-KL07-RAPID",
       "platforms": {
-        "STA_011": "3番のりば",
-        "STA_012": "1番のりば"
+        "KL09": "2番線",
+        "KL07": "3番線"
       },
-      "lineId": "NANKAI_LINE",
-      "companyId": "NANKAI",
-      "fromStationId": "STA_011",
-      "toStationId": "STA_012",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL07",
+      "trainType": "RAPID",
+      "duration": 3,
+      "distance": 1.94,
+      "stopsAt": [
+        "KL09",
+        "KL09",
+        "KL07",
+        "KL07"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL07-KL05-RAPID",
+      "platforms": {
+        "KL07": "3番線",
+        "KL05": "3番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL05",
       "trainType": "RAPID",
       "duration": 6,
-      "distance": 4.0,
-      "stopsAt": ["STA_011", "STA_012"],
+      "distance": 2.2,
+      "stopsAt": [
+        "KL07",
+        "KL07",
+        "KL05",
+        "KL05"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_026",
+      "segmentId": "KL05-KL04-RAPID",
       "platforms": {
-        "STA_011": "4番のりば",
-        "STA_012": "2番のりば"
+        "KL05": "3番線",
+        "KL04": "5番線"
       },
-      "lineId": "NANKAI_LINE",
-      "companyId": "NANKAI",
-      "fromStationId": "STA_011",
-      "toStationId": "STA_012",
-      "trainType": "LOCAL",
-      "duration": 8,
-      "distance": 4.0,
-      "stopsAt": ["STA_011", "STA_012"],
-      "isBidirectional": true
-    },
-    {
-      "segmentId": "SEG_027",
-      "platforms": {
-        "STA_012": "3番のりば",
-        "STA_013": "1番のりば"
-      },
-      "lineId": "NANKAI_LINE",
-      "companyId": "NANKAI",
-      "fromStationId": "STA_012",
-      "toStationId": "STA_013",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
       "trainType": "RAPID",
-      "duration": 7,
-      "distance": 5.0,
-      "stopsAt": ["STA_012", "STA_013"],
+      "duration": 5,
+      "distance": 2.06,
+      "stopsAt": [
+        "KL05",
+        "KL05",
+        "KL04",
+        "KL04"
+      ],
       "isBidirectional": true
     },
     {
-      "segmentId": "SEG_028",
+      "segmentId": "KL04-KL01-RAPID",
       "platforms": {
-        "STA_012": "4番のりば",
-        "STA_013": "2番のりば"
+        "KL04": "5番線",
+        "KL01": "2番線"
       },
-      "lineId": "NANKAI_LINE",
-      "companyId": "NANKAI",
-      "fromStationId": "STA_012",
-      "toStationId": "STA_013",
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL01",
+      "trainType": "RAPID",
+      "duration": 2,
+      "distance": 0.84,
+      "stopsAt": [
+        "KL04",
+        "KL04",
+        "KL01",
+        "KL01"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL01-IIA-RAPID",
+      "platforms": {
+        "KL01": "2番線",
+        "IIA": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL01",
+      "toStationId": "IIA",
+      "trainType": "RAPID",
+      "duration": 2,
+      "distance": 1.34,
+      "stopsAt": [
+        "KL01",
+        "KL01",
+        "IIA",
+        "IIA"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "NSC-H-06-LOCAL",
+      "platforms": {
+        "NSC": "1番線",
+        "H-06": "HRA設定番線"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "NSC",
+      "toStationId": "H-06",
       "trainType": "LOCAL",
-      "duration": 10,
-      "distance": 5.0,
-      "stopsAt": ["STA_012", "STA_013"],
+      "duration": 6,
+      "distance": 0.84,
+      "stopsAt": [
+        "NSC",
+        "H-06"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "H-06-H-05-LOCAL",
+      "platforms": {
+        "H-06": "HRA設定番線",
+        "H-05": "HRA設定番線"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "H-06",
+      "toStationId": "H-05",
+      "trainType": "LOCAL",
+      "duration": 5,
+      "distance": 0.99,
+      "stopsAt": [
+        "H-06",
+        "H-05"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "H-05-H-04-LOCAL",
+      "platforms": {
+        "H-05": "HRA設定番線",
+        "H-04": "HRA設定番線"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "H-05",
+      "toStationId": "H-04",
+      "trainType": "LOCAL",
+      "duration": 2,
+      "distance": 2.11,
+      "stopsAt": [
+        "H-05",
+        "H-04"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "H-04-H-03-LOCAL",
+      "platforms": {
+        "H-04": "HRA設定番線",
+        "H-03": "HRA設定番線"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "H-04",
+      "toStationId": "H-03",
+      "trainType": "LOCAL",
+      "duration": 2,
+      "distance": 1.98,
+      "stopsAt": [
+        "H-04",
+        "H-03"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "H-03-KB02-LOCAL",
+      "platforms": {
+        "H-03": "HRA設定番線",
+        "KB02": "2番線"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "H-03",
+      "toStationId": "KB02",
+      "trainType": "LOCAL",
+      "duration": 6,
+      "distance": 1.86,
+      "stopsAt": [
+        "H-03",
+        "KB02"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB02-KB01-LOCAL",
+      "platforms": {
+        "KB02": "4番線",
+        "KB01": "4番線"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "KB02",
+      "toStationId": "KB01",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.9,
+      "stopsAt": [
+        "KB02",
+        "KB02",
+        "KB01",
+        "KB01"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB02-KB01-RAPID",
+      "platforms": {
+        "KB02": "2番線",
+        "KB01": "4番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KB02",
+      "toStationId": "KB01",
+      "trainType": "RAPID",
+      "duration": 3,
+      "distance": 2.26,
+      "stopsAt": [
+        "KB02",
+        "KB01"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB01-KL09-RAPID",
+      "platforms": {
+        "KB01": "4番線",
+        "KL09": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KB01",
+      "toStationId": "KL09",
+      "trainType": "RAPID",
+      "duration": 5,
+      "distance": 1.68,
+      "stopsAt": [
+        "KB01",
+        "KL09"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL09-KL07-RAPID",
+      "platforms": {
+        "KL09": "2番線",
+        "KL07": "3番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL07",
+      "trainType": "RAPID",
+      "duration": 5,
+      "distance": 1.54,
+      "stopsAt": [
+        "KL09",
+        "KL09",
+        "KL07",
+        "KL07"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL07-KL05-RAPID",
+      "platforms": {
+        "KL07": "3番線",
+        "KL05": "3番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL05",
+      "trainType": "RAPID",
+      "duration": 3,
+      "distance": 1.94,
+      "stopsAt": [
+        "KL07",
+        "KL07",
+        "KL05",
+        "KL05"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL05-KL04-RAPID",
+      "platforms": {
+        "KL05": "3番線",
+        "KL04": "5番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
+      "trainType": "RAPID",
+      "duration": 6,
+      "distance": 2.2,
+      "stopsAt": [
+        "KL05",
+        "KL05",
+        "KL04",
+        "KL04"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL04-KL01-RAPID",
+      "platforms": {
+        "KL04": "5番線",
+        "KL01": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL01",
+      "trainType": "RAPID",
+      "duration": 5,
+      "distance": 2.06,
+      "stopsAt": [
+        "KL04",
+        "KL04",
+        "KL01",
+        "KL01"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL01-IIA-RAPID",
+      "platforms": {
+        "KL01": "2番線",
+        "IIA": "2番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL01",
+      "toStationId": "IIA",
+      "trainType": "RAPID",
+      "duration": 2,
+      "distance": 0.84,
+      "stopsAt": [
+        "KL01",
+        "KL01",
+        "IIA",
+        "IIA"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU01-KU02-LOCAL",
+      "platforms": {
+        "KU01": "4番線",
+        "KU02": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU01",
+      "toStationId": "KU02",
+      "trainType": "LOCAL",
+      "duration": 6,
+      "distance": 1.29,
+      "stopsAt": [
+        "KU01",
+        "KU01",
+        "KU02",
+        "KU02"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU02-KU03-LOCAL",
+      "platforms": {
+        "KU02": "2番線",
+        "KU03": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU02",
+      "toStationId": "KU03",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.82,
+      "stopsAt": [
+        "KU02",
+        "KU02",
+        "KU03",
+        "KU03"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU03-KU04-LOCAL",
+      "platforms": {
+        "KU03": "2番線",
+        "KU04": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU04",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.17,
+      "stopsAt": [
+        "KU03",
+        "KU03",
+        "KU04",
+        "KU04"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU04-KU05-LOCAL",
+      "platforms": {
+        "KU04": "2番線",
+        "KU05": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU04",
+      "toStationId": "KU05",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 2.32,
+      "stopsAt": [
+        "KU04",
+        "KU04",
+        "KU05",
+        "KU05"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU05-KU06-LOCAL",
+      "platforms": {
+        "KU05": "2番線",
+        "KU06": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU05",
+      "toStationId": "KU06",
+      "trainType": "LOCAL",
+      "duration": 2,
+      "distance": 2.39,
+      "stopsAt": [
+        "KU05",
+        "KU05",
+        "KU06",
+        "KU06"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB01-KL05-SRAPID",
+      "platforms": {
+        "KB01": "4番線",
+        "KL05": "4番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KB01",
+      "toStationId": "KL05",
+      "trainType": "SRAPID",
+      "duration": 5,
+      "distance": 1.53,
+      "stopsAt": [
+        "KB01",
+        "KL05"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL05-KL04-SRAPID",
+      "platforms": {
+        "KL05": "4番線",
+        "KL04": "4番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
+      "trainType": "SRAPID",
+      "duration": 6,
+      "distance": 1.43,
+      "stopsAt": [
+        "KL05",
+        "KL04"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU03-KU06-SRAPID",
+      "platforms": {
+        "KU03": "2番線",
+        "KU06": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU06",
+      "trainType": "SRAPID",
+      "duration": 6,
+      "distance": 1.79,
+      "stopsAt": [
+        "KU03",
+        "KU06"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB06-KB05-LOCAL",
+      "platforms": {
+        "KB06": "2番線",
+        "KB05": "2番線"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB06",
+      "toStationId": "KB05",
+      "trainType": "LOCAL",
+      "duration": 2,
+      "distance": 1.83,
+      "stopsAt": [
+        "KB06",
+        "KB05"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB05-KB04-LOCAL",
+      "platforms": {
+        "KB05": "2番線",
+        "KB04": "2番線"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB05",
+      "toStationId": "KB04",
+      "trainType": "LOCAL",
+      "duration": 4,
+      "distance": 1.33,
+      "stopsAt": [
+        "KB05",
+        "KB04"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB04-KB03-LOCAL",
+      "platforms": {
+        "KB04": "2番線",
+        "KB03": "2番線"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB04",
+      "toStationId": "KB03",
+      "trainType": "LOCAL",
+      "duration": 6,
+      "distance": 2.27,
+      "stopsAt": [
+        "KB04",
+        "KB03"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB03-KB02-LOCAL",
+      "platforms": {
+        "KB03": "2番線",
+        "KB02": "4番線"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB03",
+      "toStationId": "KB02",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.81,
+      "stopsAt": [
+        "KB03",
+        "KB02"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KB02-KB01-LOCAL",
+      "platforms": {
+        "KB02": "4番線",
+        "KB01": "4番線"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB02",
+      "toStationId": "KB01",
+      "trainType": "LOCAL",
+      "duration": 4,
+      "distance": 2.17,
+      "stopsAt": [
+        "KB02",
+        "KB02",
+        "KB01",
+        "KB01"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL09-KL05-LOCAL",
+      "platforms": {
+        "KL09": "2番線",
+        "KL05": "4番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL05",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.01,
+      "stopsAt": [
+        "KL09",
+        "KL05"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KL05-KU01-LOCAL",
+      "platforms": {
+        "KL05": "4番線",
+        "KU01": "4番線"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KU01",
+      "trainType": "LOCAL",
+      "duration": 2,
+      "distance": 0.94,
+      "stopsAt": [
+        "KL05",
+        "KU01"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU01-KU02-LOCAL",
+      "platforms": {
+        "KU01": "4番線",
+        "KU02": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU01",
+      "toStationId": "KU02",
+      "trainType": "LOCAL",
+      "duration": 6,
+      "distance": 1.29,
+      "stopsAt": [
+        "KU01",
+        "KU01",
+        "KU02",
+        "KU02"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU02-KU03-LOCAL",
+      "platforms": {
+        "KU02": "2番線",
+        "KU03": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU02",
+      "toStationId": "KU03",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.82,
+      "stopsAt": [
+        "KU02",
+        "KU02",
+        "KU03",
+        "KU03"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU03-KU04-LOCAL",
+      "platforms": {
+        "KU03": "2番線",
+        "KU04": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU04",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 1.17,
+      "stopsAt": [
+        "KU03",
+        "KU03",
+        "KU04",
+        "KU04"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU04-KU05-LOCAL",
+      "platforms": {
+        "KU04": "2番線",
+        "KU05": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU04",
+      "toStationId": "KU05",
+      "trainType": "LOCAL",
+      "duration": 3,
+      "distance": 2.32,
+      "stopsAt": [
+        "KU04",
+        "KU04",
+        "KU05",
+        "KU05"
+      ],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "KU05-KU06-LOCAL",
+      "platforms": {
+        "KU05": "2番線",
+        "KU06": "2番線"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU05",
+      "toStationId": "KU06",
+      "trainType": "LOCAL",
+      "duration": 2,
+      "distance": 2.39,
+      "stopsAt": [
+        "KU05",
+        "KU05",
+        "KU06",
+        "KU06"
+      ],
       "isBidirectional": true
     }
   ],
   "platformTransfers": [
     {
-      "transferId": "PTF_001",
-      "stationId": "STA_002",
-      "fromPlatform": "2番のりば",
-      "toPlatform": "1番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_002",
-      "stationId": "STA_002",
-      "fromPlatform": "4番のりば",
-      "toPlatform": "1番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_003",
-      "stationId": "STA_002",
-      "fromPlatform": "5番のりば",
-      "toPlatform": "1番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_004",
-      "stationId": "STA_002",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "2番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_005",
-      "stationId": "STA_002",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "4番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_006",
-      "stationId": "STA_002",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "5番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_007",
-      "stationId": "STA_002",
-      "fromPlatform": "7番のりば",
-      "toPlatform": "2番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_008",
-      "stationId": "STA_002",
-      "fromPlatform": "7番のりば",
-      "toPlatform": "4番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_009",
-      "stationId": "STA_002",
-      "fromPlatform": "7番のりば",
-      "toPlatform": "5番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_010",
-      "stationId": "STA_003",
-      "fromPlatform": "2番のりば",
-      "toPlatform": "5番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_011",
-      "stationId": "STA_003",
-      "fromPlatform": "3番のりば",
-      "toPlatform": "5番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_012",
-      "stationId": "STA_003",
-      "fromPlatform": "4番のりば",
-      "toPlatform": "5番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_013",
-      "stationId": "STA_003",
-      "fromPlatform": "5番のりば",
-      "toPlatform": "2番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_014",
-      "stationId": "STA_003",
-      "fromPlatform": "5番のりば",
-      "toPlatform": "3番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_015",
-      "stationId": "STA_003",
-      "fromPlatform": "5番のりば",
-      "toPlatform": "4番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_016",
-      "stationId": "STA_003",
-      "fromPlatform": "2番のりば",
-      "toPlatform": "1番のりば",
-      "transferTime": 0,
-      "isDirectThrough": true,
-      "applicableTrainTypes": ["EXPRESS"]
-    },
-    {
-      "transferId": "PTF_017",
-      "stationId": "STA_003",
-      "fromPlatform": "3番のりば",
-      "toPlatform": "1番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false,
-      "applicableTrainTypes": ["RAPID"]
-    },
-    {
-      "transferId": "PTF_018",
-      "stationId": "STA_003",
-      "fromPlatform": "4番のりば",
-      "toPlatform": "1番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false,
-      "applicableTrainTypes": ["LOCAL"]
-    },
-    {
-      "transferId": "PTF_019",
-      "stationId": "STA_003",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "2番のりば",
-      "transferTime": 0,
-      "isDirectThrough": true,
-      "applicableTrainTypes": ["EXPRESS"]
-    },
-    {
-      "transferId": "PTF_020",
-      "stationId": "STA_003",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "3番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false,
-      "applicableTrainTypes": ["RAPID"]
-    },
-    {
-      "transferId": "PTF_021",
-      "stationId": "STA_003",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "4番のりば",
-      "transferTime": 2,
-      "isDirectThrough": false,
-      "applicableTrainTypes": ["LOCAL"]
-    },
-    {
-      "transferId": "PTF_022",
-      "stationId": "STA_003",
-      "fromPlatform": "5番のりば",
-      "toPlatform": "1番のりば",
+      "transferId": "PT01",
+      "stationId": "KL01",
+      "fromPlatform": "1番線",
+      "toPlatform": "2番線",
       "transferTime": 4,
       "isDirectThrough": false
     },
     {
-      "transferId": "PTF_023",
-      "stationId": "STA_003",
-      "fromPlatform": "5番のりば",
-      "toPlatform": "2番のりば",
+      "transferId": "PT02",
+      "stationId": "KL04",
+      "fromPlatform": "3番線",
+      "toPlatform": "1番線",
+      "transferTime": 3,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PT03",
+      "stationId": "KB01",
+      "fromPlatform": "3番線",
+      "toPlatform": "4番線",
       "transferTime": 4,
       "isDirectThrough": false
     },
     {
-      "transferId": "PTF_024",
-      "stationId": "STA_003",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "5番のりば",
-      "transferTime": 4,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_025",
-      "stationId": "STA_003",
-      "fromPlatform": "2番のりば",
-      "toPlatform": "5番のりば",
-      "transferTime": 4,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_026",
-      "stationId": "STA_004",
-      "fromPlatform": "2番のりば",
-      "toPlatform": "6番のりば",
+      "transferId": "PT04",
+      "stationId": "KL13",
+      "fromPlatform": "2番線",
+      "toPlatform": "1番線",
       "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_027",
-      "stationId": "STA_004",
-      "fromPlatform": "3番のりば",
-      "toPlatform": "6番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_028",
-      "stationId": "STA_004",
-      "fromPlatform": "4番のりば",
-      "toPlatform": "6番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_029",
-      "stationId": "STA_004",
-      "fromPlatform": "6番のりば",
-      "toPlatform": "2番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_030",
-      "stationId": "STA_004",
-      "fromPlatform": "6番のりば",
-      "toPlatform": "3番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_031",
-      "stationId": "STA_004",
-      "fromPlatform": "6番のりば",
-      "toPlatform": "4番のりば",
-      "transferTime": 3,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_032",
-      "stationId": "STA_006",
-      "fromPlatform": "3番のりば",
-      "toPlatform": "1番のりば",
-      "transferTime": 5,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_033",
-      "stationId": "STA_006",
-      "fromPlatform": "3番のりば",
-      "toPlatform": "2番のりば",
-      "transferTime": 5,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_034",
-      "stationId": "STA_006",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "3番のりば",
-      "transferTime": 5,
-      "isDirectThrough": false
-    },
-    {
-      "transferId": "PTF_035",
-      "stationId": "STA_006",
-      "fromPlatform": "2番のりば",
-      "toPlatform": "3番のりば",
-      "transferTime": 5,
       "isDirectThrough": false
     }
   ]
