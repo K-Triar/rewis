@@ -5,22 +5,30 @@ let appData = null;
 let preprocessedData = null;
 let viaStationCount = 0;
 
-// ========================================
-// アプリ初期化
-// ========================================
-document.addEventListener('DOMContentLoaded', async () => {
+(async () => {
     try {
         showLoading();
-        await loadData();
+        appData = await loadData();
+        // ブランド名・自社線ID取得
+        if (appData && appData.meta) {
+            if (appData.meta.appName) {
+                brandName = appData.meta.appName.replace(/乗換案内システム$/, '').trim();
+            }
+            if (appData.meta.ownCompanyId) {
+                ownCompanyId = appData.meta.ownCompanyId;
+            }
+        }
         preprocessData();
         initializeUI();
         hideLoading();
     } catch (error) {
         showError('データの読み込みに失敗しました: ' + error.message);
     }
-});
+})();
 
 // ========================================
+// （async即時実行バージョンのみ残す）
+
 // データ読み込み
 // ========================================
 async function loadData() {
@@ -500,6 +508,7 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     console.log('経由駅:', viaStations.map(s => s.stationName));
     console.log('フィルタ:', filters);
 
+    // 経由駅指定時はfindRoutesWithViaを使う
     if (viaStations.length > 0) {
         console.log('経由駅指定あり: 区間分割検索');
         return findRoutesWithVia(startStation, endStation, viaStations, filters);
