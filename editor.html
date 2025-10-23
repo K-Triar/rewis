@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>路線データ編集システム - data.json <br/><span class="warning">※注意※　このファイルはプレビューです。GitHub PagesからJSONファイルの編集はできません。</span></h1>
+            <h1>路線データ編集システム - data.json<br/><span class="warning">※注意※　このファイルはプレビューです。GitHub PagesからJSONファイルの編集はできません。</span></h1>
             <div id="server-status" style="font-size: 10px; margin-top: 3px;">接続確認中...</div>
         </header>
 
@@ -22,6 +22,7 @@
             <button class="nav-btn" data-section="through-services">直通運転</button>
             <button class="nav-btn" data-section="platform-transfers">のりば乗換</button>
             <button class="nav-btn" data-section="export">保存/読込</button>
+            <button class="nav-btn" data-section="help">使い方</button>
         </nav>
 
         <main>
@@ -232,6 +233,182 @@
                     <pre id="json-preview" style="display: none;"></pre>
                 </div>
             </section>
+
+            <!-- 使い方セクション -->
+            <section id="help" class="edit-section">
+                <div class="section-header">
+                    <h2>使い方ガイド</h2>
+                </div>
+                
+                <div class="help-content">
+                    <div class="help-section">
+                        <h3>📖 このシステムについて</h3>
+                        <p>このシステムは、鉄道路線の運行データを編集・管理するためのツールです。JSONファイルの知識がなくても、Excel感覚で表を編集することで、路線データを簡単に作成・変更できます。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🚀 基本的な使い方</h3>
+                        <ol>
+                            <li><strong>タブを選択</strong>：画面上部のタブ（鉄道会社、列車種別、路線、駅、区間、直通運転、のりば乗換）から編集したい項目を選びます。</li>
+                            <li><strong>データを追加</strong>：「+ 追加」ボタンをクリックすると、新しい行が追加されます。</li>
+                            <li><strong>データを編集</strong>：「編集」ボタンをクリックすると、その行の各項目を変更できます。編集後は「保存」ボタンを押してください。</li>
+                            <li><strong>データを削除</strong>：「削除」ボタンをクリックすると、その行が削除されます（確認メッセージが表示されます）。</li>
+                            <li><strong>並び替え</strong>：各列の右端にある「▲▼」ボタンをクリックすると、その列で昇順・降順に並び替えができます（表示のみで、保存には影響しません）。</li>
+                            <li><strong>保存</strong>：すべての編集が終わったら、「保存/読込」タブから「保存」ボタンをクリックしてデータを保存します。</li>
+                        </ol>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🏢 鉄道会社タブ</h3>
+                        <p><strong>何を設定するか：</strong>運行する鉄道会社の情報を登録します。</p>
+                        <ul>
+                            <li><strong>会社ID：</strong>会社を識別するための短い記号（例：KT、HRA）。他の場所で参照するため、重複しないようにしてください。</li>
+                            <li><strong>会社名：</strong>正式な会社名（例：Kトライア瑠璃、ヘルヴェティア交通局）。</li>
+                            <li><strong>自社：</strong>自社の会社にチェックを入れます。チェックした会社が「自社線のみ」検索フィルタで使用されます。</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🚄 列車種別タブ</h3>
+                        <p><strong>何を設定するか：</strong>特急・快速・普通などの列車種別を登録します。</p>
+                        <ul>
+                            <li><strong>種別ID：</strong>種別を識別するための記号（例：EXPRESS、RAPID、LOCAL）。</li>
+                            <li><strong>種別名：</strong>表示用の名前（例：特急、快速、普通）。</li>
+                            <li><strong>略称：</strong>短い表示用（例：特、快、普）。</li>
+                            <li><strong>優先度：</strong>数字が小さいほど優先度が高くなります（1が最高）。経路検索時の表示順に影響します。</li>
+                            <li><strong>色：</strong>表示時の色を選択します。</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🛤️ 路線タブ</h3>
+                        <p><strong>何を設定するか：</strong>鉄道路線の基本情報を登録します。</p>
+                        <ul>
+                            <li><strong>路線ID：</strong>路線を識別するための記号（例：KT-L、SUI-S）。</li>
+                            <li><strong>路線名：</strong>路線の正式名称（例：瑠璃線、翠鉄城東線）。</li>
+                            <li><strong>運営会社ID：</strong>この路線を運営する会社のID（鉄道会社タブで登録したIDから選択）。</li>
+                            <li><strong>路線カラー：</strong>路線図や表示で使用する色を選択します。</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🚉 駅タブ</h3>
+                        <p><strong>何を設定するか：</strong>駅の情報を登録します。</p>
+                        <ul>
+                            <li><strong>駅ID：</strong>駅を識別するための記号（例：KL01、KL02）。</li>
+                            <li><strong>駅名：</strong>駅の正式名称（例：アカシア島、オット）。</li>
+                            <li><strong>駅名カナ：</strong>読み仮名をひらがなで入力（例：あかしあとう、おっと）。検索に使用されます。</li>
+                            <li><strong>緯度・経度：</strong>駅の位置情報。地図表示に使用されます（概算値でも可）。</li>
+                        </ul>
+                        <p><strong>ヒント：</strong>検索ボックスで駅名やIDを入力すると、該当する駅だけを表示できます。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🔗 区間タブ</h3>
+                        <p><strong>何を設定するか：</strong>駅と駅の間の運行区間を登録します。これが経路検索の基本になります。</p>
+                        <ul>
+                            <li><strong>区間ID：</strong>区間を識別するための記号（例：LM-4-LM-3-LOCAL）。</li>
+                            <li><strong>路線ID：</strong>この区間が属する路線（路線タブで登録したIDから選択）。</li>
+                            <li><strong>会社ID：</strong>路線IDを選ぶと自動で設定されます（手動変更不可）。</li>
+                            <li><strong>始点駅ID：</strong>区間の出発駅。入力すると候補が表示されます。</li>
+                            <li><strong>始点駅のりば：</strong>出発駅での乗車番線（例：1、2A、3番線）。</li>
+                            <li><strong>終点駅ID：</strong>区間の到着駅。入力すると候補が表示されます。</li>
+                            <li><strong>終点駅のりば：</strong>到着駅での降車番線（例：2、1B、4番線）。</li>
+                            <li><strong>列車種別：</strong>この区間を走る列車の種別（列車種別タブで登録したものから選択）。</li>
+                            <li><strong>所要時間：</strong>この区間にかかる時間を「分」と「秒」で入力します（例：3分30秒なら「3分 30秒」）。</li>
+                            <li><strong>距離：</strong>区間の距離（キロメートル単位）。</li>
+                            <li><strong>双方向：</strong>チェックすると、逆方向（終点→始点）の運行も自動で設定されます。</li>
+                        </ul>
+                        <p><strong>重要：</strong>駅IDを変更すると、その駅の「のりば」情報が自動で引き継がれます（既存の設定がある場合）。</p>
+                        <p><strong>ヒント：</strong>路線フィルタで特定の路線の区間だけを表示できます。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🔄 直通運転タブ</h3>
+                        <p><strong>何を設定するか：</strong>異なる路線間で乗り換えなしに直通する設定を登録します。</p>
+                        <ul>
+                            <li><strong>設定ID：</strong>直通運転設定を識別するための記号（例：TS-A-LCL）。</li>
+                            <li><strong>乗入元路線：</strong>直通運転の開始路線。</li>
+                            <li><strong>乗入先路線：</strong>直通運転の到着路線。</li>
+                            <li><strong>元列車種別：</strong>乗入元路線での列車種別。</li>
+                            <li><strong>先列車種別：</strong>乗入先路線での列車種別（途中で種別が変わる場合に設定）。</li>
+                            <li><strong>直通方向：</strong>
+                                <ul>
+                                    <li><strong>相互直通：</strong>両方向で直通運転を行う場合に選択。</li>
+                                    <li><strong>一方向：</strong>片方向のみ直通運転を行う場合に選択。</li>
+                                </ul>
+                            </li>
+                            <li><strong>説明：</strong>この直通運転の内容を簡潔に記載（例：SUI⇔KT（普通））。</li>
+                        </ul>
+                        <p><strong>例：</strong>「翠鉄城東線の普通列車が、瑠璃線に直通して快速として運行」する場合、乗入元=SUI-S、乗入先=KT-L、元種別=LOCAL、先種別=RAPID と設定します。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>🚶 のりば乗換タブ</h3>
+                        <p><strong>何を設定するか：</strong>同じ駅で異なる番線間を移動するときの乗換時間を登録します。</p>
+                        <ul>
+                            <li><strong>乗換ID：</strong>乗換設定を識別するための記号。</li>
+                            <li><strong>駅ID：</strong>乗換が発生する駅。</li>
+                            <li><strong>乗換元のりば：</strong>乗換前の番線（例：1番線）。</li>
+                            <li><strong>乗換先のりば：</strong>乗換後の番線（例：2番線）。</li>
+                            <li><strong>乗換時間：</strong>移動にかかる時間を「分」と「秒」で入力します（例：4分なら「4分 0秒」、2分30秒なら「2分 30秒」）。</li>
+                        </ul>
+                        <p><strong>注意：</strong>同じのりばでの種別変更や直通運転は、直通運転タブで設定します。このタブは物理的な番線間移動のみを登録してください。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>💾 保存/読込タブ</h3>
+                        <p><strong>読込：</strong></p>
+                        <ul>
+                            <li>「ファイル選択」ボタンをクリックし、コンピュータ内の data.json ファイルを選択すると、そのデータが読み込まれます。</li>
+                            <li>既に編集中のデータは上書きされますので、保存していないデータがある場合は先に保存してください。</li>
+                        </ul>
+                        <p><strong>保存：</strong></p>
+                        <ul>
+                            <li>「保存」ボタンをクリックすると、編集したデータが保存されます。</li>
+                            <li><strong>サーバー起動時（オンライン）：</strong>サーバーに直接保存されます。保存前のデータは自動でバックアップされます（data.backup.●●●.json）。</li>
+                            <li><strong>ローカル時（オフライン）：</strong>data.json ファイルとしてダウンロードされますので、任意の場所に保存してください。</li>
+                        </ul>
+                        <p><strong>プレビュー：</strong></p>
+                        <ul>
+                            <li>「表示/非表示」ボタンをクリックすると、現在のデータをJSON形式（生データ）で確認できます。</li>
+                            <li>通常の編集作業では使用する必要はありません。</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>⚠️ 注意事項</h3>
+                        <ul>
+                            <li><strong>必ず保存してください：</strong>編集後は必ず「保存/読込」タブから保存してください。保存しないとデータは失われます。</li>
+                            <li><strong>IDの重複に注意：</strong>各IDは重複しないようにしてください。重複すると正しく動作しない可能性があります。</li>
+                            <li><strong>削除は慎重に：</strong>削除したデータは元に戻せません。重要なデータを削除する前に、必ずバックアップを取ってください。</li>
+                            <li><strong>時間の入力：</strong>所要時間や乗換時間は「分」と「秒」の両方を入力してください（1分未満の場合は「0分 30秒」のように入力）。</li>
+                            <li><strong>サーバー接続状態：</strong>画面上部に「サーバー接続: オンライン」または「オフライン（ローカルモード）」と表示されます。オンラインの場合は自動でバックアップが作成されます。</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>💡 よくある質問</h3>
+                        <p><strong>Q: 編集を間違えてしまいました。元に戻せますか？</strong></p>
+                        <p>A: 編集中の行は「取消」ボタンで元に戻せます。保存前であれば、ページをリロード（更新）することで最後に保存した状態に戻ります。保存後の場合は、バックアップファイル（data.backup.●●●.json）から復元できます。</p>
+                        
+                        <p><strong>Q: データが多くて探しにくいです。</strong></p>
+                        <p>A: 駅タブには検索ボックスがあります。また、区間タブでは路線フィルタで絞り込みができます。さらに、各列の「▲▼」ボタンで並び替えると見つけやすくなります。</p>
+                        
+                        <p><strong>Q: JSON形式とは何ですか？</strong></p>
+                        <p>A: データを保存するための形式です。このシステムでは気にする必要はありません。表を編集するだけで、自動的にJSON形式で保存されます。</p>
+                        
+                        <p><strong>Q: 保存ボタンを押しても何も起きません。</strong></p>
+                        <p>A: サーバーがオフラインの場合、ダウンロード確認画面が表示されます。ブラウザの設定でダウンロードがブロックされていないか確認してください。</p>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>📞 困ったときは</h3>
+                        <p>このシステムに関する質問や不具合がある場合は、システム管理者にお問い合わせください。</p>
+                        <p>画面上部に表示される「サーバー接続」の状態や、どの操作を行ったときに問題が発生したかを伝えると、スムーズに対応できます。</p>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer>
@@ -242,6 +419,3 @@
     <script src="editor.js"></script>
 </body>
 </html>
-
-
-
