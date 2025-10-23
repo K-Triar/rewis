@@ -1,1022 +1,953 @@
-/* 番線表示 */
-.station-platform {
-    display: inline-block;
-    background: #f3f6fa;
-    color: #1976d2;
-    border: 1px solid #bcd;
-    border-radius: 12px;
-    font-size: 0.95em;
-    font-weight: 600;
-    padding: 2px 10px;
-    margin-left: 8px;
-    margin-top: 2px;
-    vertical-align: middle;
-}
-/* ========================================
-   リセット & ベーススタイル
-======================================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-:root {
-    --primary-color: #0078C8;
-    --secondary-color: #9ACD32;
-    --danger-color: #E60012;
-    --warning-color: #FF6600;
-    --success-color: #00A040;
-    --text-color: #333;
-    --border-color: #ddd;
-    --bg-gray: #f5f5f5;
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 
-                 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.container {
-    max-width: 900px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-}
-
-/* ========================================
-   ヘッダー
-======================================== */
-header {
-    background: linear-gradient(135deg, var(--primary-color), #005fa3);
-    color: white;
-    padding: 30px;
-    text-align: center;
-}
-
-header h1 {
-    font-size: 2rem;
-    margin-bottom: 8px;
-}
-
-.subtitle {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-/* ========================================
-   メインコンテンツ
-======================================== */
-main {
-    padding: 30px;
-}
-
-/* ========================================
-   検索セクション
-======================================== */
-.search-section {
-    background: var(--bg-gray);
-    padding: 25px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-}
-
-.station-input-group {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 15px;
-    align-items: end;
-    margin-bottom: 20px;
-}
-
-.input-wrapper {
-    position: relative;
-}
-
-.input-wrapper label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.station-input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-}
-
-.station-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    max-height: 250px;
-    overflow-y: auto;
-    z-index: 1000;
-    display: none;
-    box-shadow: var(--shadow);
-}
-
-.suggestions.active {
-    display: block;
-}
-
-.suggestion-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    transition: background 0.2s;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.suggestion-item:hover {
-    background: #f8f9fa;
-}
-
-.suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.station-name {
-    font-weight: 600;
-    display: block;
-}
-
-.station-lines {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 3px;
-}
-
-.swap-button-wrapper {
-    display: flex;
-    align-items: flex-end;
-    padding-bottom: 12px;
-}
-
-.swap-button {
-    background: white;
-    border: 2px solid var(--primary-color);
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.swap-button:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: rotate(180deg);
-}
-
-/* 経由駅 */
-.via-stations {
-    margin-bottom: 15px;
-}
-
-.via-station-item {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px;
-    align-items: end;
-    margin-bottom: 10px;
-}
-
-.remove-via-button {
-    background: var(--danger-color);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: opacity 0.3s;
-    margin-bottom: 0;
-}
-
-.remove-via-button:hover {
-    opacity: 0.8;
-}
-
-.add-via-button {
-    background: white;
-    color: var(--primary-color);
-    border: 2px dashed var(--primary-color);
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    width: 100%;
-    transition: all 0.3s;
-    margin-bottom: 20px;
-}
-
-.add-via-button:hover {
-    background: var(--primary-color);
-    color: white;
-    border-style: solid;
-}
-
-/* フィルター */
-.filter-section {
-    background: white;
-    padding: 20px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-}
-
-.filter-group {
-    margin-bottom: 15px;
-}
-
-.filter-group:last-child {
-    margin-bottom: 0;
-}
-
-.filter-group > label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.checkbox-label {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    margin-right: 20px;
-    user-select: none;
-}
-
-.checkbox-label input[type="checkbox"] {
-    margin-right: 8px;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-}
-
-.train-type-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.train-type-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: white;
-}
-
-.train-type-badge.express {
-    background: var(--danger-color);
-}
-
-.train-type-badge.rapid {
-    background: var(--warning-color);
-}
-
-.train-type-badge.local {
-    background: var(--success-color);
-}
-
-/* 検索ボタン */
-.search-button {
-    width: 100%;
-    padding: 15px;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.search-button:hover {
-    background: #005fa3;
-}
-
-.search-button:active {
-    transform: scale(0.98);
-}
-
-/* ========================================
-   結果セクション
-======================================== */
-.results-section {
-    animation: fadeIn 0.5s;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.results-section h2 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    font-size: 1.5rem;
-}
-
-.results-info {
-    margin-bottom: 20px;
-    color: #666;
-    font-size: 0.95rem;
-}
-
-.results-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.route-card {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: var(--shadow);
-    transition: transform 0.3s, box-shadow 0.3s;
-    border: 2px solid #f0f0f0;
-}
-
-.route-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-color: var(--primary-color);
-}
-
-.route-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-.route-number {
-    background: var(--primary-color);
-    color: white;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.route-summary {
-    display: flex;
-    gap: 25px;
-    font-size: 1rem;
-}
-
-.summary-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-    color: var(--primary-color);
-}
-
-.summary-item strong {
-    color: var(--primary-color);
-    font-size: 1.2rem;
-}
-
-/* ========================================
-   タイムライン表示（洗練版）
-======================================== */
-.route-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    padding: 10px 0;
-}
-
-.timeline-row {
-    display: grid;
-    grid-template-columns: 50px 40px 1fr;
-    gap: 12px;
-    align-items: start;
-    min-height: 40px;
-}
-
-/* 時間表示 */
-.timeline-time {
-    text-align: right;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #1976d2;
-    padding-top: 4px;
-}
-
-/* アイコン列 */
-.timeline-icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-
-.timeline-marker {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 4px solid #999;
-    background: white;
-    z-index: 2;
-    flex-shrink: 0;
-}
-
-.marker-start {
-    border-color: #4CAF50;
-    background: #4CAF50;
-}
-
-.marker-end {
-    border-color: #E60012;
-    background: #E60012;
-}
-
-.marker-via {
-    border-color: #1976d2;
-    background: white;
-}
-
-.marker-transfer {
-    border-color: #FF9800;
-    background: #FF9800;
-    width: 16px;
-    height: 16px;
-}
-
-.timeline-line {
-    width: 6px;
-    min-height: 60px;
-    border-radius: 3px;
-    margin: -4px 0;
-}
-
-/* コンテンツ列 */
-.timeline-content {
-    padding-top: 0;
-    padding-bottom: 12px;
-}
-
-.station-name {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 4px;
-}
-
-/* 区間情報 */
-.segment-info {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-top: 8px;
-}
-
-.segment-line-name {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-}
-
-.line-symbol {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.line-text {
-    font-weight: 600;
-    font-size: 1.05rem;
-    color: #333;
-}
-
-.train-type-badge {
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: white;
-}
-
-.train-type-badge.express { background: #E60012; }
-.train-type-badge.rapid { background: #FF6600; }
-.train-type-badge.local { background: #00A040; }
-
-.segment-details-row {
-    display: flex;
-    gap: 16px;
-    font-size: 0.95rem;
-    color: #666;
-    margin-bottom: 8px;
-}
-
-.segment-duration, .segment-stops {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* 乗換バッジ */
-.transfer-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #fff3e0;
-    color: #e65100;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-top: 4px;
-}
-
-/* 停車駅ボタン */
-.toggle-stops-btn {
-    background: white;
-    color: #1976d2;
-    border: 1px solid #1976d2;
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s;
-    margin-top: 6px;
-    font-weight: 500;
-}
-
-.toggle-stops-btn:hover {
-    background: #e3f2fd;
-}
-
-.stops-list {
-    display: none;
-    margin-top: 10px;
-    padding: 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #e0e0e0;
-}
-
-.stops-list.active {
-    display: block;
-}
-
-.stop-item {
-    padding: 6px 0;
-    border-bottom: 1px dashed #eee;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.stop-item:last-child {
-    border-bottom: none;
-}
-
-/* サマリー調整 */
-.route-summary {
-    display: flex;
-    gap: 20px;
-    font-size: 0.95rem;
-}
-
-.summary-time, .summary-transfer {
-    font-weight: 600;
-    color: #1976d2;
-}
-
-/* レスポンシブ */
-@media (max-width: 768px) {
-    .timeline-row {
-        grid-template-columns: 45px 35px 1fr;
-        gap: 8px;
+{
+  "meta": {
+    "version": "1.0.0",
+    "ownCompanyId": "TOHTO",
+    "lastUpdated": "2025-10-21",
+    "appName": "東都鉄道 乗換案内システム"
+  },
+  "companies": [
+    {
+      "companyId": "TOHTO",
+      "companyName": "東都鉄道",
+      "isOwnCompany": true
+    },
+    {
+      "companyId": "HOKUBU",
+      "companyName": "北部急行",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "NANKAI",
+      "companyName": "南海鉄道",
+      "isOwnCompany": false
     }
-    
-    .timeline-time {
-        font-size: 0.95rem;
+  ],
+  "trainTypes": [
+    {
+      "trainTypeId": "EXPRESS",
+      "trainTypeName": "特急",
+      "trainTypeNameShort": "特",
+      "priority": 1,
+      "color": "#E60012"
+    },
+    {
+      "trainTypeId": "RAPID",
+      "trainTypeName": "快速",
+      "trainTypeNameShort": "快",
+      "priority": 2,
+      "color": "#FF6600"
+    },
+    {
+      "trainTypeId": "LOCAL",
+      "trainTypeName": "各駅停車",
+      "trainTypeNameShort": "各",
+      "priority": 3,
+      "color": "#00A040"
     }
-    
-    .station-name {
-        font-size: 1.05rem;
+  ],
+  "lines": [
+    {
+      "lineId": "TOHTO_MAIN",
+      "lineName": "東都本線",
+      "companyId": "TOHTO",
+      "lineColor": "#0078C8",
+      "throughServices": []
+    },
+    {
+      "lineId": "TOHTO_LOOP",
+      "lineName": "東都環状線",
+      "companyId": "TOHTO",
+      "lineColor": "#9ACD32",
+      "throughServices": []
+    },
+    {
+      "lineId": "HOKUBU_LINE",
+      "lineName": "北部急行線",
+      "companyId": "HOKUBU",
+      "lineColor": "#C9171E",
+      "throughServices": ["TOHTO_MAIN"]
+    },
+    {
+      "lineId": "NANKAI_LINE",
+      "lineName": "南海鉄道本線",
+      "companyId": "NANKAI",
+      "lineColor": "#FFA500",
+      "throughServices": []
     }
-    
-    .segment-line-name {
-        gap: 8px;
+  ],
+  "stations": [
+    {
+      "stationId": "STA_001",
+      "stationName": "西端駅",
+      "stationNameKana": "さいたんえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.6800,
+      "longitude": 139.7000
+    },
+    {
+      "stationId": "STA_002",
+      "stationName": "西新宿駅",
+      "stationNameKana": "にししんじゅくえき",
+      "lines": [
+        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.6850,
+      "longitude": 139.7100
+    },
+    {
+      "stationId": "STA_003",
+      "stationName": "中央駅",
+      "stationNameKana": "ちゅうおうえき",
+      "lines": [
+        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"},
+        {"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}
+      ],
+      "latitude": 35.6900,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_004",
+      "stationName": "東新宿駅",
+      "stationNameKana": "ひがししんじゅくえき",
+      "lines": [
+        {"lineId": "TOHTO_MAIN", "companyId": "TOHTO"},
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.6950,
+      "longitude": 139.7300
+    },
+    {
+      "stationId": "STA_005",
+      "stationName": "東端駅",
+      "stationNameKana": "とうたんえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.7000,
+      "longitude": 139.7400
+    },
+    {
+      "stationId": "STA_006",
+      "stationName": "新橋駅",
+      "stationNameKana": "しんばしえき",
+      "lines": [
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"},
+        {"lineId": "NANKAI_LINE", "companyId": "NANKAI"}
+      ],
+      "latitude": 35.6750,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_007",
+      "stationName": "南口駅",
+      "stationNameKana": "みなみぐちえき",
+      "lines": [
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.6700,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_008",
+      "stationName": "北口駅",
+      "stationNameKana": "きたぐちえき",
+      "lines": [
+        {"lineId": "TOHTO_LOOP", "companyId": "TOHTO"}
+      ],
+      "latitude": 35.7050,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_009",
+      "stationName": "北部中央駅",
+      "stationNameKana": "ほくぶちゅうおうえき",
+      "lines": [{"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}],
+      "latitude": 35.7100,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_010",
+      "stationName": "北部終点駅",
+      "stationNameKana": "ほくぶしゅうてんえき",
+      "lines": [{"lineId": "HOKUBU_LINE", "companyId": "HOKUBU"}],
+      "latitude": 35.7200,
+      "longitude": 139.7200
+    },
+    {
+      "stationId": "STA_011",
+      "stationName": "海岸駅",
+      "stationNameKana": "かいがんえき",
+      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
+      "latitude": 35.6600,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_012",
+      "stationName": "港町駅",
+      "stationNameKana": "みなとまちえき",
+      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
+      "latitude": 35.6500,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_013",
+      "stationName": "南端駅",
+      "stationNameKana": "なんたんえき",
+      "lines": [{"lineId": "NANKAI_LINE", "companyId": "NANKAI"}],
+      "latitude": 35.6400,
+      "longitude": 139.7250
+    },
+    {
+      "stationId": "STA_014",
+      "stationName": "西郊外駅",
+      "stationNameKana": "にしこうがいえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.6820,
+      "longitude": 139.7050
+    },
+    {
+      "stationId": "STA_015",
+      "stationName": "東郊外駅",
+      "stationNameKana": "ひがしこうがいえき",
+      "lines": [{"lineId": "TOHTO_MAIN", "companyId": "TOHTO"}],
+      "latitude": 35.6970,
+      "longitude": 139.7350
     }
-}
-
-/* ========================================
-   エラー・ローディング
-======================================== */
-.error-section {
-    animation: fadeIn 0.5s;
-}
-
-.error-message {
-    background: #fff3cd;
-    border-left: 4px solid #ffc107;
-    padding: 20px;
-    border-radius: 6px;
-    color: #856404;
-}
-
-.loading-section {
-    text-align: center;
-    padding: 40px;
-    animation: fadeIn 0.5s;
-}
-
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* ========================================
-   フッター
-======================================== */
-footer {
-    background: #f8f9fa;
-    padding: 20px;
-    text-align: center;
-    color: #666;
-    font-size: 0.9rem;
-    border-top: 1px solid var(--border-color);
-}
-
-/* ========================================
-   レスポンシブ対応
-======================================== */
-@media (max-width: 768px) {
-    .station-input-group {
-        grid-template-columns: 1fr;
-        gap: 10px;
+  ],
+  "segments": [
+    {
+      "segmentId": "SEG_001",
+      "platforms": {
+        "STA_001": "1番のりば",
+        "STA_002": "2番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_001",
+      "toStationId": "STA_002",
+      "trainType": "EXPRESS",
+      "duration": 8,
+      "distance": 5.0,
+      "stopsAt": ["STA_001", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_002",
+      "platforms": {
+        "STA_001": "2番のりば",
+        "STA_014": "3番のりば",
+        "STA_002": "4番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_001",
+      "toStationId": "STA_002",
+      "trainType": "RAPID",
+      "duration": 10,
+      "distance": 5.0,
+      "stopsAt": ["STA_001", "STA_014", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_003",
+      "platforms": {
+        "STA_001": "3番のりば",
+        "STA_014": "3番のりば",
+        "STA_002": "5番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_001",
+      "toStationId": "STA_002",
+      "trainType": "LOCAL",
+      "duration": 12,
+      "distance": 5.0,
+      "stopsAt": ["STA_001", "STA_014", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_004",
+      "platforms": {
+        "STA_002": "1番のりば",
+        "STA_003": "2番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_003",
+      "trainType": "EXPRESS",
+      "duration": 5,
+      "distance": 4.0,
+      "stopsAt": ["STA_002", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_005",
+      "platforms": {
+        "STA_002": "2番のりば",
+        "STA_003": "3番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_003",
+      "trainType": "RAPID",
+      "duration": 6,
+      "distance": 4.0,
+      "stopsAt": ["STA_002", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_006",
+      "platforms": {
+        "STA_002": "3番のりば",
+        "STA_003": "4番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_003",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 4.0,
+      "stopsAt": ["STA_002", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_007",
+      "platforms": {
+        "STA_003": "1番のりば",
+        "STA_004": "2番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_004",
+      "trainType": "EXPRESS",
+      "duration": 5,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_008",
+      "platforms": {
+        "STA_003": "2番のりば",
+        "STA_004": "3番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_004",
+      "trainType": "RAPID",
+      "duration": 6,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_009",
+      "platforms": {
+        "STA_003": "3番のりば",
+        "STA_004": "4番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_004",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_010",
+      "platforms": {
+        "STA_004": "1番のりば",
+        "STA_005": "2番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_005",
+      "trainType": "EXPRESS",
+      "duration": 8,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_005"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_011",
+      "platforms": {
+        "STA_004": "2番のりば",
+        "STA_015": "3番のりば",
+        "STA_005": "4番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_005",
+      "trainType": "RAPID",
+      "duration": 10,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_015", "STA_005"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_012",
+      "platforms": {
+        "STA_004": "3番のりば",
+        "STA_015": "3番のりば",
+        "STA_005": "5番のりば"
+      },
+      "lineId": "TOHTO_MAIN",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_005",
+      "trainType": "LOCAL",
+      "duration": 12,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_015", "STA_005"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_013",
+      "platforms": {
+        "STA_002": "6番のりば",
+        "STA_007": "1番のりば"
+      },
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_002",
+      "toStationId": "STA_007",
+      "trainType": "LOCAL",
+      "duration": 6,
+      "distance": 3.5,
+      "stopsAt": ["STA_002", "STA_007"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_014",
+      "platforms": {
+        "STA_007": "2番のりば",
+        "STA_006": "3番のりば"
+      },
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_007",
+      "toStationId": "STA_006",
+      "trainType": "LOCAL",
+      "duration": 4,
+      "distance": 2.5,
+      "stopsAt": ["STA_007", "STA_006"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_015",
+      "platforms": {
+        "STA_006": "1番のりば",
+        "STA_003": "5番のりば"
+      },
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_006",
+      "toStationId": "STA_003",
+      "trainType": "LOCAL",
+      "duration": 5,
+      "distance": 3.0,
+      "stopsAt": ["STA_006", "STA_003"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_016",
+      "platforms": {
+        "STA_003": "6番のりば",
+        "STA_008": "1番のりば"
+      },
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_008",
+      "trainType": "LOCAL",
+      "duration": 7,
+      "distance": 4.0,
+      "stopsAt": ["STA_003", "STA_008"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_017",
+      "platforms": {
+        "STA_008": "2番のりば",
+        "STA_004": "6番のりば"
+      },
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_008",
+      "toStationId": "STA_004",
+      "trainType": "LOCAL",
+      "duration": 5,
+      "distance": 3.0,
+      "stopsAt": ["STA_008", "STA_004"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_018",
+      "platforms": {
+        "STA_004": "7番のりば",
+        "STA_002": "7番のりば"
+      },
+      "lineId": "TOHTO_LOOP",
+      "companyId": "TOHTO",
+      "fromStationId": "STA_004",
+      "toStationId": "STA_002",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 5.0,
+      "stopsAt": ["STA_004", "STA_002"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_019",
+      "platforms": {
+        "STA_003": "8番のりば",
+        "STA_009": "1番のりば"
+      },
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_009",
+      "trainType": "EXPRESS",
+      "duration": 8,
+      "distance": 6.0,
+      "stopsAt": ["STA_003", "STA_009"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_020",
+      "platforms": {
+        "STA_003": "9番のりば",
+        "STA_009": "2番のりば"
+      },
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_003",
+      "toStationId": "STA_009",
+      "trainType": "LOCAL",
+      "duration": 12,
+      "distance": 6.0,
+      "stopsAt": ["STA_003", "STA_009"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_021",
+      "platforms": {
+        "STA_009": "3番のりば",
+        "STA_010": "1番のりば"
+      },
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_009",
+      "toStationId": "STA_010",
+      "trainType": "EXPRESS",
+      "duration": 10,
+      "distance": 8.0,
+      "stopsAt": ["STA_009", "STA_010"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_022",
+      "platforms": {
+        "STA_009": "4番のりば",
+        "STA_010": "2番のりば"
+      },
+      "lineId": "HOKUBU_LINE",
+      "companyId": "HOKUBU",
+      "fromStationId": "STA_009",
+      "toStationId": "STA_010",
+      "trainType": "LOCAL",
+      "duration": 15,
+      "distance": 8.0,
+      "stopsAt": ["STA_009", "STA_010"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_023",
+      "platforms": {
+        "STA_006": "4番のりば",
+        "STA_011": "1番のりば"
+      },
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_006",
+      "toStationId": "STA_011",
+      "trainType": "RAPID",
+      "duration": 5,
+      "distance": 3.0,
+      "stopsAt": ["STA_006", "STA_011"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_024",
+      "platforms": {
+        "STA_006": "5番のりば",
+        "STA_011": "2番のりば"
+      },
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_006",
+      "toStationId": "STA_011",
+      "trainType": "LOCAL",
+      "duration": 7,
+      "distance": 3.0,
+      "stopsAt": ["STA_006", "STA_011"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_025",
+      "platforms": {
+        "STA_011": "3番のりば",
+        "STA_012": "1番のりば"
+      },
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_011",
+      "toStationId": "STA_012",
+      "trainType": "RAPID",
+      "duration": 6,
+      "distance": 4.0,
+      "stopsAt": ["STA_011", "STA_012"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_026",
+      "platforms": {
+        "STA_011": "4番のりば",
+        "STA_012": "2番のりば"
+      },
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_011",
+      "toStationId": "STA_012",
+      "trainType": "LOCAL",
+      "duration": 8,
+      "distance": 4.0,
+      "stopsAt": ["STA_011", "STA_012"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_027",
+      "platforms": {
+        "STA_012": "3番のりば",
+        "STA_013": "1番のりば"
+      },
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_012",
+      "toStationId": "STA_013",
+      "trainType": "RAPID",
+      "duration": 7,
+      "distance": 5.0,
+      "stopsAt": ["STA_012", "STA_013"],
+      "isBidirectional": true
+    },
+    {
+      "segmentId": "SEG_028",
+      "platforms": {
+        "STA_012": "4番のりば",
+        "STA_013": "2番のりば"
+      },
+      "lineId": "NANKAI_LINE",
+      "companyId": "NANKAI",
+      "fromStationId": "STA_012",
+      "toStationId": "STA_013",
+      "trainType": "LOCAL",
+      "duration": 10,
+      "distance": 5.0,
+      "stopsAt": ["STA_012", "STA_013"],
+      "isBidirectional": true
     }
-
-    .swap-button-wrapper {
-        order: 3;
-        padding-bottom: 0;
-        padding-top: 10px;
+  ],
+  "platformTransfers": [
+    {
+      "transferId": "PTF_001",
+      "stationId": "STA_002",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_002",
+      "stationId": "STA_002",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_003",
+      "stationId": "STA_002",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_004",
+      "stationId": "STA_002",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_005",
+      "stationId": "STA_002",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_006",
+      "stationId": "STA_002",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_007",
+      "stationId": "STA_002",
+      "fromPlatform": "7番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_008",
+      "stationId": "STA_002",
+      "fromPlatform": "7番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_009",
+      "stationId": "STA_002",
+      "fromPlatform": "7番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_010",
+      "stationId": "STA_003",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_011",
+      "stationId": "STA_003",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_012",
+      "stationId": "STA_003",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_013",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_014",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_015",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 2,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_016",
+      "stationId": "STA_003",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_017",
+      "stationId": "STA_003",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_018",
+      "stationId": "STA_003",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_019",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_020",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_021",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 0,
+      "isDirectThrough": true
+    },
+    {
+      "transferId": "PTF_022",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_023",
+      "stationId": "STA_003",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_024",
+      "stationId": "STA_003",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_025",
+      "stationId": "STA_003",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "5番のりば",
+      "transferTime": 4,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_026",
+      "stationId": "STA_004",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "6番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_027",
+      "stationId": "STA_004",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "6番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_028",
+      "stationId": "STA_004",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "6番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_029",
+      "stationId": "STA_004",
+      "fromPlatform": "6番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_030",
+      "stationId": "STA_004",
+      "fromPlatform": "6番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_031",
+      "stationId": "STA_004",
+      "fromPlatform": "6番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 3,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_032",
+      "stationId": "STA_006",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 5,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_033",
+      "stationId": "STA_006",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 5,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_034",
+      "stationId": "STA_006",
+      "fromPlatform": "1番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 5,
+      "isDirectThrough": false
+    },
+    {
+      "transferId": "PTF_035",
+      "stationId": "STA_006",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 5,
+      "isDirectThrough": false
     }
-
-    .swap-button {
-        width: 100%;
-        border-radius: 6px;
-    }
-
-    .route-summary {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    header h1 {
-        font-size: 1.5rem;
-    }
-
-    main {
-        padding: 20px;
-    }
-
-    .segment-timeline {
-        min-width: 50px;
-    }
-
-    .segment-line {
-        width: 8px;
-        height: 100%;
-        min-height: 60px;
-        border-radius: 4px;
-        margin: 0 auto;
-        display: block;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-
-    .container {
-        border-radius: 8px;
-    }
-
-    header {
-        padding: 20px;
-    }
-
-    .search-section {
-        padding: 15px;
-    }
-
-    .route-card {
-        padding: 15px;
-    }
-
-    .train-duration {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-}
-
-/* ========================================
-   駅・路線交互テーブル形式
-======================================== */
-.route-table {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    margin: 0;
-}
-
-.table-row {
-    display: grid;
-    grid-template-columns: 60px 36px 1fr;
-    align-items: start;
-    min-height: 46px;
-    border-bottom: 1px solid #f2f2f2;
-    background: transparent;
-}
-.table-row:last-child {
-    border-bottom: none;
-}
-
-/* 駅行のみ中央揃え */
-.table-row.station-row {
-    align-items: center;
-}
-
-.table-time {
-    text-align: right;
-    color: #1976d2;
-    font-size: 1.08rem;
-    font-weight: 700;
-    padding-right: 8px;
-}
-.table-marker {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-}
-.station-marker {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    display: inline-block;
-}
-.segment-line {
-    width: 7px;
-    height: 36px;
-    border-radius: 4px;
-    display: inline-block;
-}
-.transfer-icon {
-    font-size: 1.2rem;
-    color: #FF9800;
-}
-.table-station, .table-content {
-    padding: 10px 0 10px 0;
-    font-size: 1.05rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* 駅行の駅名とのりばを中央揃え */
-.table-station {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.station-name {
-    font-weight: 700;
-    font-size: 1.13rem;
-    color: #333;
-}
-.line-symbol {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.05rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.line-name {
-    font-size: 1.02rem;
-    font-weight: 600;
-    color: #222;
-}
-.train-type-badge {
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 0.87rem;
-    font-weight: 600;
-    color: white;
-}
-.train-type-badge.express { background: #E60012; }
-.train-type-badge.rapid { background: #FF6600; }
-.train-type-badge.local { background: #00A040; }
-
-.segment-detail {
-    color: #888;
-    font-size: 0.93rem;
-    margin-left: 10px;
-}
-
-.transfer-label {
-    background: #fff7e0;
-    color: #e65100;
-    padding: 7px 13px;
-    border-radius: 16px;
-    font-size: 0.98rem;
-    font-weight: 600;
-}
-
-.toggle-stops-btn {
-    background: white;
-    color: #1976d2;
-    border: 1px solid #1976d2;
-    padding: 5px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s;
-    margin-left: 10px;
-    font-weight: 500;
-}
-.toggle-stops-btn:hover {
-    background: #e3f2fd;
-}
-.stops-list {
-    display: none;
-    margin-top: 8px;
-    padding: 8px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #e0e0e0;
-}
-.stops-list.active {
-    display: block;
-}
-.stop-item {
-    padding: 5px 0;
-    border-bottom: 1px dashed #eee;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.stop-item:last-child {
-    border-bottom: none;
-}
-
-
-.segment-line-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.segment-meta-row {
-    display: block;
-    font-size: 0.95rem;
-    color: #666;
-    margin-left: 0;
-    margin-bottom: 8px;
-    line-height: 1.7;
-}
-
-.segment-meta-row .segment-detail {
-    display: inline-block;
-    margin-right: 16px;
-}
-
-.segment-stops-row {
-    margin-left: 0;
-    margin-bottom: 0.5em;
-}
-
-/* 全体の左寄せ */
-.table-content,
-.segment-block,
-.segment-line-row,
-.segment-meta-row,
-.segment-stops-row,
-.stops-list,
-.stop-row {
-    align-items: flex-start;
-    justify-content: flex-start;
-    text-align: left;
-}
-
-.segment-block {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
-
-/* 停車駅リスト（駅名＋分数） */
-.stops-list {
-    display: none;
-    margin-top: 8px;
-    padding: 8px 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #e0e0e0;
-    text-align: left;
-    min-width: 120px;
-}
-.stops-list.active {
-    display: block;
-}
-.stop-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 16px;
-    font-size: 0.96rem;
-    color: #444;
-    padding: 3px 0;
-}
-.stop-name {
-    flex: 1;
-    min-width: 60px;
-}
-.stop-elapsed {
-    color: #1976d2;
-    font-weight: 500;
-    min-width: 36px;
-    text-align: right;
-}
-
-.segment-line-row,
-.segment-meta-row,
-.segment-stops-row {
-    align-items: flex-start;
-    justify-content: flex-start;
-    text-align: left;
-}
-.segment-meta-row,
-.segment-stops-row {
-    margin-left: 0;
+  ]
 }
