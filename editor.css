@@ -1,106 +1,72 @@
-/* ========================================
-   リセット & ベーススタイル
-======================================== */
+/* Excel風テーブルエディタ */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-:root {
-    --primary-color: #0078D7;
-    --secondary-color: #E67E22;
-    --danger-color: #dc3545;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --text-color: #333;
-    --border-color: #ddd;
-    --bg-gray: #f8f9fa;
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 
-                 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+    font-family: 'MS Gothic', 'Courier New', monospace;
+    font-size: 12px;
+    background: #f0f0f0;
+    color: #000;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+    max-width: 100%;
+    margin: 0;
+    background: #fff;
 }
 
-/* ========================================
-   ヘッダー
-======================================== */
+
+/* ヘッダー */
 header {
-    background: linear-gradient(135deg, var(--primary-color), #005fa3);
-    color: white;
-    padding: 30px;
-    text-align: center;
+    background: #e0e0e0;
+    border-bottom: 2px solid #808080;
+    padding: 5px 10px;
 }
 
 header h1 {
-    font-size: 2rem;
-    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
 }
 
 .subtitle {
-    font-size: 0.9rem;
-    opacity: 0.9;
+    display: none;
 }
 
-/* ========================================
-   ナビゲーション
-======================================== */
+/* ナビゲーション */
 .main-nav {
+    background: #d4d0c8;
+    border-bottom: 1px solid #808080;
     display: flex;
-    flex-wrap: wrap;
-    background: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
-    padding: 10px;
-    gap: 8px;
+    padding: 0;
 }
 
 .nav-btn {
-    flex: 1;
-    min-width: 120px;
-    padding: 12px 16px;
-    background: white;
-    border: 2px solid #dee2e6;
-    border-radius: 6px;
+    background: #d4d0c8;
+    border: 1px solid #808080;
+    border-bottom: none;
+    padding: 4px 12px;
     cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: all 0.3s;
-    color: var(--text-color);
+    font-size: 11px;
+    margin-right: -1px;
 }
 
 .nav-btn:hover {
-    background: #e9ecef;
-    border-color: var(--primary-color);
+    background: #e8e8e8;
 }
 
 .nav-btn.active {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    position: relative;
+    z-index: 1;
 }
 
-/* ========================================
-   メインコンテンツ
-======================================== */
+/* メイン */
 main {
-    padding: 30px;
-    min-height: 500px;
+    padding: 0;
 }
 
 .edit-section {
@@ -109,462 +75,208 @@ main {
 
 .edit-section.active {
     display: block;
-    animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .section-header {
+    background: #d4d0c8;
+    border-bottom: 1px solid #808080;
+    padding: 5px 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #dee2e6;
 }
 
 .section-header h2 {
-    color: var(--primary-color);
-    font-size: 1.5rem;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .help-text {
-    background: #e7f3ff;
-    border-left: 4px solid var(--primary-color);
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    display: none;
 }
 
 .search-box, .filter-box {
-    margin-bottom: 20px;
+    padding: 5px 10px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #c0c0c0;
 }
 
 .search-box input,
 .filter-box select {
-    width: 100%;
-    max-width: 400px;
-    padding: 10px 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 1rem;
+    border: 1px solid #808080;
+    padding: 2px 4px;
+    font-size: 11px;
+    font-family: inherit;
 }
 
-.filter-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.filter-box label {
-    font-weight: 600;
-}
-
-/* ========================================
-   ボタン
-======================================== */
-.add-btn {
-    background: var(--success-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
+/* ボタン */
+.add-btn, .export-btn, .preview-btn, .file-label {
+    background: #d4d0c8;
+    border: 1px solid #000;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    padding: 3px 8px;
+    font-size: 11px;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: opacity 0.3s;
+    font-family: inherit;
 }
 
-.add-btn:hover {
-    opacity: 0.9;
-}
-
-.export-btn, .preview-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: opacity 0.3s;
-    width: 100%;
-}
-
-.export-btn:hover, .preview-btn:hover {
-    opacity: 0.9;
-}
-
-.file-label {
-    display: inline-block;
-    background: var(--success-color);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: opacity 0.3s;
-}
-
-.file-label:hover {
-    opacity: 0.9;
+.add-btn:active, .export-btn:active, .preview-btn:active, .file-label:active {
+    border: 1px solid #fff;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
 }
 
 #file-input {
     display: none;
 }
 
-/* ========================================
-   データリスト
-======================================== */
-.data-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+/* テーブル */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
 }
 
-.data-card {
-    background: white;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    padding: 20px;
-    transition: all 0.3s;
+.data-table th {
+    background: #c0c0c0;
+    border: 1px solid #808080;
+    padding: 3px 5px;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: left;
+    position: sticky;
+    top: 0;
 }
 
-.data-card:hover {
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow);
+.data-table td {
+    border: 1px solid #c0c0c0;
+    padding: 2px 4px;
+    font-size: 11px;
 }
 
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #dee2e6;
+.data-table tr:hover {
+    background: #e0e0ff;
 }
 
-.card-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--primary-color);
+.data-table input[type="text"],
+.data-table input[type="number"],
+.data-table select {
+    width: 100%;
+    border: 1px solid #808080;
+    padding: 1px 2px;
+    font-size: 11px;
+    font-family: inherit;
 }
 
-.card-actions {
-    display: flex;
-    gap: 10px;
+.data-table input[type="checkbox"] {
+    margin: 0;
+}
+
+.data-table input[type="color"] {
+    width: 50px;
+    height: 20px;
+    border: 1px solid #808080;
+    padding: 0;
 }
 
 .edit-btn, .delete-btn, .save-btn, .cancel-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
+    background: #d4d0c8;
+    border: 1px solid #000;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    padding: 1px 6px;
+    font-size: 10px;
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: opacity 0.3s;
+    margin-right: 2px;
 }
 
-.edit-btn {
-    background: var(--primary-color);
-    color: white;
+.edit-btn:active, .delete-btn:active, .save-btn:active, .cancel-btn:active {
+    border: 1px solid #fff;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
 }
 
-.delete-btn {
-    background: var(--danger-color);
-    color: white;
+/* データリスト（旧スタイル非表示） */
+.data-list {
+    display: none;
 }
 
-.save-btn {
-    background: var(--success-color);
-    color: white;
+.data-card {
+    display: none;
 }
 
-.cancel-btn {
-    background: #6c757d;
-    color: white;
-}
-
-.edit-btn:hover, .delete-btn:hover, .save-btn:hover, .cancel-btn:hover {
-    opacity: 0.8;
-}
-
-/* ========================================
-   フォーム
-======================================== */
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #495057;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.form-group input[type="checkbox"] {
-    width: auto;
-    margin-right: 8px;
-}
-
-.form-group input[type="color"] {
-    width: 80px;
-    height: 40px;
-    padding: 2px;
-    cursor: pointer;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.form-row-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 15px;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-/* ========================================
-   表示モード（編集不可）
-======================================== */
-.view-mode {
-    display: grid;
-    gap: 10px;
-}
-
-.view-field {
-    display: grid;
-    grid-template-columns: 150px 1fr;
-    gap: 10px;
-}
-
-.view-label {
-    font-weight: 600;
-    color: #6c757d;
-}
-
-.view-value {
-    color: var(--text-color);
-}
-
-.color-preview {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    border-radius: 4px;
-    border: 2px solid #dee2e6;
-    vertical-align: middle;
-    margin-left: 10px;
-}
-
-.badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-left: 8px;
-}
-
-.badge-success {
-    background: #d4edda;
-    color: #155724;
-}
-
-.badge-secondary {
-    background: #e2e3e5;
-    color: #383d41;
-}
-
-/* ========================================
-   エクスポートカード
-======================================== */
+/* エクスポート */
 .export-card {
-    background: #f8f9fa;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    padding: 25px;
-    margin-bottom: 20px;
+    border: 1px solid #808080;
+    background: #f0f0f0;
+    padding: 10px;
+    margin: 10px;
 }
 
 .export-card h3 {
-    color: var(--primary-color);
-    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
 .export-card p {
-    color: #6c757d;
-    margin-bottom: 15px;
+    font-size: 11px;
+    margin-bottom: 5px;
 }
 
 #json-preview {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 15px;
-    max-height: 500px;
-    overflow: auto;
+    background: #fff;
+    border: 1px solid #808080;
+    padding: 5px;
     font-family: 'Courier New', monospace;
-    font-size: 0.85rem;
-    line-height: 1.4;
-    margin-top: 15px;
+    font-size: 10px;
+    overflow: auto;
+    max-height: 400px;
+    margin-top: 5px;
 }
 
-/* ========================================
-   フッター
-======================================== */
+/* フッター */
 footer {
-    background: #f8f9fa;
-    padding: 20px;
+    background: #d4d0c8;
+    border-top: 1px solid #808080;
+    padding: 5px 10px;
+    font-size: 10px;
     text-align: center;
-    color: #6c757d;
-    font-size: 0.9rem;
-    border-top: 2px solid #dee2e6;
 }
 
 .warning {
-    color: var(--danger-color);
-    font-weight: 600;
-    margin-top: 8px;
+    color: #c00;
+    font-weight: bold;
 }
 
-/* ========================================
-   レスポンシブ対応
-======================================== */
+/* スクロール可能なテーブルコンテナ */
+.table-container {
+    overflow: auto;
+    max-height: calc(100vh - 150px);
+}
+
+/* 行番号 */
+.row-number {
+    background: #e0e0e0;
+    text-align: center;
+    font-weight: bold;
+    width: 40px;
+}
+
+/* セル編集中 */
+.editing {
+    background: #ffffcc !important;
+}
+
+/* レスポンシブ無効化 */
 @media (max-width: 768px) {
     .main-nav {
-        flex-direction: column;
-    }
-
-    .nav-btn {
-        width: 100%;
-    }
-
-    main {
-        padding: 20px;
-    }
-
-    .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .form-row,
-    .form-row-3 {
-        grid-template-columns: 1fr;
-    }
-
-    .view-field {
-        grid-template-columns: 1fr;
-    }
-
-    .add-btn {
-        width: 100%;
+        flex-wrap: nowrap;
+        overflow-x: auto;
     }
 }
 
-/* ========================================
-   その他のユーティリティ
-======================================== */
 .hidden {
     display: none !important;
-}
-
-.error-text {
-    color: var(--danger-color);
-    font-size: 0.85rem;
-    margin-top: 4px;
-}
-
-.success-message {
-    background: #d4edda;
-    border-left: 4px solid var(--success-color);
-    color: #155724;
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-}
-
-.error-message {
-    background: #f8d7da;
-    border-left: 4px solid var(--danger-color);
-    color: #721c24;
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-}
-
-/* 停車駅リスト */
-.stops-list-editor {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 10px;
-    margin-top: 8px;
-}
-
-.stop-item-editor {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 8px;
-    align-items: center;
-}
-
-.stop-item-editor input {
-    flex: 1;
-}
-
-.remove-stop-btn {
-    background: var(--danger-color);
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.85rem;
-}
-
-.add-stop-btn {
-    background: var(--success-color);
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    margin-top: 8px;
 }
