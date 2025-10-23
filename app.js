@@ -119,12 +119,30 @@ function preprocessData() {
         }
     });
 
-    // のりば間乗換時間マップを作成
+    // 直通運転設定マップを作成
+    const throughServiceMap = new Map();
+    if (appData.throughServiceConfigs) {
+        appData.throughServiceConfigs.forEach(config => {
+            const key = `${config.fromLineId}|${config.fromTrainType}|${config.toLineId}|${config.toTrainType}`;
+            throughServiceMap.set(key, config);
+        });
+    }
+
+    // のりば間乗換時間マップを作成（種別ごと）
     const platformTransferMap = new Map();
     if (appData.platformTransfers) {
         appData.platformTransfers.forEach(transfer => {
-            const key = `${transfer.stationId}|${transfer.fromPlatform}|${transfer.toPlatform}`;
-            platformTransferMap.set(key, transfer);
+            if (transfer.applicableTrainTypes && transfer.applicableTrainTypes.length > 0) {
+                // 種別指定がある場合、種別ごとに登録
+                transfer.applicableTrainTypes.forEach(trainType => {
+                    const key = `${transfer.stationId}|${transfer.fromPlatform}|${transfer.toPlatform}|${trainType}`;
+                    platformTransferMap.set(key, transfer);
+                });
+            } else {
+                // 種別指定がない場合、全種別で登録
+                const key = `${transfer.stationId}|${transfer.fromPlatform}|${transfer.toPlatform}`;
+                platformTransferMap.set(key, transfer);
+            }
         });
     }
 
@@ -170,27 +188,43 @@ function preprocessData() {
                             transferTime = 1;
                             isDirectThrough = false;
                         } else {
-                            // 異なる路線・同一のりば → 直通の可能性
-                            const transferKey = `${stationId}|${fromPlatform}|${toPlatform}`;
-                            const transfer = platformTransferMap.get(transferKey);
-                            if (transfer) {
-                                transferTime = transfer.transferTime;
-                                isDirectThrough = transfer.isDirectThrough;
+                            // 異なる路線・同一のりば → 直通運転の可能性をチェック
+                            const throughKey = `${fromSegment.lineId}|${fromSegment.trainType}|${toSegment.lineId}|${toSegment.trainType}`;
+                            const throughConfig = throughServiceMap.get(throughKey);
+                            
+                            if (throughConfig) {
+                                // 直通運転設定がある場合
+                                transferTime = 0;
+                                isDirectThrough = true;
                             } else {
-                                // 定義がない場合は1分
-                                transferTime = 1;
+                                // 直通運転設定がない場合、platformTransfersをチェック
+                                const transferKey = `${stationId}|${fromPlatform}|${toPlatform}|${fromSegment.trainType}`;
+                                const transferKeyNoType = `${stationId}|${fromPlatform}|${toPlatform}`;
+                                const transfer = platformTransferMap.get(transferKey) || platformTransferMap.get(transferKeyNoType);
+                                
+                                if (transfer) {
+                                    transferTime = transfer.transferTime;
+                                    isDirectThrough = transfer.isDirectThrough;
+                                } else {
+                                    // 定義がない場合は1分
+                                    transferTime = 1;
+                                    isDirectThrough = false;
+                                }
                             }
                         }
                     } else {
                         // 異なるのりばの場合
-                        const transferKey = `${stationId}|${fromPlatform}|${toPlatform}`;
-                        const transfer = platformTransferMap.get(transferKey);
+                        const transferKey = `${stationId}|${fromPlatform}|${toPlatform}|${fromSegment.trainType}`;
+                        const transferKeyNoType = `${stationId}|${fromPlatform}|${toPlatform}`;
+                        const transfer = platformTransferMap.get(transferKey) || platformTransferMap.get(transferKeyNoType);
+                        
                         if (transfer) {
                             transferTime = transfer.transferTime;
                             isDirectThrough = transfer.isDirectThrough;
                         } else {
                             // 定義がない場合はデフォルト3分
                             transferTime = 3;
+                            isDirectThrough = false;
                         }
                     }
 
@@ -203,6 +237,10 @@ function preprocessData() {
                         duration: transferTime,
                         fromPlatform: fromPlatform,
                         toPlatform: toPlatform,
+                        fromLineId: fromSegment.lineId,
+                        toLineId: toSegment.lineId,
+                        fromTrainType: fromSegment.trainType,
+                        toTrainType: toSegment.trainType,
                         isDirectThrough: isDirectThrough
                     });
                 }
@@ -215,7 +253,8 @@ function preprocessData() {
         lineMap,
         companyMap,
         trainTypeMap,
-        adjacencyList
+        adjacencyList,
+        throughServiceMap
     };
 
     console.log('データ前処理完了');
@@ -724,6 +763,15 @@ function buildRouteInfo(path) {
             totalDuration += edge.duration;
         } else if (edge.type === 'transfer') {
             // 乗換レグ
+            // 直前のsegmentから情報を取得
+            let prevLineId = null;
+            let prevTrainType = null;
+            if (i > 0 && path[i-1].edge && path[i-1].edge.type === 'segment') {
+                const [prevStationId, prevLine, prevType] = path[i-1].key.split('|');
+                prevLineId = prevLine;
+                prevTrainType = prevType;
+            }
+            
             legs.push({
                 type: 'transfer',
                 stationId,
@@ -738,6 +786,10 @@ function buildRouteInfo(path) {
                 isDirectThrough: edge.isDirectThrough || false,
                 fromPlatform: edge.fromPlatform,
                 toPlatform: edge.toPlatform,
+                fromLineId: prevLineId || edge.fromLineId,
+                toLineId: edge.toLineId || lineId,
+                fromTrainType: prevTrainType || edge.fromTrainType,
+                toTrainType: edge.toTrainType || trainType,
                 stopsAt: [],
                 platform: edge.fromPlatform
             });
@@ -996,39 +1048,25 @@ function createTableTransferRow(leg) {
     row.className = 'table-row transfer-row';
 
     if (leg.isDirectThrough) {
-        // 直通の場合
-        const platformInfo = leg.fromPlatform === leg.toPlatform 
-            ? `（${leg.fromPlatform}）` 
-            : `（${leg.fromPlatform} → ${leg.toPlatform}）`;
+        // 1. 直通運転の場合
         row.innerHTML = `
             <div class="table-time"></div>
             <div class="table-marker">
                 <span class="transfer-icon">⇄</span>
             </div>
             <div class="table-content">
-                <span class="transfer-label">乗換不要(直通) ${platformInfo}</span>
-            </div>
-        `;
-    } else if (leg.fromPlatform === leg.toPlatform) {
-        // 同一のりばでの乗換（種別変更）
-        row.innerHTML = `
-            <div class="table-time"></div>
-            <div class="table-marker">
-                <span class="transfer-icon">🔄</span>
-            </div>
-            <div class="table-content">
-                <span class="transfer-label">種別変更（${leg.fromPlatform}・${leg.transferTime}分）</span>
+                <span class="transfer-label through-service">乗換不要（直通）</span>
             </div>
         `;
     } else {
-        // 通常の乗換
+        // 2. 通常の乗換（同一路線での種別変更を含む）
         row.innerHTML = `
             <div class="table-time"></div>
             <div class="table-marker">
                 <span class="transfer-icon">🚶</span>
             </div>
             <div class="table-content">
-                <span class="transfer-label">のりば移動（${leg.fromPlatform} → ${leg.toPlatform}・${leg.transferTime}分）</span>
+                <span class="transfer-label">乗り換え（${leg.transferTime}分）</span>
             </div>
         `;
     }
