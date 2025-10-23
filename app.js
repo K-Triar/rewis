@@ -189,6 +189,7 @@ function preprocessData() {
                     // のりば間の乗換時間を取得
                     let transferTime = 0;
                     let isDirectThrough = false;
+                    let isTypeChange = false;
 
                     if (fromPlatform === toPlatform) {
                         // 同じのりばの場合
@@ -196,6 +197,7 @@ function preprocessData() {
                             // 同一路線・同一のりば → 種別変更で1分
                             transferTime = 1;
                             isDirectThrough = false;
+                            isTypeChange = true; // 種別変更フラグ
                         } else {
                             // 異なる路線・同一のりば → 直通運転の可能性をチェック
                             const throughKey = `${fromSegment.lineId}|${fromSegment.trainType}|${toSegment.lineId}|${toSegment.trainType}`;
@@ -205,6 +207,7 @@ function preprocessData() {
                                 // 直通運転設定がある場合
                                 transferTime = 0;
                                 isDirectThrough = true;
+                                isTypeChange = false;
                             } else {
                                 // 直通運転設定がない場合、platformTransfersをチェック
                                 const transferKey = `${stationId}|${fromPlatform}|${toPlatform}|${fromSegment.trainType}`;
@@ -214,10 +217,12 @@ function preprocessData() {
                                 if (transfer) {
                                     transferTime = transfer.transferTime;
                                     isDirectThrough = transfer.isDirectThrough;
+                                    isTypeChange = false;
                                 } else {
                                     // 定義がない場合は1分
                                     transferTime = 1;
                                     isDirectThrough = false;
+                                    isTypeChange = false;
                                 }
                             }
                         }
@@ -230,10 +235,12 @@ function preprocessData() {
                         if (transfer) {
                             transferTime = transfer.transferTime;
                             isDirectThrough = transfer.isDirectThrough;
+                            isTypeChange = false;
                         } else {
                             // 定義がない場合はデフォルト3分
                             transferTime = 3;
                             isDirectThrough = false;
+                            isTypeChange = false;
                         }
                     }
 
@@ -250,7 +257,8 @@ function preprocessData() {
                         toLineId: toSegment.lineId,
                         fromTrainType: fromSegment.trainType,
                         toTrainType: toSegment.trainType,
-                        isDirectThrough: isDirectThrough
+                        isDirectThrough: isDirectThrough,
+                        isTypeChange: isTypeChange
                     });
                 }
             });
@@ -461,6 +469,9 @@ function performSearch() {
 
     if (document.getElementById('type-express').checked) {
         filters.allowedTrainTypes.add('EXPRESS');
+    }
+    if (document.getElementById('type-srapid').checked) {
+        filters.allowedTrainTypes.add('SRAPID');
     }
     if (document.getElementById('type-rapid').checked) {
         filters.allowedTrainTypes.add('RAPID');
@@ -794,6 +805,7 @@ function buildRouteInfo(path) {
                 duration: edge.duration,
                 transferTime: edge.duration,
                 isDirectThrough: edge.isDirectThrough || false,
+                isTypeChange: edge.isTypeChange || false,
                 fromPlatform: edge.fromPlatform,
                 toPlatform: edge.toPlatform,
                 fromLineId: prevLineId || edge.fromLineId,
@@ -807,15 +819,15 @@ function buildRouteInfo(path) {
         }
     }
 
-    // 乗換回数を legs から後集計（連続する segment 間で路線が変わった回数）
+    // 乗換回数を legs から後集計
+    // 実際の乗換（transfer type='transfer'）のみをカウント
+    // 直通運転（through-service）は乗換としてカウントしない
+    // 種別変更（type-change）は乗換としてカウントする
     let transferCount = 0;
-    let prevSegLine = null;
     for (const leg of legs) {
-        if (leg.type !== 'segment') continue;
-        if (prevSegLine !== null && prevSegLine !== leg.lineId) {
+        if (leg.type === 'transfer' && !leg.isDirectThrough) {
             transferCount++;
         }
-        prevSegLine = leg.lineId;
     }
 
     return {
@@ -1068,8 +1080,19 @@ function createTableTransferRow(leg) {
                 <span class="transfer-label through-service">乗換不要（直通）</span>
             </div>
         `;
+    } else if (leg.isTypeChange) {
+        // 2. 種別変更の場合
+        row.innerHTML = `
+            <div class="table-time"></div>
+            <div class="table-marker">
+                <span class="transfer-icon">🔄</span>
+            </div>
+            <div class="table-content">
+                <span class="transfer-label type-change">種別変更（${leg.transferTime}分）</span>
+            </div>
+        `;
     } else {
-        // 2. 通常の乗換（同一路線での種別変更を含む）
+        // 3. 通常の乗換
         row.innerHTML = `
             <div class="table-time"></div>
             <div class="table-marker">
