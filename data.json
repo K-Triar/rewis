@@ -65,7 +65,7 @@
       "lineName": "北部急行線",
       "companyId": "HOKUBU",
       "lineColor": "#C9171E",
-      "throughServices": ["TOHTO_MAIN"]
+      "throughServices": []
     },
     {
       "lineId": "NANKAI_LINE",
@@ -73,6 +73,24 @@
       "companyId": "NANKAI",
       "lineColor": "#FFA500",
       "throughServices": []
+    }
+  ],
+  "throughServiceConfigs": [
+    {
+      "configId": "TS_001",
+      "fromLineId": "TOHTO_MAIN",
+      "toLineId": "HOKUBU_LINE",
+      "fromTrainType": "EXPRESS",
+      "toTrainType": "EXPRESS",
+      "description": "東都本線特急と北部急行線特急の相互直通運転"
+    },
+    {
+      "configId": "TS_002",
+      "fromLineId": "HOKUBU_LINE",
+      "toLineId": "TOHTO_MAIN",
+      "fromTrainType": "EXPRESS",
+      "toTrainType": "EXPRESS",
+      "description": "北部急行線特急と東都本線特急の相互直通運転"
     }
   ],
   "stations": [
@@ -795,23 +813,26 @@
       "fromPlatform": "2番のりば",
       "toPlatform": "1番のりば",
       "transferTime": 0,
-      "isDirectThrough": true
+      "isDirectThrough": true,
+      "applicableTrainTypes": ["EXPRESS"]
     },
     {
       "transferId": "PTF_017",
       "stationId": "STA_003",
       "fromPlatform": "3番のりば",
       "toPlatform": "1番のりば",
-      "transferTime": 0,
-      "isDirectThrough": true
+      "transferTime": 2,
+      "isDirectThrough": false,
+      "applicableTrainTypes": ["RAPID"]
     },
     {
       "transferId": "PTF_018",
       "stationId": "STA_003",
       "fromPlatform": "4番のりば",
       "toPlatform": "1番のりば",
-      "transferTime": 0,
-      "isDirectThrough": true
+      "transferTime": 2,
+      "isDirectThrough": false,
+      "applicableTrainTypes": ["LOCAL"]
     },
     {
       "transferId": "PTF_019",
@@ -819,23 +840,26 @@
       "fromPlatform": "1番のりば",
       "toPlatform": "2番のりば",
       "transferTime": 0,
-      "isDirectThrough": true
+      "isDirectThrough": true,
+      "applicableTrainTypes": ["EXPRESS"]
     },
     {
       "transferId": "PTF_020",
       "stationId": "STA_003",
       "fromPlatform": "1番のりば",
       "toPlatform": "3番のりば",
-      "transferTime": 0,
-      "isDirectThrough": true
+      "transferTime": 2,
+      "isDirectThrough": false,
+      "applicableTrainTypes": ["RAPID"]
     },
     {
       "transferId": "PTF_021",
       "stationId": "STA_003",
       "fromPlatform": "1番のりば",
       "toPlatform": "4番のりば",
-      "transferTime": 0,
-      "isDirectThrough": true
+      "transferTime": 2,
+      "isDirectThrough": false,
+      "applicableTrainTypes": ["LOCAL"]
     },
     {
       "transferId": "PTF_022",
