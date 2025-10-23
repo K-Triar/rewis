@@ -280,3 +280,66 @@ footer {
 .hidden {
     display: none !important;
 }
+
+/* 使い方セクション */
+.help-content {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+}
+
+.help-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #c0c0c0;
+    background: #fafafa;
+}
+
+.help-section h3 {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #000;
+    border-bottom: 2px solid #808080;
+    padding-bottom: 5px;
+}
+
+.help-section p {
+    font-size: 12px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.help-section ul,
+.help-section ol {
+    font-size: 12px;
+    line-height: 1.6;
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.help-section li {
+    margin-bottom: 8px;
+}
+
+.help-section strong {
+    font-weight: bold;
+    color: #000;
+}
+
+.help-section ul ul {
+    margin-top: 5px;
+    margin-left: 15px;
+}
+
+/* 使い方セクションのレスポンシブ */
+@media (max-width: 768px) {
+    .help-content {
+        padding: 10px;
+    }
+    
+    .help-section {
+        padding: 10px;
+    }
+}
