@@ -296,17 +296,14 @@ main {
 }
 
 /* 列車種別バッジ色（output.json仕様） */
-.train-type-badge.express {
-    background: #E60012;
+.train-type-badge.tc {
+    background: #00aaff;
 }
-.train-type-badge.rapid {
-    background: #404040;
+.train-type-badge.sx {
+    background: #ff0000;
 }
-.train-type-badge.local {
+.train-type-badge.mc {
     background: #808080;
-}
-.train-type-badge.srapid {
-    background: #202020;
 }
 
 /* 検索ボタン */
@@ -547,10 +544,9 @@ main {
     color: white;
 }
 
-.train-type-badge.express { background: #E60012; }
-.train-type-badge.rapid { background: #404040; }
-.train-type-badge.local { background: #808080; }
-.train-type-badge.srapid { background: #202020; }
+.train-type-badge.tc { background: #00aaff; }
+.train-type-badge.sx { background: #ff0000; }
+.train-type-badge.mc { background: #808080; }
 
 .segment-details-row {
     display: flex;
@@ -877,9 +873,9 @@ footer {
     font-weight: 600;
     color: white;
 }
-.train-type-badge.express { background: #E60012; }
-.train-type-badge.rapid { background: #FF6600; }
-.train-type-badge.local { background: #00A040; }
+.train-type-badge.tc { background: #00aaff; }
+.train-type-badge.sx { background: #ff0000; }
+.train-type-badge.mc { background: #808080; }
 
 .segment-detail {
     color: #888;

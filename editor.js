@@ -1,4 +1,4 @@
-// グローバル変数
+﻿// グローバル変数
 let appData = {
     meta: {
         version: "1.0.0",
@@ -88,7 +88,8 @@ function initializeNavigation() {
                 8: (it) => it.trainType || '',
                 9: (it) => Number(it.duration) || 0,
                 10: (it) => Number(it.distance) || 0,
-                11: (it) => it.isBidirectional ? 1 : 0
+                11: (it) => it.isBidirectional ? 1 : 0,
+                12: (it) => it.isAlightOnly ? 1 : 0
             }
         },
         'through-services-table': {
@@ -487,7 +488,7 @@ function renderStations() {
 }
 
 function addStation() {
-    appData.stations.push({stationId: '', stationName: '', stationNameKana: '', lines: [], latitude: 35.0, longitude: 139.0});
+    appData.stations.push({stationId: '', stationName: '', stationNameKana: '', latitude: 35.0, longitude: 139.0});
     renderStations();
     editStationRow(appData.stations.length - 1);
 }
@@ -527,7 +528,6 @@ function saveStation(index) {
         stationId: document.getElementById('esi-' + index).value,
         stationName: document.getElementById('esn-' + index).value,
         stationNameKana: document.getElementById('esk-' + index).value,
-        lines: appData.stations[index].lines || [],
         latitude: parseFloat(document.getElementById('eslat-' + index).value),
         longitude: parseFloat(document.getElementById('eslon-' + index).value)
     };
@@ -576,6 +576,7 @@ function renderSegments() {
             <td>${formatSeconds(seg.duration)}</td>
             <td>${seg.distance}</td>
             <td style="text-align: center;">${seg.isBidirectional ? '○' : ''}</td>
+            <td style="text-align: center;">${seg.isAlightOnly ? '○' : ''}</td>
             <td>
                 <button class="edit-btn" onclick="editSegmentRow(${idx})">編集</button>
                 <button class="delete-btn" onclick="deleteSegment(${idx})">削除</button>
@@ -586,7 +587,7 @@ function renderSegments() {
 }
 
 function addSegment() {
-    appData.segments.push({segmentId: '', platforms: {}, lineId: '', companyId: '', fromStationId: '', toStationId: '', trainType: '', duration: 0, distance: 0, stopsAt: [], isBidirectional: true});
+    appData.segments.push({segmentId: '', platforms: {}, lineId: '', companyId: '', fromStationId: '', toStationId: '', trainType: '', duration: 0, distance: 0, stopsAt: [], isBidirectional: true, isAlightOnly: false});
     renderSegments();
     editSegmentRow(appData.segments.length - 1);
 }
@@ -639,6 +640,7 @@ function editSegmentRow(index) {
         </td>
         <td><input type="number" step="0.01" value="${seg.distance}" id="esegdist-${index}" min="0"></td>
         <td style="text-align: center;"><input type="checkbox" ${seg.isBidirectional ? 'checked' : ''} id="esegb-${index}"></td>
+        <td style="text-align: center;"><input type="checkbox" ${seg.isAlightOnly ? 'checked' : ''} id="esega-${index}"></td>
         <td>
             <button class="save-btn" onclick="saveSegment(${index})">保存</button>
             <button class="cancel-btn" onclick="renderSegments()">取消</button>
@@ -705,7 +707,8 @@ function saveSegment(index) {
         duration: (parseInt(document.getElementById('esegd-min-' + index).value || 0) * 60) + (parseInt(document.getElementById('esegd-sec-' + index).value || 0)),
         distance: parseFloat(document.getElementById('esegdist-' + index).value),
         stopsAt: appData.segments[index].stopsAt || [],
-        isBidirectional: document.getElementById('esegb-' + index).checked
+        isBidirectional: document.getElementById('esegb-' + index).checked,
+        isAlightOnly: document.getElementById('esega-' + index).checked
     };
     renderSegments();
 }
@@ -877,6 +880,9 @@ function deletePlatformTransfer(index) {
 async function exportData() {
     appData.meta.lastUpdated = new Date().toISOString().split('T')[0];
     
+    // エクスポート用にデータをクリーンアップ
+    const exportData = cleanDataForExport(appData);
+    
     // サーバーAPIで保存を試行
     try {
         const response = await fetch('/api/data', {
@@ -884,7 +890,7 @@ async function exportData() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(appData)
+            body: JSON.stringify(exportData)
         });
         
         if (response.ok) {
@@ -899,7 +905,7 @@ async function exportData() {
     }
     
     // サーバーが使えない場合はダウンロード
-    const json = JSON.stringify(appData, null, 2);
+    const json = JSON.stringify(exportData, null, 2);
     const blob = new Blob([json], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -910,11 +916,38 @@ async function exportData() {
     alert('ファイルをダウンロードしました。\n手動でサーバーにアップロードしてください。');
 }
 
+// エクスポート用にデータをクリーンアップ
+function cleanDataForExport(data) {
+    const cleaned = JSON.parse(JSON.stringify(data)); // Deep clone
+    
+    // 駅データから lines 配列を削除（app.js で動的生成されるため）
+    if (cleaned.stations) {
+        cleaned.stations = cleaned.stations.map(station => {
+            const {lines, ...rest} = station;
+            return rest;
+        });
+    }
+    
+    // 路線データから throughServices 配列を削除または空配列に
+    if (cleaned.lines) {
+        cleaned.lines = cleaned.lines.map(line => {
+            const result = {...line};
+            if (result.throughServices && result.throughServices.length === 0) {
+                result.throughServices = [];
+            }
+            return result;
+        });
+    }
+    
+    return cleaned;
+}
+
 function togglePreview() {
     const preview = document.getElementById('json-preview');
     if (preview.style.display === 'none') {
         appData.meta.lastUpdated = new Date().toISOString().split('T')[0];
-        preview.textContent = JSON.stringify(appData, null, 2);
+        const exportData = cleanDataForExport(appData);
+        preview.textContent = JSON.stringify(exportData, null, 2);
         preview.style.display = 'block';
     } else {
         preview.style.display = 'none';
