@@ -230,7 +230,7 @@
       "toLineId": "KT-L-Lo",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
       "description": ""
     },
     {
@@ -239,7 +239,7 @@
       "toLineId": "KT-L-Ra",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
       "description": ""
     },
     {
@@ -248,7 +248,7 @@
       "toLineId": "KT-L-Ra-HA",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
       "description": ""
     },
     {
@@ -257,7 +257,7 @@
       "toLineId": "SUI-S-Lo",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
       "description": ""
     },
     {
@@ -275,7 +275,7 @@
       "toLineId": "HRA-H-Lo",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
       "description": ""
     },
     {
@@ -284,7 +284,7 @@
       "toLineId": "KT-L-SR",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
       "description": ""
     },
     {
@@ -293,13 +293,13 @@
       "toLineId": "HRA-H-SR",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
       "description": ""
     },
     {
-      "configId": "TSV-KT-B-Lo-KT-L-Lo",
+      "configId": "TSV-KT-B-Lo-KT-L-Lo-B",
       "fromLineId": "KT-B-Lo",
-      "toLineId": "KT-L-Lo",
+      "toLineId": "KT-L-Lo-B",
       "fromTrainType": "TC",
       "toTrainType": "TC",
       "isBidirectional": false,
@@ -311,7 +311,16 @@
       "toLineId": "HRA-EX-AML",
       "fromTrainType": "TC",
       "toTrainType": "TC",
-      "isBidirectional": false,
+      "isBidirectional": true,
+      "description": ""
+    },
+    {
+      "configId": "TSV-KT-L-Lo-B-KT-U-Lo-L",
+      "fromLineId": "KT-L-Lo-B",
+      "toLineId": "KT-U-Lo-L",
+      "fromTrainType": "TC",
+      "toTrainType": "TC",
+      "isBidirectional": true,
       "description": ""
     }
   ],
