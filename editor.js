@@ -195,8 +195,7 @@ async function tryLoadExistingData() {
         }
         if (response.ok) {
             appData = await response.json();
-            // 旧データが分単位で保存されている可能性があるため、秒単位へ変換
-            convertTimesToSecondsIfNeeded(appData);
+            // データは既に秒単位で保存されているため、変換は不要
             renderSection('companies');
             updateServerStatus(true);
         }
@@ -209,11 +208,7 @@ async function tryLoadExistingData() {
 // --- 時間ユーティリティ ---
 function formatSeconds(sec) {
     sec = parseInt(sec) || 0;
-    if (sec < 60) return `${sec}秒`;
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    if (s === 0) return `${m}分`;
-    return `${m}分 ${s}秒`;
+    return `${sec}秒`;
 }
 
 function convertTimesToSecondsIfNeeded(data) {
@@ -610,10 +605,8 @@ function editSegmentRow(index) {
     const stationOpts = appData.stations.map(s => `<option value="${esc(s.stationId)}">${esc(s.stationName)}</option>`).join('');
     
     const tr = document.getElementById('segments-tbody').children[rowIdx];
-    // 分/秒入力を追加
+    // 秒単位の入力
     const dur = parseInt(seg.duration) || 0;
-    const durMin = Math.floor(dur / 60);
-    const durSec = dur % 60;
     tr.innerHTML = `
         <td class="row-number">${rowIdx + 1}</td>
         <td><input type="text" value="${esc(seg.segmentId)}" id="esegi-${index}" style="width: 100%;"></td>
@@ -635,8 +628,7 @@ function editSegmentRow(index) {
         </td>
         <td><select id="esegtt-${index}">${typeOpts}</select></td>
         <td>
-            <input type="number" value="${durMin}" id="esegd-min-${index}" min="0" style="width:45%; display:inline-block;"> 分
-            <input type="number" value="${durSec}" id="esegd-sec-${index}" min="0" max="59" style="width:45%; display:inline-block; margin-left:4px;"> 秒
+            <input type="number" value="${dur}" id="esegd-${index}" min="0"> 秒
         </td>
         <td><input type="number" step="0.01" value="${seg.distance}" id="esegdist-${index}" min="0"></td>
         <td style="text-align: center;"><input type="checkbox" ${seg.isBidirectional ? 'checked' : ''} id="esegb-${index}"></td>
@@ -704,7 +696,7 @@ function saveSegment(index) {
         fromStationId: newFromStation,
         toStationId: newToStation,
         trainType: document.getElementById('esegtt-' + index).value,
-        duration: (parseInt(document.getElementById('esegd-min-' + index).value || 0) * 60) + (parseInt(document.getElementById('esegd-sec-' + index).value || 0)),
+        duration: parseInt(document.getElementById('esegd-' + index).value || 0),
         distance: parseFloat(document.getElementById('esegdist-' + index).value),
         stopsAt: appData.segments[index].stopsAt || [],
         isBidirectional: document.getElementById('esegb-' + index).checked,
@@ -839,8 +831,6 @@ function editPlatformTransferRow(index) {
     const pt = appData.platformTransfers[index];
     const tr = document.getElementById('platform-transfers-tbody').children[index];
     const t = parseInt(pt.transferTime) || 0;
-    const tmin = Math.floor(t / 60);
-    const tsec = t % 60;
     tr.innerHTML = `
         <td class="row-number">${index + 1}</td>
         <td><input type="text" value="${esc(pt.transferId)}" id="epti-${index}"></td>
@@ -848,8 +838,7 @@ function editPlatformTransferRow(index) {
         <td><input type="text" value="${esc(pt.fromPlatform)}" id="eptf-${index}"></td>
         <td><input type="text" value="${esc(pt.toPlatform)}" id="eptt-${index}"></td>
         <td>
-            <input type="number" value="${tmin}" id="epttime-min-${index}" min="0" style="width:45%; display:inline-block;"> 分
-            <input type="number" value="${tsec}" id="epttime-sec-${index}" min="0" max="59" style="width:45%; display:inline-block; margin-left:4px;"> 秒
+            <input type="number" value="${t}" id="epttime-${index}" min="0"> 秒
         </td>
         <td>
             <button class="save-btn" onclick="savePlatformTransfer(${index})">保存</button>
@@ -864,7 +853,7 @@ function savePlatformTransfer(index) {
         stationId: document.getElementById('epts-' + index).value,
         fromPlatform: document.getElementById('eptf-' + index).value,
         toPlatform: document.getElementById('eptt-' + index).value,
-        transferTime: (parseInt(document.getElementById('epttime-min-' + index).value || 0) * 60) + (parseInt(document.getElementById('epttime-sec-' + index).value || 0))
+        transferTime: parseInt(document.getElementById('epttime-' + index).value || 0)
     };
     renderPlatformTransfers();
 }
