@@ -2613,91 +2613,140 @@
       "stationId": "KL04",
       "fromPlatform": "1番のりば",
       "toPlatform": "2番のりば",
-      "transferTime": 10
+      "transferTime": 19
     },
     {
       "transferId": "TSF-KL04-1-3",
       "stationId": "KL04",
       "fromPlatform": "1番のりば",
       "toPlatform": "3番のりば",
-      "transferTime": 10
+      "transferTime": 19
     },
     {
       "transferId": "TSF-KL04-1-5",
       "stationId": "KL04",
       "fromPlatform": "1番のりば",
       "toPlatform": "5番のりば",
-      "transferTime": 10
+      "transferTime": 24
+    },
+    {
+      "transferId": "TSF-KL04-2-1",
+      "stationId": "KL04",
+      "fromPlatform": "2番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 19
     },
     {
       "transferId": "TSF-KL04-2-3",
       "stationId": "KL04",
       "fromPlatform": "2番のりば",
       "toPlatform": "3番のりば",
-      "transferTime": 10
+      "transferTime": 7
     },
     {
       "transferId": "TSF-KL04-2-4",
       "stationId": "KL04",
       "fromPlatform": "2番のりば",
       "toPlatform": "4番のりば",
-      "transferTime": 10
+      "transferTime": 20
     },
     {
       "transferId": "TSF-KL04-2-5",
       "stationId": "KL04",
       "fromPlatform": "2番のりば",
       "toPlatform": "5番のりば",
-      "transferTime": 10
+      "transferTime": 20
+    },
+    {
+      "transferId": "TSF-KL04-3-1",
+      "stationId": "KL04",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-3-2",
+      "stationId": "KL04",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 7
     },
     {
       "transferId": "TSF-KL04-3-4",
       "stationId": "KL04",
       "fromPlatform": "3番のりば",
       "toPlatform": "4番のりば",
-      "transferTime": 10
+      "transferTime": 19
     },
     {
       "transferId": "TSF-KL04-3-5",
       "stationId": "KL04",
       "fromPlatform": "3番のりば",
       "toPlatform": "5番のりば",
-      "transferTime": 10
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-4-1",
+      "stationId": "KL04",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 24
     },
     {
       "transferId": "TSF-KL04-4-5",
       "stationId": "KL04",
       "fromPlatform": "4番のりば",
       "toPlatform": "5番のりば",
-      "transferTime": 10
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KL04-5-1",
+      "stationId": "KL04",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 24
+    },
+    {
+      "transferId": "TSF-KL04-5-4",
+      "stationId": "KL04",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 7
     },
     {
       "transferId": "TSF-KL05-6-5",
       "stationId": "KL05",
       "fromPlatform": "6番のりば",
       "toPlatform": "5番のりば",
-      "transferTime": 10
+      "transferTime": 6
+    },
+    {
+      "transferId": "TSF-KL05-5-6",
+      "stationId": "KL05",
+      "fromPlatform": "5番のりば",
+      "toPlatform": "6番のりば",
+      "transferTime": 6
     },
     {
       "transferId": "TSF-KL05-4-3",
       "stationId": "KL05",
       "fromPlatform": "4番のりば",
       "toPlatform": "3番のりば",
-      "transferTime": 10
+      "transferTime": 6
+    },
+    {
+      "transferId": "TSF-KL05-3-4",
+      "stationId": "KL05",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 6
     },
     {
       "transferId": "TSF-KL10-1-3",
       "stationId": "KL10",
       "fromPlatform": "1番のりば",
       "toPlatform": "3番のりば",
-      "transferTime": 10
-    },
-    {
-      "transferId": "TSF-KL10-1-4",
-      "stationId": "KL10",
-      "fromPlatform": "1番のりば",
-      "toPlatform": "4番のりば",
-      "transferTime": 10
+      "transferTime": 11
     },
     {
       "transferId": "TSF-KL10-2-3",
@@ -2711,28 +2760,77 @@
       "stationId": "KL10",
       "fromPlatform": "2番のりば",
       "toPlatform": "4番のりば",
-      "transferTime": 10
+      "transferTime": 11
+    },
+    {
+      "transferId": "TSF-KL10-3-1",
+      "stationId": "KL10",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 11
+    },
+    {
+      "transferId": "TSF-KL10-3-4",
+      "stationId": "KL10",
+      "fromPlatform": "3番のりば",
+      "toPlatform": "4番のりば",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KL10-4-1",
+      "stationId": "KL10",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "1番のりば",
+      "transferTime": 12
+    },
+    {
+      "transferId": "TSF-KL10-4-2",
+      "stationId": "KL10",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 11
+    },
+    {
+      "transferId": "TSF-KL10-4-3",
+      "stationId": "KL10",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 7
     },
     {
       "transferId": "TSF-KB02-1-2",
       "stationId": "KB02",
       "fromPlatform": "1番のりば",
       "toPlatform": "2番のりば",
-      "transferTime": 10
+      "transferTime": 7
     },
     {
-      "transferId": "TSF-KB02-2-4",
+      "transferId": "TSF-KB02-2-1",
       "stationId": "KB02",
       "fromPlatform": "2番のりば",
-      "toPlatform": "4番のりば",
-      "transferTime": 10
+      "toPlatform": "1番のりば",
+      "transferTime": 7
     },
     {
       "transferId": "TSF-KB02-3-4",
       "stationId": "KB02",
       "fromPlatform": "3番のりば",
       "toPlatform": "4番のりば",
-      "transferTime": 10
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KB02-4-2",
+      "stationId": "KB02",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "2番のりば",
+      "transferTime": 15
+    },
+    {
+      "transferId": "TSF-KB02-4-3",
+      "stationId": "KB02",
+      "fromPlatform": "4番のりば",
+      "toPlatform": "3番のりば",
+      "transferTime": 7
     }
   ]
 }
