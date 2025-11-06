@@ -1,0 +1,45 @@
+/* style-overrides.css
+   Overrides to extend vertical segment lines so they reach marker centers.
+   This file is loaded after style.css to ensure these rules take precedence.
+*/
+
+/* Base override for segment line */
+.segment-marker-container .segment-line {
+    position: absolute !important;
+    right: 8px !important;
+    left: auto !important;
+    /* increase extension so the vertical bar reaches marker centers */
+    top: -56px !important; /* desktop/tablet default */
+    bottom: -56px !important;
+    width: 8px !important;
+    background: rgba(25, 118, 210, 0.95) !important;
+    border-radius: 4px !important;
+    z-index: 1 !important; /* keep behind markers */
+}
+
+/* Stronger overrides for smaller screens */
+@media (max-width: 768px) {
+    .segment-marker-container .segment-line {
+        top: -84px !important; /* extend further on small screens */
+        bottom: -84px !important;
+        width: 8px !important;
+    }
+}
+
+/* If you also use the standalone timeline vertical line (outside segment container),
+   override it similarly to ensure continuous connection behind markers. */
+.timeline-line {
+    position: absolute !important;
+    right: 8px !important;
+    left: auto !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 8px !important;
+}
+
+@media (max-width: 768px) {
+    .timeline-line {
+        right: 8px !important;
+        width: 8px !important;
+    }
+}

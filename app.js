@@ -159,6 +159,7 @@ function preprocessData() {
         adjacencyList.get(fromKey).push({
             type: 'segment',
             toKey: toKey,
+            fromStationId: fromStationId,  // 出発駅IDを追加
             toStationId: toStationId,
             lineId: lineId,
             trainType: trainType,
@@ -404,15 +405,35 @@ function displaySuggestions(stations, suggestionsDiv, input) {
         const item = document.createElement('div');
         item.className = 'suggestion-item';
         
-        // 路線名を取得（preprocessedDataが存在しない場合の対策）
+        // 路線名を取得して表示用に整形（preprocessedDataが存在しない場合はlineIdを使用）
+        // 仕様:
+        // 1) 元の路線名を取得
+        // 2) 名前に「線」が含まれる場合は「線」までを表示（それ以降は省略）
+        // 3) 表示名が重複する場合は一つだけ表示
         let linesText = '';
         if (preprocessedData && preprocessedData.lineMap) {
-            linesText = station.lines
-                .map(l => {
-                    const line = preprocessedData.lineMap.get(l.lineId);
-                    return line ? line.lineName : l.lineId;
-                })
-                .join('・');
+            const displayNames = station.lines.map(l => {
+                const line = preprocessedData.lineMap.get(l.lineId);
+                let name = line ? line.lineName : l.lineId;
+                if (typeof name !== 'string') name = String(name || '');
+                // if contains '線', truncate to that character (inclusive)
+                const idx = name.indexOf('線');
+                if (idx !== -1) {
+                    name = name.slice(0, idx + 1).trim();
+                }
+                return name;
+            });
+
+            // Deduplicate while preserving order
+            const seen = new Set();
+            const unique = [];
+            for (const n of displayNames) {
+                if (!seen.has(n)) {
+                    seen.add(n);
+                    unique.push(n);
+                }
+            }
+            linesText = unique.join('・');
         } else {
             linesText = station.lines.map(l => l.lineId).join('・');
         }
@@ -845,10 +866,16 @@ function buildRouteInfo(path) {
                 lastRideLeg.lineId === lineId &&
                 lastRideLeg.trainType === trainType;
 
-            // 番線情報取得
-            let platform = null;
+            // 到着駅の番線情報取得
+            let arrivalPlatform = null;
             if (edge.segment && edge.segment.platforms && edge.segment.platforms[stationId]) {
-                platform = edge.segment.platforms[stationId];
+                arrivalPlatform = edge.segment.platforms[stationId];
+            }
+
+            // 出発駅の番線情報取得（edge.fromStationIdから）
+            let departurePlatform = null;
+            if (edge.segment && edge.segment.platforms && edge.fromStationId) {
+                departurePlatform = edge.segment.platforms[edge.fromStationId];
             }
 
             if (isMergeable) {
@@ -858,7 +885,7 @@ function buildRouteInfo(path) {
                 lastRideLeg.stationId = stationId;
                 lastRideLeg.stationName = station?.stationName || stationId;
                 // 到着駅の番線を更新
-                lastRideLeg.platform = platform;
+                lastRideLeg.arrivalPlatform = arrivalPlatform;
             } else {
                 // 新しい乗車レグを追加
                 const newRide = {
@@ -872,7 +899,8 @@ function buildRouteInfo(path) {
                     trainType,
                     trainTypeName: trainTypeInfo?.trainTypeName || trainType,
                     duration: edge.duration,
-                    platform: platform
+                    departurePlatform: departurePlatform,  // 乗車番線
+                    arrivalPlatform: arrivalPlatform       // 到着番線
                 };
                 legs.push(newRide);
                 lastRideLeg = newRide;
@@ -908,7 +936,7 @@ function buildRouteInfo(path) {
                 toLineId: edge.toLineId || lineId,
                 fromTrainType: prevTrainType || edge.fromTrainType,
                 toTrainType: edge.toTrainType || trainType,
-                platform: edge.fromPlatform
+                departurePlatform: edge.toPlatform  // 乗換先の番線（次に乗る列車の番線）
             });
             totalDuration += edge.duration;
         }
@@ -992,13 +1020,72 @@ function displayResults(routes) {
     const resultsContainer = document.getElementById('results-container');
     const resultsCount = document.getElementById('results-count');
 
+    // clear previous content
     resultsContainer.innerHTML = '';
-    resultsCount.textContent = `${routes.length}件の経路が見つかりました`;
+    resultsCount.textContent = '';
 
-    routes.forEach((route, index) => {
-        const routeCard = createRouteCard(route, index + 1);
-        resultsContainer.appendChild(routeCard);
+    if (!routes || routes.length === 0) {
+        resultsSection.style.display = 'none';
+        resultsCount.textContent = '0件';
+        return;
+    }
+
+    resultsCount.textContent = `見つかった経路: ${routes.length} 件`;
+
+    // タブ（ルート切替）メニューを作成
+    const tabs = document.createElement('div');
+    tabs.className = 'route-tabs';
+
+    routes.forEach((route, idx) => {
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.className = 'route-tab';
+        tab.textContent = `ルート${idx + 1}`;
+        tab.dataset.index = idx;
+
+        tab.addEventListener('click', () => {
+            // activate tab
+            const allTabs = tabs.querySelectorAll('.route-tab');
+            allTabs.forEach(t => t.classList.toggle('active', t === tab));
+
+            // show/hide cards
+            const cards = resultsContainer.querySelectorAll('.route-card');
+            cards.forEach((c, i) => {
+                c.style.display = (i === idx) ? 'block' : 'none';
+            });
+
+            // bring results into view
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        tabs.appendChild(tab);
     });
+
+    // タブを結果コンテナに追加
+    resultsContainer.appendChild(tabs);
+
+    // ルートカードを作成して追加（最初のルートのみ表示）
+    routes.forEach((route, idx) => {
+        let card;
+        try {
+            card = createRouteCard(route, idx + 1);
+        } catch (e) {
+            console.error('createRouteCard error', e);
+            card = document.createElement('div');
+            card.className = 'route-card';
+            card.textContent = `ルート ${idx + 1}`;
+        }
+
+        card.classList.add('route-card');
+        card.dataset.index = idx;
+        card.style.display = (idx === 0) ? 'block' : 'none';
+
+        resultsContainer.appendChild(card);
+    });
+
+    // デフォルトで最初のタブをアクティブ化
+    const firstTab = tabs.querySelector('.route-tab');
+    if (firstTab) firstTab.classList.add('active');
 
     resultsSection.style.display = 'block';
 }
@@ -1019,8 +1106,8 @@ function createRouteCard(route, routeNumber) {
     header.innerHTML = `
         <div class="route-number">${routeNumber}</div>
         <div class="route-summary">
-            <span class="summary-time">⏱️ ${formatSeconds(route.totalDuration)}</span>
-            <span class="summary-transfer">🔄 乗換 ${route.transferCount}回</span>
+            <span class="summary-time">${formatSeconds(route.totalDuration)}</span>
+            <span class="summary-transfer">乗換 ${route.transferCount}回</span>
         </div>
     `;
     card.appendChild(header);
@@ -1032,37 +1119,81 @@ function createRouteCard(route, routeNumber) {
     // 1. 最初の駅
     const firstLeg = route.legs[0];
     let elapsed = 0;
+    // 最初の駅の乗車番線は、次のsegment（legs[1]）の出発駅番線
+    const firstPlatform = route.legs[1]?.departurePlatform || null;
     table.appendChild(createTableStationRow({
-        elapsed,
+        arrivalElapsed: null,
+        departureElapsed: elapsed,
         stationName: firstLeg.stationName,
         marker: 'start',
-        platform: route.legs[1]?.platform || null // 乗車番線（最初のsegmentの出発駅）
+        platform: firstPlatform
     }));
 
     // 2. 区間・乗換ごとにtable行を出力
-    for (let i = 1; i < route.legs.length; i++) {
+    // Arrival time and departure time for transfers will be rendered in a single station row:
+    // |到着時間|marker|駅名  乗換時間|
+    // |乗車時間|  ^  |  ^      |
+    let i = 1;
+    while (i < route.legs.length) {
         const leg = route.legs[i];
+
         if (leg.type === 'segment') {
+            // 路線区間行
             table.appendChild(createTableSegmentRow(leg));
+            // 到着時刻（この区間の終点）
             elapsed += Math.round(leg.duration);
-            // 到着駅（この区間の終点駅）
-            table.appendChild(createTableStationRow({
-                elapsed,
-                stationName: leg.stationName,
-                marker: (i === route.legs.length - 1) ? 'end' : 'via',
-                platform: leg.platform || null // 到着番線
-            }));
+
+            // 次が乗換（transfer）かをチェック
+            const nextLeg = route.legs[i + 1];
+            if (nextLeg && nextLeg.type === 'transfer') {
+                const transfer = nextLeg;
+                const arrivalElapsed = elapsed;
+                const departureElapsed = arrivalElapsed + Math.round(transfer.transferTime || transfer.duration || 0);
+
+                table.appendChild(createTableStationRow({
+                    arrivalElapsed,
+                    departureElapsed,
+                    stationName: leg.stationName,
+                    marker: (i + 1 === route.legs.length - 1) ? 'end' : 'via',
+                    platform: leg.arrivalPlatform || null,
+                    transferTime: transfer.transferTime || transfer.duration || 0,
+                    transferLabel: transfer.isDirectThrough ? '直通' : (transfer.isTypeChange ? '種別変更' : '乗換')
+                }));
+
+                // 経過時間に乗換時間を加算して次の基準にする
+                elapsed = departureElapsed;
+                // スキップ：次の transfer レグは既に処理済み
+                i += 2;
+                continue;
+            } else {
+                // 通常の到着のみ表示（出発時間は存在しない）
+                table.appendChild(createTableStationRow({
+                    arrivalElapsed: elapsed,
+                    departureElapsed: null,
+                    stationName: leg.stationName,
+                    marker: (i === route.legs.length - 1) ? 'end' : 'via',
+                    platform: leg.arrivalPlatform || null
+                }));
+                i += 1;
+                continue;
+            }
         } else if (leg.type === 'transfer') {
-            table.appendChild(createTableTransferRow(leg));
-            elapsed += Math.round(leg.transferTime || leg.duration);
-            // 乗換後の駅は次のsegment区間の到着駅で表示される
-            // 乗換駅の番線はtransfer legのplatformで表示
+            // 予期しない単独のtransfer（前のsegmentがないケース）
+            const departureElapsed = elapsed + Math.round(leg.transferTime || leg.duration || 0);
             table.appendChild(createTableStationRow({
-                elapsed,
+                arrivalElapsed: null,
+                departureElapsed,
                 stationName: leg.stationName,
                 marker: 'via',
-                platform: leg.platform || null
+                platform: leg.departurePlatform || null,
+                transferTime: leg.transferTime || leg.duration || 0,
+                transferLabel: leg.isDirectThrough ? '直通' : (leg.isTypeChange ? '種別変更' : '乗換')
             }));
+            elapsed = departureElapsed;
+            i += 1;
+            continue;
+        } else {
+            i += 1;
         }
     }
 
@@ -1071,7 +1202,7 @@ function createRouteCard(route, routeNumber) {
 }
 
 // 駅行
-function createTableStationRow({ elapsed, stationName, marker, platform }) {
+function createTableStationRow({ arrivalElapsed = null, departureElapsed = null, stationName, marker, platform = null, transferTime = null, transferLabel = '' }) {
     const row = document.createElement('div');
     row.className = 'table-row station-row';
 
@@ -1080,14 +1211,63 @@ function createTableStationRow({ elapsed, stationName, marker, platform }) {
     if (marker === 'start') markerColor = '#4CAF50';
     if (marker === 'end') markerColor = '#E60012';
 
+    // 時刻表示: 縦に並べる（上: 到着 着, 下: 出発 発）
+    // 直通(乗換不要)の場合は arrival を表示せず、transfer 表示を「乗換不要(直通)」にする
+    // NOTE: create the time elements only when there is actual data to avoid empty elements
+    let timeHtmlTop = '';
+    let timeHtmlBottom = '';
+    if (transferLabel === '直通') {
+        // 直通: arrival は非表示、departure のみ表示
+        if (departureElapsed != null) {
+            timeHtmlBottom = `<div class="time-departure">${formatSeconds(departureElapsed)} 発</div>`;
+        }
+    } else {
+        if (arrivalElapsed != null) {
+            timeHtmlTop = `<div class="time-arrival">${formatSeconds(arrivalElapsed)} 着</div>`;
+        }
+        if (departureElapsed != null) {
+            timeHtmlBottom = `<div class="time-departure">${formatSeconds(departureElapsed)} 発</div>`;
+        }
+    }
+
+    // 乗換情報（駅名の右側に表示）
+    let transferHtml = '';
+    if (transferLabel === '直通') {
+        transferHtml = `<span class="transfer-time">乗換不要(直通)</span>`;
+    } else if (transferTime != null) {
+        // 通常の乗換: 歩行アイコン + 時間（例: 3分）を表示
+        transferHtml = `<span class="transfer-wrapper"><img src="src/walking.svg" class="walking-icon" alt="walk">${formatSeconds(transferTime)}</span>`;
+    }
+
+    // Build marker HTML. For transfer rows we add a special class so CSS can style the outline/fill.
+    let markerHtml = '';
+    if (marker === 'start') {
+        markerHtml = `<span class="station-marker-badge station-marker-start">発</span>`;
+    } else if (marker === 'end') {
+        markerHtml = `<span class="station-marker-badge station-marker-end">着</span>`;
+    } else {
+        // If this row represents a transfer (transferTime provided), add the `transfer` class
+        // and avoid inline background so the CSS stroke/fill is applied consistently.
+        if (transferTime != null) {
+            markerHtml = `<span class="station-marker transfer"></span>`;
+        } else {
+            markerHtml = `<span class="station-marker" style="background:${markerColor};"></span>`;
+        }
+    }
+
     row.innerHTML = `
-        <div class="table-time">${formatSeconds(elapsed)}</div>
+        <div class="table-time">
+            ${timeHtmlTop}
+            ${timeHtmlBottom}
+        </div>
         <div class="table-marker">
-            <span class="station-marker" style="background:${markerColor};"></span>
+            ${markerHtml}
         </div>
         <div class="table-station">
-            <span class="station-name">${stationName}</span>
-            ${platform ? `<span class="station-platform">${platform}</span>` : ''}
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="station-name">${stationName}</span>
+                ${transferHtml}
+            </div>
         </div>
     `;
     return row;
@@ -1107,53 +1287,98 @@ function formatSeconds(sec) {
 
 // 路線区間行
 function createTableSegmentRow(leg) {
-    const row = document.createElement('div');
-    row.className = 'table-row segment-row';
-
     // 途中駅の数を計算（segments配列の長さ - 1）
     const stopsCount = leg.segments ? leg.segments.length : 1;
 
+    // 1つの行として作成
+    const segmentRow = document.createElement('div');
+    segmentRow.className = 'table-row segment-row';
+    
     // table-time（空）
-    const timeDiv = document.createElement('div');
-    timeDiv.className = 'table-time';
-    row.appendChild(timeDiv);
+    const segTimeDiv = document.createElement('div');
+    segTimeDiv.className = 'table-time';
+    segmentRow.appendChild(segTimeDiv);
 
-    // table-marker（縦線）
-    const markerDiv = document.createElement('div');
-    markerDiv.className = 'table-marker';
-    const segmentLine = document.createElement('span');
+    // table-marker（のりば・乗車時間 + 縦線）
+    const segMarkerDiv = document.createElement('div');
+    segMarkerDiv.className = 'table-marker segment-marker-container';
+    
+    // 左側：のりば・乗車時間のコンテナ
+    const markerInner = document.createElement('div');
+    markerInner.className = 'marker-inner-wrapper';
+    
+    // 乗車駅のりば（上部）
+    if (leg.departurePlatform) {
+        const depPlatform = document.createElement('div');
+        depPlatform.className = 'station-platform-inline platform-top';
+        depPlatform.textContent = leg.departurePlatform;
+        markerInner.appendChild(depPlatform);
+    } else {
+        // 空のスペーサー
+        const spacer = document.createElement('div');
+        spacer.className = 'platform-spacer';
+        markerInner.appendChild(spacer);
+    }
+    
+    // 乗車時間（中央）
+    const durationSpan = document.createElement('div');
+    durationSpan.className = 'boarding-duration';
+    durationSpan.textContent = `${formatSeconds(leg.duration)} 乗車`;
+    markerInner.appendChild(durationSpan);
+    
+    // 降車駅のりば（下部）
+    if (leg.arrivalPlatform) {
+        const arrPlatform = document.createElement('div');
+        arrPlatform.className = 'station-platform-inline platform-bottom';
+        arrPlatform.textContent = leg.arrivalPlatform;
+        markerInner.appendChild(arrPlatform);
+    } else {
+        // 空のスペーサー
+        const spacer = document.createElement('div');
+        spacer.className = 'platform-spacer';
+        markerInner.appendChild(spacer);
+    }
+    
+    segMarkerDiv.appendChild(markerInner);
+    
+    // 右側：縦線（セグメントライン）
+    const segmentLine = document.createElement('div');
     segmentLine.className = 'segment-line';
     segmentLine.style.background = leg.lineColor;
-    segmentLine.style.height = '100%';
-    segmentLine.style.minHeight = '80px';
-    segmentLine.style.display = 'block';
-    markerDiv.appendChild(segmentLine);
-    row.appendChild(markerDiv);
+    segMarkerDiv.appendChild(segmentLine);
+    
+    segmentRow.appendChild(segMarkerDiv);
 
-    // table-content
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'table-content segment-block';
+    // table-content（路線情報）
+    const segContentDiv = document.createElement('div');
+    segContentDiv.className = 'table-content segment-block';
 
-    // 1行目: 路線名・種別
+    // 路線名・種別
     const lineRow = document.createElement('div');
     lineRow.className = 'segment-line-row';
-    lineRow.innerHTML = `
-        <span class="line-symbol" style="background:${leg.lineColor};">${leg.lineName.charAt(0)}</span>
-        <span class="line-name">${leg.lineName}</span>
-        <span class="train-type-badge ${leg.trainType.toLowerCase()}">${leg.trainTypeName}</span>
-    `;
-    contentDiv.appendChild(lineRow);
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'line-symbol';
+    iconSpan.style.setProperty('--icon-color', leg.lineColor);
+    iconSpan.style.webkitMaskImage = `url(src/${leg.trainType}.svg)`;
+    iconSpan.style.maskImage = `url(src/${leg.trainType}.svg)`;
+    
+    const lineName = document.createElement('span');
+    lineName.className = 'line-name';
+    lineName.textContent = leg.lineName;
+    
+    lineRow.appendChild(iconSpan);
+    lineRow.appendChild(lineName);
+    segContentDiv.appendChild(lineRow);
 
-    // 2行目: 乗車時間・停車駅数
+    // 停車駅数
     const metaRow = document.createElement('div');
     metaRow.className = 'segment-meta-row';
     metaRow.innerHTML = `
-        <span class="segment-detail">${formatSeconds(leg.duration)} 乗車</span>
         <span class="segment-detail">${stopsCount}駅目で降車</span>
     `;
-    contentDiv.appendChild(metaRow);
+    segContentDiv.appendChild(metaRow);
 
-    // 3行目: 途中駅表示ボタン（途中駅がある場合のみ）
+    // 途中駅表示ボタン（途中駅がある場合のみ）
     if (stopsCount > 1) {
         const stopsRow = document.createElement('div');
         stopsRow.className = 'segment-stops-row';
@@ -1161,11 +1386,11 @@ function createTableSegmentRow(leg) {
         if (stopsButton) {
             stopsRow.appendChild(stopsButton);
         }
-        contentDiv.appendChild(stopsRow);
+        segContentDiv.appendChild(stopsRow);
     }
 
-    row.appendChild(contentDiv);
-    return row;
+    segmentRow.appendChild(segContentDiv);
+    return segmentRow;
 }
 
 // 乗換行

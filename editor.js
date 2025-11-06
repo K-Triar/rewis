@@ -1,4 +1,4 @@
-﻿// グローバル変数
+// グローバル変数
 let appData = {
     meta: {
         version: "1.0.0",
