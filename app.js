@@ -1030,7 +1030,38 @@ function displayResults(routes) {
         return;
     }
 
-    resultsCount.textContent = `見つかった経路: ${routes.length} 件`;
+    // 検索画面を隠す
+    hideSearchSection();
+
+    resultsCount.textContent = `${routes.length} 件の経路が見つかりました`;
+
+    // 「検索画面に戻る」ボタンを作成
+    const backButton = document.createElement('button');
+    backButton.className = 'back-to-search-btn';
+    backButton.textContent = '検索画面に戻る';
+    backButton.addEventListener('click', () => {
+        hideResults();
+        showSearchSection();
+        // ページトップにスクロール
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // 結果情報の横に戻るボタンを配置
+    const resultsInfo = resultsSection.querySelector('.results-info');
+    resultsInfo.innerHTML = ''; // 既存の内容をクリア
+    const infoWrapper = document.createElement('div');
+    infoWrapper.style.display = 'flex';
+    infoWrapper.style.justifyContent = 'space-between';
+    infoWrapper.style.alignItems = 'center';
+    infoWrapper.style.marginBottom = '20px';
+    
+    const countSpan = document.createElement('span');
+    countSpan.id = 'results-count';
+    countSpan.textContent = `${routes.length} 件の経路が見つかりました`;
+    
+    infoWrapper.appendChild(countSpan);
+    infoWrapper.appendChild(backButton);
+    resultsInfo.appendChild(infoWrapper);
 
     // タブ（ルート切替）メニューを作成
     const tabs = document.createElement('div');
@@ -1382,11 +1413,18 @@ function createTableSegmentRow(leg) {
     if (stopsCount > 1) {
         const stopsRow = document.createElement('div');
         stopsRow.className = 'segment-stops-row';
-        const stopsButton = createStopsButton(leg);
-        if (stopsButton) {
-            stopsRow.appendChild(stopsButton);
+        const stopsObj = createStopsButton(leg);
+        if (stopsObj) {
+            // ボタンは内容側に表示
+            if (stopsObj.button) stopsRow.appendChild(stopsObj.button);
+            // マーカー列はマーカー側コンテナに追加して縦線と揃える
+            if (stopsObj.markerList) segMarkerDiv.appendChild(stopsObj.markerList);
         }
         segContentDiv.appendChild(stopsRow);
+        // 情報側の停車駅リストを内容側に追加
+        if (stopsObj && stopsObj.infoList) {
+            segContentDiv.appendChild(stopsObj.infoList);
+        }
     }
 
     segmentRow.appendChild(segContentDiv);
@@ -1436,20 +1474,21 @@ function createStopsButton(leg) {
     const stopsId = `stops-${Math.random().toString(36).substr(2, 9)}`;
     const btnId = `btn-${stopsId}`;
 
-    // コンテナを作成
-    const container = document.createElement('div');
-    container.style.display = 'block';
-
-    // ボタンを作成
+    // ボタン（内容側に表示）
     const button = document.createElement('button');
     button.className = 'toggle-stops-btn';
     button.id = btnId;
     button.textContent = '▼ 途中駅を表示';
 
-    // 停車駅リストを作成
-    const stopsList = document.createElement('div');
-    stopsList.className = 'stops-list';
-    stopsList.id = stopsId;
+    // 情報側の停車駅リスト（駅名＋時間）
+    const infoList = document.createElement('div');
+    infoList.className = 'stops-list';
+    infoList.id = stopsId;
+
+    // マーカー側のリスト（マーカーのみ、縦に並べる）
+    const markerList = document.createElement('div');
+    markerList.className = 'stops-marker-list';
+    markerList.id = `${stopsId}-markers`;
 
     // 各segmentのtoStationIdを順に表示（最後を除く = 途中駅のみ）
     let accumulatedTime = 0;
@@ -1461,35 +1500,41 @@ function createStopsButton(leg) {
         const station = preprocessedData.stationMap.get(toStationId);
         
         if (station) {
-            const stopRow = document.createElement('div');
-            stopRow.className = 'stop-row';
+            // 情報側の行
+            const infoRow = document.createElement('div');
+            infoRow.className = 'stop-row';
             
-            const stopName = document.createElement('span');
+            const stopName = document.createElement('div');
             stopName.className = 'stop-name';
             stopName.textContent = station.stationName;
             
-            const stopElapsed = document.createElement('span');
+            const stopElapsed = document.createElement('div');
             stopElapsed.className = 'stop-elapsed';
             stopElapsed.textContent = formatSeconds(accumulatedTime);
             
-            stopRow.appendChild(stopName);
-            stopRow.appendChild(stopElapsed);
-            stopsList.appendChild(stopRow);
+            infoRow.appendChild(stopName);
+            infoRow.appendChild(stopElapsed);
+            infoList.appendChild(infoRow);
+
+            // マーカー側の行（高さをinfoRowに合わせるスタイルで揃える）
+            const markerRow = document.createElement('div');
+            markerRow.className = 'stop-marker-row';
+            const marker = document.createElement('div');
+            marker.className = 'stop-marker';
+            markerRow.appendChild(marker);
+            markerList.appendChild(markerRow);
         }
     }
 
-    // イベントリスナーを追加
+    // ボタン動作：情報側とマーカー側の両方をトグル
     button.addEventListener('click', () => {
-        stopsList.classList.toggle('active');
-        button.textContent = stopsList.classList.contains('active') 
-            ? '▲ 途中駅を非表示' 
-            : '▼ 途中駅を表示';
+        const active = !infoList.classList.contains('active');
+        infoList.classList.toggle('active', active);
+        markerList.classList.toggle('active', active);
+        button.textContent = active ? '▲ 途中駅を非表示' : '▼ 途中駅を表示';
     });
 
-    container.appendChild(button);
-    container.appendChild(stopsList);
-
-    return container;
+    return { button, infoList, markerList };
 }
 
 // ========================================
@@ -1516,4 +1561,12 @@ function hideError() {
 
 function hideResults() {
     document.getElementById('results-section').style.display = 'none';
+}
+
+function hideSearchSection() {
+    document.getElementById('search-section').style.display = 'none';
+}
+
+function showSearchSection() {
+    document.getElementById('search-section').style.display = 'block';
 }
