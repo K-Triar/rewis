@@ -413,15 +413,8 @@ main {
     background: white;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: var(--shadow);
     transition: transform 0.3s, box-shadow 0.3s;
     border: 2px solid #f0f0f0;
-}
-
-.route-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-color: var(--primary-color);
 }
 
 /* 検索画面に戻るボタン */
@@ -1414,4 +1407,99 @@ footer {
 .segment-meta-row,
 .segment-stops-row {
     margin-left: 0;
+}
+
+/* ==================================================
+   Mobile (<=768px) overrides for PWA / full-width
+   Make route cards display edge-to-edge (no padding)
+   and remove outer card chrome so it behaves like a
+   native full-width panel on small screens.
+   ==================================================
+*/
+@media (max-width: 768px) {
+
+    /* Prevent horizontal scroll when we make elements full-bleed */
+    html, body {
+        height: 100%;
+        overflow-x: hidden;
+        padding: 0; /* remove body padding so content can reach edges */
+    }
+
+    /* Container becomes a column flex so footer is pushed to the bottom when
+       content is short. Use min-height:100vh so background (body gradient)
+       is fully covered by the white container on short pages. */
+    .container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh; /* ensure container fills viewport height */
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: #ffffff;
+    }
+
+    /* Remove main padding so inner content can be full-bleed where needed
+       and allow main to expand to push footer to the bottom. */
+    main {
+        padding: 0;
+        flex: 1 0 auto; /* grow to fill remaining vertical space */
+    }
+
+    /* Keep search area usable but slightly reduced padding */
+    .search-section {
+        border-radius: 0;
+        padding: 14px;
+    }
+
+    /* Results should have breathing room on mobile, but station rows
+       will visually stretch to the viewport edges. */
+    .results-section {
+        padding: 20px;
+    }
+
+    /* Make station rows (the big separator rows) visually full-bleed while
+       keeping their inner content aligned with the results padding.
+       We use negative margins equal to the results padding so the row's
+       background reaches the container edges without altering internal layout. */
+    .results-section .table-row.station-row {
+        margin-left: -20px;
+        margin-right: -20px;
+        width: calc(100% + 40px);
+        box-sizing: border-box; /* ensure padding stays internal */
+        /* Keep the content aligned with other rows by re-adding inner padding */
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    /* Make the route card full width with no padding or border chrome */
+    .route-card {
+        width: 100vw; /* stretch to viewport width */
+        margin-left: calc(-1 * (100vw - 100%)/2); /* center in case container has different centering */
+        margin-right: 0;
+        border-radius: 0;
+        padding: 20px; /* user requested no padding */
+        box-shadow: none;
+        border: none;
+        background: #ffffff;
+    }
+
+    /* If inner content needs spacing, keep it inside internal wrappers, not on .route-card itself */
+    .route-card .route-header,
+    .route-card .route-timeline,
+    .route-card .route-summary {
+        padding: 14px; /* controlled internal padding for readability */
+    }
+
+    /* make the route-tabs span the full width too */
+    .route-tabs {
+        padding: 6px 12px;
+        border-radius: 0;
+    }
+
+    /* Make back button align nicely at the edges */
+    .back-to-search-btn {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
 }
