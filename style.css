@@ -491,10 +491,10 @@ main {
 .route-summary {
     display: flex;
     gap: 18px;
-    /* Increased size to make summary more prominent next to the route number */
-    font-size: 1.25rem;
+    /* Keep the same weight but use a slightly smaller base size; numeric digits will be emphasized separately */
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: #000;
     align-items: center;
 }
 
@@ -502,13 +502,13 @@ main {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-weight: 500;
-    color: var(--primary-color);
+    font-weight: 700;
+    color: #000;
 }
 
 .summary-item strong {
-    color: var(--primary-color);
-    font-size: 1.2rem;
+    color: #000;
+    font-size: 1rem;
 }
 
 /* ========================================
@@ -744,11 +744,30 @@ main {
     align-items: center;
 }
 
-.summary-time, .summary-transfer {
-    /* Make the summary items larger as requested */
-    font-size: 1.15rem;
-    font-weight: 700;
+.summary-time,
+.summary-transfer {
+    /* Base styling for summary items (units and non-numeric text) */
+    font-size: 0.95rem;
+    font-weight: 700; /* keep weight as requested */
+    color: #000;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+/* Numeric parts (digits) - large and blue */
+.summary-number {
     color: var(--primary-color);
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+/* Unit/label parts - small and black */
+.summary-unit {
+    color: #000;
+    font-size: 0.9rem;
+    line-height: 1;
+    margin-left: 3px;
 }
 
 /* レスポンシブ */

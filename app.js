@@ -1148,11 +1148,12 @@ function createRouteCard(route, routeNumber) {
     // ヘッダー
     const header = document.createElement('div');
     header.className = 'route-header';
+    // Route number badge removed per request. Render only route summary
+    // with numeric parts wrapped so CSS can style digits and units separately.
     header.innerHTML = `
-        <div class="route-number">${routeNumber}</div>
         <div class="route-summary">
-            <span class="summary-time">${formatSeconds(route.totalDuration)}</span>
-            <span class="summary-transfer">乗換 ${route.transferCount}回</span>
+            <span class="summary-time">${formatDurationHtml(route.totalDuration)}</span>
+            <span class="summary-transfer"><span class="summary-unit">乗換&nbsp;</span><span class="summary-number">${route.transferCount}</span><span class="summary-unit">回</span></span>
         </div>
     `;
     card.appendChild(header);
@@ -1328,6 +1329,24 @@ function formatSeconds(sec) {
     const s = n % 60;
     if (s === 0) return `${m}分`;
     return `${m}分 ${s}秒`;
+}
+
+// HTML formatter for duration that separates numeric digits and unit text.
+// Numeric parts are wrapped in .summary-number and unit text in .summary-unit
+// so CSS can render digits large & blue while keeping units small & black.
+function formatDurationHtml(totalSeconds) {
+    const n = Math.round(Number(totalSeconds) || 0);
+    if (isNaN(n)) return `<span class="summary-number">0</span><span class="summary-unit">秒</span>`;
+
+    if (n < 60) {
+        return `<span class="summary-number">${n}</span><span class="summary-unit">秒</span>`;
+    }
+
+    const m = Math.floor(n / 60);
+    const s = n % 60;
+    let html = `<span class="summary-number">${m}</span><span class="summary-unit">分</span>`;
+    if (s > 0) html += `<span class="summary-number">${s}</span><span class="summary-unit">秒</span>`;
+    return html;
 }
 
 // 路線区間行
