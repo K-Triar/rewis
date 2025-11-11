@@ -373,41 +373,65 @@ main {
    経路カードのみを表示するスタイル
 ========================================= */
 .route-tabs {
+    /* Full-width, horizontally scrollable tab bar that shows up to 3 tabs
+       at once. When there are <=3 tabs they share the available width.
+       When there are 4+ tabs the bar scrolls horizontally. */
     display: flex;
-    gap: 8px;
-    align-items: center;
-    background: #ffffff;
-    padding: 6px;
-    border-radius: 8px;
-    border: 1px solid #eef2f7;
+    gap: 0; /* rectangular look: no gaps between tabs */
+    align-items: stretch;
+    width: 100%;
+    overflow-x: auto; /* enable horizontal scrolling when needed */
+    -webkit-overflow-scrolling: touch;
+    background: #f2f2f2; /* subtle neutral band across the top */
+    padding: 0; /* tabs provide their own padding */
+    border-radius: 0; /* rectangular */
+    border: none;
     margin-bottom: 12px;
 }
+
+/* Hide default scrollbar while keeping scrolling accessible; small visible track for desktop */
+.route-tabs::-webkit-scrollbar { height: 8px; }
+.route-tabs::-webkit-scrollbar-track { background: transparent; }
+.route-tabs::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 8px; }
+.route-tabs { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.12) transparent; }
 
 .route-tab {
     appearance: none;
     -webkit-appearance: none;
     background: transparent;
     border: none;
-    padding: 8px 18px;
-    border-radius: 6px;
+    /* Let tabs expand evenly when <=3, but ensure a reasonable minimum width
+       so that when there are 4+ tabs they overflow and the container scrolls. */
+    flex: 1 1 auto; /* grow to fill space for 1-3 tabs */
+    min-width: calc(100% / 3); /* ensure at most 3 visible tabs without scrolling */
+    box-sizing: border-box;
+    padding: 12px 18px;
+    margin: 0;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 400;
     color: #333;
-    font-size: 0.95rem;
-    transition: all 0.18s ease;
-    border-bottom: 3px solid transparent;
+    font-size: 1rem;
+    text-align: center;
+    transition: background 0.12s ease, color 0.12s ease;
+    border-radius: 0; /* rectangular */
+    border-top: 4px solid #aaa;
 }
 
+
+
 .route-tab:hover {
-    background: #f7fbff;
+    background: rgba(0,0,0,0.03);
 }
 
 .route-tab.active {
-    background: #ffffff;
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.04);
+    background: #eaf6ff; /* selected tab sits on a white block for contrast */
+    font-weight: 600;
+    /* clear rectangular top accent to match the requested image */
+    border-top: 4px solid var(--primary-color);
 }
+
+/* If the tab is the last visible child we don't need a right border to avoid double lines */
+.route-tab:last-child { border-right: none; }
 
 .route-card {
     background: white;
@@ -449,8 +473,6 @@ main {
     align-items: center;
     gap: 12px; /* small gap between number and summary */
     margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #f0f0f0;
 }
 
 .route-number {
@@ -1458,6 +1480,9 @@ footer {
         padding: 20px;
     }
 
+    .results-container {
+        gap: 0px;
+    }
     /* Make station rows (the big separator rows) visually full-bleed while
        keeping their inner content aligned with the results padding.
        We use negative margins equal to the results padding so the row's
@@ -1484,17 +1509,13 @@ footer {
         background: #ffffff;
     }
 
-    /* If inner content needs spacing, keep it inside internal wrappers, not on .route-card itself */
-    .route-card .route-header,
-    .route-card .route-timeline,
-    .route-card .route-summary {
-        padding: 14px; /* controlled internal padding for readability */
-    }
-
     /* make the route-tabs span the full width too */
     .route-tabs {
-        padding: 6px 12px;
         border-radius: 0;
+        margin-bottom: 0px;
+        margin-left: -20px;
+        margin-right: -20px;
+        width: calc(100% + 40px);
     }
 
     /* Make back button align nicely at the edges */
@@ -1502,4 +1523,55 @@ footer {
         margin-left: 12px;
         margin-right: 12px;
     }
+}
+
+/* ========================================
+   Scrollable route-tabs: hide scrollbar and show chevrons
+   - When tabs overflow horizontally, show left/right chevrons
+   - Native scrollbars are hidden, user can still scroll (touch/drag/wheel)
+   - When the user starts scrolling, chevrons fade out with a transition
+======================================== */
+
+.route-tabs-wrapper {
+    position: relative; /* anchors chevrons */
+    width: 100%;
+}
+
+/* Completely hide native scrollbars but keep scrolling functional */
+.route-tabs {
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
+}
+.route-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+.route-tabs-chevron {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-70%);
+    font-size: 20px;
+    color: rgba(0,0,0,0.5);
+    pointer-events: none;
+    user-select: none;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+    line-height: 1;
+}
+.route-tabs-chevron.left { left: 10px; }
+.route-tabs-chevron.right { right: 10px; }
+
+/* When there's no overflow, keep chevrons hidden (display controlled via JS as well) */
+.route-tabs-wrapper:not(.has-overflow) .route-tabs-chevron { display: none; }
+
+/* Fade out state when the user scrolls */
+.route-tabs-wrapper.chevrons-hidden .route-tabs-chevron {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Slightly reduce visual weight on small screens */
+@media (max-width: 768px) {
+    .route-tabs-chevron { font-size: 18px; 
+    transform: translateY(-45%); }
+    .route-tabs-chevron.left { left: 0px; }
+    .route-tabs-chevron.right { right: 0px; }
 }

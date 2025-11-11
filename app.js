@@ -1046,22 +1046,34 @@ function displayResults(routes) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // 結果情報の横に戻るボタンを配置
+    // 「検索結果」見出しの右側に戻るボタンを配置
     const resultsInfo = resultsSection.querySelector('.results-info');
     resultsInfo.innerHTML = ''; // 既存の内容をクリア
-    const infoWrapper = document.createElement('div');
-    infoWrapper.style.display = 'flex';
-    infoWrapper.style.justifyContent = 'space-between';
-    infoWrapper.style.alignItems = 'center';
-    infoWrapper.style.marginBottom = '20px';
-    
+
+    // move the existing <h2> (検索結果) into a flex wrapper and append the back button to the right
+    const heading = resultsSection.querySelector('h2');
+    if (heading && heading.parentNode) {
+        const headerWrapper = document.createElement('div');
+        headerWrapper.style.display = 'flex';
+        headerWrapper.style.justifyContent = 'space-between';
+        headerWrapper.style.alignItems = 'center';
+        headerWrapper.style.gap = '16px';
+        headerWrapper.style.marginBottom = '12px';
+
+        // Insert wrapper before the heading, then move heading into it
+        heading.parentNode.insertBefore(headerWrapper, heading);
+        headerWrapper.appendChild(heading);
+        headerWrapper.appendChild(backButton);
+    } else {
+        // Fallback: append back button to resultsInfo if heading not found
+        resultsInfo.appendChild(backButton);
+    }
+
+    // 件数表示は results-info の中に配置（見出しの下）
     const countSpan = document.createElement('span');
     countSpan.id = 'results-count';
     countSpan.textContent = `${routes.length} 件の経路が見つかりました`;
-    
-    infoWrapper.appendChild(countSpan);
-    infoWrapper.appendChild(backButton);
-    resultsInfo.appendChild(infoWrapper);
+    resultsInfo.appendChild(countSpan);
 
     // タブ（ルート切替）メニューを作成
     const tabs = document.createElement('div');
@@ -1094,6 +1106,8 @@ function displayResults(routes) {
 
     // タブを結果コンテナに追加
     resultsContainer.appendChild(tabs);
+    // Enhance tabs: add chevrons and hide native scrollbar visually
+    try { setupScrollableTabs(tabs); } catch (e) { console.warn('setupScrollableTabs failed', e); }
 
     // ルートカードを作成して追加（最初のルートのみ表示）
     routes.forEach((route, idx) => {
@@ -1569,4 +1583,103 @@ function hideSearchSection() {
 
 function showSearchSection() {
     document.getElementById('search-section').style.display = 'block';
+}
+
+// ========================================
+// タブスクロール用の補助（スクロールバー非表示 + 両端に矢印）
+// - .route-tabs を .route-tabs-wrapper でラップし、左右に chevron を表示
+// - タブに overflow があるときのみ chevrons を表示
+// - ユーザーがスクロールしたら chevrons をフェードアウトする
+// ========================================
+function setupScrollableTabs(tabs) {
+    if (!tabs || !tabs.parentNode) return;
+
+    // If already wrapped, don't wrap again
+    if (tabs.parentNode.classList && tabs.parentNode.classList.contains('route-tabs-wrapper')) {
+        // ensure overflow state
+        updateOverflowState(tabs);
+        return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'route-tabs-wrapper';
+
+    // Replace tabs node with wrapper and append tabs inside
+    const parent = tabs.parentNode;
+    parent.replaceChild(wrapper, tabs);
+    wrapper.appendChild(tabs);
+
+    // Create chevron indicators (display-only, not clickable)
+    const left = document.createElement('span');
+    left.className = 'route-tabs-chevron left';
+    left.innerText = '＜';
+
+    const right = document.createElement('span');
+    right.className = 'route-tabs-chevron right';
+    right.innerText = '＞';
+
+    wrapper.appendChild(left);
+    wrapper.appendChild(right);
+
+    // scroll/resize/mutation handling
+    // Use a small delay initially to allow the layout to settle before measurement.
+    function updateOverflowState(el) {
+        // More robust overflow detection: prefer measuring scrollWidth vs clientWidth
+        // but also tolerate sub-pixel/rounding differences. Consider last child's right edge
+        // if needed.
+        const scrollW = el.scrollWidth || 0;
+        const clientW = el.clientWidth || 0;
+        const buffer = 2; // tolerance to avoid false negatives due to rounding
+        const hasOverflow = (scrollW - clientW) > buffer;
+
+        wrapper.classList.toggle('has-overflow', hasOverflow);
+
+        // Check if at initial position (scrollLeft is 0 or very close to 0)
+        const isAtStart = (el.scrollLeft || 0) < 1;
+        
+        // Show chevrons only when: overflow exists AND at initial position
+        if (hasOverflow && isAtStart) {
+            wrapper.classList.remove('chevrons-hidden');
+        } else {
+            wrapper.classList.add('chevrons-hidden');
+        }
+    }
+
+    // Initial delayed measurement so that DOM/CSS layout finishes
+    setTimeout(() => updateOverflowState(tabs), 50);
+
+    // Watch for container resizes
+    window.addEventListener('resize', () => updateOverflowState(tabs));
+
+    // Use ResizeObserver to detect content/size changes of the tabs element
+    let ro = null;
+    if (window.ResizeObserver) {
+        ro = new ResizeObserver(() => updateOverflowState(tabs));
+        try { ro.observe(tabs); } catch (e) { /* ignore */ }
+    }
+
+    // MutationObserver to detect tab additions/removals/label changes
+    let mo = null;
+    if (window.MutationObserver) {
+        mo = new MutationObserver(() => {
+            // schedule measurement on next frame to let DOM settle
+            requestAnimationFrame(() => updateOverflowState(tabs));
+        });
+        try { mo.observe(tabs, { childList: true, subtree: true, characterData: true }); } catch (e) { /* ignore */ }
+    }
+
+    // When user scrolls or interacts, update chevron visibility
+    tabs.addEventListener('scroll', () => updateOverflowState(tabs), { passive: true });
+    tabs.addEventListener('pointerdown', () => updateOverflowState(tabs), { passive: true });
+    tabs.addEventListener('touchstart', () => updateOverflowState(tabs), { passive: true });
+
+    // expose update function for possible external calls
+    tabs.__updateOverflowState = () => updateOverflowState(tabs);
+
+    // cleanup hook in case tabs are removed later
+    tabs.__cleanupScrollableTabs = () => {
+        window.removeEventListener('resize', () => updateOverflowState(tabs));
+        try { if (ro) ro.disconnect(); } catch (e) {}
+        try { if (mo) mo.disconnect(); } catch (e) {}
+    };
 }
