@@ -39,7 +39,7 @@ body {
                                  'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
         line-height: 1.6;
         color: var(--text-color);
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #f0f0f0;
         min-height: 100vh;
         padding: 20px;
 }
@@ -53,11 +53,12 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto;
+    margin-top: 92px; /* ヘッダーの高さ分の余白 */
     background: white;
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     overflow: hidden;
 }
 
@@ -65,20 +66,41 @@ body {
    ヘッダー
 ======================================== */
 header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     background: linear-gradient(135deg, var(--primary-color), #005fa3);
     color: white;
-    padding: 30px;
-    text-align: center;
+    padding: 10px 0px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 0px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-logo {
+    height: 3rem;
+    width: auto;
+    display: block;
 }
 
 header h1 {
     font-size: 2rem;
-    margin-bottom: 8px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .subtitle {
-    font-size: 0.9rem;
-    opacity: 0.9;
+    display: none;
 }
 
 /* ========================================
@@ -417,6 +439,25 @@ main {
     border-top: 4px solid #aaa;
 }
 
+/* Desktop (>=769px): show all tabs without horizontal scrolling.
+   Let tabs shrink as needed so that any number of tabs fit the available width.
+   Also hide the chevrons since there will be no scrolling. */
+@media (min-width: 769px) {
+    .route-tabs {
+        overflow-x: visible; /* don't allow horizontal scrolling */
+        -webkit-overflow-scrolling: auto;
+    }
+
+    .route-tab {
+        /* allow tabs to shrink below the earlier min-width so they can all fit */
+        flex: 1 1 0%;
+        min-width: 0;
+    }
+
+    /* Ensure chevrons are hidden on desktop even if JS toggles classes */
+    .route-tabs-wrapper .route-tabs-chevron { display: none !important; }
+}
+
 
 
 .route-tab:hover {
@@ -660,6 +701,175 @@ main {
 .train-type-badge.sx { background: #ff0000; }
 .train-type-badge.mc { background: #808080; }
 
+/* ========================================
+   新: フィルター用アイコンボタン
+   - 既存のチェックボックスを hidden にしてラベルで見た目を作る
+   - SVG は mask を使って背景色で塗りつぶす（route SVG のやり方に準拠）
+======================================== */
+.filter-section .filter-icons {
+    /* Use a grid so the left edge, inter-icon gaps and right edge all share equal width.
+       Structure for 4 icons: spacer(1fr) | icon | spacer(1fr) | icon | spacer | icon | spacer | icon | spacer
+       This makes the five spacer columns grow equally while icons keep a fixed width. */
+    --filter-icon-size: 56px;
+    display: grid;
+    grid-template-columns: 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr;
+    align-items: center;
+    padding: 8px 4px;
+    column-gap: 0; /* spacing controlled by spacer columns */
+    position: relative; /* needed so pseudo-element can act as a grid item */
+}
+
+.filter-label input[type="checkbox"] {
+    /* keep the checkbox for functionality but hide it visually */
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.filter-item {
+    /* make the visible item compact and centered inside its grid cell */
+    width: var(--filter-icon-size);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    position: relative;
+    box-sizing: border-box;
+    overflow: visible; /* allow captions to overflow horizontally so they don't wrap */
+}
+
+
+
+/* Place the vertical divider exactly in the spacer column between KT (col 2)
+   and TC (col 4). Using the container's ::before as a grid item lets it sit
+   squarely in grid-column 3 so it always remains at the midpoint regardless
+   of container width. */
+.filter-section .filter-icons::before {
+    content: "";
+    grid-column: 3 / 4; /* spacer between icon 1 and icon 2 */
+    grid-row: 1 / 2;
+    justify-self: center;
+    align-self: center;
+    width: 1px;
+    height: calc(var(--filter-icon-size) * 0.9);
+    background: var(--border-color);
+    border-radius: 1px;
+}
+
+/* Position the label elements into the icon columns so spacer columns stay empty */
+.filter-section .filter-icons > .filter-label { justify-self: center; align-self: center; }
+.filter-section .filter-icons > .filter-label:nth-child(1) { grid-column: 2 / 3; }
+.filter-section .filter-icons > .filter-label:nth-child(2) { grid-column: 4 / 5; }
+.filter-section .filter-icons > .filter-label:nth-child(3) { grid-column: 6 / 7; }
+.filter-section .filter-icons > .filter-label:nth-child(4) { grid-column: 8 / 9; }
+
+.filter-item .top-label {
+    position: absolute;
+    /* Raise the label further above the icon and align horizontally with the icon center
+       (use left: 0 so it doesn't appear left-biased). */
+    left: -8px;
+    top: -20px;
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 700;
+    z-index: 6;
+    white-space: nowrap; /* keep on one line */
+    display: inline-block;
+    max-width: none; /* allow overflow if needed */
+}
+
+.filter-icon {
+    width: 56px;
+    height: 56px;
+    background-color: #bdbdbd; /* inactive gray */
+    transition: background-color 0.18s ease, transform 0.12s ease, box-shadow 0.12s ease;
+    box-shadow: none;
+}
+
+/* per-icon mask images (use local src/ paths) */
+.filter-icon-kt {
+    -webkit-mask-image: url('src/kt_icon.svg');
+    mask-image: url('src/kt_icon.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.filter-icon-tc {
+    -webkit-mask-image: url('src/TC.svg');
+    mask-image: url('src/TC.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.filter-icon-sx {
+    -webkit-mask-image: url('src/SX.svg');
+    mask-image: url('src/SX.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.filter-icon-mc {
+    -webkit-mask-image: url('src/mc.svg');
+    mask-image: url('src/mc.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+/* Caption and status under each icon */
+.filter-caption {
+    font-size: 0.95rem;
+    color: #444;
+    font-weight: 600;
+}
+.filter-caption .status-on { display: none; }
+.filter-caption .status-off { display: inline; }
+
+/* Prevent caption text from wrapping; allow it to extend beyond the icon width */
+.filter-caption {
+    white-space: nowrap;
+    display: inline-block;
+    max-width: none;
+}
+
+/* Checked state styles: color the SVG by setting background-color on the masked element */
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-icon {
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: none; /* removed the upward movement on selection */
+}
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-caption { color: var(--primary-color); }
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-caption .status-on { display: inline; }
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-caption .status-off { display: none; }
+
+/* Unchecked subtle hover to indicate clickability */
+.filter-label:hover .filter-icon { transform: none; }
+
+/* Make train type captions slightly smaller to keep visual balance */
+.filter-item .filter-caption { font-size: 0.95rem; }
+
+@media (max-width: 768px) {
+    .filter-section .filter-icons { gap: 8px; }
+    .filter-icon { width: 48px; height: 48px; }
+    /* keep the top-label above the icon on mobile as well and center-align horizontally */
+    .filter-item .top-label { left: -4px; top: -18px; font-size: 0.8rem; white-space: nowrap; }
+}
+
 .segment-details-row {
     display: flex;
     gap: 16px;
@@ -865,8 +1075,25 @@ footer {
         align-items: center;
     }
 
+    .container {
+        margin-top: 80px; /* タブレット用のヘッダー高さ調整 */
+    }
+
+    /* header の高さ分の余白を main に確保して、fixed header と重ならないようにする */
+    main {
+        margin-top: 80px;
+    }
+
     header h1 {
         font-size: 1.5rem;
+    }
+
+    .header-content {
+        padding: 12px 20px;
+    }
+
+    .header-logo {
+        height: 32px;
     }
 
     main {
@@ -893,11 +1120,25 @@ footer {
     }
 
     .container {
+        margin-top: 76px; /* モバイル用のヘッダー高さ調整 */
         border-radius: 8px;
     }
 
-    header {
-        padding: 20px;
+    /* スマホ向け: header の高さ分のマージンを main に追加 */
+    main {
+        margin-top: 76px;
+    }
+
+    .header-content {
+        padding: 10px 15px;
+    }
+
+    .header-logo {
+        height: 28px;
+    }
+
+    header h1 {
+        font-size: 1.3rem;
     }
 
     .search-section {

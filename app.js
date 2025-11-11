@@ -645,10 +645,22 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     });
 
     const uniqueRoutes = deduplicateRoutes(routes);
+    
+    // 乗換ペナルティを考慮したソート用スコアを計算（表示用のtotalDurationは変更しない）
+    // 乗換1回につき10秒のペナルティを加算してソート
+    const TRANSFER_PENALTY = 10; // 秒
     uniqueRoutes.sort((a, b) => {
+        const scoreA = a.totalDuration + (a.transferCount * TRANSFER_PENALTY);
+        const scoreB = b.totalDuration + (b.transferCount * TRANSFER_PENALTY);
+        
+        if (scoreA !== scoreB) {
+            return scoreA - scoreB;
+        }
+        // スコアが同じ場合は実際の所要時間で比較
         if (a.totalDuration !== b.totalDuration) {
             return a.totalDuration - b.totalDuration;
         }
+        // 所要時間も同じ場合は乗換回数で比較
         return a.transferCount - b.transferCount;
     });
 
@@ -1035,7 +1047,7 @@ function displayResults(routes) {
 
     resultsCount.textContent = `${routes.length} 件の経路が見つかりました`;
 
-    // 「検索画面に戻る」ボタンを作成
+    // 「検索画面に戻る」ボタンを作成（既存のボタン・ラッパーを再利用または削除して重複を防止）
     const backButton = document.createElement('button');
     backButton.className = 'back-to-search-btn';
     backButton.textContent = '検索画面に戻る';
@@ -1050,10 +1062,26 @@ function displayResults(routes) {
     const resultsInfo = resultsSection.querySelector('.results-info');
     resultsInfo.innerHTML = ''; // 既存の内容をクリア
 
-    // move the existing <h2> (検索結果) into a flex wrapper and append the back button to the right
+    // Try to reuse an existing header wrapper if present to avoid creating duplicates
+    const existingHeaderWrapper = resultsSection.querySelector('.route-header-wrapper');
     const heading = resultsSection.querySelector('h2');
-    if (heading && heading.parentNode) {
+
+    if (existingHeaderWrapper) {
+        // Remove any previous back button inside the existing wrapper
+        const prevBtn = existingHeaderWrapper.querySelector('.back-to-search-btn');
+        if (prevBtn) prevBtn.remove();
+
+        // Ensure the heading is inside the wrapper
+        if (heading && heading.parentNode !== existingHeaderWrapper) {
+            existingHeaderWrapper.insertBefore(heading, existingHeaderWrapper.firstChild || null);
+        }
+
+        // Append the fresh back button
+        existingHeaderWrapper.appendChild(backButton);
+    } else if (heading && heading.parentNode) {
+        // Create a new wrapper and insert the heading and back button
         const headerWrapper = document.createElement('div');
+        headerWrapper.className = 'route-header-wrapper';
         headerWrapper.style.display = 'flex';
         headerWrapper.style.justifyContent = 'space-between';
         headerWrapper.style.alignItems = 'center';
@@ -1066,6 +1094,9 @@ function displayResults(routes) {
         headerWrapper.appendChild(backButton);
     } else {
         // Fallback: append back button to resultsInfo if heading not found
+        // Also ensure no duplicate button exists there
+        const prevBtn = resultsInfo.querySelector('.back-to-search-btn');
+        if (prevBtn) prevBtn.remove();
         resultsInfo.appendChild(backButton);
     }
 

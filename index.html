@@ -10,11 +10,14 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <div class="header-content">
+            <img src="src/rewis_logo_w.svg" alt="REWIS" class="header-logo">
+            <h1>| 乗換案内</h1>
+        </div>
+    </header>
+
     <div class="container">
-        <header>
-            <h1>🚆 Kトライア交通グループ 乗換案内システム</h1>
-            <p class="subtitle">架空の鉄道路線による経路検索デモ</p>
-        </header>
 
         <main>
             <section class="search-section" id="search-section">
@@ -59,29 +62,49 @@
                 </button>
 
                 <div class="filter-section">
-                    <div class="filter-group">
-                        <label class="checkbox-label">
+                    <!-- Filter icons: each label keeps the original checkbox (hidden) for behavior
+                         and provides an icon button built with CSS mask so color can be controlled. -->
+                    <div class="filter-icons">
+                        <!-- KT-only toggle -->
+                        <label class="filter-label">
                             <input type="checkbox" id="own-company-only">
-                            <span>自社線（Kトライアグループ）のみ</span>
+                            <div class="filter-item filter-kt">
+                                <div class="top-label">KT線のみ</div>
+                                <div class="filter-icon filter-icon-kt" role="img" aria-label="KT線のみ"></div>
+                                <div class="filter-caption">
+                                    <span class="status-on">オン</span>
+                                    <span class="status-off">オフ</span>
+                                </div>
+                            </div>
                         </label>
-                    </div>
 
-                    <div class="filter-group">
-                        <label>列車種別:</label>
-                        <div class="train-type-filters">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="type-tc" checked>
-                                <span class="train-type-badge tc">TrainCarts</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="type-sx" checked>
-                                <span class="train-type-badge sx">新幹線</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="type-mc" checked>
-                                <span class="train-type-badge mc">トロッコ</span>
-                            </label>
-                        </div>
+                        <!-- Train type - TrainCarts (has the "列車種別" top label) -->
+                        <label class="filter-label">
+                            <input type="checkbox" id="type-tc" checked>
+                            <div class="filter-item">
+                                <div class="top-label">列車種別</div>
+                                <div class="filter-icon filter-icon-tc" role="img" aria-label="TrainCarts"></div>
+                                <div class="filter-caption">TrainCarts</div>
+                            </div>
+                        </label>
+
+                        <!-- Train type - 新幹線 -->
+                        <label class="filter-label">
+                            <input type="checkbox" id="type-sx" checked>
+                            <div class="filter-item">
+                                <div class="filter-icon filter-icon-sx" role="img" aria-label="新幹線"></div>
+                                <div class="filter-caption">新幹線</div>
+                            </div>
+                        </label>
+
+                        <!-- Train type - トロッコ -->
+                        <label class="filter-label">
+                            <input type="checkbox" id="type-mc" checked>
+                            <div class="filter-item">
+                                <div class="filter-icon filter-icon-mc" role="img" aria-label="トロッコ"></div>
+                                <div class="filter-caption">トロッコ</div>
+                            </div>
+                        </label>
                     </div>
                 </div>
 
@@ -111,7 +134,8 @@
         </main>
 
         <footer>
-            <p>© 2025 Kトライア交通グループ（架空） | データは全てフィクションです</p>
+            <p>© 2025- REWIS by K-Triar Luli Transport
+</p>
         </footer>
     </div>
 
