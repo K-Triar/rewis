@@ -2078,3 +2078,7 @@ footer {
         top: 100px;
     }
 }
+
+html {
+  -webkit-overflow-scrolling: touch;
+}
