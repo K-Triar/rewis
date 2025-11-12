@@ -12,6 +12,15 @@ body {
     color: #000;
 }
 
+/* Ensure form controls inherit the document font so buttons/inputs/selects
+   use the same font as the rest of the site (fixes MS Gothic not applying
+   to buttons in some environments). */
+button, input, select, textarea, optgroup {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
 .container {
     max-width: 100%;
     margin: 0;
@@ -253,7 +262,7 @@ footer {
 /* スクロール可能なテーブルコンテナ */
 .table-container {
     overflow: auto;
-    max-height: calc(100vh - 150px);
+    max-height: calc(100vh - 165px);
 }
 
 /* 行番号 */

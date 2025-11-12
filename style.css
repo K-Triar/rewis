@@ -55,7 +55,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    margin-top: 92px; /* ヘッダーの高さ分の余白 */
+    margin-top: 100px; /* ヘッダーの高さ分の余白 */
     background: white;
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
@@ -115,9 +115,20 @@ main {
     flex-direction: column;
     justify-content: center; /* vertical centering */
     align-items: stretch;
+    position: relative; /* allow absolutely positioned children (results) to anchor to top */
     /* Make main tall enough to center content relative to the viewport.
        Using calc allows room for the fixed header/footer; adjust if needed. */
     min-height: calc(100vh - 160px);
+}
+
+/* Desktop: ensure main doesn't force extra height on wider screens
+   For viewports >= 769px we want the page flow to determine height, so
+   explicitly reset min-height to 0. Mobile (<=768px) continues to use
+   the calc(...) value above. */
+@media (min-width: 769px) {
+    main {
+        min-height: 0;
+    }
 }
 
 /* ========================================
@@ -192,6 +203,7 @@ main {
     color: var(--text-color);
     flex-shrink: 0;
     min-width: 50px;
+    font-weight: 600;
 }
 
 .suggestions {
@@ -453,7 +465,7 @@ main {
     border: none;
     border-radius: 12px;
     font-size: 2rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.3s;
 }
@@ -471,6 +483,12 @@ main {
 ======================================== */
 .results-section {
     animation: fadeIn 0.5s;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin-top: 0; /* ensure it sits at the top of main */
+    z-index: 400;
 }
 
 @keyframes fadeIn {
@@ -1210,12 +1228,53 @@ main {
    フッター
 ======================================== */
 footer {
-    background: #f8f9fa;
-    padding: 20px;
-    text-align: center;
-    color: #666;
+    background: #1a3a5c; /* 濃い目の藍色 */
+    padding: 24px 0;
+    color: #ffffff;
     font-size: 0.9rem;
-    border-top: 1px solid var(--border-color);
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-bottom: -20px;
+    margin-top: 20px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-copyright {
+    margin: 0;
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+.footer-logo {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+/* スマホ向けデザイン: 縦並びで上にロゴ、下に著作権表記 */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 16px;
+    }
+    
+    .footer-logo {
+        height: 48px;
+    }
+    
+    footer {
+        margin-top: 0px;
+    }
 }
 
 /* ========================================
