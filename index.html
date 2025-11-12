@@ -21,44 +21,60 @@
 
         <main>
             <section class="search-section" id="search-section">
-                <div class="station-input-group">
+                <!-- 出発駅 -->
+                <div class="station-input-row">
+                    <div class="station-badge departure-badge">発</div>
                     <div class="input-wrapper">
-                        <label for="departure">出発駅</label>
                         <input 
                             type="text" 
                             id="departure" 
                             class="station-input" 
-                            placeholder="駅名を入力"
+                            placeholder="出発駅"
                             autocomplete="off"
                         >
                         <div class="suggestions" id="departure-suggestions"></div>
                     </div>
-
-                    <div class="swap-button-wrapper">
-                        <button type="button" class="swap-button" id="swap-stations" title="出発駅と到着駅を入れ替え">
-                            ⇅
-                        </button>
-                    </div>
-
-                    <div class="input-wrapper">
-                        <label for="arrival">到着駅</label>
-                        <input 
-                            type="text" 
-                            id="arrival" 
-                            class="station-input" 
-                            placeholder="駅名を入力"
-                            autocomplete="off"
-                        >
-                        <div class="suggestions" id="arrival-suggestions"></div>
-                    </div>
+                    <div class="station-suffix">から</div>
                 </div>
 
+                <!-- 経由駅（動的に追加） -->
                 <div class="via-stations" id="via-stations">
                     <!-- 経由駅は動的に追加 -->
                 </div>
 
-                <button type="button" class="add-via-button" id="add-via">
-                    ➕ 経由駅を追加
+
+                <!-- 経由追加と入替を同一行に配置 -->
+                <div class="via-swap-row">
+                    <button type="button" class="add-via-button" id="add-via">
+                        ＋ 経由
+                    </button>
+
+                    <div class="swap-button-container">
+                        <button type="button" class="swap-button" id="swap-stations" title="出発駅と到着駅を入れ替え">
+                            ⇅
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 到着駅 -->
+                <div class="station-input-row">
+                    <div class="station-badge arrival-badge">着</div>
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="arrival" 
+                            class="station-input" 
+                            placeholder="到着駅"
+                            autocomplete="off"
+                        >
+                        <div class="suggestions" id="arrival-suggestions"></div>
+                    </div>
+                    <div class="station-suffix">まで</div>
+                </div>
+
+                <!-- 検索ボタン -->
+                <button type="button" class="search-button" id="search-button">
+                    GO!
                 </button>
 
                 <div class="filter-section">
@@ -107,10 +123,6 @@
                         </label>
                     </div>
                 </div>
-
-                <button type="button" class="search-button" id="search-button">
-                    🔍 経路を検索
-                </button>
             </section>
 
             <section class="results-section" id="results-section" style="display: none;">

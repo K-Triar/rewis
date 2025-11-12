@@ -80,7 +80,7 @@ header {
 .header-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 16px 0px;
+    padding: 16px 32px;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -108,49 +108,90 @@ header h1 {
 ======================================== */
 main {
     padding: 30px;
+    /* Center main content vertically so the search section sits in the
+       vertical middle of the available main area. Keep a column layout
+       so stacked sections (results, errors) naturally flow below. */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* vertical centering */
+    align-items: stretch;
+    /* Make main tall enough to center content relative to the viewport.
+       Using calc allows room for the fixed header/footer; adjust if needed. */
+    min-height: calc(100vh - 160px);
 }
 
 /* ========================================
    検索セクション
 ======================================== */
 .search-section {
-    background: var(--bg-gray);
     padding: 25px;
     border-radius: 8px;
+}
+
+/* 駅入力行 */
+.station-row {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+}
+
+/* 新しいクラス: 検索画面の発着入力用 (departure/arrival) */
+.station-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 30px;
 }
 
-.station-input-group {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 15px;
-    align-items: end;
-    margin-bottom: 20px;
+.station-badge {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.departure-badge {
+    background: var(--primary-color);
+}
+
+.arrival-badge {
+    background: var(--primary-color);
 }
 
 .input-wrapper {
+    flex: 1;
     position: relative;
-}
-
-.input-wrapper label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 0.95rem;
 }
 
 .station-input {
     width: 100%;
+    height: 48px;
     padding: 12px 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
     font-size: 1rem;
     transition: border-color 0.3s;
+    background: #f5f5f5;
 }
 
 .station-input:focus {
     outline: none;
     border-color: var(--primary-color);
+    background: white;
+}
+
+.station-suffix {
+    font-size: 16px;
+    color: var(--text-color);
+    flex-shrink: 0;
+    min-width: 50px;
 }
 
 .suggestions {
@@ -198,10 +239,48 @@ main {
     margin-top: 3px;
 }
 
-.swap-button-wrapper {
+/* 入れ替えボタンコンテナ */
+.swap-button-container {
     display: flex;
-    align-items: flex-end;
-    padding-bottom: 12px;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+    margin-top: -5px;
+}
+
+/* 経由追加と入替を同一行に配置するラッパー */
+.via-swap-row {
+    display: flex;
+    align-items: center;
+    position: relative;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.via-swap-row {
+    display: block; /* use block so absolutely positioned children are relative to this container */
+    position: relative;
+    margin-bottom: 15px;
+    min-height: 64px; /* provide height so centered button has room */
+}
+
+.via-swap-row .add-via-button {
+    /* absolutely center inside the wrapper (horizontal + vertical) */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    max-width: 220px;
+    width: auto;
+    font-size: 1rem;
+}
+
+.via-swap-row .swap-button-container {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
 }
 
 .swap-button {
@@ -225,53 +304,79 @@ main {
     transform: rotate(180deg);
 }
 
-/* 経由駅 */
-.via-stations {
-    margin-bottom: 15px;
-}
-
-.via-station-item {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px;
-    align-items: end;
-    margin-bottom: 10px;
-}
-
-.remove-via-button {
-    background: var(--danger-color);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: opacity 0.3s;
-    margin-bottom: 0;
-}
-
-.remove-via-button:hover {
-    opacity: 0.8;
-}
-
+/* 経由駅追加ボタン */
 .add-via-button {
-    background: white;
-    color: var(--primary-color);
-    border: 2px dashed var(--primary-color);
+    width: 100%;
+    max-width: 100px;
+    margin: 0 auto 15px auto;
+    display: block;
+    background: #e0e0e0;
+    color: var(--text-color);
+    border: none;
     padding: 10px 20px;
-    border-radius: 6px;
+    border-radius: 25px;
     cursor: pointer;
     font-size: 0.95rem;
-    width: 100%;
     transition: all 0.3s;
-    margin-bottom: 20px;
+    font-weight: 500;
 }
 
 .add-via-button:hover {
+    background: #d0d0d0;
+}
+
+/* 経由駅 */
+.via-stations {
+    margin-bottom: px;
+}
+
+.via-station-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.via-station-item .station-badge {
+    width: 48px;
+    height: 48px;
     background: var(--primary-color);
     color: white;
-    border-style: solid;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
 }
+
+.via-station-item .input-wrapper {
+    flex: 1;
+}
+
+.remove-via-button {
+    background: transparent;
+    color: #999;
+    border: none;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.remove-via-button:hover {
+    background: #f0f0f0;
+    color: #666;
+}
+
+
 
 /* フィルター */
 .filter-section {
@@ -338,13 +443,16 @@ main {
 
 /* 検索ボタン */
 .search-button {
-    width: 100%;
-    padding: 15px;
+    width: auto;
+    max-width: 300px;
+    margin: 30px auto 40px auto;
+    display: block;
+    padding: 12px 20px;
     background: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 6px;
-    font-size: 1.1rem;
+    border-radius: 12px;
+    font-size: 2rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.3s;
@@ -861,7 +969,7 @@ main {
 .filter-label:hover .filter-icon { transform: none; }
 
 /* Make train type captions slightly smaller to keep visual balance */
-.filter-item .filter-caption { font-size: 0.95rem; }
+.filter-item .filter-caption { font-size: 0.8rem; }
 
 @media (max-width: 768px) {
     .filter-section .filter-icons { gap: 8px; }
@@ -1001,18 +1109,80 @@ main {
 }
 
 /* ========================================
-   エラー・ローディング
+   エラー・ローディング (画面上部ポップアップ表示)
 ======================================== */
+/* Popup container (hidden by default; JS toggles display) */
+#error-section {
+    position: fixed;
+    top: 120px; /* below the fixed header; adjust if header height changes */
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 920px;
+    z-index: 1500;
+    display: none; /* controlled by app.js via inline style */
+    padding: 0 20px;
+    pointer-events: none; /* allow clicks to pass through except the message itself */
+}
+
+/* Keep the original class animation available for other places that use .error-section */
 .error-section {
     animation: fadeIn 0.5s;
 }
 
-.error-message {
+/* Visible message box inside the popup container */
+#error-section .error-message {
+    pointer-events: auto; /* make the message itself interactive (clickable) */
     background: #fff3cd;
     border-left: 4px solid #ffc107;
-    padding: 20px;
-    border-radius: 6px;
+    padding: 16px 20px;
+    border-radius: 8px;
     color: #856404;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    width: 100%;
+    box-sizing: border-box;
+    animation: slideDown 0.28s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; margin-top: -8px; }
+    to   { opacity: 1; margin-top: 0; }
+}
+
+/* Error popup content */
+#error-section .error-message { position: relative; }
+#error-section .error-message .error-text {
+    display: inline-block;
+    width: 95%; /* reserve space so the close button doesn't overlap */
+    box-sizing: border-box;
+    vertical-align: middle;
+    color: #6b4b00;
+    overflow-wrap: break-word; /* allow long text to wrap */
+}
+
+#error-section .error-message .error-close {
+    position: absolute;
+    top: 50%; /* vertically center inside the message */
+    right: 8px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #6b4b00;
+    font-size: 20px;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+}
+
+#error-section .error-message .error-close:hover {
+    background: rgba(0,0,0,0.04);
+    color: #333;
 }
 
 .loading-section {
@@ -1052,20 +1222,27 @@ footer {
    レスポンシブ対応
 ======================================== */
 @media (max-width: 768px) {
-    .station-input-group {
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .station-badge {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
     }
 
-    .swap-button-wrapper {
-        order: 3;
-        padding-bottom: 0;
-        padding-top: 10px;
+    .station-suffix {
+        font-size: 14px;
+        min-width: 40px;
     }
 
     .swap-button {
-        width: 100%;
-        border-radius: 6px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+
+    .via-station-item .station-badge {
+        width: 48px;
+        height: 48px;
+        font-size: 16px;
     }
 
     .route-summary {
@@ -1834,4 +2011,11 @@ footer {
     transform: translateY(-45%); }
     .route-tabs-chevron.left { left: 0px; }
     .route-tabs-chevron.right { right: 0px; }
+}
+
+@media (max-width: 768px) {
+    #error-section {
+        position: fixed;
+        top: 100px;
+    }
 }

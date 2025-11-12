@@ -4,6 +4,9 @@
 let appData = null;
 let preprocessedData = null;
 let viaStationCount = 0;
+// Unique counter for DOM element ids of via inputs. This is separate from the
+// displayed sequential index which is computed from the visible items.
+let viaUniqueIdCounter = 0;
 let brandName = 'Kトライア交通グループ';
 let ownCompanyId = 'KT';
 
@@ -474,42 +477,74 @@ function swapStations() {
 // 経由駅追加
 // ========================================
 function addViaStation() {
-    viaStationCount++;
+    // Use a separate unique counter for the DOM id to avoid reuse when
+    // users add/remove multiple times. The displayed "経由駅 N" is computed
+    // from the number of visible items so numbers stay sequential.
+    viaUniqueIdCounter++;
+    const uniqueId = viaUniqueIdCounter;
+
     const viaStationsDiv = document.getElementById('via-stations');
-    
+
     const viaItem = document.createElement('div');
     viaItem.className = 'via-station-item';
-    viaItem.dataset.viaId = viaStationCount;
-    
-    const viaId = `via-${viaStationCount}`;
+    viaItem.dataset.viaUid = uniqueId;
+
+    // The displayed index is the current count + 1
+    const displayIndex = viaStationsDiv.querySelectorAll('.via-station-item').length + 1;
+
+    const viaId = `via-${uniqueId}`;
     const suggestionsId = `${viaId}-suggestions`;
-    
+
     viaItem.innerHTML = `
+        <div class="station-badge">経${displayIndex}</div>
         <div class="input-wrapper">
-            <label for="${viaId}">経由駅 ${viaStationCount}</label>
             <input 
                 type="text" 
                 id="${viaId}" 
                 class="station-input" 
-                placeholder="駅名を入力"
+                placeholder="経由駅"
                 autocomplete="off"
             >
             <div class="suggestions" id="${suggestionsId}"></div>
         </div>
-        <button type="button" class="remove-via-button" onclick="removeViaStation(${viaStationCount})">
-            削除
+        <button type="button" class="remove-via-button">
+            ✕
         </button>
     `;
-    
+
     viaStationsDiv.appendChild(viaItem);
+
+    // Attach remove listener using the stable unique id
+    const removeBtn = viaItem.querySelector('.remove-via-button');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', () => removeViaStation(uniqueId));
+    }
+
     setupStationInput(viaId);
+
+    // Ensure labels are correctly numbered (defensive)
+    reindexViaStations();
 }
 
 function removeViaStation(viaId) {
-    const viaItem = document.querySelector(`[data-via-id="${viaId}"]`);
+    // viaId here is the unique id assigned to the DOM element (viaUid)
+    const viaItem = document.querySelector(`[data-via-uid="${viaId}"]`);
     if (viaItem) {
         viaItem.remove();
+        // After removal, reindex remaining visible via items so labels are sequential
+        reindexViaStations();
     }
+}
+
+// Recompute and update the visible "経由駅 N" labels based on current order
+function reindexViaStations() {
+    const viaStationsDiv = document.getElementById('via-stations');
+    if (!viaStationsDiv) return;
+    const items = viaStationsDiv.querySelectorAll('.via-station-item');
+    items.forEach((item, idx) => {
+        const badge = item.querySelector('.station-badge');
+        if (badge) badge.textContent = `経${idx + 1}`;
+    });
 }
 
 // ========================================
@@ -605,12 +640,7 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     console.log('経由駅:', viaStations.map(s => s.stationName));
     console.log('フィルタ:', filters);
 
-    // 経由駅指定時はfindRoutesWithViaを使う
-    if (viaStations.length > 0) {
-        console.log('経由駅指定あり: 区間分割検索');
-        return findRoutesWithVia(startStation, endStation, viaStations, filters);
-    }
-
+    // 経由駅指定時も単一探索を使用（制約付きDijkstra）
     const routes = [];
     const maxRoutes = 5;
 
@@ -634,8 +664,8 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     }
 
     startKeys.forEach(startKey => {
-        console.log(`Dijkstra探索開始: ${startKey}`);
-        const route = dijkstraSearch(startKey, endStation.stationId, filters);
+        console.log(`Dijkstra探索開始: ${startKey} (経由駅: ${viaStations.length}駅)`);
+        const route = dijkstraSearch(startKey, endStation.stationId, viaStations, filters);
         if (route) {
             console.log('探索成功: 経路情報', route);
             routes.push(route);
@@ -672,94 +702,113 @@ function findRoutes(startStation, endStation, viaStations, filters) {
 // ========================================
 // Dijkstra法による経路探索
 // ========================================
-function dijkstraSearch(startKey, endStationId, filters) {
+function dijkstraSearch(startKey, endStationId, requiredViaStations, filters) {
     const distances = new Map();
     const previous = new Map();
     const visited = new Set();
-    const visitedStations = new Map(); // キーごとに訪問済み駅を記録
+    const visitedStations = new Map(); // 状態ごとに訪問済み駅を記録
     const queue = new MinPriorityQueue();
 
     const [startStationId] = startKey.split('|');
-    distances.set(startKey, 0);
-    visitedStations.set(startKey, new Set([startStationId]));
-    queue.enqueue(startKey, 0);
+    // 状態を "nodeKey@@viaIndex" の形式で管理（@@は区切り文字、|と混同しないため）
+    const initialState = `${startKey}@@0`;
+    distances.set(initialState, 0);
+    visitedStations.set(initialState, new Set([startStationId]));
+    queue.enqueue(initialState, 0);
 
     let step = 0;
 
     while (!queue.isEmpty()) {
         step++;
-        const currentKey = queue.dequeue();
-        if (visited.has(currentKey)) continue;
-        visited.add(currentKey);
+        const currentState = queue.dequeue();
+        if (visited.has(currentState)) continue;
+        visited.add(currentState);
 
-        const currentDistance = distances.get(currentKey);
-        // ★ split('|') に変更
+        // 状態を分解: "stationId|lineId|trainType@@viaIndex"
+        const [currentKey, viaIndexStr] = currentState.split('@@');
+        const viaIndex = parseInt(viaIndexStr);
+        const currentDistance = distances.get(currentState);
         const [currentStationId, currentLineId, currentTrainType] = currentKey.split('|');
-        console.log(`[Step ${step}] 現在ノード: ${currentKey} (駅ID: ${currentStationId}) 距離: ${currentDistance}`);
+        console.log(`[Step ${step}] 現在状態: ${currentState} (駅ID: ${currentStationId}, 経由済み: ${viaIndex}/${requiredViaStations.length}) 距離: ${currentDistance}`);
 
-        // 到着判定
-        if (currentStationId === endStationId) {
-            console.log(`✅ 到達駅に到達: ${currentKey}`);
-            return reconstructRoute(startKey, currentKey, previous);
+        // 到着判定：endStationId に到達 AND すべての経由駅を通過済み
+        if (currentStationId === endStationId && viaIndex === requiredViaStations.length) {
+            console.log(`✅ 到達駅に到達（全経由駅通過済み）: ${currentState}`);
+            return reconstructRoute(initialState, currentState, previous);
         }
 
         const neighbors = preprocessedData.adjacencyList.get(currentKey) || [];
         console.log(`  隣接ノード数: ${neighbors.length}`);
 
-        // 現在のパスで訪問済みの駅リストを取得
-        const currentVisitedStations = visitedStations.get(currentKey) || new Set();
+        // 現在の状態での訪問済み駅リストを取得
+        const currentVisitedStations = visitedStations.get(currentState) || new Set();
 
         for (let neighbor of neighbors) {
-            if (visited.has(neighbor.toKey)) {
-                console.log(`    スキップ（訪問済）: ${neighbor.toKey}`);
-                continue;
-            }
+            const nextKey = neighbor.toKey;
+            const [nextStationId] = nextKey.split('|');
 
             // 降車専用区間のチェック：始点駅からは乗車できない
-            if (neighbor.isAlightOnly && currentKey === startKey) {
-                console.log(`    スキップ（降車専用区間・始点駅からの乗車不可）: ${neighbor.toKey}`);
+            if (neighbor.isAlightOnly && currentState === initialState) {
+                console.log(`    スキップ（降車専用区間・始点駅からの乗車不可）: ${nextKey}`);
                 continue;
             }
 
             // 出発駅からの乗換・種別変更を禁止
-            if (currentKey === startKey && neighbor.type === 'transfer') {
-                console.log(`    スキップ（出発駅からの乗換禁止）: ${neighbor.toKey}`);
+            if (currentState === initialState && neighbor.type === 'transfer') {
+                console.log(`    スキップ（出発駅からの乗換禁止）: ${nextKey}`);
                 continue;
+            }
+
+            // 経由駅通過チェック
+            let newViaIndex = viaIndex;
+            let newVisitedStations = new Set(currentVisitedStations);
+
+            // 現在の駅が次に通過すべき経由駅かチェック
+            if (viaIndex < requiredViaStations.length &&
+                currentStationId === requiredViaStations[viaIndex].stationId) {
+                // 経由駅を通過！→ viaIndex を +1 して訪問リストをリセット
+                newViaIndex = viaIndex + 1;
+                newVisitedStations = new Set([currentStationId]);
+                console.log(`  ✓ 経由駅 ${viaIndex + 1} を通過: ${currentStationId} → viaIndex=${newViaIndex}`);
             }
 
             // 駅の重複チェック：segment（移動）の場合のみチェック
             // transfer（乗換）は同じ駅内での移動なので重複チェック対象外
             if (neighbor.type === 'segment') {
-                const [nextStationId] = neighbor.toKey.split('|');
-                if (currentVisitedStations.has(nextStationId)) {
-                    console.log(`    スキップ（駅重複）: ${neighbor.toKey} (駅ID: ${nextStationId})`);
+                if (newVisitedStations.has(nextStationId)) {
+                    console.log(`    スキップ（駅重複）: ${nextKey} (駅ID: ${nextStationId})`);
                     continue;
                 }
             }
 
             if (!passesFilter(neighbor, filters)) {
-                console.log(`    フィルタ除外: ${neighbor.toKey}`);
+                console.log(`    フィルタ除外: ${nextKey}`);
+                continue;
+            }
+
+            const nextState = `${nextKey}@@${newViaIndex}`;
+            
+            if (visited.has(nextState)) {
+                console.log(`    スキップ（訪問済状態）: ${nextState}`);
                 continue;
             }
 
             const newDistance = currentDistance + neighbor.duration;
-            const oldDistance = distances.get(neighbor.toKey);
+            const oldDistance = distances.get(nextState);
 
             if (oldDistance === undefined || newDistance < oldDistance) {
-                distances.set(neighbor.toKey, newDistance);
-                previous.set(neighbor.toKey, { key: currentKey, edge: neighbor });
+                distances.set(nextState, newDistance);
+                previous.set(nextState, { state: currentState, edge: neighbor });
                 
                 // 訪問済み駅リストを更新
                 // segment（移動）の場合のみ訪問駅を追加
-                const newVisitedStations = new Set(currentVisitedStations);
                 if (neighbor.type === 'segment') {
-                    const [nextStationId] = neighbor.toKey.split('|');
                     newVisitedStations.add(nextStationId);
                 }
-                visitedStations.set(neighbor.toKey, newVisitedStations);
+                visitedStations.set(nextState, newVisitedStations);
                 
-                queue.enqueue(neighbor.toKey, newDistance);
-                console.log(`    キュー追加: ${neighbor.toKey} 距離: ${newDistance}`);
+                queue.enqueue(nextState, newDistance);
+                console.log(`    キュー追加: ${nextState} 距離: ${newDistance}`);
             }
         }
     }
@@ -811,17 +860,21 @@ function passesFilter(neighbor, filters) {
 // ========================================
 // 経路復元
 // ========================================
-function reconstructRoute(startKey, endKey, previous) {
+function reconstructRoute(startState, endState, previous) {
     const path = [];
-    let currentKey = endKey;
+    let currentState = endState;
 
-    while (currentKey !== startKey) {
-        const prev = previous.get(currentKey);
+    while (currentState !== startState) {
+        const prev = previous.get(currentState);
         if (!prev) break;
-        path.unshift({ key: currentKey, edge: prev.edge });
-        currentKey = prev.key;
+        // 状態から nodeKey を抽出（"nodeKey@@viaIndex" → "nodeKey"）
+        const [nodeKey] = currentState.split('@@');
+        path.unshift({ key: nodeKey, edge: prev.edge });
+        currentState = prev.state;
     }
 
+    // 開始状態を追加
+    const [startKey] = startState.split('@@');
     path.unshift({ key: startKey, edge: null });
     return buildRouteInfo(path);
 }
@@ -873,10 +926,24 @@ function buildRouteInfo(path) {
 
         if (edge.type === 'segment') {
             // 乗車レグを新規開始or直前の乗車とマージするか判定
-            const isMergeable =
-                lastRideLeg &&
-                lastRideLeg.lineId === lineId &&
-                lastRideLeg.trainType === trainType;
+            // 折り返し（同一路線・同種別だが進行方向が逆）の場合は
+            // 実際には乗換が発生しているのでマージしない
+            const isSameLineAndType = lastRideLeg && lastRideLeg.lineId === lineId && lastRideLeg.trainType === trainType;
+
+            // 直前のsegmentの参照（存在すれば方向判定に使う）
+            let isReversal = false;
+            if (lastRideLeg && lastRideLeg.segments && lastRideLeg.segments.length > 0 && edge.segment) {
+                const prevSeg = lastRideLeg.segments[lastRideLeg.segments.length - 1];
+                const currSeg = edge.segment;
+                // prevSeg と currSeg が互いに逆向きの hop を持つ場合は折り返し
+                if (prevSeg.hopFrom && prevSeg.hopTo && currSeg.hopFrom && currSeg.hopTo) {
+                    if (prevSeg.hopFrom === currSeg.hopTo && prevSeg.hopTo === currSeg.hopFrom) {
+                        isReversal = true;
+                    }
+                }
+            }
+
+            const isMergeable = isSameLineAndType && !isReversal;
 
             // 到着駅の番線情報取得
             let arrivalPlatform = null;
@@ -899,6 +966,43 @@ function buildRouteInfo(path) {
                 // 到着駅の番線を更新
                 lastRideLeg.arrivalPlatform = arrivalPlatform;
             } else {
+                // 折り返し（isReversal）の場合は、実際には乗換が発生しているとみなす。
+                // ここで簡易的な乗換レグを挿入して表示に反映する。
+                if (isReversal && lastRideLeg) {
+                    // 直前の到着番線
+                    const prevArrivalPlatform = lastRideLeg.arrivalPlatform || null;
+                    // 次の出発番線（edge の fromStationId を使って取得）
+                    const nextDeparturePlatform = departurePlatform || null;
+
+                    // 乗換時間の概算: 同じのりばなら5秒、そうでなければデフォルト10秒
+                    const transferTime = (prevArrivalPlatform && nextDeparturePlatform && prevArrivalPlatform === nextDeparturePlatform) ? 5 : 10;
+
+                    legs.push({
+                        type: 'transfer',
+                        stationId: lastRideLeg.stationId,
+                        stationName: lastRideLeg.stationName,
+                        lineId: lastRideLeg.lineId,
+                        lineName: lastRideLeg.lineName,
+                        lineColor: lastRideLeg.lineColor,
+                        trainType: lastRideLeg.trainType,
+                        trainTypeName: lastRideLeg.trainTypeName,
+                        duration: transferTime,
+                        transferTime: transferTime,
+                        isDirectThrough: false,
+                        isTypeChange: false,
+                        fromPlatform: prevArrivalPlatform,
+                        toPlatform: nextDeparturePlatform,
+                        fromLineId: lastRideLeg.lineId,
+                        toLineId: lineId,
+                        fromTrainType: lastRideLeg.trainType,
+                        toTrainType: trainType,
+                        departurePlatform: nextDeparturePlatform
+                    });
+
+                    totalDuration += transferTime;
+                    // reset lastRideLeg so that following newRide is created normally
+                    lastRideLeg = null;
+                }
                 // 新しい乗車レグを追加
                 const newRide = {
                     type: 'segment',
@@ -973,8 +1077,11 @@ function buildRouteInfo(path) {
 }
 
 // ========================================
-// 経路探索（経由駅あり）
+// 経路探索（経由駅あり）- 旧実装（現在は未使用）
 // ========================================
+// 注: 候補Aの実装により、経由駅は単一探索内で制約として処理されるため、
+// この関数は使用されなくなりました。参考のため残しています。
+/*
 function findRoutesWithVia(startStation, endStation, viaStations, filters) {
     const allStations = [startStation, ...viaStations, endStation];
     let combinedRoute = null;
@@ -1002,6 +1109,7 @@ function findRoutesWithVia(startStation, endStation, viaStations, filters) {
 
     return combinedRoute ? [combinedRoute] : [];
 }
+*/
 
 // ========================================
 // 重複経路の除去
@@ -1294,9 +1402,9 @@ function createTableStationRow({ arrivalElapsed = null, departureElapsed = null,
     let timeHtmlTop = '';
     let timeHtmlBottom = '';
     if (transferLabel === '直通') {
-        // 直通: arrival は非表示、departure のみ表示
-        if (departureElapsed != null) {
-            timeHtmlBottom = `<div class="time-departure">${formatSeconds(departureElapsed)} 発</div>`;
+        // 直通: departure は非表示、arrival のみ表示（到着時間のみを表示）
+        if (arrivalElapsed != null) {
+            timeHtmlTop = `<div class="time-arrival">${formatSeconds(arrivalElapsed)} 着</div>`;
         }
     } else {
         if (arrivalElapsed != null) {
@@ -1585,6 +1693,14 @@ function createStopsButton(leg) {
             markerRow.className = 'stop-marker-row';
             const marker = document.createElement('div');
             marker.className = 'stop-marker';
+            // 色を路線に合わせる（線色を境界線に反映）
+            try {
+                if (leg.lineColor) {
+                    marker.style.borderColor = leg.lineColor;
+                }
+            } catch (e) {
+                // ignore style errors in older browsers
+            }
             markerRow.appendChild(marker);
             markerList.appendChild(markerRow);
         }
@@ -1615,12 +1731,40 @@ function hideLoading() {
 function showError(message) {
     const errorSection = document.getElementById('error-section');
     const errorMessage = document.getElementById('error-message');
-    errorMessage.textContent = message;
+
+    // Clear existing content
+    errorMessage.innerHTML = '';
+
+    // Message content (text-only to avoid XSS)
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'error-text';
+    msgSpan.textContent = message;
+    msgSpan.setAttribute('role', 'status');
+    msgSpan.setAttribute('aria-live', 'assertive');
+    errorMessage.appendChild(msgSpan);
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'error-close';
+    closeBtn.setAttribute('aria-label', '閉じる');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', hideError);
+    errorMessage.appendChild(closeBtn);
+
+    // Show popup
     errorSection.style.display = 'block';
 }
 
 function hideError() {
-    document.getElementById('error-section').style.display = 'none';
+    const errorSection = document.getElementById('error-section');
+    if (!errorSection) return;
+    errorSection.style.display = 'none';
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) errorMessage.innerHTML = '';
+    if (errorSection._hideTimeout) {
+        clearTimeout(errorSection._hideTimeout);
+        errorSection._hideTimeout = null;
+    }
 }
 
 function hideResults() {
