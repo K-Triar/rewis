@@ -1955,6 +1955,10 @@ footer {
         border-radius: 0;
         box-shadow: none;
         background: #ffffff;
+          /* Use page-level scrolling instead of making the container a
+              scroll container. Setting `overflow: visible` ensures the body
+              (page) scrollbar is used so main + footer scroll together. */
+          overflow: visible;
     }
 
     /* Remove main padding so inner content can be full-bleed where needed
@@ -1973,6 +1977,10 @@ footer {
     /* Results should have breathing room on mobile, but station rows
        will visually stretch to the viewport edges. */
     .results-section {
+        /* On mobile, make results flow in the document so they push the
+           footer down and become part of the page scroll (avoid absolute
+           positioning which keeps them out of flow and can hide the footer). */
+        position: static;
         padding: 20px;
     }
 
