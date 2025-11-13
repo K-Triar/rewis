@@ -163,9 +163,68 @@ main {
 /* ========================================
    検索セクション
 ======================================== */
-.search-section {
-    padding: 25px;
-    border-radius: 8px;
+.search-mode-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* label left-aligned relative to toggle */
+    width: fit-content; /* shrink to fit inner content */
+    margin: 0 auto 48px; /* center the whole wrapper */
+}
+/* Mobile: place search-mode-wrapper independently at the very top of main */
+@media (max-width: 768px) {
+    .search-mode-wrapper {
+        position: absolute;
+        top: 20px; /* align to the top of the main element (exclude any border-top) */
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0; /* remove default bottom margin used in desktop */
+        z-index: 600;
+        width: fit-content;
+    }
+}
+.search-mode-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 6px;
+    color: #666;
+}
+.search-mode-toggle {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: #eee; /* pill-shaped gray background */
+    padding: 6px; /* inner spacing so buttons sit comfortably */
+    border-radius: 999px;
+    width: fit-content; /* shrink to fit inner buttons */
+    box-sizing: border-box;
+}
+.search-mode-btn {
+    background: transparent; /* let container provide the gray pill background */
+    color: #222;
+    border: none; /* no border per request */
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem; /* match filter caption size */
+}
+.search-mode-btn.selected {
+    background: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+    border: none; /* ensure selected has no border */
+}
+.search-mode-btn:focus {
+    outline: 2px solid rgba(0,120,215,0.25);
+    outline-offset: 2px;
+}
+.search-mode-btn:focus {
+    outline: 2px solid rgba(0,120,215,0.25);
+    outline-offset: 2px;
 }
 
 /* 駅入力行 */
@@ -1452,12 +1511,16 @@ footer {
     }
 
     .container {
-        margin-top: 80px; /* タブレット用のヘッダー高さ調整 */
+        margin-top: 84px; /* タブレット用のヘッダー高さ調整 */
     }
 
     /* header の高さ分の余白を main に確保して、fixed header と重ならないようにする */
+    /* モバイル時は search-mode-wrapper 分の padding-top を追加し、上寄せにする */
     main {
-        margin-top: 80px;
+        margin-top: 84px;
+        padding: 20px;
+        padding-top: 120px; /* 既存padding + search-mode-wrapper高さ */
+        justify-content: flex-start; /* 上寄せにして縦スクロールを自然に動作させる */
     }
 
     header h1 {
@@ -1470,10 +1533,6 @@ footer {
 
     .header-logo {
         height: 32px;
-    }
-
-    main {
-        padding: 20px;
     }
 
     .segment-timeline {
@@ -1490,9 +1549,22 @@ footer {
     }
 }
 
-@media (max-width: 480px) {
+/* Apply 480px-and-below adjustments here so 768px and below use the
+   same (smaller) header & layout settings. This consolidates the
+   previous separate @media (max-width:480px) rules into the
+   @media (max-width:768px) block as requested. */
+
+@media (max-width: 768px) {
     body {
         padding: 10px;
+    }
+
+    /* When JS detects the search-section is short enough, add
+       `body.search-compact` to remove the extra top padding and
+       vertically center content inside main. */
+    body.search-compact main {
+        padding-top: 0 !important;
+        justify-content: center !important;
     }
 
     .container {
@@ -1500,7 +1572,7 @@ footer {
         border-radius: 8px;
     }
 
-    /* スマホ向け: header の高さ分のマージンを main に追加 */
+    /* override main margin-top set earlier for tablet; use the 480px value */
     main {
         margin-top: 76px;
     }
@@ -2156,10 +2228,12 @@ body.no-scroll, html.no-scroll {
           overflow: visible;
     }
 
-    /* Remove main padding so inner content can be full-bleed where needed
+    /* Remove main horizontal padding so inner content can be full-bleed where needed
        and allow main to expand to push footer to the bottom. */
     main {
-        padding: 0;
+        padding-left: 0;
+        padding-right: 0;
+        /* padding-top はそのまま維持（search-mode-wrapper分） */
         flex: 1 0 auto; /* grow to fill remaining vertical space */
     }
 
@@ -2307,16 +2381,11 @@ html {
 /* Responsive sizing for header help icon */
 @media (max-width: 768px) {
     .help-button img {
-        width: 28px;
-        height: 28px;
-    }
-}
-@media (max-width: 480px) {
-    .help-button img {
         width: 24px;
         height: 24px;
     }
 }
+/* 480px rules consolidated into 768px block per request */
 
 /* Mobile: center via-station items (<=768px) */
 @media (max-width: 768px) {

@@ -11,6 +11,20 @@ let brandName = 'Kトライア交通グループ';
 let ownCompanyId = 'KT';
 // Handlers used to prevent scrolling on mobile while keeping the scrollbar visible
 let _loadingPreventHandlers = null;
+// 検索モード: 'time' | 'balance' | 'transfer' (default: balance)
+let searchMode = 'balance';
+
+function getTransferPenalty(mode) {
+    switch (mode) {
+        case 'time':
+            return 0;
+        case 'transfer':
+            return 30;
+        case 'balance':
+        default:
+            return 10;
+    }
+}
 
 (async () => {
     try {
@@ -341,6 +355,7 @@ function preprocessData() {
 function initializeUI() {
     setupStationInput('departure');
     setupStationInput('arrival');
+    setupSearchModeToggle();
     document.getElementById('swap-stations').addEventListener('click', swapStations);
     document.getElementById('add-via').addEventListener('click', addViaStation);
     document.getElementById('search-button').addEventListener('click', performSearch);
@@ -352,6 +367,100 @@ function initializeUI() {
             }
         });
     });
+
+    // Setup adaptive sizing for search-screen compact mode
+    // If .search-section height <= (visual viewport height - 240px) then
+    // disable main padding-top and vertically center main via CSS class.
+    if (typeof setupSearchSectionSizing === 'function') setupSearchSectionSizing();
+}
+
+// 検索モードUIの初期化
+function setupSearchModeToggle() {
+    const container = document.getElementById('search-mode-toggle');
+    if (!container) return;
+    const buttons = Array.from(container.querySelectorAll('.search-mode-btn'));
+
+    function setMode(mode) {
+        searchMode = mode;
+        buttons.forEach(btn => {
+            const m = btn.dataset.mode;
+            const selected = m === mode;
+            btn.classList.toggle('selected', selected);
+            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
+    }
+
+    // initialize according to current global
+    setMode(searchMode);
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.mode;
+            setMode(mode);
+        });
+    });
+}
+
+// ========================================
+// 検索セクションの高さに応じたレイアウト切替
+// - ビューポート高さ（visual viewport が利用可能であればそれ）から 240px を引いた値と
+//   `.search-section` の高さを比較して、条件を満たすときに `body.search-compact` を付与する。
+// - resize / visualViewport resize / DOM 変更を監視して動的に切替える。
+function setupSearchSectionSizing() {
+    const searchSection = document.querySelector('.search-section');
+    if (!searchSection) return; // nothing to do
+
+    let raf = null;
+    function getViewportHeight() {
+        if (window.visualViewport && window.visualViewport.height) return window.visualViewport.height;
+        return window.innerHeight;
+    }
+
+    function update() {
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+            const vh = getViewportHeight();
+            const threshold = vh - 420; // 100svh - 420px equivalent
+            const rect = searchSection.getBoundingClientRect();
+            // By default measure the full .search-section height
+            let height = rect.height;
+            // If a .search-mode-wrapper exists inside the search section, subtract
+            // its height from the measured height so the threshold comparison
+            // ignores that wrapper as requested.
+            const wrapper = searchSection.querySelector('.search-mode-wrapper');
+            if (wrapper) {
+                const wRect = wrapper.getBoundingClientRect();
+                height = Math.max(0, height - wRect.height);
+            }
+            if (height <= threshold) {
+                document.body.classList.add('search-compact');
+            } else {
+                document.body.classList.remove('search-compact');
+            }
+        });
+    }
+
+    // Debounced resize handler
+    let resizeTimer = null;
+    function onResize() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(update, 80);
+    }
+
+    // Observe content changes within the search section that could change its height
+    const mo = new MutationObserver(() => {
+        update();
+    });
+    mo.observe(searchSection, { childList: true, subtree: true, attributes: true, characterData: true });
+
+    // Visual viewport resize (mobile virtual keyboard) & window resize
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', onResize);
+    }
+    window.addEventListener('resize', onResize);
+
+    // Initial check
+    update();
 }
 
 // ========================================
@@ -701,6 +810,14 @@ function findStationById(id) {
 function updateUrlParams(departureStation, arrivalStation, viaStations, filters) {
     const params = new URLSearchParams();
 
+    // search-mode: only include when not default 'balance'. Insert first so it appears at the
+    // start of the query string when present.
+    if (searchMode === 'time') {
+        params.append('search-mode', 'time');
+    } else if (searchMode === 'transfer') {
+        params.append('search-mode', 'transfer');
+    }
+
     // Preserve existing `route` parameter value (but do NOT insert it yet).
     // We'll append it after adding other params so `route` stays at the end
     // of the query string and the original parameter ordering isn't changed.
@@ -766,6 +883,22 @@ function clearUrlParams() {
 
 function loadFromUrlParams() {
     const params = new URLSearchParams(window.location.search);
+    // search-mode が指定されている場合は内部状態と UI を更新
+    try {
+        const sm = params.get('search-mode');
+        if (sm === 'time' || sm === 'transfer') {
+            searchMode = sm;
+        } else {
+            searchMode = 'balance';
+        }
+        const container = document.getElementById('search-mode-toggle');
+        if (container) {
+            const btn = container.querySelector(`.search-mode-btn[data-mode="${searchMode}"]`);
+            if (btn) btn.click();
+        }
+    } catch (e) {
+        // ignore
+    }
     
     // パラメータがない場合は何もしない
     if (!params.has('from') && !params.has('to')) {
@@ -908,8 +1041,8 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     const uniqueRoutes = deduplicateRoutes(routes);
     
     // 乗換ペナルティを考慮したソート用スコアを計算（表示用のtotalDurationは変更しない）
-    // 乗換1回につき10秒のペナルティを加算してソート
-    const TRANSFER_PENALTY = 10; // 秒
+    // searchMode に応じたペナルティを使用
+    const TRANSFER_PENALTY = getTransferPenalty(searchMode); // 秒
     uniqueRoutes.sort((a, b) => {
         const scoreA = a.totalDuration + (a.transferCount * TRANSFER_PENALTY);
         const scoreB = b.totalDuration + (b.transferCount * TRANSFER_PENALTY);

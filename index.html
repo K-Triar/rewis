@@ -28,6 +28,16 @@
 
         <main>
             <section class="search-section" id="search-section">
+                <!-- 検索モード切替（所要時間優先 / バランス / 乗換回数優先） -->
+                <div class="search-mode-wrapper">
+                    <div class="search-mode-label">モード：</div>
+                    <div class="search-mode-toggle" id="search-mode-toggle" role="tablist" aria-label="検索モード">
+                        <button type="button" class="search-mode-btn" data-mode="time" aria-pressed="false">所要時間優先</button>
+                        <button type="button" class="search-mode-btn selected" data-mode="balance" aria-pressed="true">バランス</button>
+                        <button type="button" class="search-mode-btn" data-mode="transfer" aria-pressed="false">乗換回数優先</button>
+                    </div>
+                </div>
+
                 <!-- 出発駅 -->
                 <div class="station-input-row">
                     <div class="station-badge departure-badge">発</div>
