@@ -382,12 +382,26 @@ function setupSearchModeToggle() {
 
     function setMode(mode) {
         searchMode = mode;
-        buttons.forEach(btn => {
+        
+        // 選択されたボタンの位置と幅を取得
+        let selectedBtn = null;
+        buttons.forEach((btn, index) => {
             const m = btn.dataset.mode;
             const selected = m === mode;
             btn.classList.toggle('selected', selected);
             btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            if (selected) selectedBtn = btn;
         });
+        
+        // 選択されたボタンの実際の幅と位置を取得してCSS変数に設定
+        if (selectedBtn) {
+            const btnRect = selectedBtn.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const leftOffset = btnRect.left - containerRect.left;
+            
+            container.style.setProperty('--bg-width', `${btnRect.width}px`);
+            container.style.setProperty('--bg-left', `${leftOffset}px`);
+        }
     }
 
     // initialize according to current global
@@ -412,8 +426,11 @@ function setupSearchSectionSizing() {
 
     let raf = null;
     function getViewportHeight() {
-        if (window.visualViewport && window.visualViewport.height) return window.visualViewport.height;
-        return window.innerHeight;
+        // Match CSS `svh` semantics: use the smaller of the layout viewport
+        // (`window.innerHeight`) and the visual viewport (`window.visualViewport.height`) when available.
+        const layoutH = window.innerHeight || 0;
+        const visualH = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : layoutH;
+        return Math.min(layoutH, visualH);
     }
 
     function update() {
