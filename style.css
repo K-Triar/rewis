@@ -431,7 +431,16 @@ main {
 .swap-button:hover {
     background: var(--primary-color);
     color: white;
-    transform: rotate(180deg);
+}
+
+/* Click-triggered full rotation */
+.swap-button.spinning {
+    animation: swap-spin 0.6s ease-in-out;
+}
+
+@keyframes swap-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 
 /* 経由駅追加ボタン */
@@ -1448,7 +1457,7 @@ main {
    フッター
 ======================================== */
 footer {
-    background: #1a3a5c; /* 濃い目の藍色 */
+    background: #012169; /* コーポレートカラー */
     padding: 24px 0;
     color: #ffffff;
     font-size: 0.9rem;
@@ -1538,9 +1547,8 @@ footer {
     /* header の高さ分の余白を main に確保して、fixed header と重ならないようにする */
     /* モバイル時は search-mode-wrapper 分の padding-top を追加し、上寄せにする */
     main {
-        margin-top: 84px;
-        padding: 20px;
-        padding-top: 120px; /* 既存padding + search-mode-wrapper高さ */
+        padding: 0px;
+        /* padding-top を search-section に移動しました */
         justify-content: flex-start; /* 上寄せにして縦スクロールを自然に動作させる */
     }
 
@@ -1605,10 +1613,6 @@ footer {
 
     header h1 {
         font-size: 1.3rem;
-    }
-
-    .search-section {
-        padding: 15px;
     }
 
     .route-card {
@@ -2259,6 +2263,7 @@ body.no-scroll, html.no-scroll {
     .search-section {
         border-radius: 0;
         padding: 14px;
+        padding-top: 140px;
     }
 
     /* Results should have breathing room on mobile, but station rows

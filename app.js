@@ -356,7 +356,18 @@ function initializeUI() {
     setupStationInput('departure');
     setupStationInput('arrival');
     setupSearchModeToggle();
-    document.getElementById('swap-stations').addEventListener('click', swapStations);
+    const swapBtnEl = document.getElementById('swap-stations');
+    if (swapBtnEl) {
+        swapBtnEl.addEventListener('click', swapStations);
+        swapBtnEl.addEventListener('click', () => {
+            swapBtnEl.classList.remove('spinning');
+            void swapBtnEl.offsetWidth; // force reflow to restart animation
+            swapBtnEl.classList.add('spinning');
+        });
+        swapBtnEl.addEventListener('animationend', () => {
+            swapBtnEl.classList.remove('spinning');
+        });
+    }
     document.getElementById('add-via').addEventListener('click', addViaStation);
     document.getElementById('search-button').addEventListener('click', performSearch);
 
