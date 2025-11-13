@@ -1580,13 +1580,10 @@ footer {
         padding: 10px;
     }
 
-    /* When JS detects the search-section is short enough, add
-       `body.search-compact` to remove the extra top padding and
-       vertically center content inside main. */
-    body.search-compact main {
-        padding-top: 0 !important;
-        justify-content: center !important;
-    }
+     /* NOTE: The `body.search-compact` height-dependent rule was removed.
+         Layout no longer switches based on `.search-section` measured height
+         to avoid instability on mobile devices. Keep main's padding-top and
+         justification consistent across mobile viewports. */
 
     .container {
         margin-top: 76px; /* モバイル用のヘッダー高さ調整 */
@@ -2318,23 +2315,12 @@ body.no-scroll, html.no-scroll {
         margin-right: 0px;
     }
 
-    /* When results are open, put results at the top of the main area
-       instead of letting the parent flex centering keep them vertically
-       centered. We toggle the class via JS (body.results-open). This
-       ensures the search screen (when no results) keeps the original
-       vertically-centered layout. */
-    body.results-open main {
-        justify-content: flex-start; /* align children to top */
-        min-height: 0; /* allow main to size to its content when results shown */
-        padding-top: 0; /* avoid extra top padding that looks like centering */
-    }
-
-    /* Release the container from forcing viewport height while results
-       are visible so the page scrolls naturally to show results starting
-       from the top. Search screen retains the min-height:100svh behavior. */
-    body.results-open .container {
-        min-height: auto;
-    }
+     /* NOTE: Removed behavior that toggled layout when results opened.
+         The previous rules targeted `body.results-open` and changed
+         `main`/`.container` min-height and alignment based on whether
+         results were visible. That height-dependent layout switching
+         caused instability on some mobile devices and has been removed
+         to keep mobile layout stable. */
 }
 
 /* ========================================
@@ -2487,3 +2473,12 @@ html {
 .share-modal-content {
     word-break: break-word;
 }
+
+/* Prevent mobile tap highlight (blue/cyan rectangle) on touch devices */
+/* Keeps keyboard focus rings intact for accessibility. */
+a, button, input, textarea, label, .search-mode-btn, .search-button,
+.swap-button, .add-via-button, .remove-via-button, .back-to-search-btn,
+.route-tab, .filter-item {
+    -webkit-tap-highlight-color: transparent;
+}
+

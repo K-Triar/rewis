@@ -368,10 +368,10 @@ function initializeUI() {
         });
     });
 
-    // Setup adaptive sizing for search-screen compact mode
-    // If .search-section height <= (visual viewport height - 240px) then
-    // disable main padding-top and vertically center main via CSS class.
-    if (typeof setupSearchSectionSizing === 'function') setupSearchSectionSizing();
+    // Adaptive search-section sizing removed: stable mobile layout only.
+    // Formerly `setupSearchSectionSizing()` toggled `body.search-compact` based
+    // on the measured `.search-section` height; that height-dependent switching
+    // caused instability on some mobile devices and has been removed.
 }
 
 // 検索モードUIの初期化
@@ -415,70 +415,11 @@ function setupSearchModeToggle() {
     });
 }
 
-// ========================================
-// 検索セクションの高さに応じたレイアウト切替
-// - ビューポート高さ（visual viewport が利用可能であればそれ）から 240px を引いた値と
-//   `.search-section` の高さを比較して、条件を満たすときに `body.search-compact` を付与する。
-// - resize / visualViewport resize / DOM 変更を監視して動的に切替える。
-function setupSearchSectionSizing() {
-    const searchSection = document.querySelector('.search-section');
-    if (!searchSection) return; // nothing to do
-
-    let raf = null;
-    function getViewportHeight() {
-        // Match CSS `svh` semantics: use the smaller of the layout viewport
-        // (`window.innerHeight`) and the visual viewport (`window.visualViewport.height`) when available.
-        const layoutH = window.innerHeight || 0;
-        const visualH = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : layoutH;
-        return Math.min(layoutH, visualH);
-    }
-
-    function update() {
-        if (raf) cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => {
-            const vh = getViewportHeight();
-            const threshold = vh - 420; // 100svh - 420px equivalent
-            const rect = searchSection.getBoundingClientRect();
-            // By default measure the full .search-section height
-            let height = rect.height;
-            // If a .search-mode-wrapper exists inside the search section, subtract
-            // its height from the measured height so the threshold comparison
-            // ignores that wrapper as requested.
-            const wrapper = searchSection.querySelector('.search-mode-wrapper');
-            if (wrapper) {
-                const wRect = wrapper.getBoundingClientRect();
-                height = Math.max(0, height - wRect.height);
-            }
-            if (height <= threshold) {
-                document.body.classList.add('search-compact');
-            } else {
-                document.body.classList.remove('search-compact');
-            }
-        });
-    }
-
-    // Debounced resize handler
-    let resizeTimer = null;
-    function onResize() {
-        if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(update, 80);
-    }
-
-    // Observe content changes within the search section that could change its height
-    const mo = new MutationObserver(() => {
-        update();
-    });
-    mo.observe(searchSection, { childList: true, subtree: true, attributes: true, characterData: true });
-
-    // Visual viewport resize (mobile virtual keyboard) & window resize
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', onResize);
-    }
-    window.addEventListener('resize', onResize);
-
-    // Initial check
-    update();
-}
+// NOTE: Adaptive search-section sizing was removed to avoid unstable
+// height-dependent layout switching on mobile devices. The logic that
+// measured `.search-section` and toggled `body.search-compact` has been
+// deleted. Keep this comment to explain why the previous implementation
+// was removed.
 
 // ========================================
 // 駅名入力の自動補完
