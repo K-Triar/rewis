@@ -188,19 +188,19 @@ function switchSection(sectionId) {
 
 async function tryLoadExistingData() {
     try {
-        // サーバーAPIから読込（サーバーが起動していない場合はローカルファイルにフォールバック）
-        let response = await fetch('/api/data');
-        if (!response.ok) {
-            response = await fetch('data.json');
-        }
-        if (response.ok) {
+        // テンプレートとなる雛形を読み込む（サーバーへの保存は行わない想定）
+        // ここではサーバーが提供する雛形ファイル `new_data.json` を読み込み、
+        // ローカル編集モードで開始します。
+        const response = await fetch('new_data.json');
+        if (response && response.ok) {
             appData = await response.json();
-            // データは既に秒単位で保存されているため、変換は不要
+            // 雛形読み込みなのでオフライン／ローカルモードとして扱う
             renderSection('companies');
-            updateServerStatus(true);
+            updateServerStatus(false);
         }
     } catch (error) {
-        console.log('data.jsonが見つかりません');
+        console.log('new_data.json が見つかりません');
+        // new_data.json がなければ空の状態で編集スタート（ローカルモード）
         updateServerStatus(false);
     }
 }
@@ -1470,38 +1470,91 @@ async function exportData() {
     
     // エクスポート用にデータをクリーンアップ
     const exportData = cleanDataForExport(appData);
-    
-    // サーバーAPIで保存を試行
-    try {
-        const response = await fetch('/api/data', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(exportData)
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            alert('サーバーに保存しました！\nバックアップも作成されました。');
-            updateServerStatus(true);
+    // サーバーへのアップロードは行いません。ローカル保存のため
+    // ユーザー名を入力してもらうUIを一時表示します。
+    const exportSectionBtn = document.querySelector('#export .export-btn');
+    if (!exportSectionBtn) {
+        // Fallback: immediately download with default name
+        const json = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([json], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `new_data_local_${new Date().toISOString().replace(/[:.TZ-]/g,'')}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        updateServerStatus(false);
+        return;
+    }
+
+    // Hide the original save button and show username input + Complete/Cancel
+    exportSectionBtn.style.display = 'none';
+
+    // If UI already exists, don't create again
+    if (document.getElementById('save-username-box')) return;
+
+    const box = document.createElement('div');
+    box.id = 'save-username-box';
+    // reuse editor's input/button styling by placing input inside .search-box
+    box.className = 'search-box';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'save-username-input';
+    input.placeholder = 'ユーザー名を入力';
+    input.style.marginRight = '8px';
+    box.appendChild(input);
+
+    const ok = document.createElement('button');
+    ok.type = 'button';
+    ok.textContent = '完了';
+    ok.className = 'save-btn';
+    ok.style.marginRight = '6px';
+    box.appendChild(ok);
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'キャンセル';
+    cancel.className = 'cancel-btn';
+    box.appendChild(cancel);
+
+    exportSectionBtn.parentNode.appendChild(box);
+
+    const cleanup = () => {
+        const b = document.getElementById('save-username-box');
+        if (b && b.parentNode) b.parentNode.removeChild(b);
+        exportSectionBtn.style.display = '';
+    };
+
+    cancel.addEventListener('click', () => {
+        cleanup();
+    });
+
+    ok.addEventListener('click', () => {
+        const raw = (document.getElementById('save-username-input')?.value || '').toString().trim();
+        if (!raw) {
+            alert('ユーザー名を入力してください');
             return;
         }
-    } catch (error) {
-        console.log('サーバー保存失敗、ダウンロードします');
+        // sanitize username: lowercase, keep a-z0-9 and underscore/dash
+        const username = raw.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+        const pad = (n) => n.toString().padStart(2, '0');
+        const now = new Date();
+        const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        const filename = `new_data_${username}_${ts}.json`;
+
+        const json = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([json], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert(`ファイルを保存しました: ${filename}`);
         updateServerStatus(false);
-    }
-    
-    // サーバーが使えない場合はダウンロード
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'data.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    alert('ファイルをダウンロードしました。\n手動でサーバーにアップロードしてください。');
+        cleanup();
+    });
 }
 
 // エクスポート用にデータをクリーンアップ
@@ -1549,28 +1602,10 @@ function loadDataFile() {
     reader.onload = async (e) => {
         try {
             appData = JSON.parse(e.target.result);
-            
-            // サーバーに自動保存を試行
-            try {
-                const response = await fetch('/api/data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(appData)
-                });
-                
-                if (response.ok) {
-                    alert('データを読み込み、サーバーに保存しました');
-                    updateServerStatus(true);
-                } else {
-                    alert('データを読み込みました（サーバー保存失敗）');
-                    updateServerStatus(false);
-                }
-            } catch (err) {
-                alert('データを読み込みました（ローカルモード）');
-                updateServerStatus(false);
-            }
+            // オフライン（ローカル）モードで編集を開始します。
+            // サーバーへ自動アップロードは行いません。
+            alert('データを読み込みました。ローカル編集モードで開始します。');
+            updateServerStatus(false);
             
             renderSection('companies');
             switchSection('companies');

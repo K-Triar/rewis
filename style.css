@@ -84,40 +84,12 @@ header {
     display: flex;
     align-items: center;
     gap: 16px;
-    justify-content: space-between; /* put help icon to the right */
 }
 
 .header-logo {
     height: 3rem;
     width: auto;
     display: block;
-}
-
-/* header left group to keep logo + title together */
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* Help button in header */
-.help-button {
-    background: transparent;
-    border: none;
-    padding: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 8px;
-}
-.help-button img {
-    width: 36px;
-    height: 36px;
-    display: block;
-}
-.help-button:focus {
-    outline: none;
 }
 
 header h1 {
@@ -162,90 +134,9 @@ main {
 /* ========================================
    検索セクション
 ======================================== */
-.search-mode-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* label left-aligned relative to toggle */
-    width: fit-content; /* shrink to fit inner content */
-    margin: 0 auto 48px; /* center the whole wrapper */
-}
-/* Mobile: place search-mode-wrapper independently at the very top of main */
-@media (max-width: 768px) {
-    .search-mode-wrapper {
-        position: absolute;
-        top: 20px; /* align to the top of the main element (exclude any border-top) */
-        left: 50%;
-        transform: translateX(-50%);
-        margin: 0; /* remove default bottom margin used in desktop */
-        z-index: 600;
-        width: fit-content;
-    }
-}
-.search-mode-label {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--text-color);
-    margin-bottom: 6px;
-    color: #666;
-}
-.search-mode-toggle {
-    display: flex;
-    position: relative;
-    gap: 8px;
-    align-items: center;
-    background: #eee; /* pill-shaped gray background */
-    padding: 6px; /* inner spacing so buttons sit comfortably */
-    border-radius: 999px;
-    width: fit-content; /* shrink to fit inner buttons */
-    box-sizing: border-box;
-}
-
-/* アニメーションする青い背景 */
-.search-mode-toggle::before {
-    content: '';
-    position: absolute;
-    top: 6px;
-    left: var(--bg-left, 6px);
-    width: var(--bg-width, 0);
-    height: calc(100% - 12px);
-    background: var(--primary-color);
-    border-radius: 999px;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 0;
-    pointer-events: none;
-}
-.search-mode-btn {
-    background: transparent; /* let container provide the gray pill background */
-    color: #222;
-    border: none; /* no border per request */
-    padding: 8px 14px;
-    border-radius: 999px;
-    cursor: pointer;
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.8rem; /* match filter caption size */
-    position: relative;
-    z-index: 1;
-    transition: color 0.2s;
-}
-.search-mode-btn.selected {
-    background: transparent;
-    color: #fff;
-    font-weight: 600;
-    border: none; /* ensure selected has no border */
-}
-.search-mode-btn:focus {
-    /* Remove default focus ring for mouse/touch activation */
-    outline: none;
-}
-
-.search-mode-btn:focus-visible {
-    /* Preserve an accessible focus ring for keyboard users */
-    outline: 2px solid rgba(0,120,215,0.25);
-    outline-offset: 2px;
+.search-section {
+    padding: 25px;
+    border-radius: 8px;
 }
 
 /* 駅入力行 */
@@ -257,13 +148,10 @@ main {
 
 /* 新しいクラス: 検索画面の発着入力用 (departure/arrival) */
 .station-input-row {
-    /* center the row horizontally; keep children aligned center vertically */
     display: flex;
-    justify-content: center; /* horizontally center the inner content */
     align-items: center;
     gap: 12px;
     margin-bottom: 30px;
-    width: 100%;
 }
 
 .station-badge {
@@ -291,7 +179,6 @@ main {
 .input-wrapper {
     flex: 1;
     position: relative;
-    max-width: 400px;
 }
 
 .station-input {
@@ -304,8 +191,6 @@ main {
     transition: border-color 0.3s;
     background: #f5f5f5;
 }
-
-.station-input { max-width: 400px; }
 
 .station-input:focus {
     outline: none;
@@ -371,25 +256,23 @@ main {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 15px;
+    margin-top: -5px;
 }
 
 /* 経由追加と入替を同一行に配置するラッパー */
-/* Use a centered, padded flex container so its inner content aligns with
-   `.station-input-row` (which uses max-width + horizontal padding). The
-   add-via button is absolutely centered inside the wrapper while the
-   swap button is a normal flex item pushed to the right with
-   `margin-left: auto` — this avoids brittle `right:` calculations. */
 .via-swap-row {
-    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center; /* keeps the add-via button visually centered */
+    position: relative;
     gap: 12px;
-    margin: 0 auto 30px auto;
-    max-width: 520px; /* match .station-input-row on desktop */
-    box-sizing: border-box;
-    padding: 0 12px; /* same horizontal inset as .station-input-row */
-    min-height: 40px; /* provide height so centered button has room */
+    margin-bottom: 15px;
+}
+
+.via-swap-row {
+    display: block; /* use block so absolutely positioned children are relative to this container */
+    position: relative;
+    margin-bottom: 15px;
+    min-height: 64px; /* provide height so centered button has room */
 }
 
 .via-swap-row .add-via-button {
@@ -405,12 +288,11 @@ main {
 }
 
 .via-swap-row .swap-button-container {
-    /* make the swap button a normal flex item and push it to the right
-       edge of the inner content area using auto margin. This keeps its
-       right edge aligned to the same padding as .station-input-row. */
-    position: static;
-    margin-left: auto;
-    margin-right: 0;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
 }
 
 .swap-button {
@@ -431,16 +313,7 @@ main {
 .swap-button:hover {
     background: var(--primary-color);
     color: white;
-}
-
-/* Click-triggered full rotation */
-.swap-button.spinning {
-    animation: swap-spin 0.6s ease-in-out;
-}
-
-@keyframes swap-spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+    transform: rotate(180deg);
 }
 
 /* 経由駅追加ボタン */
@@ -464,79 +337,9 @@ main {
     background: #d0d0d0;
 }
 
-
-/* Desktop (PC) adjustments: constrain station input width and center station rows */
-@media (min-width: 769px) {
-    /* Center the departure/arrival/via rows horizontally */
-    .station-input-row {
-        /* center the row on larger screens */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        margin: 0 auto;
-        margin-bottom: 30px;
-        box-sizing: border-box;
-        padding: 0 12px; /* keep horizontal inset consistent with via-station items */
-    }
-
-    /* Limit the input wrapper to a maximum width and allow it to shrink/grow
-       so the input box doesn't stretch too wide on large screens. */
-    .input-wrapper {
-        /* cap input width to 400px on desktop */
-        flex: 0 1 400px;
-        max-width: 400px;
-        width: 100%;
-        position: relative;
-    }
-
-    /* Ensure via stations stack centered under the main inputs */
-    .via-stations {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-
-    /* Keep each via-station row centered and prevent inputs from expanding
-       beyond a comfortable width while leaving room for the badge and remove button. */
-    .via-station-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        /* preserve vertical spacing while keeping width equal to children */
-        margin: 0 auto 30px auto;
-        justify-content: center; /* center the contents horizontally */
-        width: 100%;
-        max-width: none;
-        box-sizing: border-box;
-        padding: 0 12px; /* same horizontal inset as station-input-row */
-    }
-
-    /* Tweak the remove button so it stays visually close to the input */
-    .remove-via-button {
-        margin-left: 8px;
-        align-self: center;
-    }
-
-    /* Slight spacing adjustment for the suffix so it aligns nicely with centered inputs */
-    .station-suffix {
-        margin-left: 8px;
-    }
-
-    /* Make remove button and station-suffix identical width on desktop */
-    /* Assumption: 48px chosen to match other badge sizes (e.g. .station-badge) */
-    .remove-via-button,
-    .station-suffix {
-        width: 48px;
-        height: 48px; /* ensure the remove button stays circular */
-        min-width: 48px;
-        max-width: 48px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-    }
+/* 経由駅 */
+.via-stations {
+    margin-bottom: px;
 }
 
 .via-station-item {
@@ -561,8 +364,7 @@ main {
 }
 
 .via-station-item .input-wrapper {
-    flex: 0 1 400px;
-    max-width: 400px;
+    flex: 1;
 }
 
 .remove-via-button {
@@ -593,6 +395,7 @@ main {
     background: white;
     padding: 20px;
     border-radius: 6px;
+    margin-bottom: 20px;
 }
 
 .filter-group {
@@ -680,9 +483,6 @@ main {
 ======================================== */
 .results-section {
     animation: fadeIn 0.5s;
-    /* On mobile we show results as an overlay to keep search visible
-       beneath; on wider screens (desktop) prefer normal document flow
-       so the results area doesn't get clipped by parent containers. */
     position: absolute;
     top: 0;
     left: 0;
@@ -691,28 +491,9 @@ main {
     z-index: 400;
 }
 
-/* Desktop: render results in normal flow so container's overflow:hidden
-   doesn't clip the content. This makes results-info and results-container
-   visible on wider viewports. */
-@media (min-width: 769px) {
-    .results-section {
-        position: relative;
-        top: auto;
-        left: auto;
-        right: auto;
-        z-index: auto;
-        margin-top: 0;
-        /* allow it to participate in normal layout and push other content */
-    }
-}
-
-/* fadeIn: animate opacity only to avoid clobbering existing transform values
-   (some elements use transform for centering; animating transform here
-    caused their translateX to be lost during the animation and produced
-    the horizontal shift observed). */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .results-section h2 {
@@ -1099,7 +880,7 @@ main {
     justify-self: center;
     align-self: center;
     width: 1px;
-    height: calc(var(--filter-icon-size) * 1.5);
+    height: calc(var(--filter-icon-size) * 0.9);
     background: var(--border-color);
     border-radius: 1px;
 }
@@ -1346,7 +1127,7 @@ main {
 }
 
 /* ========================================
-    エラー・ローディング (画面上部ポップアップ表示)
+   エラー・ローディング (画面上部ポップアップ表示)
 ======================================== */
 /* Popup container (hidden by default; JS toggles display) */
 #error-section {
@@ -1422,20 +1203,10 @@ main {
     color: #333;
 }
 
-/* Loading container: center contents and stack vertically on all viewports.
-   JS typically toggles inline `display` (e.g. 'flex'), but we ensure the
-   container uses a column layout so spinner sits above the message on desktop
-   as well as mobile. Mobile-specific sizing is handled in the media query
-   further below. */
 .loading-section {
     text-align: center;
     padding: 40px;
     animation: fadeIn 0.5s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px; /* space between spinner and text */
 }
 
 .loading-spinner {
@@ -1457,7 +1228,7 @@ main {
    フッター
 ======================================== */
 footer {
-    background: #012169; /* コーポレートカラー */
+    background: #1a3a5c; /* 濃い目の藍色 */
     padding: 24px 0;
     color: #ffffff;
     font-size: 0.9rem;
@@ -1541,15 +1312,12 @@ footer {
     }
 
     .container {
-        margin-top: 84px; /* タブレット用のヘッダー高さ調整 */
+        margin-top: 80px; /* タブレット用のヘッダー高さ調整 */
     }
 
     /* header の高さ分の余白を main に確保して、fixed header と重ならないようにする */
-    /* モバイル時は search-mode-wrapper 分の padding-top を追加し、上寄せにする */
     main {
-        padding: 0px;
-        /* padding-top を search-section に移動しました */
-        justify-content: flex-start; /* 上寄せにして縦スクロールを自然に動作させる */
+        margin-top: 80px;
     }
 
     header h1 {
@@ -1562,6 +1330,10 @@ footer {
 
     .header-logo {
         height: 32px;
+    }
+
+    main {
+        padding: 20px;
     }
 
     .segment-timeline {
@@ -1578,27 +1350,17 @@ footer {
     }
 }
 
-/* Apply 480px-and-below adjustments here so 768px and below use the
-   same (smaller) header & layout settings. This consolidates the
-   previous separate @media (max-width:480px) rules into the
-   @media (max-width:768px) block as requested. */
-
-@media (max-width: 768px) {
+@media (max-width: 480px) {
     body {
         padding: 10px;
     }
-
-     /* NOTE: The `body.search-compact` height-dependent rule was removed.
-         Layout no longer switches based on `.search-section` measured height
-         to avoid instability on mobile devices. Keep main's padding-top and
-         justification consistent across mobile viewports. */
 
     .container {
         margin-top: 76px; /* モバイル用のヘッダー高さ調整 */
         border-radius: 8px;
     }
 
-    /* override main margin-top set earlier for tablet; use the 480px value */
+    /* スマホ向け: header の高さ分のマージンを main に追加 */
     main {
         margin-top: 76px;
     }
@@ -1613,6 +1375,10 @@ footer {
 
     header h1 {
         font-size: 1.3rem;
+    }
+
+    .search-section {
+        padding: 15px;
     }
 
     .route-card {
@@ -1838,61 +1604,6 @@ footer {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-/* Disable scrolling (applied while loading is shown) */
-body.no-scroll, html.no-scroll {
-    height: 100%;
-    overflow: hidden !important;
-    touch-action: none; /* prevent touch scrolling on mobile */
-}
-
-/* Mobile: display loading as a centered overlay with a semi-transparent white backdrop */
-@media (max-width: 768px) {
-    /* Make the loading section a fixed, centered card above a white translucent backdrop */
-    /* Make the loading section a full-screen white overlay on mobile.
-       The overlay covers the entire viewport and centers the spinner + text.
-       JS will toggle the inline display to 'flex' when showing the overlay. */
-    #loading-section {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 2000; /* in front of other UI */
-        width: 100%;
-        height: 100%;
-    background: rgba(255,255,255,0.85); /* semi-transparent white backdrop */
-        padding: 20px 18px;
-        border-radius: 0;
-        box-sizing: border-box;
-        text-align: center;
-        animation: fadeIn 0.5s;
-        display: none; /* controlled by app.js (will set to 'flex') */
-        /* Center children when visible; JS will set inline display to 'flex' */
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-    }
-
-    /* Remove separate backdrop pseudo element; the overlay itself is solid white */
-    #loading-section::before { content: none; }
-
-    /* Slightly enlarge the spinner for mobile visibility */
-    #loading-section .loading-spinner {
-        width: 64px;
-        height: 64px;
-        border-width: 5px;
-        margin-bottom: 16px;
-    }
-
-    /* Ensure the loading message is visible and readable on white background */
-    #loading-section p {
-        color: #222222;
-        font-size: 1rem;
-        margin: 0;
-        line-height: 1.3;
-    }
 }
 
 /* Time styles (kept here so they're not accidentally nested) */
@@ -2250,12 +1961,10 @@ body.no-scroll, html.no-scroll {
           overflow: visible;
     }
 
-    /* Remove main horizontal padding so inner content can be full-bleed where needed
+    /* Remove main padding so inner content can be full-bleed where needed
        and allow main to expand to push footer to the bottom. */
     main {
-        padding-left: 0;
-        padding-right: 0;
-        /* padding-top はそのまま維持（search-mode-wrapper分） */
+        padding: 0;
         flex: 1 0 auto; /* grow to fill remaining vertical space */
     }
 
@@ -2263,7 +1972,6 @@ body.no-scroll, html.no-scroll {
     .search-section {
         border-radius: 0;
         padding: 14px;
-        padding-top: 140px;
     }
 
     /* Results should have breathing room on mobile, but station rows
@@ -2316,16 +2024,9 @@ body.no-scroll, html.no-scroll {
 
     /* Make back button align nicely at the edges */
     .back-to-search-btn {
-        margin-left: 0px;
-        margin-right: 0px;
+        margin-left: 12px;
+        margin-right: 12px;
     }
-
-     /* NOTE: Removed behavior that toggled layout when results opened.
-         The previous rules targeted `body.results-open` and changed
-         `main`/`.container` min-height and alignment based on whether
-         results were visible. That height-dependent layout switching
-         caused instability on some mobile devices and has been removed
-         to keep mobile layout stable. */
 }
 
 /* ========================================
@@ -2389,101 +2090,3 @@ body.no-scroll, html.no-scroll {
 html {
   -webkit-overflow-scrolling: touch;
 }
-
-/* Responsive sizing for header help icon */
-@media (max-width: 768px) {
-    .help-button img {
-        width: 24px;
-        height: 24px;
-    }
-}
-/* 480px rules consolidated into 768px block per request */
-
-/* Mobile: center via-station items (<=768px) */
-@media (max-width: 768px) {
-    .via-station-item {
-        justify-content: center; /* center children horizontally */
-        width: 100%;
-        margin: 0 auto 30px auto;
-        box-sizing: border-box;
-        padding: 0;
-    }
-
-    /* Keep input wrapper sizing reasonable on small screens */
-    .via-station-item .input-wrapper {
-        flex: 1 1 100%;
-        max-width: 400px;
-    }
-}
-
-/* Share modal styles */
-.share-modal {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.45);
-    z-index: 1200;
-}
-.share-modal-content {
-    background: white;
-    padding: 18px;
-    border-radius: 10px;
-    width: 92%;
-    max-width: 520px;
-    box-shadow: var(--shadow);
-}
-.share-modal-content h3 { margin: 0 0 8px 0; color: var(--primary-color); }
-.share-modal-content p { margin: 0 0 10px 0; color: #444; }
-.share-url-input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    margin-bottom: 10px;
-    background: #f8f8f8;
-}
-.share-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-.share-modal .back-to-search-btn { padding: 6px 12px; font-size: 0.95rem; }
-
-/* Center the share button under route cards */
-.share-result-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-top: 24px;
-}
-.share-result-wrapper .back-to-search-btn {
-    /* ensure it doesn't stretch full width */
-    display: inline-block;
-    min-width: 160px;
-}
-
-/* Fix: ensure lists inside the modal have visible bullets and proper left spacing
-   (some global reset rules remove default ul padding). This keeps bullets inside
-   the rounded popup and prevents them from being clipped. */
-.share-modal-content ul {
-    margin: 0.5rem 0 1rem 1.2rem; /* top/right/bottom/left */
-    padding-left: 1.05rem; /* extra space for bullets */
-    list-style-position: outside;
-    list-style-type: disc;
-    color: #444;
-}
-.share-modal-content li {
-    margin-bottom: 0.45rem;
-    line-height: 1.45;
-}
-
-/* Ensure long list items wrap nicely inside the modal without overflowing */
-.share-modal-content {
-    word-break: break-word;
-}
-
-/* Prevent mobile tap highlight (blue/cyan rectangle) on touch devices */
-/* Keeps keyboard focus rings intact for accessibility. */
-a, button, input, textarea, label, .search-mode-btn, .search-button,
-.swap-button, .add-via-button, .remove-via-button, .back-to-search-btn,
-.route-tab, .filter-item {
-    -webkit-tap-highlight-color: transparent;
-}
-

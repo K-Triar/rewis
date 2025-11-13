@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>路線データ編集システム - REWIS</title>
+    <title>路線データ編集システム(オフライン専用) - REWIS</title>
     <link rel="stylesheet" href="editor.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>路線データ編集システム - data.json<br/><span class="warning">※注意※　このエディタはプレビューです。GitHub Pagesでは、JSONファイルのアップロードはできません。</span></h1>
+            <h1>路線データ編集システム(オフライン専用) - new_data.json<br/><span class="warning">※注意※　このエディタはダウンロード専用です。このエディタからJSONファイルのアップロードはできません。</span></h1>
             <div id="server-status" style="font-size: 10px; margin-top: 3px;">接続確認中...</div>
         </header>
 
@@ -244,7 +244,7 @@
                 <div class="help-content">
                     <div class="help-section">
                         <h3>📖 このシステムについて</h3>
-                        <p>このシステムは、鉄道路線の運行データを編集・管理するためのツールです。表形式で編集し、保存すると JSON 形式の data.json を出力・更新します。ヘッダーの接続表示により、オンライン保存（サーバーへ）かローカル保存（ダウンロード）かが自動で切り替わります。</p>
+                        <p>このシステムは、鉄道路線の運行データを編集・管理するためのツールです。表形式で編集し、保存すると JSON 形式の data.json を出力・更新します。<strong>このエディタ（editor_for_new_data）はオフライン作業専用</strong>で、<strong>保存は常に data.json のダウンロード</strong>になります（サーバー保存・自動バックアップは行いません）。</p>
                     </div>
 
                     <div class="help-section">
@@ -255,7 +255,7 @@
                             <li><strong>並び替え</strong>：各表ヘッダ右端の「▲▼」で昇順・降順の表示切替（表示のみ／保存内容には影響しません）。</li>
                             <li><strong>必須の入力</strong>：必須項目が未入力のセルは赤色でハイライトされます。値を入れると自動で解除されます。</li>
                             <li><strong>IDの重複警告</strong>：同一IDが複数ある行は行全体が赤色表示になります。重複を解消してから保存してください。</li>
-                            <li><strong>保存</strong>：「保存/読込」タブの「保存」で反映。オンライン時はサーバーに保存（直前のデータは自動バックアップ）、オフライン時は data.json をダウンロードします。</li>
+                            <li><strong>保存</strong>：「保存/読込」タブの「保存」で <strong>data.json をダウンロード</strong>します（<strong>常にローカル保存</strong>。サーバー保存・自動バックアップはありません）。</li>
                         </ol>
                     </div>
 
@@ -359,8 +359,7 @@
                         </ul>
                         <p><strong>保存：</strong></p>
                         <ul>
-                            <li>オンライン（サーバー接続: オンライン）：サーバーに直接保存し、直前のデータは自動でバックアップされます（data.backup.●●●.json）。</li>
-                            <li>オフライン（ローカルモード）：data.json をダウンロードします。必要に応じてサーバーへ手動アップロードしてください。</li>
+                            <li><strong>常に data.json をダウンロード保存</strong>します（サーバー保存・自動バックアップはありません）。必要に応じて、ダウンロードしたファイルを運用サーバーへ手動でアップロードしてください。</li>
                         </ul>
                         <p><strong>プレビュー：</strong></p>
                         <ul>
@@ -375,14 +374,14 @@
                             <li><strong>IDの一意性：</strong>各種IDは重複不可です。赤色表示は重複や未入力の警告です。</li>
                             <li><strong>削除操作：</strong>削除は行内の確認UIで確定します。確定後は元に戻せないためご注意ください。</li>
                             <li><strong>時間の単位：</strong>所要時間・乗換時間は<strong>秒</strong>で入力します。</li>
-                            <li><strong>サーバー接続表示：</strong>画面上部に「サーバー接続: オンライン／オフライン（ローカルモード）」を表示します。</li>
+                <li><strong>サーバー接続表示：</strong>本エディタはオフライン運用を前提としています。上部の表示が「オフライン（ローカルモード）」でも正常です。</li>
                         </ul>
                     </div>
 
                     <div class="help-section">
                         <h3>💡 よくある質問</h3>
                         <p><strong>Q: 編集を間違えました。元に戻せますか？</strong></p>
-                        <p>A: 編集中は「取消」で行の編集前状態に戻せます。保存前ならページ再読込で最後に保存した状態に戻ります。オンライン保存時はバックアップ（data.backup.●●●.json）から復元できます。</p>
+            <p>A: 編集中は「取消」で行の編集前状態に戻せます。保存前ならページ再読込で最後に保存した状態に戻ります。保存後はダウンロード済みの data.json をバックアップとして保管・復元してください（自動バックアップはありません）。</p>
 
                         <p><strong>Q: 行が赤くなりました。</strong></p>
                         <p>A: 必須未入力またはID重複、直通運転の逆向き重複検出などの警告です。該当箇所を修正して赤色表示を解消してください。</p>
@@ -391,7 +390,7 @@
                         <p>A: 駅タブの検索ボックスや、区間タブの路線フィルタを活用してください。各列の「▲▼」で並び替えも可能です。</p>
 
                         <p><strong>Q: 保存ボタンを押しても何も起きません。</strong></p>
-                        <p>A: オフライン時はダウンロードが開始されます。ブラウザのダウンロードがブロックされていないかご確認ください。</p>
+                        <p>A: 保存は常にダウンロードとして実行します。ブラウザのダウンロードがブロックされていないかご確認ください。</p>
                     </div>
 
                     <div class="help-section">
@@ -407,6 +406,6 @@
         </footer>
     </div>
 
-    <script src="editor.js"></script>
+    <script src="editor_for_new_data.js"></script>
 </body>
 </html>

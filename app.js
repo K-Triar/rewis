@@ -9,22 +9,6 @@ let viaStationCount = 0;
 let viaUniqueIdCounter = 0;
 let brandName = 'Kトライア交通グループ';
 let ownCompanyId = 'KT';
-// Handlers used to prevent scrolling on mobile while keeping the scrollbar visible
-let _loadingPreventHandlers = null;
-// 検索モード: 'time' | 'balance' | 'transfer' (default: balance)
-let searchMode = 'balance';
-
-function getTransferPenalty(mode) {
-    switch (mode) {
-        case 'time':
-            return 0;
-        case 'transfer':
-            return 30;
-        case 'balance':
-        default:
-            return 10;
-    }
-}
 
 (async () => {
     try {
@@ -50,9 +34,6 @@ function getTransferPenalty(mode) {
         initializeUI();
         console.log('UI初期化完了');
         hideLoading();
-        
-        // URLパラメータがあれば自動検索を実行
-        loadFromUrlParams();
     } catch (error) {
         console.error('初期化エラー:', error);
         showError('データの読み込みに失敗しました: ' + error.message);
@@ -308,8 +289,8 @@ function preprocessData() {
                             if (transfer) {
                                 transferTime = transfer.transferTime;
                             } else {
-                                // 定義がない場合はデフォルト10秒
-                                transferTime = 10;
+                                // 定義がない場合はデフォルト3分 -> 180秒
+                                transferTime = 180;
                             }
                         }
                         isDirectThrough = false;
@@ -355,19 +336,7 @@ function preprocessData() {
 function initializeUI() {
     setupStationInput('departure');
     setupStationInput('arrival');
-    setupSearchModeToggle();
-    const swapBtnEl = document.getElementById('swap-stations');
-    if (swapBtnEl) {
-        swapBtnEl.addEventListener('click', swapStations);
-        swapBtnEl.addEventListener('click', () => {
-            swapBtnEl.classList.remove('spinning');
-            void swapBtnEl.offsetWidth; // force reflow to restart animation
-            swapBtnEl.classList.add('spinning');
-        });
-        swapBtnEl.addEventListener('animationend', () => {
-            swapBtnEl.classList.remove('spinning');
-        });
-    }
+    document.getElementById('swap-stations').addEventListener('click', swapStations);
     document.getElementById('add-via').addEventListener('click', addViaStation);
     document.getElementById('search-button').addEventListener('click', performSearch);
 
@@ -378,59 +347,7 @@ function initializeUI() {
             }
         });
     });
-
-    // Adaptive search-section sizing removed: stable mobile layout only.
-    // Formerly `setupSearchSectionSizing()` toggled `body.search-compact` based
-    // on the measured `.search-section` height; that height-dependent switching
-    // caused instability on some mobile devices and has been removed.
 }
-
-// 検索モードUIの初期化
-function setupSearchModeToggle() {
-    const container = document.getElementById('search-mode-toggle');
-    if (!container) return;
-    const buttons = Array.from(container.querySelectorAll('.search-mode-btn'));
-
-    function setMode(mode) {
-        searchMode = mode;
-        
-        // 選択されたボタンの位置と幅を取得
-        let selectedBtn = null;
-        buttons.forEach((btn, index) => {
-            const m = btn.dataset.mode;
-            const selected = m === mode;
-            btn.classList.toggle('selected', selected);
-            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
-            if (selected) selectedBtn = btn;
-        });
-        
-        // 選択されたボタンの実際の幅と位置を取得してCSS変数に設定
-        if (selectedBtn) {
-            const btnRect = selectedBtn.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            const leftOffset = btnRect.left - containerRect.left;
-            
-            container.style.setProperty('--bg-width', `${btnRect.width}px`);
-            container.style.setProperty('--bg-left', `${leftOffset}px`);
-        }
-    }
-
-    // initialize according to current global
-    setMode(searchMode);
-
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mode = btn.dataset.mode;
-            setMode(mode);
-        });
-    });
-}
-
-// NOTE: Adaptive search-section sizing was removed to avoid unstable
-// height-dependent layout switching on mobile devices. The logic that
-// measured `.search-section` and toggled `body.search-compact` has been
-// deleted. Keep this comment to explain why the previous implementation
-// was removed.
 
 // ========================================
 // 駅名入力の自動補完
@@ -478,40 +395,6 @@ function searchStations(query) {
                convertToHiragana(station.stationName).includes(lowerQuery);
     }).slice(0, 10);
 }
-
-// ----------------------------------------
-// ヘルプモーダルの開閉 (index.html のヘルプボタン)
-// ----------------------------------------
-// このスクリプトは既存の initializeUI と独立しており、
-// DOM が利用可能になったらイベントをバインドします。
-document.addEventListener('DOMContentLoaded', () => {
-    const helpButton = document.getElementById('help-button');
-    const helpModal = document.getElementById('help-modal');
-    const closeHelpBtn = document.getElementById('close-help');
-
-    function openHelp() {
-        if (!helpModal) return;
-        // share-modal styles expect a centered overlay; use flex for centering
-        helpModal.style.display = 'flex';
-    }
-
-    function closeHelp() {
-        if (!helpModal) return;
-        helpModal.style.display = 'none';
-    }
-
-    if (helpButton) helpButton.addEventListener('click', openHelp);
-    if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelp);
-
-    // Click on backdrop (modal container) closes the modal
-    if (helpModal) {
-        helpModal.addEventListener('click', (e) => {
-            if (e.target === helpModal) {
-                closeHelp();
-            }
-        });
-    }
-});
 
 function displaySuggestions(stations, suggestionsDiv, input) {
     if (stations.length === 0) {
@@ -581,31 +464,13 @@ function convertToHiragana(text) {
 // ========================================
 // 駅入れ替え
 // ========================================
-// When swapping origin/destination, also reverse the order of any
-// 経由駅 (via-station) DOM items so the route direction is preserved.
-// This only takes effect when there are 2 or more via stations.
-function _reverseViaStationsIfNeeded() {
-    const viaStationsDiv = document.getElementById('via-stations');
-    if (!viaStationsDiv) return;
-    const viaItems = Array.from(viaStationsDiv.querySelectorAll('.via-station-item'));
-    if (viaItems.length <= 1) return;
-    // Reverse DOM order by appending items in reversed sequence
-    viaItems.reverse().forEach(item => viaStationsDiv.appendChild(item));
-    // Update visible badges (経1, 経2...)
-    reindexViaStations();
-}
-
-// Updated swap handler that also reverses via stations when appropriate
 function swapStations() {
     const departure = document.getElementById('departure');
     const arrival = document.getElementById('arrival');
-
+    
     const temp = departure.value;
     departure.value = arrival.value;
     arrival.value = temp;
-
-    // Reverse via stations order if there are multiple
-    _reverseViaStationsIfNeeded();
 }
 
 // ========================================
@@ -740,9 +605,6 @@ function performSearch() {
         return;
     }
 
-    // URLパラメータを更新
-    updateUrlParams(departureStation, arrivalStation, viaStations, filters);
-
     showLoading();
     
     setTimeout(() => {
@@ -766,201 +628,6 @@ function performSearch() {
 function findStationByName(name) {
     if (!name) return null;
     return appData.stations.find(s => s.stationName === name);
-}
-
-function findStationById(id) {
-    if (!id) return null;
-    return appData.stations.find(s => s.stationId === id);
-}
-
-// ========================================
-// URLパラメータ処理
-// ========================================
-function updateUrlParams(departureStation, arrivalStation, viaStations, filters) {
-    const params = new URLSearchParams();
-
-    // search-mode: only include when not default 'balance'. Insert first so it appears at the
-    // start of the query string when present.
-    if (searchMode === 'time') {
-        params.append('search-mode', 'time');
-    } else if (searchMode === 'transfer') {
-        params.append('search-mode', 'transfer');
-    }
-
-    // Preserve existing `route` parameter value (but do NOT insert it yet).
-    // We'll append it after adding other params so `route` stays at the end
-    // of the query string and the original parameter ordering isn't changed.
-    let preservedRoute = null;
-    try {
-        const currentParams = new URLSearchParams(window.location.search);
-        if (currentParams.has('route')) {
-            preservedRoute = currentParams.get('route');
-        }
-    } catch (e) {
-        // Defensive: if URL parsing fails for some reason, continue without route.
-        console.warn('Failed to read existing route param:', e);
-    }
-    
-    // 出発駅・到着駅
-    if (departureStation) {
-        params.set('from', departureStation.stationId);
-    }
-    if (arrivalStation) {
-        params.set('to', arrivalStation.stationId);
-    }
-    
-    // 経由駅（via1, via2, ...）
-    viaStations.forEach((station, index) => {
-        params.set(`via${index + 1}`, station.stationId);
-    });
-    
-    // フィルター設定
-    // KTonlyはデフォルトでdisabledなので、enabledの場合のみ付与
-    if (filters.onlyOwnCompany) {
-        params.set('KTonly', 'enabled');
-    }
-    
-    // 列車種別はデフォルトでenabledなので、disabledの場合のみ付与
-    if (!filters.allowedTrainTypes.has('TC')) {
-        params.set('TC', 'disabled');
-    }
-    if (!filters.allowedTrainTypes.has('SX')) {
-        params.set('SX', 'disabled');
-    }
-    if (!filters.allowedTrainTypes.has('MC')) {
-        params.set('MC', 'disabled');
-    }
-    
-    // If there was a preserved route from the current URL, append it now so
-    // it appears at the end of the query string (preserves order expectations).
-    if (preservedRoute) {
-        params.set('route', preservedRoute);
-    }
-
-    // URLを更新（履歴に追加）
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({}, '', newUrl);
-    console.log('URLパラメータを更新:', newUrl);
-}
-
-function clearUrlParams() {
-    // パラメータを削除してベースURLに戻す
-    const newUrl = window.location.pathname;
-    window.history.pushState({}, '', newUrl);
-    console.log('URLパラメータを削除:', newUrl);
-}
-
-function loadFromUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    // search-mode が指定されている場合は内部状態と UI を更新
-    try {
-        const sm = params.get('search-mode');
-        if (sm === 'time' || sm === 'transfer') {
-            searchMode = sm;
-        } else {
-            searchMode = 'balance';
-        }
-        const container = document.getElementById('search-mode-toggle');
-        if (container) {
-            const btn = container.querySelector(`.search-mode-btn[data-mode="${searchMode}"]`);
-            if (btn) btn.click();
-        }
-    } catch (e) {
-        // ignore
-    }
-    
-    // パラメータがない場合は何もしない
-    if (!params.has('from') && !params.has('to')) {
-        return;
-    }
-    
-    console.log('URLパラメータから検索条件を読み込み中...');
-    
-    // 出発駅を設定
-    const fromId = params.get('from');
-    if (fromId) {
-        const fromStation = findStationById(fromId);
-        if (fromStation) {
-            document.getElementById('departure').value = fromStation.stationName;
-            console.log('出発駅設定:', fromStation.stationName);
-        } else {
-            console.warn('出発駅が見つかりません:', fromId);
-        }
-    }
-    
-    // 到着駅を設定
-    const toId = params.get('to');
-    if (toId) {
-        const toStation = findStationById(toId);
-        if (toStation) {
-            document.getElementById('arrival').value = toStation.stationName;
-            console.log('到着駅設定:', toStation.stationName);
-        } else {
-            console.warn('到着駅が見つかりません:', toId);
-        }
-    }
-    
-    // 経由駅を設定（via1, via2, via3...）
-    let viaIndex = 1;
-    while (params.has(`via${viaIndex}`)) {
-        const viaId = params.get(`via${viaIndex}`);
-        const viaStation = findStationById(viaId);
-        if (viaStation) {
-            addViaStation();
-            // 最後に追加された経由駅の入力欄を取得
-            const viaItems = document.querySelectorAll('.via-station-item');
-            const lastViaItem = viaItems[viaItems.length - 1];
-            const viaInput = lastViaItem.querySelector('.station-input');
-            if (viaInput) {
-                viaInput.value = viaStation.stationName;
-                console.log(`経由駅${viaIndex}設定:`, viaStation.stationName);
-            }
-        } else {
-            console.warn(`経由駅${viaIndex}が見つかりません:`, viaId);
-        }
-        viaIndex++;
-    }
-    
-    // フィルター設定（デフォルト: KTonly=disabled, TC/SX/MC=enabled）
-    const ktOnly = params.get('KTonly');
-    if (ktOnly === 'enabled') {
-        document.getElementById('own-company-only').checked = true;
-        console.log('KT線のみ: 有効');
-    } else {
-        document.getElementById('own-company-only').checked = false;
-    }
-    
-    const tc = params.get('TC');
-    if (tc === 'disabled') {
-        document.getElementById('type-tc').checked = false;
-        console.log('TrainCarts: 無効');
-    } else {
-        document.getElementById('type-tc').checked = true;
-    }
-    
-    const sx = params.get('SX');
-    if (sx === 'disabled') {
-        document.getElementById('type-sx').checked = false;
-        console.log('新幹線: 無効');
-    } else {
-        document.getElementById('type-sx').checked = true;
-    }
-    
-    const mc = params.get('MC');
-    if (mc === 'disabled') {
-        document.getElementById('type-mc').checked = false;
-        console.log('トロッコ: 無効');
-    } else {
-        document.getElementById('type-mc').checked = true;
-    }
-    
-    // すべての条件が設定されたら自動的に検索を実行
-    if (fromId && toId) {
-        console.log('URLパラメータに基づいて自動検索を実行します');
-        setTimeout(() => {
-            performSearch();
-        }, 500); // UIの更新を待つため少し遅延
-    }
 }
 
 // ========================================
@@ -1010,8 +677,8 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     const uniqueRoutes = deduplicateRoutes(routes);
     
     // 乗換ペナルティを考慮したソート用スコアを計算（表示用のtotalDurationは変更しない）
-    // searchMode に応じたペナルティを使用
-    const TRANSFER_PENALTY = getTransferPenalty(searchMode); // 秒
+    // 乗換1回につき10秒のペナルティを加算してソート
+    const TRANSFER_PENALTY = 10; // 秒
     uniqueRoutes.sort((a, b) => {
         const scoreA = a.totalDuration + (a.transferCount * TRANSFER_PENALTY);
         const scoreB = b.totalDuration + (b.transferCount * TRANSFER_PENALTY);
@@ -1493,8 +1160,6 @@ function displayResults(routes) {
     backButton.className = 'back-to-search-btn';
     backButton.textContent = '検索画面に戻る';
     backButton.addEventListener('click', () => {
-        // URLパラメータをクリア
-        clearUrlParams();
         hideResults();
         showSearchSection();
         // ページトップにスクロール
@@ -1565,25 +1230,11 @@ function displayResults(routes) {
             const allTabs = tabs.querySelectorAll('.route-tab');
             allTabs.forEach(t => t.classList.toggle('active', t === tab));
 
-            // show/hide cards and their share buttons
+            // show/hide cards
             const cards = resultsContainer.querySelectorAll('.route-card');
             cards.forEach((c, i) => {
-                const showing = (i === idx);
-                c.style.display = showing ? 'block' : 'none';
-                const shareWrapper = c.querySelector('.share-result-wrapper');
-                if (shareWrapper) shareWrapper.style.display = showing ? '' : 'none';
+                c.style.display = (i === idx) ? 'block' : 'none';
             });
-
-            // update URL to include route param because user explicitly selected a route
-            try {
-                const urlObj = new URL(window.location.href);
-                const params = new URLSearchParams(urlObj.search);
-                params.set('route', String(idx + 1));
-                const newUrl = `${urlObj.pathname}?${params.toString()}`;
-                window.history.pushState({}, '', newUrl);
-            } catch (e) {
-                // ignore URL update failures
-            }
 
             // bring results into view
             resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1614,84 +1265,13 @@ function displayResults(routes) {
         card.style.display = (idx === 0) ? 'block' : 'none';
 
         resultsContainer.appendChild(card);
-
-        // 共有ボタン（back-to-search-btn と同様のデザイン）
-        try {
-            const shareBtn = document.createElement('button');
-            shareBtn.type = 'button';
-            shareBtn.className = 'back-to-search-btn share-result-btn';
-            shareBtn.textContent = '検索結果を共有する';
-
-            shareBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Build a shareable URL based on current params and include route index
-                try {
-                    const urlObj = new URL(window.location.href);
-                    const params = new URLSearchParams(urlObj.search);
-                    // include route index so receivers can highlight the same route if desired
-                    params.set('route', String(idx + 1));
-                    const shareUrl = `${urlObj.origin}${urlObj.pathname}?${params.toString()}`;
-                    showShareDialog(shareUrl);
-                } catch (err) {
-                    // fallback to whole href
-                    showShareDialog(window.location.href);
-                }
-            });
-
-            // append share button inside the card so it follows card visibility
-            const wrapper = document.createElement('div');
-            wrapper.className = 'share-result-wrapper';
-            wrapper.appendChild(shareBtn);
-            // only show for the initially active card (route 1)
-            wrapper.style.display = (idx === 0) ? '' : 'none';
-            card.appendChild(wrapper);
-        } catch (e) { console.warn('could not create share button', e); }
     });
 
-    // Determine initial active route: prefer ?route=N if present, otherwise default to 1
-    // If an explicit route param exists but is out of range (e.g. route=4 but only 3 routes),
-    // remove the `route` parameter from the URL and fall back to the default (route 1).
-    const params = new URLSearchParams(window.location.search);
-    let initialIndex = 0;
-    const routeParamRaw = params.get('route');
-    const routeParam = parseInt(routeParamRaw);
-
-    if (!isNaN(routeParam) && routeParam >= 1 && routeParam <= routes.length) {
-        initialIndex = routeParam - 1;
-    } else if (routeParamRaw !== null) {
-        // route param was present but invalid -> remove it from URL so default (route 1) is shown
-        try {
-            const urlObj = new URL(window.location.href);
-            const newParams = new URLSearchParams(urlObj.search);
-            newParams.delete('route');
-            const newUrl = `${urlObj.pathname}${newParams.toString() ? '?' + newParams.toString() : ''}`;
-            // replace history entry (do not create a new one) to avoid polluting back stack
-            window.history.replaceState({}, '', newUrl);
-            console.log('無効なrouteパラメータを削除しました:', routeParamRaw);
-        } catch (e) {
-            // ignore URL update failures
-            console.warn('routeパラメータの削除に失敗しました:', e);
-        }
-        initialIndex = 0;
-    }
-
-    // Activate the initial tab
-    const allTabs = tabs.querySelectorAll('.route-tab');
-    allTabs.forEach((t, i) => t.classList.toggle('active', i === initialIndex));
-
-    // show/hide cards according to initialIndex and ensure share button visibility
-    const cards = resultsContainer.querySelectorAll('.route-card');
-    cards.forEach((c, i) => {
-        c.style.display = (i === initialIndex) ? 'block' : 'none';
-        const shareWrapper = c.querySelector('.share-result-wrapper');
-        if (shareWrapper) shareWrapper.style.display = (i === initialIndex) ? '' : 'none';
-    });
+    // デフォルトで最初のタブをアクティブ化
+    const firstTab = tabs.querySelector('.route-tab');
+    if (firstTab) firstTab.classList.add('active');
 
     resultsSection.style.display = 'block';
-    // mark body so CSS can adjust layout for results view on small screens
-    try {
-        document.body.classList.add('results-open');
-    } catch (e) { /* noop for older environments */ }
 }
 
 // ========================================
@@ -2141,72 +1721,11 @@ function createStopsButton(leg) {
 // UI制御関数
 // ========================================
 function showLoading() {
-    const el = document.getElementById('loading-section');
-    if (!el) return;
-    // Use flex so the overlay centers spinner + text even when JS sets inline style
-    el.style.display = 'flex';
-
-    // Mobile: keep scrollbar visible but effectively prevent scrolling by
-    // intercepting touch/wheel/keyboard events on the document. On desktop
-    // we keep the old behavior (hide scrollbar) for a consistent UX.
-    try {
-        const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile) {
-            // Install passive:false listeners to be able to preventDefault on touchmove
-            const onTouchMove = function(e) { e.preventDefault(); };
-            const onWheel = function(e) { e.preventDefault(); };
-            const onKeyDown = function(e) {
-                // prevent common keys that cause scrolling
-                const keys = ['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '];
-                if (keys.includes(e.key)) {
-                    e.preventDefault();
-                }
-            };
-
-            // Store handlers so we can remove them later
-            _loadingPreventHandlers = { onTouchMove, onWheel, onKeyDown };
-
-            document.addEventListener('touchmove', onTouchMove, { passive: false });
-            document.addEventListener('wheel', onWheel, { passive: false });
-            document.addEventListener('keydown', onKeyDown, { passive: false });
-            // Ensure the overlay captures pointer events so background doesn't receive them
-            el.style.pointerEvents = 'auto';
-        } else {
-            // Desktop: hide page scrollbar to prevent scroll while loading
-            document.body.classList.add('no-scroll');
-            document.documentElement.classList.add('no-scroll');
-        }
-    } catch (e) {
-        /* ignore */
-    }
-
-    // Improve accessibility: hide main content from assistive tech while loading
-    const main = document.querySelector('main');
-    if (main) main.setAttribute('aria-hidden', 'true');
+    document.getElementById('loading-section').style.display = 'block';
 }
 
 function hideLoading() {
-    const el = document.getElementById('loading-section');
-    if (el) el.style.display = 'none';
-
-    // Re-enable scrolling: remove any installed mobile handlers or the no-scroll class
-    try {
-        if (_loadingPreventHandlers) {
-            document.removeEventListener('touchmove', _loadingPreventHandlers.onTouchMove, { passive: false });
-            document.removeEventListener('wheel', _loadingPreventHandlers.onWheel, { passive: false });
-            document.removeEventListener('keydown', _loadingPreventHandlers.onKeyDown, { passive: false });
-            _loadingPreventHandlers = null;
-            if (el) el.style.pointerEvents = '';
-        }
-        document.body.classList.remove('no-scroll');
-        document.documentElement.classList.remove('no-scroll');
-    } catch (e) {
-        /* ignore */
-    }
-
-    // Restore accessibility state
-    const main = document.querySelector('main');
-    if (main) main.removeAttribute('aria-hidden');
+    document.getElementById('loading-section').style.display = 'none';
 }
 
 function showError(message) {
@@ -2250,9 +1769,6 @@ function hideError() {
 
 function hideResults() {
     document.getElementById('results-section').style.display = 'none';
-    try {
-        document.body.classList.remove('results-open');
-    } catch (e) { /* noop */ }
 }
 
 function hideSearchSection() {
@@ -2261,89 +1777,6 @@ function hideSearchSection() {
 
 function showSearchSection() {
     document.getElementById('search-section').style.display = 'block';
-}
-
-// ========================================
-// 共有ダイアログ表示
-// ========================================
-function showShareDialog(url) {
-    // If a modal already exists, update the URL and focus
-    let existing = document.getElementById('share-modal');
-    if (existing) {
-        const input = existing.querySelector('.share-url-input');
-        if (input) input.value = url;
-        existing.style.display = 'flex';
-        try { existing.querySelector('.share-url-input').select(); } catch (e) {}
-        return;
-    }
-
-    const modal = document.createElement('div');
-    modal.id = 'share-modal';
-    modal.className = 'share-modal';
-
-    modal.innerHTML = `
-        <div class="share-modal-content" role="dialog" aria-modal="true" aria-label="検索結果を共有">
-            <h3>検索結果を共有する</h3>
-            <p>以下のURLを共有してください。</p>
-            <input class="share-url-input" type="text" readonly aria-label="共有URL">
-            <div class="share-modal-actions">
-                <button type="button" class="back-to-search-btn share-copy-btn">コピー</button>
-                <button type="button" class="back-to-search-btn share-native-btn">共有</button>
-                <button type="button" class="back-to-search-btn share-close-btn">閉じる</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const input = modal.querySelector('.share-url-input');
-    const copyBtn = modal.querySelector('.share-copy-btn');
-    const nativeBtn = modal.querySelector('.share-native-btn');
-    const closeBtn = modal.querySelector('.share-close-btn');
-
-    input.value = url;
-    try { input.select(); } catch (e) {}
-
-    copyBtn.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(input.value);
-            copyBtn.textContent = 'コピーしました';
-            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
-        } catch (err) {
-            // fallback: select so user can copy manually
-            try { input.select(); } catch (e) {}
-            copyBtn.textContent = 'クリップボード失敗';
-            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
-        }
-    });
-
-    nativeBtn.addEventListener('click', async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: document.title, url: input.value });
-            } catch (e) { /* user cancelled or failed */ }
-        } else {
-            // If native share not available, copy as fallback
-            try {
-                await navigator.clipboard.writeText(input.value);
-                nativeBtn.textContent = 'コピーしました';
-                setTimeout(() => { nativeBtn.textContent = '共有'; }, 1500);
-            } catch (err) {
-                try { input.select(); } catch (e) {}
-            }
-        }
-    });
-
-    function closeModal() {
-        modal.style.display = 'none';
-    }
-
-    closeBtn.addEventListener('click', closeModal);
-
-    // clicking outside content closes
-    modal.addEventListener('click', (ev) => {
-        if (ev.target === modal) closeModal();
-    });
 }
 
 // ========================================
