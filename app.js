@@ -114,32 +114,20 @@ function preprocessData() {
     });
     console.log('路線マップ作成完了:', lineMap.size, '件');
 
-    // segmentsから各駅を通る路線を抽出して駅データに追加
+    // 各路線のstationOrderから各駅を通る路線を抽出して駅データに追加
     const stationLinesMap = new Map(); // stationId -> Set of {lineId, companyId}
-    appData.segments.forEach(segment => {
-        const fromStationId = segment.fromStationId;
-        const toStationId = segment.toStationId;
-        const lineId = segment.lineId;
+    appData.lines.forEach(line => {
+        const lineId = line.lineId;
+        const companyId = line.companyId;
+        const stationOrder = line.stationOrder || [];
         
-        // 路線情報から会社IDを取得
-        const line = lineMap.get(lineId);
-        const companyId = line ? line.companyId : null;
-        
-        // fromStationに路線を追加
-        if (!stationLinesMap.has(fromStationId)) {
-            stationLinesMap.set(fromStationId, new Map());
-        }
-        if (companyId) {
-            stationLinesMap.get(fromStationId).set(lineId, companyId);
-        }
-        
-        // toStationに路線を追加
-        if (!stationLinesMap.has(toStationId)) {
-            stationLinesMap.set(toStationId, new Map());
-        }
-        if (companyId) {
-            stationLinesMap.get(toStationId).set(lineId, companyId);
-        }
+        // stationOrderに含まれる各駅に路線情報を追加
+        stationOrder.forEach(stationId => {
+            if (!stationLinesMap.has(stationId)) {
+                stationLinesMap.set(stationId, new Map());
+            }
+            stationLinesMap.get(stationId).set(lineId, companyId);
+        });
     });
     
     // 駅データにlines配列を追加
@@ -162,7 +150,7 @@ function preprocessData() {
         companyMap.set(company.companyId, company);
     });
 
-    // 列車種別IDから種別情報へのマップ
+    // 列車種別IDから種別情報へのマップ（UI等で参照するため保持）
     const trainTypeMap = new Map();
     appData.trainTypes.forEach(type => {
         trainTypeMap.set(type.trainTypeId, type);
@@ -173,21 +161,22 @@ function preprocessData() {
     const adjacencyList = new Map();
 
     // Helper: add adjacency entry
-    function addEdge(fromStationId, toStationId, lineId, trainType, duration, segmentRef, isAlightOnly = false) {
-        const fromKey = `${fromStationId}|${lineId}|${trainType}`;
-        const toKey = `${toStationId}|${lineId}|${trainType}`;
+    // ノードキーは `stationId|lineId|guidance` として案内種別（guidance）を基準にする
+    function addEdge(fromStationId, toStationId, lineId, guidance, duration, segmentRef, isAlightOnly = false) {
+        const fromKey = `${fromStationId}|${lineId}|${guidance}`;
+        const toKey = `${toStationId}|${lineId}|${guidance}`;
 
         if (!adjacencyList.has(fromKey)) adjacencyList.set(fromKey, []);
         adjacencyList.get(fromKey).push({
             type: 'segment',
             toKey: toKey,
-            fromStationId: fromStationId,  // 出発駅IDを追加
+            fromStationId: fromStationId,
             toStationId: toStationId,
             lineId: lineId,
-            trainType: trainType,
+            guidance: guidance,
             duration: duration,
             segment: segmentRef,
-            isAlightOnly: isAlightOnly  // 降車専用フラグを保持
+            isAlightOnly: isAlightOnly
         });
     }
 
@@ -195,17 +184,20 @@ function preprocessData() {
         const isAlightOnly = segment.isAlightOnly || false;
         const a = segment.fromStationId;
         const b = segment.toStationId;
-
+        const lineId = segment.lineId;
+        const guidance = segment.guidance;
+        
         // 直接接続を追加（segmentの所要時間をそのまま使用）
-        addEdge(a, b, segment.lineId, segment.trainType, segment.duration, {
+        // ノードは guidance を基準に構築する
+        addEdge(a, b, lineId, guidance, segment.duration, {
             ...segment,
             hopFrom: a,
             hopTo: b
         }, isAlightOnly);
 
         // 双方向の場合は逆方向も追加（降車専用は元の方向のみ）
-        if (segment.isBidirectional) {
-            addEdge(b, a, segment.lineId, segment.trainType, segment.duration, {
+            if (segment.isBidirectional) {
+            addEdge(b, a, lineId, guidance, segment.duration, {
                 ...segment,
                 hopFrom: b,
                 hopTo: a
@@ -218,18 +210,18 @@ function preprocessData() {
     if (appData.throughServiceConfigs) {
         appData.throughServiceConfigs.forEach(config => {
             // 乗入元→乗入先の設定
-            const keyForward = `${config.fromLineId}|${config.fromTrainType}|${config.toLineId}|${config.toTrainType}`;
+            const keyForward = `${config.fromLineId}|${config.fromGuidance}|${config.toLineId}|${config.toGuidance}`;
             throughServiceMap.set(keyForward, config);
             
             // 相互直通の場合は逆方向も登録
             if (config.isBidirectional) {
-                const keyReverse = `${config.toLineId}|${config.toTrainType}|${config.fromLineId}|${config.fromTrainType}`;
+                const keyReverse = `${config.toLineId}|${config.toGuidance}|${config.fromLineId}|${config.fromGuidance}`;
                 throughServiceMap.set(keyReverse, {
                     ...config,
                     fromLineId: config.toLineId,
                     toLineId: config.fromLineId,
-                    fromTrainType: config.toTrainType,
-                    toTrainType: config.fromTrainType
+                    fromGuidance: config.toGuidance,
+                    toGuidance: config.fromGuidance
                 });
             }
         });
@@ -261,7 +253,9 @@ function preprocessData() {
     // 異なる路線への乗換と、同一路線・異なる種別への乗換の両方を処理
     appData.segments.forEach(fromSegment => {
         Object.entries(fromSegment.platforms).forEach(([stationId, fromPlatform]) => {
-            const fromKey = `${stationId}|${fromSegment.lineId}|${fromSegment.trainType}`;
+            // ノードキーは案内種別（guidance）を基準にする
+            const fromGuidance = fromSegment.guidance;
+            const fromKey = `${stationId}|${fromSegment.lineId}|${fromGuidance}`;
             
             if (!adjacencyList.has(fromKey)) {
                 adjacencyList.set(fromKey, []);
@@ -271,7 +265,8 @@ function preprocessData() {
             appData.segments.forEach(toSegment => {
                 if (toSegment.platforms[stationId]) {
                     const toPlatform = toSegment.platforms[stationId];
-                    const toKey = `${stationId}|${toSegment.lineId}|${toSegment.trainType}`;
+                    const toGuidance = toSegment.guidance;
+                    const toKey = `${stationId}|${toSegment.lineId}|${toGuidance}`;
 
                     // 同じノードへの乗換は不要
                     if (fromKey === toKey) return;
@@ -281,36 +276,43 @@ function preprocessData() {
                     let isDirectThrough = false;
                     let isTypeChange = false;
 
-                    // 直通運転の可能性をチェック
-                    const throughKey = `${fromSegment.lineId}|${fromSegment.trainType}|${toSegment.lineId}|${toSegment.trainType}`;
+                    // 直通運転の可能性をチェック（guidanceで判定）
+                    const throughKey = `${fromSegment.lineId}|${fromGuidance}|${toSegment.lineId}|${toGuidance}`;
                     const throughConfig = throughServiceMap.get(throughKey);
                     
-                    if (throughConfig && fromPlatform === toPlatform) {
-                        // 直通運転設定がある場合
+                    // Treat platform equality only when both platforms are explicitly defined.
+                    const fromPlatformDefined = fromPlatform !== undefined && fromPlatform !== null && fromPlatform !== '';
+                    const toPlatformDefined = toPlatform !== undefined && toPlatform !== null && toPlatform !== '';
+                    const samePlatform = fromPlatformDefined && toPlatformDefined && (fromPlatform === toPlatform);
+
+                    if (throughConfig && samePlatform) {
+                        // 直通運転設定がある場合（かつ両方ののりばが定義されていて一致する場合）
                         transferTime = 0;
                         isDirectThrough = true;
                         isTypeChange = false;
                     } else {
                         // 通常の乗換・種別変更（表示上は区別しない）
-                        if (fromSegment.lineId === toSegment.lineId) {
-                            // 同一路線 → 種別変更フラグを立てる
+                        if (fromSegment.lineId === toSegment.lineId && fromGuidance !== toGuidance) {
+                            // 同一路線かつ異なる案内種別 → 種別変更フラグを立てる
                             isTypeChange = true;
                         }
                         
-                        if (fromPlatform === toPlatform) {
-                            // 同じのりばの場合は5秒
+                        if (samePlatform) {
+                            // 同じのりば（両方定義かつ一致）の場合は5秒
                             transferTime = 5;
-                        } else {
-                            // 異なるのりばの場合はdata.jsonの乗換情報を参照
+                        } else if (fromPlatformDefined && toPlatformDefined) {
+                            // 両方ののりばが定義されているが異なる場合はdata.jsonの乗換情報を参照
                             const transferKey = `${stationId}|${fromPlatform}|${toPlatform}`;
                             const transfer = platformTransferMap.get(transferKey);
-                            
                             if (transfer) {
                                 transferTime = transfer.transferTime;
                             } else {
                                 // 定義がない場合はデフォルト10秒
                                 transferTime = 10;
                             }
+                        } else {
+                            // どちらかののりばが未定義の場合は同一のりば扱いにせず、デフォルトの乗換時間を適用
+                            transferTime = 10;
                         }
                         isDirectThrough = false;
                     }
@@ -320,14 +322,14 @@ function preprocessData() {
                         toKey: toKey,
                         toStationId: stationId,
                         lineId: toSegment.lineId,
-                        trainType: toSegment.trainType,
+                        guidance: toGuidance,
                         duration: transferTime,
                         fromPlatform: fromPlatform,
                         toPlatform: toPlatform,
                         fromLineId: fromSegment.lineId,
                         toLineId: toSegment.lineId,
-                        fromTrainType: fromSegment.trainType,
-                        toTrainType: toSegment.trainType,
+                        fromGuidance: fromGuidance,
+                        toGuidance: toGuidance,
                         isDirectThrough: isDirectThrough,
                         isTypeChange: isTypeChange
                     });
@@ -978,9 +980,26 @@ function findRoutes(startStation, endStation, viaStations, filters) {
     const maxRoutes = 5;
 
     const startKeys = [];
+    // 開始ノードは station|line|guidance の組合せで作成する
     startStation.lines.forEach(line => {
-        filters.allowedTrainTypes.forEach(trainType => {
-            const key = `${startStation.stationId}|${line.lineId}|${trainType}`;
+        // UI で選択された列車種別（trainType）で当該路線が許可されているかを確認
+        const lineInfo = preprocessedData.lineMap.get(line.lineId);
+        const lineTrainType = lineInfo ? lineInfo.trainType : null;
+        if (!filters.allowedTrainTypes.has(lineTrainType)) {
+            // この路線の車両種別がフィルタで除外されている場合は開始ノードを作らない
+            return;
+        }
+
+        // 駅に接続するセグメントから案内種別(guidance)の一覧を収集してノードを作成
+        const guidanceSet = new Set();
+        appData.segments.forEach(seg => {
+            if (seg.lineId === line.lineId && (seg.fromStationId === startStation.stationId || seg.toStationId === startStation.stationId)) {
+                if (seg.guidance) guidanceSet.add(seg.guidance);
+            }
+        });
+
+        guidanceSet.forEach(guidance => {
+            const key = `${startStation.stationId}|${line.lineId}|${guidance}`;
             if (preprocessedData.adjacencyList.has(key)) {
                 startKeys.push(key);
             } else {
@@ -1057,11 +1076,11 @@ function dijkstraSearch(startKey, endStationId, requiredViaStations, filters) {
         if (visited.has(currentState)) continue;
         visited.add(currentState);
 
-        // 状態を分解: "stationId|lineId|trainType@@viaIndex"
+        // 状態を分解: "stationId|lineId|guidance@@viaIndex"
         const [currentKey, viaIndexStr] = currentState.split('@@');
         const viaIndex = parseInt(viaIndexStr);
         const currentDistance = distances.get(currentState);
-        const [currentStationId, currentLineId, currentTrainType] = currentKey.split('|');
+        const [currentStationId, currentLineId, currentGuidance] = currentKey.split('|');
         console.log(`[Step ${step}] 現在状態: ${currentState} (駅ID: ${currentStationId}, 経由済み: ${viaIndex}/${requiredViaStations.length}) 距離: ${currentDistance}`);
 
         // 到着判定：endStationId に到達 AND すべての経由駅を通過済み
@@ -1176,7 +1195,10 @@ class MinPriorityQueue {
 // フィルター判定
 // ========================================
 function passesFilter(neighbor, filters) {
-    if (!filters.allowedTrainTypes.has(neighbor.trainType)) {
+    // フィルタは路線の trainType（車両種別）で判定する
+    const lineInfoForFilter = preprocessedData.lineMap.get(neighbor.lineId);
+    const neighborLineTrainType = lineInfoForFilter ? lineInfoForFilter.trainType : null;
+    if (!filters.allowedTrainTypes.has(neighborLineTrainType)) {
         return false;
     }
 
@@ -1225,10 +1247,9 @@ function buildRouteInfo(path) {
 
     for (let i = 0; i < path.length; i++) {
         const node = path[i];
-        const [stationId, lineId, trainType] = node.key.split('|');
+        const [stationId, lineId, guidance] = node.key.split('|');
         const station = preprocessedData.stationMap.get(stationId);
         const line = preprocessedData.lineMap.get(lineId);
-        const trainTypeInfo = preprocessedData.trainTypeMap.get(trainType);
         const edge = node.edge;
 
         // 直前のsegmentのplatforms情報を参照するためにsegment参照を保持
@@ -1246,8 +1267,7 @@ function buildRouteInfo(path) {
                 lineId,
                 lineName: line?.lineName || lineId,
                 lineColor: line?.lineColor || '#ccc',
-                trainType,
-                trainTypeName: trainTypeInfo?.trainTypeName || trainType,
+                guidance: null, // 開始点は案内種別なし
                 duration: 0,
                 platform: null // 出発駅は乗車番線を次のsegmentで参照
             });
@@ -1261,7 +1281,7 @@ function buildRouteInfo(path) {
             // 乗車レグを新規開始or直前の乗車とマージするか判定
             // 折り返し（同一路線・同種別だが進行方向が逆）の場合は
             // 実際には乗換が発生しているのでマージしない
-            const isSameLineAndType = lastRideLeg && lastRideLeg.lineId === lineId && lastRideLeg.trainType === trainType;
+            const isSameLineAndType = lastRideLeg && lastRideLeg.lineId === lineId && lastRideLeg.guidance === edge.guidance;
 
             // 直前のsegmentの参照（存在すれば方向判定に使う）
             let isReversal = false;
@@ -1317,18 +1337,17 @@ function buildRouteInfo(path) {
                         lineId: lastRideLeg.lineId,
                         lineName: lastRideLeg.lineName,
                         lineColor: lastRideLeg.lineColor,
-                        trainType: lastRideLeg.trainType,
-                        trainTypeName: lastRideLeg.trainTypeName,
+                        guidance: edge.guidance || null,
                         duration: transferTime,
                         transferTime: transferTime,
                         isDirectThrough: false,
-                        isTypeChange: false,
+                        isTypeChange: (lastRideLeg.guidance !== edge.guidance), // 案内種別が変わる場合は種別変更
                         fromPlatform: prevArrivalPlatform,
                         toPlatform: nextDeparturePlatform,
                         fromLineId: lastRideLeg.lineId,
                         toLineId: lineId,
-                        fromTrainType: lastRideLeg.trainType,
-                        toTrainType: trainType,
+                        fromGuidance: lastRideLeg.guidance,
+                        toGuidance: edge.guidance,
                         departurePlatform: nextDeparturePlatform
                     });
 
@@ -1345,8 +1364,7 @@ function buildRouteInfo(path) {
                     lineId,
                     lineName: line?.lineName || lineId,
                     lineColor: line?.lineColor || '#ccc',
-                    trainType,
-                    trainTypeName: trainTypeInfo?.trainTypeName || trainType,
+                    guidance: edge.guidance || null,
                     duration: edge.duration,
                     departurePlatform: departurePlatform,  // 乗車番線
                     arrivalPlatform: arrivalPlatform       // 到着番線
@@ -1357,13 +1375,13 @@ function buildRouteInfo(path) {
             totalDuration += edge.duration;
         } else if (edge.type === 'transfer') {
             // 乗換レグ
-            // 直前のsegmentから情報を取得
+            // 直前のsegmentから情報を取得（案内種別を prevGuidance として取得）
             let prevLineId = null;
-            let prevTrainType = null;
+            let prevGuidance = null;
             if (i > 0 && path[i-1].edge && path[i-1].edge.type === 'segment') {
-                const [prevStationId, prevLine, prevType] = path[i-1].key.split('|');
+                const [prevStationId, prevLine, prevG] = path[i-1].key.split('|');
                 prevLineId = prevLine;
-                prevTrainType = prevType;
+                prevGuidance = prevG;
             }
             
             legs.push({
@@ -1373,8 +1391,7 @@ function buildRouteInfo(path) {
                 lineId,
                 lineName: line?.lineName || lineId,
                 lineColor: line?.lineColor || '#ccc',
-                trainType,
-                trainTypeName: trainTypeInfo?.trainTypeName || trainType,
+                guidance: edge.guidance || null,
                 duration: edge.duration,
                 transferTime: edge.duration,
                 isDirectThrough: edge.isDirectThrough || false,
@@ -1383,8 +1400,8 @@ function buildRouteInfo(path) {
                 toPlatform: edge.toPlatform,
                 fromLineId: prevLineId || edge.fromLineId,
                 toLineId: edge.toLineId || lineId,
-                fromTrainType: prevTrainType || edge.fromTrainType,
-                toTrainType: edge.toTrainType || trainType,
+                fromGuidance: prevGuidance || edge.fromGuidance || null,
+                toGuidance: edge.toGuidance || edge.guidance,
                 departurePlatform: edge.toPlatform  // 乗換先の番線（次に乗る列車の番線）
             });
             totalDuration += edge.duration;
@@ -1453,7 +1470,7 @@ function deduplicateRoutes(routes) {
 
     for (let route of routes) {
         const signature = route.legs
-            .map(leg => `${leg.stationId}|${leg.lineId}|${leg.trainType}`)
+            .map(leg => `${leg.stationId}|${leg.lineId}|${leg.guidance || ''}`)
             .join('||');
         
         if (!seen.has(signature)) {
@@ -1934,7 +1951,7 @@ function createTableSegmentRow(leg) {
     if (leg.departurePlatform) {
         const depPlatform = document.createElement('div');
         depPlatform.className = 'station-platform-inline platform-top';
-        depPlatform.textContent = leg.departurePlatform;
+        depPlatform.textContent = `${leg.departurePlatform}番のりば`;
         markerInner.appendChild(depPlatform);
     } else {
         // 空のスペーサー
@@ -1953,7 +1970,7 @@ function createTableSegmentRow(leg) {
     if (leg.arrivalPlatform) {
         const arrPlatform = document.createElement('div');
         arrPlatform.className = 'station-platform-inline platform-bottom';
-        arrPlatform.textContent = leg.arrivalPlatform;
+        arrPlatform.textContent = `${leg.arrivalPlatform}番のりば`;
         markerInner.appendChild(arrPlatform);
     } else {
         // 空のスペーサー
@@ -1982,12 +1999,17 @@ function createTableSegmentRow(leg) {
     const iconSpan = document.createElement('span');
     iconSpan.className = 'line-symbol';
     iconSpan.style.setProperty('--icon-color', leg.lineColor);
-    iconSpan.style.webkitMaskImage = `url(src/${leg.trainType}.svg)`;
-    iconSpan.style.maskImage = `url(src/${leg.trainType}.svg)`;
+    // アイコンは可能なら leg に紐づく trainType を使い、なければ segment/line 情報からフォールバックする
+    const lineInfoForIcon = preprocessedData.lineMap.get(leg.lineId);
+    const iconType = (leg.trainType) || (leg.segments && leg.segments[0] && leg.segments[0].trainType) || (lineInfoForIcon && lineInfoForIcon.trainType) || 'TC';
+    iconSpan.style.webkitMaskImage = `url(src/${iconType}.svg)`;
+    iconSpan.style.maskImage = `url(src/${iconType}.svg)`;
     
     const lineName = document.createElement('span');
     lineName.className = 'line-name';
-    lineName.textContent = leg.lineName;
+    // 路線名 + 案内種別を表示（例: 「港急線 快速」）
+    const guidanceText = leg.guidance ? ` ${leg.guidance}` : '';
+    lineName.textContent = `${leg.lineName}${guidanceText}`;
     
     lineRow.appendChild(iconSpan);
     lineRow.appendChild(lineName);

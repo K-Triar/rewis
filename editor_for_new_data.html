@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>路線データ編集システム(オフライン専用) - REWIS</title>
+    <title>路線データ編集システム - REWIS</title>
     <link rel="stylesheet" href="editor.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>路線データ編集システム(オフライン専用) - new_data.json<br/><span class="warning">※注意※　このエディタはダウンロード専用です。このエディタからJSONファイルのアップロードはできません。</span></h1>
+            <h1>路線データ編集システム - data.json<br/><span class="warning">※注意※　このエディタはプレビューです。GitHub Pagesでは、JSONファイルのアップロードはできません。</span></h1>
             <div id="server-status" style="font-size: 10px; margin-top: 3px;">接続確認中...</div>
         </header>
 
         <nav class="main-nav">
             <button class="nav-btn active" data-section="companies">鉄道会社</button>
             <button class="nav-btn" data-section="train-types">列車種別</button>
-            <button class="nav-btn" data-section="lines">路線</button>
             <button class="nav-btn" data-section="stations">駅</button>
+            <button class="nav-btn" data-section="lines">路線</button>
             <button class="nav-btn" data-section="segments">区間</button>
             <button class="nav-btn" data-section="through-services">直通運転</button>
             <button class="nav-btn" data-section="platform-transfers">のりば乗換</button>
@@ -85,8 +85,10 @@
                                 <th style="width: 40px;">#</th>
                                 <th style="width: 120px;">路線ID</th>
                                 <th style="width: 250px;">路線名</th>
-                                <th style="width: 150px;">運営会社ID</th>
+                                <th style="width: 150px;">運営会社名</th>
                                 <th style="width: 100px;">路線カラー</th>
+                                <th style="width: 180px;">案内種別</th>
+                                <th style="width: 220px;">駅順序</th>
                                 <th style="width: 120px;">操作</th>
                             </tr>
                         </thead>
@@ -140,13 +142,13 @@
                             <tr>
                                 <th style="width: 40px;">#</th>
                                 <th style="width: 150px;">区間ID</th>
-                                <th style="width: 100px;">路線ID</th>
-                                <th style="width: 100px;">会社ID</th>
-                                <th style="width: 100px;">始点駅ID</th>
+                                <th style="width: 100px;">路線名</th>
+                                <th style="width: 100px;">会社名</th>
+                                <th style="width: 100px;">始点駅名</th>
                                 <th style="width: 100px;">始点駅のりば</th>
-                                <th style="width: 100px;">終点駅ID</th>
+                                <th style="width: 100px;">終点駅名</th>
                                 <th style="width: 100px;">終点駅のりば</th>
-                                <th style="width: 100px;">列車種別</th>
+                                <th style="width: 140px;">案内種別</th>
                                 <th style="width: 80px;">所要時間</th>
                                 <th style="width: 80px;">距離</th>
                                 <th style="width: 80px;">双方向</th>
@@ -172,9 +174,9 @@
                                 <th style="width: 40px;">#</th>
                                 <th style="width: 150px;">設定ID</th>
                                 <th style="width: 120px;">乗入元路線</th>
+                                <th style="width: 160px;">元案内種別</th>
                                 <th style="width: 120px;">乗入先路線</th>
-                                <th style="width: 120px;">元列車種別</th>
-                                <th style="width: 120px;">先列車種別</th>
+                                <th style="width: 160px;">先案内種別</th>
                                 <th style="width: 100px;">直通方向</th>
                                 <th style="width: 200px;">説明</th>
                                 <th style="width: 120px;">操作</th>
@@ -197,7 +199,7 @@
                             <tr>
                                 <th style="width: 40px;">#</th>
                                 <th style="width: 150px;">乗換ID</th>
-                                <th style="width: 120px;">駅ID</th>
+                                <th style="width: 120px;">駅名</th>
                                 <th style="width: 150px;">乗換元のりば</th>
                                 <th style="width: 150px;">乗換先のりば</th>
                                 <th style="width: 100px;">乗換時間</th>
@@ -224,8 +226,9 @@
 
                 <div class="export-card">
                     <h3>保存</h3>
-                    <p>サーバーに直接保存（サーバー起動時）/ ダウンロード（ローカル時）</p>
+                    <p>サーバーへのアップロードは行いません（ローカル保存専用モード）。ファイルをダウンロードして運用側へ手動で配置してください。</p>
                     <button class="export-btn" onclick="exportData()">保存</button>
+                    <span id="save-warning" class="warning" style="display:none; margin-left:10px;">正しく入力されていない部分があります。確認後再度保存をクリックしてください。</span>
                 </div>
 
                 <div class="export-card">
@@ -244,7 +247,7 @@
                 <div class="help-content">
                     <div class="help-section">
                         <h3>📖 このシステムについて</h3>
-                        <p>このシステムは、鉄道路線の運行データを編集・管理するためのツールです。表形式で編集し、保存すると JSON 形式の data.json を出力・更新します。<strong>このエディタ（editor_for_new_data）はオフライン作業専用</strong>で、<strong>保存は常に data.json のダウンロード</strong>になります（サーバー保存・自動バックアップは行いません）。</p>
+                        <p>このシステムは、鉄道路線の運行データを編集・管理するためのツールです。表形式で編集し、保存すると JSON 形式の data.json を出力・更新します。ヘッダーの接続表示により、オンライン保存（サーバーへ）かローカル保存（ダウンロード）かが自動で切り替わります。</p>
                     </div>
 
                     <div class="help-section">
@@ -255,7 +258,7 @@
                             <li><strong>並び替え</strong>：各表ヘッダ右端の「▲▼」で昇順・降順の表示切替（表示のみ／保存内容には影響しません）。</li>
                             <li><strong>必須の入力</strong>：必須項目が未入力のセルは赤色でハイライトされます。値を入れると自動で解除されます。</li>
                             <li><strong>IDの重複警告</strong>：同一IDが複数ある行は行全体が赤色表示になります。重複を解消してから保存してください。</li>
-                            <li><strong>保存</strong>：「保存/読込」タブの「保存」で <strong>data.json をダウンロード</strong>します（<strong>常にローカル保存</strong>。サーバー保存・自動バックアップはありません）。</li>
+                            <li><strong>保存</strong>：「保存/読込」タブの「保存」で反映。オンライン時はサーバーに保存（直前のデータは自動バックアップ）、オフライン時は data.json をダウンロードします。</li>
                         </ol>
                     </div>
 
@@ -266,6 +269,7 @@
                             <li><strong>候補表示（サジェスト）</strong>：駅ID入力欄では、入力中に候補ポップアップが出ます（駅ID・駅名で最大30件）。クリックで入力に反映されます。</li>
                             <li><strong>追加直後のスクロール</strong>：新規行は表の末尾に追加され、表コンテナは自動で末尾までスクロールします。</li>
                             <li><strong>プレビュー</strong>：「保存/読込」タブの「表示/非表示」で現在のJSONを整形表示できます（確認用）。</li>
+                            <li><strong>のりば未入力の扱い</strong>：区間の「始点/終点のりば」は未入力でも保存可能です（セルはオレンジ表示）。</li>
                         </ul>
                     </div>
 
@@ -295,6 +299,7 @@
                             <li><strong>路線名：</strong>路線の名称。</li>
                             <li><strong>運営会社ID：</strong>登録済みの会社から選択します。</li>
                             <li><strong>路線カラー：</strong>新規追加時は見やすい色が自動提案されます。編集で変更可能です。</li>
+                            <li><strong>案内種別：</strong>[ID, 表示名] のタプルで保持します。区間IDや直通設定IDではこの<strong>案内種別ID</strong>を使用します。</li>
                         </ul>
                     </div>
 
@@ -313,11 +318,11 @@
                         <h3>🔗 区間タブ</h3>
                         <p><strong>何を設定するか：</strong>駅間の運行区間を登録します（経路検索の基本要素）。</p>
                         <ul>
-                            <li><strong>区間ID：</strong>SEG-路線ID-始点駅ID-終点駅ID-列車種別ID の形式で<strong>自動生成</strong>されます。編集はできません。</li>
+                            <li><strong>区間ID：</strong>SGM-路線ID-案内種別ID-始点駅ID-終点駅ID の形式で<strong>自動生成</strong>されます（編集不可）。案内種別IDは路線の案内種別（serviceCategories）の<strong>ID</strong>を使用し、ID が無い場合は表示名を用います。</li>
                             <li><strong>路線ID：</strong>選択必須。選択すると <strong>会社ID</strong> は自動で設定され、編集できません。</li>
                             <li><strong>始点駅ID／終点駅ID：</strong>入力中に候補が表示されます。クリックで反映できます。</li>
                             <li><strong>のりば（始点／終点）：</strong>駅ID変更時、既存の区間に紐づくのりば設定がある場合は自動で引き継がれます。</li>
-                            <li><strong>列車種別：</strong>登録済みの種別から選択。</li>
+                            <li><strong>案内種別：</strong>路線の案内種別（serviceCategories）から選択します。保存時は<strong>表示名（guidance）</strong>を保持し、旧データに <code>trainType</code> がある場合はそのまま温存します（UI からは編集しません）。<strong>区間IDには案内種別IDが埋め込まれます。</strong></li>
                             <li><strong>所要時間：</strong>秒単位で入力します（例：3分30秒 → 210）。</li>
                             <li><strong>距離：</strong>キロメートル単位（小数可）。</li>
                             <li><strong>双方向：</strong>フラグとして保持します。チェックしても逆方向のレコードは<strong>自動生成されません</strong>。</li>
@@ -330,9 +335,9 @@
                         <h3>🔄 直通運転タブ</h3>
                         <p><strong>何を設定するか：</strong>路線間の直通関係を登録します。</p>
                         <ul>
-                            <li><strong>設定ID：</strong>TSV-乗入元路線ID-乗入先路線ID の形式で<strong>自動生成</strong>されます。編集はできません。</li>
-                            <li><strong>乗入元路線／乗入先路線：</strong>対象路線を選択します（選択に応じてIDが自動更新）。</li>
-                            <li><strong>元列車種別／先列車種別：</strong>各路線での種別を選択します。</li>
+                            <li><strong>設定ID：</strong>TSV-乗入元路線ID-元案内種別ID-乗入先路線ID-先案内種別ID の形式で<strong>自動生成</strong>されます（編集不可）。</li>
+                            <li><strong>乗入元路線／乗入先路線：</strong>対象路線を選択します（選択に応じて設定IDが自動更新）。</li>
+                            <li><strong>元案内種別／先案内種別：</strong>各路線の案内種別（serviceCategories）を選択します。保存時は<strong>表示名（fromGuidance/toGuidance）</strong>を保持し、<strong>案内種別IDは設定ID（configId）に組み込まれます</strong>（互換維持）。</li>
                             <li><strong>直通方向：</strong>「相互直通」または「一方向」を選択します。</li>
                             <li><strong>説明：</strong>任意のメモ（例：SUI⇔KT（普通））。</li>
                         </ul>
@@ -343,7 +348,7 @@
                         <h3>🚶 のりば乗換タブ</h3>
                         <p><strong>何を設定するか：</strong>同一駅構内での番線間移動時間を登録します。</p>
                         <ul>
-                            <li><strong>乗換ID：</strong>任意の識別子。重複時は行が赤色。</li>
+                            <li><strong>乗換ID：</strong>TSF-駅ID-乗換元のりば-乗換先のりば の形式で<strong>自動生成</strong>（編集不可）。重複時は行が赤色になります。</li>
                             <li><strong>駅ID：</strong>入力中に駅候補ポップアップが表示されます。クリックで反映。</li>
                             <li><strong>乗換元のりば／乗換先のりば：</strong>番線名（自由入力）。</li>
                             <li><strong>乗換時間：</strong>秒単位で入力します（例：4分 → 240）。</li>
@@ -359,7 +364,8 @@
                         </ul>
                         <p><strong>保存：</strong></p>
                         <ul>
-                            <li><strong>常に data.json をダウンロード保存</strong>します（サーバー保存・自動バックアップはありません）。必要に応じて、ダウンロードしたファイルを運用サーバーへ手動でアップロードしてください。</li>
+                            <li>オンライン（サーバー接続: オンライン）：サーバーに直接保存し、直前のデータは自動でバックアップされます（data.backup.●●●.json）。</li>
+                            <li>オフライン（ローカルモード）：data.json をダウンロードします。必要に応じてサーバーへ手動アップロードしてください。</li>
                         </ul>
                         <p><strong>プレビュー：</strong></p>
                         <ul>
@@ -374,14 +380,14 @@
                             <li><strong>IDの一意性：</strong>各種IDは重複不可です。赤色表示は重複や未入力の警告です。</li>
                             <li><strong>削除操作：</strong>削除は行内の確認UIで確定します。確定後は元に戻せないためご注意ください。</li>
                             <li><strong>時間の単位：</strong>所要時間・乗換時間は<strong>秒</strong>で入力します。</li>
-                <li><strong>サーバー接続表示：</strong>本エディタはオフライン運用を前提としています。上部の表示が「オフライン（ローカルモード）」でも正常です。</li>
+                            <li><strong>サーバー接続表示：</strong>画面上部に「サーバー接続: オンライン／オフライン（ローカルモード）」を表示します。</li>
                         </ul>
                     </div>
 
                     <div class="help-section">
                         <h3>💡 よくある質問</h3>
                         <p><strong>Q: 編集を間違えました。元に戻せますか？</strong></p>
-            <p>A: 編集中は「取消」で行の編集前状態に戻せます。保存前ならページ再読込で最後に保存した状態に戻ります。保存後はダウンロード済みの data.json をバックアップとして保管・復元してください（自動バックアップはありません）。</p>
+                        <p>A: 編集中は「取消」で行の編集前状態に戻せます。保存前ならページ再読込で最後に保存した状態に戻ります。オンライン保存時はバックアップ（data.backup.●●●.json）から復元できます。</p>
 
                         <p><strong>Q: 行が赤くなりました。</strong></p>
                         <p>A: 必須未入力またはID重複、直通運転の逆向き重複検出などの警告です。該当箇所を修正して赤色表示を解消してください。</p>
@@ -390,7 +396,7 @@
                         <p>A: 駅タブの検索ボックスや、区間タブの路線フィルタを活用してください。各列の「▲▼」で並び替えも可能です。</p>
 
                         <p><strong>Q: 保存ボタンを押しても何も起きません。</strong></p>
-                        <p>A: 保存は常にダウンロードとして実行します。ブラウザのダウンロードがブロックされていないかご確認ください。</p>
+                        <p>A: オフライン時はダウンロードが開始されます。ブラウザのダウンロードがブロックされていないかご確認ください。</p>
                     </div>
 
                     <div class="help-section">

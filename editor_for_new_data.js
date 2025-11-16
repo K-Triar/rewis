@@ -14,6 +14,34 @@ let appData = {
     throughServiceConfigs: [],
     platformTransfers: []
 };
+// Keep a snapshot of the last-saved JSON (cleaned for export) for change detection
+let _lastSavedJson = null;
+// beforeunload handler (use provided code behavior)
+function _beforeUnloadHandler(event) {
+    event.preventDefault();
+    event.returnValue = '';
+}
+
+function computeCurrentExportJson() {
+    try {
+        const exportData = cleanDataForExport(appData);
+        return JSON.stringify(exportData);
+    } catch (e) { return null; }
+}
+
+function checkUnsavedChanges() {
+    try {
+        const cur = computeCurrentExportJson();
+        const dirty = (cur !== _lastSavedJson);
+        if (dirty) {
+            // add listener if not already added
+            window.addEventListener('beforeunload', _beforeUnloadHandler);
+        } else {
+            window.removeEventListener('beforeunload', _beforeUnloadHandler);
+        }
+        return dirty;
+    } catch (e) { return false; }
+}
 
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,10 +52,31 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeNavigation() {
     const navButtons = document.querySelectorAll('.nav-btn');
     navButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            switchSection(btn.dataset.section);
+        btn.addEventListener('click', (e) => {
+            const section = btn.dataset.section;
+            // update URL query to be like `?companies` without reloading
+            try {
+                history.replaceState(null, '', '?' + section);
+            } catch (err) {
+                // fallback: manual assign (will reload)
+                try { location.search = section; } catch (e) {}
+            }
+            switchSection(section);
         });
     });
+
+    // On load: if URL has a simple query like `?companies`, switch to that section
+    try {
+        const q = (location.search || '').replace(/^\?/,'');
+        if (q) {
+            const btn = Array.from(navButtons).find(b => b.dataset.section === q);
+            if (btn) {
+                // mark active and display
+                navButtons.forEach(b => b.classList.toggle('active', b === btn));
+                switchSection(q);
+            }
+        }
+    } catch (err) {}
 }
 
     // Enable clickable sort controls in table headers
@@ -59,8 +108,14 @@ function initializeNavigation() {
             accessors: {
                 1: (it) => it.lineId || '',
                 2: (it) => it.lineName || '',
-                3: (it) => it.companyId || '',
-                4: (it) => it.lineColor || ''
+                3: (it) => (typeof getCompanyNameById === 'function') ? (getCompanyNameById(it.companyId) || it.companyId || '') : (it.companyId || ''),
+                4: (it) => it.lineColor || '',
+                5: (it) => (it.serviceCategories && it.serviceCategories.length) ? it.serviceCategories.map(c => {
+                    const id = Array.isArray(c) ? (c[0] || (c[1] || '')) : (c || '');
+                    const label = Array.isArray(c) ? (c[1] || c[0]) : c;
+                    return `${id},${label}`;
+                }).join(',') : '',
+                6: (it) => (it.stationOrder && Array.isArray(it.stationOrder)) ? it.stationOrder.map(s => (typeof s === 'string' ? s : (s.stationId || ''))).join(',') : ''
             }
         },
         'stations-table': {
@@ -85,7 +140,7 @@ function initializeNavigation() {
                 5: (it) => (it.platforms && it.platforms[it.fromStationId]) ? it.platforms[it.fromStationId] : '',
                 6: (it) => it.toStationId || '',
                 7: (it) => (it.platforms && it.platforms[it.toStationId]) ? it.platforms[it.toStationId] : '',
-                8: (it) => it.trainType || '',
+                8: (it) => it.trainType || it.guidance || '',
                 9: (it) => Number(it.duration) || 0,
                 10: (it) => Number(it.distance) || 0,
                 11: (it) => it.isBidirectional ? 1 : 0,
@@ -99,8 +154,8 @@ function initializeNavigation() {
                 1: (it) => it.configId || '',
                 2: (it) => it.fromLineId || '',
                 3: (it) => it.toLineId || '',
-                4: (it) => it.fromTrainType || '',
-                5: (it) => it.toTrainType || '',
+                4: (it) => it.fromTrainType || it.fromGuidance || '',
+                5: (it) => it.toTrainType || it.toGuidance || '',
                 6: (it) => it.isBidirectional ? 1 : 0,
                 7: (it) => it.description || ''
             }
@@ -189,18 +244,30 @@ function switchSection(sectionId) {
 async function tryLoadExistingData() {
     try {
         // テンプレートとなる雛形を読み込む（サーバーへの保存は行わない想定）
-        // ここではサーバーが提供する雛形ファイル `new_data.json` を読み込み、
-        // ローカル編集モードで開始します。
+        // ここでは雛形ファイル `new_data.json` を読み込み、ローカル編集モードで開始します。
         const response = await fetch('new_data.json');
         if (response && response.ok) {
             appData = await response.json();
+            // 新規データを読み込んだら必要なら時間単位の補正を行う
+            try { convertTimesToSecondsIfNeeded(appData); } catch (e) {}
             // 雛形読み込みなのでオフライン／ローカルモードとして扱う
-            renderSection('companies');
+            // 現在表示中のタブ（.nav-btn.active）を優先して描画する。
+            // （ページ再読み込み時にユーザーが companies 以外を開いている場合に対応）
+            let sectionToRender = 'companies';
+            try {
+                const activeBtn = document.querySelector('.nav-btn.active');
+                if (activeBtn && activeBtn.dataset && activeBtn.dataset.section) {
+                    sectionToRender = activeBtn.dataset.section;
+                } else {
+                    const q = (location.search || '').replace(/^\?/, '');
+                    if (q) sectionToRender = q;
+                }
+            } catch (e) { /* ignore */ }
+            renderSection(sectionToRender);
             updateServerStatus(false);
         }
     } catch (error) {
-        console.log('new_data.json が見つかりません');
-        // new_data.json がなければ空の状態で編集スタート（ローカルモード）
+        console.log('data.jsonが見つかりません');
         updateServerStatus(false);
     }
 }
@@ -213,20 +280,10 @@ function formatSeconds(sec) {
 
 function convertTimesToSecondsIfNeeded(data) {
     if (!data) return;
-    const segs = data.segments || [];
-    const transfers = data.platformTransfers || [];
-    const maxSeg = segs.reduce((max, s) => Math.max(max, Math.abs(Number(s.duration) || 0)), 0);
-    const maxTrans = transfers.reduce((max, t) => Math.max(max, Math.abs(Number(t.transferTime) || 0)), 0);
-    // どちらも小さめ（<=120）なら分単位で保存されていると推定して秒へ変換
-    const likelyMinutes = maxSeg > 0 && maxSeg <= 120 && maxTrans <= 120;
-    if (likelyMinutes) {
-        segs.forEach(s => {
-            if (s.duration !== undefined && s.duration !== null) s.duration = Number(s.duration) * 60;
-        });
-        transfers.forEach(t => {
-            if (t.transferTime !== undefined && t.transferTime !== null) t.transferTime = Number(t.transferTime) * 60;
-        });
-    }
+    // The data is stored in seconds. Do not attempt heuristic conversion
+    // from minutes to seconds here — that caused values to be multiplied
+    // by 60 incorrectly when inputs were already seconds.
+    return;
 }
 
 function updateServerStatus(isOnline) {
@@ -267,7 +324,7 @@ function renderSection(sectionId) {
 const REQUIRED_COLUMNS_BY_TABLE = {
     'companies-table': [ false, true, true, false, false ],
     'train-types-table': [ false, true, true, true, true, true, false ],
-    'lines-table': [ false, true, true, true, true, false ],
+    'lines-table': [ false, true, true, true, true, false, false, false ],
     'stations-table': [ false, true, true, true, true, true, false ],
     'segments-table': [ false, true, true, true, true, true, true, true, true, true, true, false, false, false ],
     'through-services-table': [ false, true, true, true, true, true, false, false, false ],
@@ -297,8 +354,15 @@ function updateTdHighlightForInput(el) {
     const colIndex = cells.indexOf(td);
     const mapped = (tableId && REQUIRED_COLUMNS_BY_TABLE[tableId] && typeof colIndex === 'number') ? REQUIRED_COLUMNS_BY_TABLE[tableId][colIndex] : undefined;
     const val = (el.value || '').toString().trim();
-    if ((mapped === undefined ? el.required : mapped) && val === '') {
-        td.style.backgroundColor = '#ff0000';
+    const requiredNow = (mapped === undefined ? el.required : mapped);
+    if (requiredNow && val === '') {
+        // For the segments editor, platform (始点/終点のりば) empty should be orange instead of red.
+        // Platform columns in the segments table are at column indices 5 and 7.
+        if (tableId === 'segments-table' && (colIndex === 5 || colIndex === 7)) {
+            td.style.backgroundColor = '#ff8c00';
+        } else {
+            td.style.backgroundColor = '#ff0000';
+        }
     } else {
         td.style.backgroundColor = '';
     }
@@ -330,11 +394,22 @@ function applyRequiredHighlightsToRow(tr) {
             }
             const val = (input.value || '').toString().trim();
             const requiredNow = (mappedRequired === undefined) ? input.required : mappedRequired;
-            td.style.backgroundColor = (requiredNow && val === '') ? '#ff0000' : '';
+            if (requiredNow && val === '') {
+                // segments table: platform columns (indices 5 and 7) use orange for empty
+                if (tableId === 'segments-table' && (i === 5 || i === 7)) {
+                    td.style.backgroundColor = '#ff8c00';
+                } else {
+                    td.style.backgroundColor = '#ff0000';
+                }
+            } else {
+                td.style.backgroundColor = '';
+            }
         } else {
             // display mode cell: inspect text content only if mapped as required
             const txt = (td.textContent || '').toString().trim();
-            if (mappedRequired === true && txt === '') td.style.backgroundColor = '#ff0000'; else td.style.backgroundColor = '';
+            if (mappedRequired === true && txt === '') {
+                if (tableId === 'segments-table' && (i === 5 || i === 7)) td.style.backgroundColor = '#ff8c00'; else td.style.backgroundColor = '#ff0000';
+            } else td.style.backgroundColor = '';
         }
     }
 }
@@ -364,6 +439,36 @@ document.addEventListener('change', (e) => {
     if (el.matches('input[required], select[required], textarea[required]')) {
         try { updateTdHighlightForInput(el); } catch (err) {}
     }
+});
+
+// Check for any invalid (red) highlights across the editor tables.
+function hasInvalidHighlights() {
+    const tds = document.querySelectorAll('td');
+    const re = /^rgba?\(\s*255\s*,\s*0\s*,\s*0/; // matches rgb(255, 0, 0) and rgba(255, 0, 0, 1)
+    for (const td of tds) {
+        try {
+            const bg = window.getComputedStyle(td).backgroundColor || '';
+            if (re.test(bg)) return true;
+        } catch (e) { /* ignore */ }
+    }
+    return false;
+}
+
+function updateSaveWarningVisibility() {
+    const warnEl = document.getElementById('save-warning');
+    if (!warnEl) return;
+    try {
+        const invalid = hasInvalidHighlights();
+        warnEl.style.display = invalid ? 'inline' : 'none';
+    } catch (e) { warnEl.style.display = 'none'; }
+}
+
+// Keep the save warning state in sync when inputs change
+document.addEventListener('input', (e) => {
+    try { updateSaveWarningVisibility(); checkUnsavedChanges(); } catch (err) {}
+});
+document.addEventListener('change', (e) => {
+    try { updateSaveWarningVisibility(); checkUnsavedChanges(); } catch (err) {}
 });
 
 // 鉄道会社
@@ -543,8 +648,15 @@ function renderLines() {
             <td class="row-number">${index + 1}</td>
             <td>${esc(line.lineId)}</td>
             <td>${esc(line.lineName)}</td>
-            <td>${esc(line.companyId)}</td>
+            <td>${esc(getCompanyNameById(line.companyId) || line.companyId)}</td>
             <td><input type="color" value="${line.lineColor}" disabled style="width: 100%;"></td>
+            <td>${(line.serviceCategories && line.serviceCategories.length) ? line.serviceCategories.map(c => {
+                const id = Array.isArray(c) ? (c[0] || (c[1] || '')) : (c || '');
+                const label = Array.isArray(c) ? (c[1] || c[0]) : c;
+                const text = `${id} ${label}`;
+                return `<span style="display:inline-block; padding:2px 2px; margin:2px; background:#f5f5f5; border:1px solid #ddd; border-radius:0px; font-size:11px;">${esc(text)}</span>`;
+            }).join('') : ''}</td>
+            <td>${(line.stationOrder && Array.isArray(line.stationOrder)) ? (line.stationOrder.length + '駅' + (line.stationOrder.length>0 ? ' (' + line.stationOrder.slice(0,6).map(s => (typeof s === 'string' ? esc(s) : esc(s.stationId || ''))).join(', ') + (line.stationOrder.length>6? ', ...' : '') + ')' : '')) : ''}</td>
             <td>
                 <button class="edit-btn" onclick="editLineRow(${index})">編集</button>
                 <button class="delete-btn" onclick="deleteLine(${index})">削除</button>
@@ -611,6 +723,28 @@ function editLineRow(index) {
         <td><input type="text" value="${esc(l.lineName)}" id="eln-${index}" required></td>
         <td><select id="elc-${index}" required>${opts}</select></td>
         <td><input type="color" value="${l.lineColor}" id="elco-${index}" required></td>
+            <td>
+            <div id="el-sc-${index}" style="min-height:28px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px; border:1px solid #ddd; background:#fafafa;">
+            </div>
+            <div style="display:flex; gap:6px; margin-top:6px;">
+                <input type="text" id="el-sc-id-${index}" placeholder="ID" style="min-width:30px;max-width:60px;" />
+                <input type="text" id="el-sc-name-${index}" placeholder="種別名" style="flex:1;min-width:50px;" />
+                <button class="add-btn" type="button" id="el-sc-add-${index}">追加</button>
+            </div>
+        </td>
+        <td>
+            <div id="el-so-${index}" style="padding:4px;">
+                <button class="add-btn" type="button" onclick="addStationOrderRow(${index})">+ 行追加</button>
+                <div style="max-height:220px; overflow:auto; margin-top:6px;">
+                    <table class="data-table" id="el-so-table-${index}" style="width:100%;">
+                        <thead>
+                            <tr><th style="width:24px;"></th><th style="width:36px;">#</th><th>駅ID</th><th>駅名</th><th style="width:120px;">操作</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </td>
         <td>
             <button class="save-btn" onclick="saveLine(${index})">保存</button>
             <button class="cancel-btn" onclick="renderLines()">取消</button>
@@ -625,15 +759,47 @@ function editLineRow(index) {
     } else {
         tr.style.backgroundColor = '';
     }
+    // Initialize serviceCategories editor and stationOrder editor
+    if (!appData.lines[index].serviceCategories) appData.lines[index].serviceCategories = [];
+    renderServiceCategoriesEditor(index);
+    renderStationOrderEditor(index);
+    // attach handler: Add button for ID + 種別名
+    const addBtn = document.getElementById(`el-sc-add-${index}`);
+    const idInput = document.getElementById(`el-sc-id-${index}`);
+    const nameInput = document.getElementById(`el-sc-name-${index}`);
+    if (addBtn && idInput && nameInput) {
+        addBtn.addEventListener('click', () => {
+            const idv = idInput.value && idInput.value.trim();
+            const namev = nameInput.value && nameInput.value.trim();
+            if (!idv || !namev) return;
+            addServiceCategoryToLine(index, idv, namev);
+            idInput.value = '';
+            nameInput.value = '';
+            idInput.focus();
+        });
+        // Enter on name input triggers add
+        nameInput.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                addBtn.click();
+            }
+        });
+    }
 }
 
 function saveLine(index) {
+    // preserve serviceCategories and stationOrder edited via the inline editors
+    const prev = appData.lines[index] || {};
     appData.lines[index] = {
         lineId: document.getElementById('eli-' + index).value,
         lineName: document.getElementById('eln-' + index).value,
         companyId: document.getElementById('elc-' + index).value,
         lineColor: document.getElementById('elco-' + index).value,
-        throughServices: appData.lines[index].throughServices || []
+        // keep trainType as in data.json (UI does not edit this)
+        trainType: prev.trainType || '',
+        throughServices: prev.throughServices || [],
+        serviceCategories: prev.serviceCategories || [],
+        stationOrder: prev.stationOrder || []
     };
     renderLines();
 }
@@ -765,7 +931,8 @@ function renderSegments() {
     // Ensure every segment in the dataset has an ID for consistent duplicate detection
     appData.segments.forEach(s => {
         if (!s.segmentId || s.segmentId.toString().trim() === '') {
-            s.segmentId = generateSegmentId(s.lineId, s.fromStationId, s.toStationId, s.trainType);
+            const guidancePart = s.guidanceId || s.trainType || s.guidance || '';
+            s.segmentId = generateSegmentId(s.lineId, guidancePart, s.fromStationId, s.toStationId);
         }
     });
     // duplicate detection across all segments
@@ -783,13 +950,13 @@ function renderSegments() {
         tr.innerHTML = `
             <td class="row-number">${i + 1}</td>
             <td>${esc(seg.segmentId)}</td>
-            <td>${esc(seg.lineId)}</td>
-            <td>${esc(seg.companyId)}</td>
-            <td>${esc(seg.fromStationId)}</td>
+            <td>${esc(getLineNameById(seg.lineId) || seg.lineId)}</td>
+            <td>${esc(getCompanyNameById(seg.companyId) || seg.companyId)}</td>
+            <td>${esc(getStationNameById(seg.fromStationId) || seg.fromStationId)}</td>
             <td>${esc(seg.platforms && seg.platforms[seg.fromStationId] ? esc(seg.platforms[seg.fromStationId]) : '')}</td>
-            <td>${esc(seg.toStationId)}</td>
+            <td>${esc(getStationNameById(seg.toStationId) || seg.toStationId)}</td>
             <td>${esc(seg.platforms && seg.platforms[seg.toStationId] ? esc(seg.platforms[seg.toStationId]) : '')}</td>
-            <td>${esc(seg.trainType)}</td>
+            <td>${esc(seg.trainType || seg.guidance || '')}</td>
             <td>${formatSeconds(seg.duration)}</td>
             <td>${seg.distance}</td>
             <td style="text-align: center;">${seg.isBidirectional ? '○' : ''}</td>
@@ -810,7 +977,7 @@ function renderSegments() {
 function addSegment() {
     const seg = {segmentId: '', platforms: {}, lineId: '', companyId: '', fromStationId: '', toStationId: '', trainType: '', duration: 0, distance: 0, stopsAt: [], isBidirectional: false, isAlightOnly: false};
     // set initial autogenerated id
-    seg.segmentId = generateSegmentId(seg.lineId, seg.fromStationId, seg.toStationId, seg.trainType);
+    seg.segmentId = generateSegmentId(seg.lineId, '', seg.fromStationId, seg.toStationId);
     appData.segments.push(seg);
     renderSegments();
     editSegmentRow(appData.segments.length - 1);
@@ -828,9 +995,35 @@ function editSegmentRow(index) {
             break;
         }
     }
-    const lineOpts = appData.lines.map(l => `<option value="${esc(l.lineId)}" ${l.lineId === seg.lineId ? 'selected' : ''}>${esc(l.lineName)}</option>`).join('');
+    // route select: include a default empty option meaning `--`
+    const lineOpts = ['<option value="">--</option>'].concat(appData.lines.map(l => `<option value="${esc(l.lineId)}" ${l.lineId === seg.lineId ? 'selected' : ''}>${esc(l.lineName)}</option>`)).join('');
     const typeOpts = appData.trainTypes.map(t => `<option value="${esc(t.trainTypeId)}" ${t.trainTypeId === seg.trainType ? 'selected' : ''}>${esc(t.trainTypeName)}</option>`).join('');
-    
+    // build station options for the selected line (use stationOrder if present, otherwise fall back to all stations sorted by name)
+    const selectedLineForOpts = appData.lines.find(l => l.lineId === seg.lineId) || null;
+    let stationListForLine = [];
+    if (selectedLineForOpts && Array.isArray(selectedLineForOpts.stationOrder) && selectedLineForOpts.stationOrder.length) {
+        stationListForLine = selectedLineForOpts.stationOrder.map(id => ({stationId: id, stationName: getStationNameById(id)}));
+    } else {
+        // fallback: include all stations sorted by stationName
+        stationListForLine = appData.stations.map(s => ({stationId: s.stationId, stationName: s.stationName || ''})).sort((a,b)=> (a.stationName||'').localeCompare(b.stationName||''));
+    }
+    const stationOptsFrom = ['<option value="">--</option>'].concat(stationListForLine.map(s => `<option value="${esc(s.stationId)}" ${s.stationId === seg.fromStationId ? 'selected' : ''}>${esc(s.stationId)} ${esc(s.stationName||'')}</option>`)).join('');
+    const stationOptsTo = ['<option value="">--</option>'].concat(stationListForLine.map(s => `<option value="${esc(s.stationId)}" ${s.stationId === seg.toStationId ? 'selected' : ''}>${esc(s.stationId)} ${esc(s.stationName||'')}</option>`)).join('');
+    // build guidance options from the selected line's serviceCategories (show id・label in option text)
+    // Include guidance ID in `data-gid` for option entries when available so we can use the ID for generated segment IDs
+    let guidanceOpts = '<option value="">--</option>';
+    if (selectedLineForOpts && Array.isArray(selectedLineForOpts.serviceCategories)) {
+        guidanceOpts += selectedLineForOpts.serviceCategories.map(c => {
+            if (Array.isArray(c)) {
+                const id = c[0] || '';
+                const label = c[1] || c[0] || '';
+                return `<option value="${esc(label)}" data-gid="${esc(id)}" ${label === (seg.guidance||'') ? 'selected' : ''}>${esc(id)}・${esc(label)}</option>`;
+            } else {
+                const label = c || '';
+                return `<option value="${esc(label)}">${esc(label)}</option>`;
+            }
+        }).join('');
+    }
     // 駅候補リストはブラウザの datalist を使わずカスタム候補UIを使用するため削除
     
     const tr = document.getElementById('segments-tbody').children[rowIdx];
@@ -839,21 +1032,32 @@ function editSegmentRow(index) {
     tr.innerHTML = `
         <td class="row-number">${rowIdx + 1}</td>
         <td><input type="text" value="${esc(seg.segmentId)}" id="esegi-${index}" style="width: 100%; background:#e9e9e9;" readonly title="区間IDは自動生成されます" required></td>
-        <td><select id="esegl-${index}" onchange="updateSegmentCompany(${index}); updateSegmentIdPreview(${index})" required>${lineOpts}</select></td>
-        <td><input type="text" value="${esc(seg.companyId)}" id="esegc-${index}" readonly style="background: #e0e0e0; cursor: not-allowed;" required></td>
+        <td><select id="esegl-${index}" onchange="updateSegmentCompany(${index}); updateSegmentDependentFields(${index}); updateSegmentIdPreview(${index})" required>${lineOpts}</select></td>
         <td>
-            <input type="text" value="${esc(seg.fromStationId)}" id="esegf-${index}" autocomplete="off" placeholder="駅ID入力" onchange="onSegmentStationChange(${index}, 'from')" required>
+            <input type="hidden" value="${esc(seg.companyId)}" id="esegc-${index}">
+            <div id="esegc-name-${index}" style="background: #e0e0e0; padding:4px;">${esc(getCompanyNameById(seg.companyId) || seg.companyId)}</div>
+        </td>
+        <td>
+            <select id="esegfsel-${index}" onchange="onSegmentStationChange(${index}, 'from'); updateSegmentIdPreview(${index})" ${!seg.lineId ? 'disabled' : ''} required>
+                ${stationOptsFrom}
+            </select>
         </td>
         <td>
             <input type="text" value="${esc(seg.platforms && seg.platforms[seg.fromStationId] ? esc(seg.platforms[seg.fromStationId]) : '')}" id="esegfplat-${index}" placeholder="番線ID" required>
         </td>
         <td>
-            <input type="text" value="${esc(seg.toStationId)}" id="esegt-${index}" autocomplete="off" placeholder="駅ID入力" onchange="onSegmentStationChange(${index}, 'to')" required>
+            <select id="esegtsel-${index}" onchange="onSegmentStationChange(${index}, 'to'); updateSegmentIdPreview(${index})" ${!seg.lineId ? 'disabled' : ''} required>
+                ${stationOptsTo}
+            </select>
         </td>
         <td>
             <input type="text" value="${esc(seg.platforms && seg.platforms[seg.toStationId] ? esc(seg.platforms[seg.toStationId]) : '')}" id="esegtplat-${index}" placeholder="番線ID" required>
         </td>
-        <td><select id="esegtt-${index}" onchange="updateSegmentIdPreview(${index})" required>${typeOpts}</select></td>
+        <td>
+            <select id="eseg_guidance-${index}" onchange="updateSegmentIdPreview(${index})" ${!seg.lineId ? 'disabled' : ''}>
+                ${guidanceOpts}
+            </select>
+        </td>
         <td>
             <input type="number" value="${dur}" id="esegd-${index}" min="0" required> 秒
         </td>
@@ -868,23 +1072,8 @@ function editSegmentRow(index) {
     
     // 路線選択時に会社IDを自動設定
     updateSegmentCompany(index);
-    // Attach station suggestion handlers for from/to inputs
-    try {
-        const fromInput = document.getElementById('esegf-' + index);
-        const toInput = document.getElementById('esegt-' + index);
-        if (fromInput) {
-            fromInput.addEventListener('input', () => _renderStationSuggestionsFor(index, 'from'));
-            fromInput.addEventListener('focus', () => _renderStationSuggestionsFor(index, 'from'));
-            fromInput.addEventListener('blur', () => setTimeout(() => _hideStationSuggestionsFor(index, 'from'), 180));
-        }
-        if (toInput) {
-            toInput.addEventListener('input', () => _renderStationSuggestionsFor(index, 'to'));
-            toInput.addEventListener('focus', () => _renderStationSuggestionsFor(index, 'to'));
-            toInput.addEventListener('blur', () => setTimeout(() => _hideStationSuggestionsFor(index, 'to'), 180));
-        }
-    } catch (e) {
-        // no-op
-    }
+    // ensure guidance/selects reflect current line selection when route changes
+    // (listeners for select onchange already call updateSegmentCompany/updateSegmentIdPreview)
     // highlight if duplicate segmentId
     const id = (seg.segmentId || '').toString();
     if (id) {
@@ -901,14 +1090,81 @@ function updateSegmentCompany(index) {
     const lineId = document.getElementById('esegl-' + index).value;
     const line = appData.lines.find(l => l.lineId === lineId);
     if (line) {
-        document.getElementById('esegc-' + index).value = line.companyId;
+        const cEl = document.getElementById('esegc-' + index);
+        if (cEl) cEl.value = line.companyId;
+        const nameEl = document.getElementById('esegc-name-' + index);
+        if (nameEl) nameEl.textContent = getCompanyNameById(line.companyId) || line.companyId;
+    } else {
+        // clear company if no line selected
+        const cEl = document.getElementById('esegc-' + index);
+        if (cEl) cEl.value = '';
+        const nameEl = document.getElementById('esegc-name-' + index);
+        if (nameEl) nameEl.textContent = '';
+    }
+}
+
+
+// Update station selects and guidance select when the selected line changes
+function updateSegmentDependentFields(index) {
+    const lineSel = document.getElementById('esegl-' + index);
+    if (!lineSel) return;
+    const lineId = lineSel.value;
+    const line = appData.lines.find(l => l.lineId === lineId) || null;
+    // build station options (use stationOrder if present)
+    let stationList = [];
+    if (line && Array.isArray(line.stationOrder) && line.stationOrder.length) {
+        stationList = line.stationOrder.map(id => ({stationId: id, stationName: getStationNameById(id)}));
+    } else {
+        stationList = appData.stations.map(s => ({stationId: s.stationId, stationName: s.stationName || ''})).sort((a,b)=> (a.stationName||'').localeCompare(b.stationName||''));
+    }
+    const fromSel = document.getElementById('esegfsel-' + index);
+    const toSel = document.getElementById('esegtsel-' + index);
+    const prevFrom = fromSel ? fromSel.value : '';
+    const prevTo = toSel ? toSel.value : '';
+    const opts = ['<option value="">--</option>'].concat(stationList.map(s => `<option value="${esc(s.stationId)}">${esc(s.stationId)} ${esc(s.stationName||'')}</option>`)).join('');
+    if (fromSel) {
+        fromSel.innerHTML = opts;
+        if (prevFrom && stationList.some(s=>s.stationId===prevFrom)) fromSel.value = prevFrom; else fromSel.value = '';
+        fromSel.disabled = !line;
+    }
+    if (toSel) {
+        toSel.innerHTML = opts;
+        if (prevTo && stationList.some(s=>s.stationId===prevTo)) toSel.value = prevTo; else toSel.value = '';
+        toSel.disabled = !line;
+    }
+
+    // build guidance options from selected line
+    const guidanceSel = document.getElementById('eseg_guidance-' + index);
+    const prevGuid = guidanceSel ? guidanceSel.value : '';
+    let guidanceHtml = '<option value="">--</option>';
+    if (line && Array.isArray(line.serviceCategories)) {
+        guidanceHtml += line.serviceCategories.map(c => {
+            if (Array.isArray(c)) {
+                const id = c[0] || '';
+                const label = c[1] || c[0] || '';
+                return `<option value="${esc(label)}" data-gid="${esc(id)}">${esc(id)}・${esc(label)}</option>`;
+            } else {
+                const label = c || '';
+                return `<option value="${esc(label)}">${esc(label)}</option>`;
+            }
+        }).join('');
+    }
+    if (guidanceSel) {
+        guidanceSel.innerHTML = guidanceHtml;
+        if (prevGuid && Array.isArray(line && line.serviceCategories ? line.serviceCategories : []) && (line.serviceCategories||[]).some(c=> (Array.isArray(c)? (c[1]||c[0]) : c) === prevGuid)) {
+            guidanceSel.value = prevGuid;
+        } else {
+            guidanceSel.value = '';
+        }
+        guidanceSel.disabled = !line;
     }
 }
 
 // Called when user changes the from/to station while editing a segment
 function onSegmentStationChange(index, which) {
     // which = 'from' or 'to'
-    const stationInput = document.getElementById(which === 'from' ? ('esegf-' + index) : ('esegt-' + index));
+    // prefer the new select-based IDs; fall back to old input IDs if present
+    const stationInput = document.getElementById(which === 'from' ? ('esegfsel-' + index) : ('esegtsel-' + index)) || document.getElementById(which === 'from' ? ('esegf-' + index) : ('esegt-' + index));
     const platInput = document.getElementById(which === 'from' ? ('esegfplat-' + index) : ('esegtplat-' + index));
     const stationId = stationInput.value;
     // Try to auto-fill platform if existing mapping has an entry for this station
@@ -923,27 +1179,34 @@ function onSegmentStationChange(index, which) {
     updateSegmentIdPreview(index);
 }
 
-// Generate segment ID in the format: SEG-{路線ID}-{始点駅ID}-{終点駅ID}-{列車種別ID}
-function generateSegmentId(lineId, fromStationId, toStationId, trainTypeId) {
+// Generate segment ID in the format: SGM-{路線ID}-{案内種別ID}-{始点駅ID}-{終点駅ID}
+function generateSegmentId(lineId, guidanceId, fromStationId, toStationId) {
     const safe = (s) => (s || '').toString().trim();
     // remove spaces inside ids to keep IDs compact
     const clean = (s) => safe(s).replace(/\s+/g, '');
-    return `SEG-${clean(lineId)}-${clean(fromStationId)}-${clean(toStationId)}-${clean(trainTypeId)}`;
+    return `SGM-${clean(lineId)}-${clean(guidanceId)}-${clean(fromStationId)}-${clean(toStationId)}`;
 }
 
 // Update the readonly segment-id preview while editing
 function updateSegmentIdPreview(index) {
     const idEl = document.getElementById('esegi-' + index);
     const lineEl = document.getElementById('esegl-' + index);
-    const fromEl = document.getElementById('esegf-' + index);
-    const toEl = document.getElementById('esegt-' + index);
-    const ttEl = document.getElementById('esegtt-' + index);
+    const fromEl = document.getElementById('esegfsel-' + index) || document.getElementById('esegf-' + index);
+    const toEl = document.getElementById('esegtsel-' + index) || document.getElementById('esegt-' + index);
+    const guidanceEl = document.getElementById('eseg_guidance-' + index) || document.getElementById('esegg-' + index);
     if (!idEl) return;
+    // prefer existing saved guidanceId when available; otherwise use existing trainType or the selected guidance option's data-gid/value
+    const existingSeg = appData.segments[index] || {};
+    let guidancePart = existingSeg.guidanceId || existingSeg.trainType || '';
+    if (!guidancePart && guidanceEl) {
+        const opt = guidanceEl.options[guidanceEl.selectedIndex];
+        guidancePart = opt && opt.dataset && opt.dataset.gid ? opt.dataset.gid : (guidanceEl.value || '');
+    }
     const newId = generateSegmentId(
         lineEl ? lineEl.value : '',
+        guidancePart,
         fromEl ? fromEl.value : '',
-        toEl ? toEl.value : '',
-        ttEl ? ttEl.value : ''
+        toEl ? toEl.value : ''
     );
     idEl.value = newId;
 }
@@ -1114,9 +1377,18 @@ function _renderPlatformStationSuggestionsFor(index, filterText) {
 
         item.addEventListener('click', (ev) => {
             ev.stopPropagation();
-            inputEl.value = st.stationId || '';
+            // For platform-transfer inputs we show station name to the user,
+            // but retain the stationId in a hidden field for saving.
+            inputEl.value = st.stationName || '';
+            // store resolved stationId on a hidden field so save can use it
+            try {
+                const hid = document.getElementById(`epts-id-${index}`);
+                if (hid) hid.value = st.stationId || '';
+            } catch (e) {}
             _hidePlatformStationSuggestionsFor(index);
             inputEl.focus();
+            // update transfer-id preview when selection made
+            try { updatePlatformTransferIdPreview(index); } catch (e) {}
         });
         container.appendChild(item);
     });
@@ -1147,11 +1419,281 @@ function _renderPlatformStationSuggestionsFor(index, filterText) {
     setTimeout(() => document.addEventListener('click', onDocClick), 0);
 }
 
+// --- serviceCategories (タグ) editor ---
+function renderServiceCategoriesEditor(lineIndex) {
+    const container = document.getElementById(`el-sc-${lineIndex}`);
+    if (!container) return;
+    const arr = appData.lines[lineIndex].serviceCategories || [];
+    container.innerHTML = '';
+    arr.forEach((c, i) => {
+        const span = document.createElement('span');
+        span.style.display = 'inline-block';
+        span.style.padding = '2px 2px';
+        span.style.margin = '2px';
+        span.style.background = '#f5f5f5';
+        span.style.border = '1px solid #ddd';
+        span.style.borderRadius = '0px';
+        span.style.fontSize = '11px';
+        const id = Array.isArray(c) ? (c[0] || (c[1] || '')) : (c || '');
+        const label = Array.isArray(c) ? (c[1] || c[0]) : c;
+        span.textContent = `${id} ${label}`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '×';
+        btn.style.marginLeft = '6px';
+        btn.style.border = 'none';
+        btn.style.background = 'transparent';
+        btn.style.cursor = 'pointer';
+        btn.addEventListener('click', () => { removeServiceCategoryFromLine(lineIndex, i); });
+        span.appendChild(btn);
+        container.appendChild(span);
+    });
+}
+
+function addServiceCategoryToLine(lineIndex, id, label) {
+    if (!label) return;
+    if (!appData.lines[lineIndex].serviceCategories) appData.lines[lineIndex].serviceCategories = [];
+    const arr = appData.lines[lineIndex].serviceCategories;
+    // check duplicate: prefer matching by id when provided, otherwise by label
+    const exists = arr.some(c => {
+        if (Array.isArray(c)) {
+            if (id) return c[0] === id;
+            return (c[1] || c[0]) === label;
+        } else {
+            return !id && c === label;
+        }
+    });
+    if (!exists) {
+        arr.push([id, label]);
+        renderServiceCategoriesEditor(lineIndex);
+    }
+}
+
+function removeServiceCategoryFromLine(lineIndex, pos) {
+    if (!appData.lines[lineIndex].serviceCategories) return;
+    appData.lines[lineIndex].serviceCategories.splice(pos, 1);
+    renderServiceCategoriesEditor(lineIndex);
+}
+
+// --- stationOrder editor (table + drag/drop + suggestions) ---
+function renderStationOrderEditor(lineIndex) {
+    const tbl = document.getElementById(`el-so-table-${lineIndex}`);
+    if (!tbl) return;
+    const tbody = tbl.querySelector('tbody');
+    tbody.innerHTML = '';
+    const arr = appData.lines[lineIndex].stationOrder || [];
+    arr.forEach((entry, rowIdx) => {
+        const stationId = (typeof entry === 'string') ? entry : (entry.stationId || '');
+        const tr = document.createElement('tr');
+        tr.draggable = true;
+        tr.dataset.row = rowIdx;
+        tr.style.cursor = 'grab';
+        tr.innerHTML = `
+            <td style="text-align:center;">≡</td>
+            <td style="text-align:center;">${rowIdx + 1}</td>
+            <td><input type="text" id="el-so-st-${lineIndex}-${rowIdx}" value="${esc(stationId)}" placeholder="駅ID" style="width:100%; min-width:60px;"></td>
+            <td><span id="el-so-name-${lineIndex}-${rowIdx}" style="font-weight:700; display:inline-block; min-width:60px;">${getStationNameById(stationId)|| ''}</span></td>
+            <td style="white-space:nowrap; text-align:center;"><button class="edit-btn" type="button" onclick="moveStationOrderRow(${lineIndex}, ${rowIdx}, ${rowIdx-1})">↑</button><button class="edit-btn" type="button" onclick="moveStationOrderRow(${lineIndex}, ${rowIdx}, ${rowIdx+1})">↓</button><button class="delete-btn" type="button" onclick="removeStationOrderRow(${lineIndex}, ${rowIdx})">削除</button></td>
+        `;
+        // events: input suggestion and change
+        tbody.appendChild(tr);
+        const inputId = document.getElementById(`el-so-st-${lineIndex}-${rowIdx}`);
+        if (inputId) {
+            inputId.addEventListener('input', () => _renderStationOrderSuggestionsFor(lineIndex, rowIdx));
+            inputId.addEventListener('focus', () => _renderStationOrderSuggestionsFor(lineIndex, rowIdx));
+            inputId.addEventListener('blur', () => setTimeout(() => _hideStationOrderSuggestionsFor(lineIndex, rowIdx), 180));
+            inputId.addEventListener('change', () => {
+                const v = inputId.value && inputId.value.trim();
+                // store as simple stationId string
+                appData.lines[lineIndex].stationOrder[rowIdx] = v || '';
+                const nameSpan = document.getElementById(`el-so-name-${lineIndex}-${rowIdx}`);
+                if (nameSpan) nameSpan.textContent = getStationNameById(v) || '';
+            });
+        }
+        // drag event handlers
+        tr.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', rowIdx); });
+        tr.addEventListener('dragover', (ev) => { ev.preventDefault(); });
+        tr.addEventListener('drop', (ev) => {
+            ev.preventDefault();
+            const from = Number(ev.dataTransfer.getData('text/plain'));
+            const to = Number(tr.dataset.row);
+            moveStationOrderRow(lineIndex, from, to);
+        });
+    });
+}
+
+function addStationOrderRow(lineIndex, data) {
+    if (!appData.lines[lineIndex].stationOrder) appData.lines[lineIndex].stationOrder = [];
+    const entry = data || '';
+    appData.lines[lineIndex].stationOrder.push(entry);
+    renderStationOrderEditor(lineIndex);
+}
+
+function removeStationOrderRow(lineIndex, rowIdx) {
+    if (!appData.lines[lineIndex].stationOrder) return;
+    appData.lines[lineIndex].stationOrder.splice(rowIdx, 1);
+    renderStationOrderEditor(lineIndex);
+}
+
+function moveStationOrderRow(lineIndex, fromIdx, toIdx) {
+    if (!appData.lines[lineIndex].stationOrder) return;
+    const arr = appData.lines[lineIndex].stationOrder;
+    if (fromIdx < 0 || fromIdx >= arr.length) return;
+    if (toIdx < 0) toIdx = 0;
+    if (toIdx >= arr.length) toIdx = arr.length - 1;
+    const item = arr.splice(fromIdx, 1)[0];
+    arr.splice(toIdx, 0, item);
+    renderStationOrderEditor(lineIndex);
+}
+
+function _hideStationOrderSuggestionsFor(lineIndex, rowIdx) {
+    const id = `station-suggest-so-${lineIndex}-${rowIdx}`;
+    const existing = document.getElementById(id);
+    if (existing) existing.remove();
+}
+
+function _renderStationOrderSuggestionsFor(lineIndex, rowIdx, filterText) {
+    _hideStationOrderSuggestionsFor(lineIndex, rowIdx);
+    const inputId = `el-so-st-${lineIndex}-${rowIdx}`;
+    const inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+    const q = (filterText || inputEl.value || '').toString().trim().toLowerCase();
+    if (!q) return;
+    const matches = appData.stations.filter(s => {
+        if (!s) return false;
+        const id = (s.stationId || '').toString().toLowerCase();
+        const name = (s.stationName || '').toString().toLowerCase();
+        const kana = (s.stationNameKana || '').toString().toLowerCase();
+        return id.includes(q) || name.includes(q) || kana.includes(q);
+    }).slice(0,30);
+    if (!matches.length) return;
+    const rect = inputEl.getBoundingClientRect();
+    const container = document.createElement('div');
+    container.id = `station-suggest-so-${lineIndex}-${rowIdx}`;
+    container.style.position = 'absolute';
+    container.style.left = (rect.left + window.scrollX) + 'px';
+    container.style.top = (rect.bottom + window.scrollY) + 'px';
+    container.style.width = (rect.width) + 'px';
+    container.style.maxHeight = '320px';
+    container.style.overflow = 'auto';
+    container.style.border = '1px solid #ccc';
+    container.style.background = '#fff';
+    container.style.zIndex = 2000;
+    container.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+    matches.forEach(st => {
+        const item = document.createElement('div');
+        item.style.padding = '6px 8px';
+        item.style.cursor = 'pointer';
+        item.style.borderBottom = '1px solid #eee';
+        item.onmouseenter = () => item.style.background = '#f3f3f3';
+        item.onmouseleave = () => item.style.background = '';
+        const idLine = document.createElement('div'); idLine.textContent = st.stationId || ''; idLine.style.fontSize='12px'; idLine.style.color='#222';
+        const nameLine = document.createElement('div'); nameLine.textContent = st.stationName || ''; nameLine.style.fontWeight='700'; nameLine.style.fontSize='14px'; nameLine.style.lineHeight='1.1';
+        item.appendChild(idLine); item.appendChild(nameLine);
+        item.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            inputEl.value = st.stationId || '';
+            _hideStationOrderSuggestionsFor(lineIndex, rowIdx);
+            // update model (store stationId string)
+            if (!appData.lines[lineIndex].stationOrder) appData.lines[lineIndex].stationOrder = [];
+            appData.lines[lineIndex].stationOrder[rowIdx] = st.stationId || '';
+            const nameSpan = document.getElementById(`el-so-name-${lineIndex}-${rowIdx}`);
+            if (nameSpan) nameSpan.textContent = st.stationName || '';
+            inputEl.focus();
+        });
+        container.appendChild(item);
+    });
+    document.body.appendChild(container);
+    // Click outside to hide
+    const onDocClick = (ev) => {
+        if (!container.contains(ev.target) && ev.target !== inputEl) {
+            _hideStationOrderSuggestionsFor(lineIndex, rowIdx);
+            document.removeEventListener('click', onDocClick);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', onDocClick), 0);
+}
+
+function getStationNameById(id) {
+    if (!id) return '';
+    const s = appData.stations.find(x => (x.stationId || '') === id);
+    return s ? (s.stationName || '') : '';
+}
+
+function getLineNameById(id) {
+    if (!id) return '';
+    const l = appData.lines.find(x => (x.lineId || '') === id);
+    return l ? (l.lineName || '') : '';
+}
+
+function getCompanyNameById(id) {
+    if (!id) return '';
+    const c = appData.companies.find(x => (x.companyId || '') === id);
+    return c ? (c.companyName || '') : '';
+}
+
+// Generate platform-transfer ID in the format: TSF-[駅ID]-{乗換元のりば}-{乗換先のりば}
+function generatePlatformTransferId(stationId, fromPlatform, toPlatform) {
+    const safe = (s) => (s || '').toString().trim();
+    // Use stationId as the key component (normalized, spaces collapsed)
+    const sid = safe(stationId).replace(/\s+/g, '');
+    const from = safe(fromPlatform).replace(/\s+/g, '_');
+    const to = safe(toPlatform).replace(/\s+/g, '_');
+    return `TSF-${sid}-${from}-${to}`;
+}
+
+// find stationId by station name (first match)
+function getStationIdByName(name) {
+    if (!name) return '';
+    const n = name.toString().trim();
+    const s = appData.stations.find(x => (x.stationName || '') === n || (x.stationId || '') === n);
+    return s ? (s.stationId || '') : '';
+}
+
+function updatePlatformTransferIdPreview(index) {
+    try {
+        const stationNameInput = document.getElementById('epts-' + index);
+        const stationHiddenId = document.getElementById('epts-id-' + index);
+        const fromInput = document.getElementById('eptf-' + index);
+        const toInput = document.getElementById('eptt-' + index);
+        const idInput = document.getElementById('epti-' + index);
+        if (!idInput) return;
+        const sname = stationNameInput ? stationNameInput.value : '';
+        // Prefer resolved stationId from hidden field; fallback by resolving from name; last resort: raw input
+        let sid = stationHiddenId && stationHiddenId.value ? stationHiddenId.value : (getStationIdByName(sname) || sname);
+        const from = fromInput ? fromInput.value : '';
+        const to = toInput ? toInput.value : '';
+        idInput.value = generatePlatformTransferId(sid, from, to);
+    } catch (e) {}
+}
+
 // Generate through-service ID in the format: TSV-{乗入元路線ID}-{乗入先路線ID}
-function generateThroughServiceId(fromLineId, toLineId) {
+// Generate through-service ID in the format:
+// TSV-{乗入元路線ID}-{元案内種別ID}-{乗入先路線ID}-{先案内種別ID}
+// Guidance IDs may be empty. Values are cleaned of whitespace.
+function generateThroughServiceId(fromLineId, toLineId, fromGuidanceId, toGuidanceId) {
     const safe = (s) => (s || '').toString().trim();
     const clean = (s) => safe(s).replace(/\s+/g, '');
-    return `TSV-${clean(fromLineId)}-${clean(toLineId)}`;
+    return `TSV-${clean(fromLineId)}-${clean(fromGuidanceId)}-${clean(toLineId)}-${clean(toGuidanceId)}`;
+}
+
+// Resolve a guidance label to its ID for a given line's serviceCategories.
+function getGuidanceIdFor(lineId, guidanceLabel) {
+    if (!lineId) return '';
+    const line = appData.lines.find(l => l.lineId === lineId);
+    if (!line || !Array.isArray(line.serviceCategories)) return guidanceLabel || '';
+    const g = (line.serviceCategories || []).find(c => {
+        if (Array.isArray(c)) {
+            const id = (c[0] || '').toString();
+            const label = (c[1] || c[0] || '').toString();
+            return (label === guidanceLabel) || (id === guidanceLabel);
+        } else {
+            return (c === guidanceLabel);
+        }
+    });
+    if (!g) return guidanceLabel || '';
+    if (Array.isArray(g)) return (g[0] || g[1] || '').toString();
+    return g.toString();
 }
 
 // Update the readonly through-service configId preview while editing
@@ -1160,9 +1702,20 @@ function updateThroughServiceIdPreview(index) {
     const fromEl = document.getElementById('etsf-' + index);
     const toEl = document.getElementById('etst-' + index);
     if (!idEl) return;
+    // determine selected guidance option data-gid if present, otherwise fallback to value
+    const fromGuidSel = document.getElementById('etsfg-' + index);
+    const toGuidSel = document.getElementById('etstg-' + index);
+    const getSelectedGuidanceId = (sel) => {
+        if (!sel) return '';
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt) return '';
+        return opt.dataset && opt.dataset.gid ? opt.dataset.gid : (opt.value || '');
+    };
     const newId = generateThroughServiceId(
         fromEl ? fromEl.value : '',
-        toEl ? toEl.value : ''
+        toEl ? toEl.value : '',
+        getSelectedGuidanceId(fromGuidSel),
+        getSelectedGuidanceId(toGuidSel)
     );
     idEl.value = newId;
 }
@@ -1170,8 +1723,8 @@ function updateThroughServiceIdPreview(index) {
 function saveSegment(index) {
     // preserve existing platforms mapping, but update keys for from/to stations
     const prevPlatforms = appData.segments[index] && appData.segments[index].platforms ? {...appData.segments[index].platforms} : {};
-    const newFromStation = document.getElementById('esegf-' + index).value;
-    const newToStation = document.getElementById('esegt-' + index).value;
+    const newFromStation = (document.getElementById('esegfsel-' + index) || document.getElementById('esegf-' + index)).value;
+    const newToStation = (document.getElementById('esegtsel-' + index) || document.getElementById('esegt-' + index)).value;
     const newFromPlat = document.getElementById('esegfplat-' + index).value;
     const newToPlat = document.getElementById('esegtplat-' + index).value;
 
@@ -1187,11 +1740,21 @@ function saveSegment(index) {
     if (newFromPlat && newFromPlat.trim() !== '') newPlatforms[newFromStation] = newFromPlat.trim();
     if (newToPlat && newToPlat.trim() !== '') newPlatforms[newToStation] = newToPlat.trim();
 
+    // preserve existing trainType if present (do not provide an editable trainType field anymore)
+    const existingTT = appData.segments[index] && appData.segments[index].trainType ? appData.segments[index].trainType : '';
+    const guidanceSel = document.getElementById('eseg_guidance-' + index);
+    const guidanceVal = guidanceSel ? guidanceSel.value : (document.getElementById('esegg-' + index) ? document.getElementById('esegg-' + index).value : '');
+    // guidanceId: prefer option dataset.gid when available, otherwise fallback to the guidanceSel.value (legacy)
+    let guidanceIdVal = '';
+    if (guidanceSel) {
+        const opt = guidanceSel.options[guidanceSel.selectedIndex];
+        guidanceIdVal = opt && opt.dataset && opt.dataset.gid ? opt.dataset.gid : guidanceSel.value;
+    }
     const computedId = generateSegmentId(
         document.getElementById('esegl-' + index).value,
+        guidanceIdVal || existingTT || guidanceVal || '',
         newFromStation,
-        newToStation,
-        document.getElementById('esegtt-' + index).value
+        newToStation
     );
     appData.segments[index] = {
         segmentId: computedId,
@@ -1200,7 +1763,10 @@ function saveSegment(index) {
         companyId: document.getElementById('esegc-' + index).value,
         fromStationId: newFromStation,
         toStationId: newToStation,
-        trainType: document.getElementById('esegtt-' + index).value,
+        // keep previous trainType id if present; otherwise leave undefined
+        trainType: existingTT || undefined,
+        // store guidance as the display name only (compatibility: guidance field contains name)
+        guidance: guidanceVal || undefined,
         duration: parseInt(document.getElementById('esegd-' + index).value || 0),
         distance: parseFloat(document.getElementById('esegdist-' + index).value),
         stopsAt: appData.segments[index].stopsAt || [],
@@ -1225,7 +1791,9 @@ function renderThroughServices() {
     // Ensure every through-service has a configId (populate legacy/empty values)
     appData.throughServiceConfigs.forEach(c => {
         if (!c.configId || c.configId.toString().trim() === '') {
-            c.configId = generateThroughServiceId(c.fromLineId, c.toLineId);
+            const fromGuidId = getGuidanceIdFor(c.fromLineId, c.fromGuidance || c.fromTrainType || '');
+            const toGuidId = getGuidanceIdFor(c.toLineId, c.toGuidance || c.toTrainType || '');
+            c.configId = generateThroughServiceId(c.fromLineId, c.toLineId, fromGuidId, toGuidId);
         }
     });
     // duplicate detection for configId
@@ -1235,7 +1803,8 @@ function renderThroughServices() {
         if (!id) return;
         idCounts[id] = (idCounts[id] || 0) + 1;
     });
-    // detect mirrored duplicates: entries where from/to lines are swapped and train-type pairs match in reverse
+    // detect mirrored duplicates: entries where from/to lines are swapped and guidance pairs match in reverse
+    // Use normalized guidance IDs (via getGuidanceIdFor) for robust comparison instead of legacy trainType labels.
     const mirrored = new Set();
     for (let i = 0; i < appData.throughServiceConfigs.length; i++) {
         for (let j = i + 1; j < appData.throughServiceConfigs.length; j++) {
@@ -1244,10 +1813,13 @@ function renderThroughServices() {
             if (!a || !b) continue;
             if (!a.fromLineId || !a.toLineId || !b.fromLineId || !b.toLineId) continue;
             // mirror condition: a.from === b.to && a.to === b.from
-            // and train-type pairing matches in reverse: a.fromTrainType === b.toTrainType && a.toTrainType === b.fromTrainType
+            // compare by resolved guidance IDs for each side (fallbacks handled inside getGuidanceIdFor)
+            const aFromGuidId = getGuidanceIdFor(a.fromLineId, (a.fromGuidance || a.fromTrainType || '')) || '';
+            const aToGuidId = getGuidanceIdFor(a.toLineId, (a.toGuidance || a.toTrainType || '')) || '';
+            const bFromGuidId = getGuidanceIdFor(b.fromLineId, (b.fromGuidance || b.fromTrainType || '')) || '';
+            const bToGuidId = getGuidanceIdFor(b.toLineId, (b.toGuidance || b.toTrainType || '')) || '';
             if (a.fromLineId === b.toLineId && a.toLineId === b.fromLineId &&
-                (a.fromTrainType || '') === (b.toTrainType || '') &&
-                (a.toTrainType || '') === (b.fromTrainType || '')) {
+                aFromGuidId === bToGuidId && aToGuidId === bFromGuidId) {
                 mirrored.add(i);
                 mirrored.add(j);
             }
@@ -1261,10 +1833,10 @@ function renderThroughServices() {
         tr.innerHTML = `
             <td class="row-number">${index + 1}</td>
             <td>${esc(cfg.configId)}</td>
-            <td>${esc(cfg.fromLineId)}</td>
-            <td>${esc(cfg.toLineId)}</td>
-            <td>${esc(cfg.fromTrainType)}</td>
-            <td>${esc(cfg.toTrainType)}</td>
+                <td>${esc(getLineNameById(cfg.fromLineId) || cfg.fromLineId || '')}</td>
+                <td>${esc(cfg.fromGuidance || cfg.fromTrainType || '')}</td>
+                <td>${esc(getLineNameById(cfg.toLineId) || cfg.toLineId || '')}</td>
+                <td>${esc(cfg.toGuidance || cfg.toTrainType || '')}</td>
             <td>${directionText}</td>
             <td>${esc(cfg.description)}</td>
             <td>
@@ -1281,50 +1853,61 @@ function renderThroughServices() {
 }
 
 function addThroughService() {
-    const newCfg = {fromLineId: '', toLineId: '', fromTrainType: '', toTrainType: '', isBidirectional: true, description: ''};
-    newCfg.configId = generateThroughServiceId(newCfg.fromLineId, newCfg.toLineId);
+    const newCfg = {fromLineId: '', toLineId: '', fromGuidance: '', toGuidance: '', isBidirectional: true, description: ''};
+    // initial empty guidance ids
+    newCfg.configId = generateThroughServiceId(newCfg.fromLineId, newCfg.toLineId, '', '');
     appData.throughServiceConfigs.push(newCfg);
     renderThroughServices();
     editThroughServiceRow(appData.throughServiceConfigs.length - 1);
-    scrollToSectionBottom('through-services');
-}
+    scrollToSectionBottom('through-services');}
 
 function editThroughServiceRow(index) {
     const cfg = appData.throughServiceConfigs[index];
-    const lineOpts = appData.lines.map(l => `<option value="${esc(l.lineId)}">${esc(l.lineName)}</option>`).join('');
-    const typeOpts = appData.trainTypes.map(t => `<option value="${esc(t.trainTypeId)}">${esc(t.trainTypeName)}</option>`).join('');
-    
-    const fromLineOpts = appData.lines.map(l => `<option value="${esc(l.lineId)}" ${l.lineId === cfg.fromLineId ? 'selected' : ''}>${esc(l.lineName)}</option>`).join('');
-    const toLineOpts = appData.lines.map(l => `<option value="${esc(l.lineId)}" ${l.lineId === cfg.toLineId ? 'selected' : ''}>${esc(l.lineName)}</option>`).join('');
-    const fromTypeOpts = appData.trainTypes.map(t => `<option value="${esc(t.trainTypeId)}" ${t.trainTypeId === cfg.fromTrainType ? 'selected' : ''}>${esc(t.trainTypeName)}</option>`).join('');
-    const toTypeOpts = appData.trainTypes.map(t => `<option value="${esc(t.trainTypeId)}" ${t.trainTypeId === cfg.toTrainType ? 'selected' : ''}>${esc(t.trainTypeName)}</option>`).join('');
+    // build line option lists (include -- option)
+    const fromLineOpts = ['<option value="">--</option>'].concat(appData.lines.map(l => `<option value="${esc(l.lineId)}" ${l.lineId === cfg.fromLineId ? 'selected' : ''}>${esc(l.lineName)}</option>`)).join('');
+    const toLineOpts = ['<option value="">--</option>'].concat(appData.lines.map(l => `<option value="${esc(l.lineId)}" ${l.lineId === cfg.toLineId ? 'selected' : ''}>${esc(l.lineName)}</option>`)).join('');
     
     const tr = document.getElementById('through-services-tbody').children[index];
     tr.innerHTML = `
         <td class="row-number">${index + 1}</td>
         <td><input type="text" value="${esc(cfg.configId)}" id="etsi-${index}" style="width:100%; background:#e9e9e9;" readonly title="設定IDは自動生成されます"></td>
-        <td><select id="etsf-${index}" onchange="updateThroughServiceIdPreview(${index})" required>${fromLineOpts}</select></td>
-        <td><select id="etst-${index}" onchange="updateThroughServiceIdPreview(${index})" required>${toLineOpts}</select></td>
-        <td><select id="etsft-${index}" required>${fromTypeOpts}</select></td>
-        <td><select id="etstt-${index}" required>${toTypeOpts}</select></td>
+        <td><select id="etsf-${index}" onchange="updateThroughServiceIdPreview(${index}); updateThroughServiceDependentFields(${index});" required>${fromLineOpts}</select></td>
+        <td>
+            <select id="etsfg-${index}" style="width:100%;">
+                <option value="">--</option>
+            </select>
+        </td>
+        <td><select id="etst-${index}" onchange="updateThroughServiceIdPreview(${index}); updateThroughServiceDependentFields(${index});" required>${toLineOpts}</select></td>
+        <td>
+            <select id="etstg-${index}" style="width:100%;">
+                <option value="">--</option>
+            </select>
+        </td>
         <td style="text-align: center;">
             <select id="etsb-${index}" required>
                 <option value="true" ${cfg.isBidirectional ? 'selected' : ''}>相互直通</option>
                 <option value="false" ${!cfg.isBidirectional ? 'selected' : ''}>一方向</option>
             </select>
         </td>
-    <td><input type="text" value="${esc(cfg.description)}" id="etsd-${index}"></td>
+    <td>
+        <div style="display:flex; gap:6px; align-items:center;">
+            <input type="text" value="${esc(cfg.description)}" id="etsd-${index}" placeholder="説明" style="flex:1;">
+        </div>
+    </td>
         <td>
             <button class="save-btn" onclick="saveThroughService(${index})">保存</button>
             <button class="cancel-btn" onclick="renderThroughServices()">取消</button>
         </td>
     `;
+    // initialize dependent selects (guidance) based on selected lines
+    updateThroughServiceDependentFields(index);
+
     // highlight if duplicate configId
     const id = (cfg.configId || '').toString();
     if (id) {
         const counts = {};
         appData.throughServiceConfigs.forEach(x => { const k = (x.configId||'').toString(); if (!k) return; counts[k] = (counts[k]||0)+1; });
-        // also compute mirrored duplicates for edit-row highlighting
+        // compute mirrored duplicates using normalized guidance IDs for the edit row
         let isMirrored = false;
         for (let i = 0; i < appData.throughServiceConfigs.length; i++) {
             if (i === index) continue;
@@ -1332,11 +1915,15 @@ function editThroughServiceRow(index) {
             const b = appData.throughServiceConfigs[i];
             if (!a || !b) continue;
             if (!a.fromLineId || !a.toLineId || !b.fromLineId || !b.toLineId) continue;
-            if (a.fromLineId === b.toLineId && a.toLineId === b.fromLineId &&
-                (a.fromTrainType || '') === (b.toTrainType || '') &&
-                (a.toTrainType || '') === (b.fromTrainType || '')) {
-                isMirrored = true;
-                break;
+            if (a.fromLineId === b.toLineId && a.toLineId === b.fromLineId) {
+                const aFromGuidId = getGuidanceIdFor(a.fromLineId, (a.fromGuidance || a.fromTrainType || '')) || '';
+                const aToGuidId = getGuidanceIdFor(a.toLineId, (a.toGuidance || a.toTrainType || '')) || '';
+                const bFromGuidId = getGuidanceIdFor(b.fromLineId, (b.fromGuidance || b.fromTrainType || '')) || '';
+                const bToGuidId = getGuidanceIdFor(b.toLineId, (b.toGuidance || b.toTrainType || '')) || '';
+                if (aFromGuidId === bToGuidId && aToGuidId === bFromGuidId) {
+                    isMirrored = true;
+                    break;
+                }
             }
         }
         tr.style.backgroundColor = (counts[id] > 1 || isMirrored) ? '#ff0000' : '';
@@ -1348,13 +1935,27 @@ function editThroughServiceRow(index) {
 function saveThroughService(index) {
     const fromLine = document.getElementById('etsf-' + index).value;
     const toLine = document.getElementById('etst-' + index).value;
-    const computedId = generateThroughServiceId(fromLine, toLine);
+    // compute guidance IDs from selected options (use data-gid when present)
+    const fromGuidSel = document.getElementById('etsfg-' + index);
+    const toGuidSel = document.getElementById('etstg-' + index);
+    const getSelectedGuidId = (sel, lineId) => {
+        if (!sel) return '';
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt) return '';
+        return opt.dataset && opt.dataset.gid ? opt.dataset.gid : (opt.value || getGuidanceIdFor(lineId, opt.value || ''));
+    };
+    const fromGuidId = getSelectedGuidId(fromGuidSel, fromLine);
+    const toGuidId = getSelectedGuidId(toGuidSel, toLine);
+    const computedId = generateThroughServiceId(fromLine, toLine, fromGuidId, toGuidId);
+    const fromGuid = (document.getElementById('etsfg-' + index) ? document.getElementById('etsfg-' + index).value : '') || '';
+    const toGuid = (document.getElementById('etstg-' + index) ? document.getElementById('etstg-' + index).value : '') || '';
     appData.throughServiceConfigs[index] = {
         configId: computedId,
         fromLineId: fromLine,
         toLineId: toLine,
-        fromTrainType: document.getElementById('etsft-' + index).value,
-        toTrainType: document.getElementById('etstt-' + index).value,
+        // store guidance label (for display) and keep id encoded in configId
+        fromGuidance: fromGuid || undefined,
+        toGuidance: toGuid || undefined,
         isBidirectional: document.getElementById('etsb-' + index).value === 'true',
         description: document.getElementById('etsd-' + index).value
     };
@@ -1363,6 +1964,57 @@ function saveThroughService(index) {
 
 function deleteThroughService(index) {
     showInlineDeleteConfirm('through-services-tbody', index, `performDeleteThroughService(${index})`);
+}
+
+// Update guidance selects for a through-service edit row based on selected line
+function updateThroughServiceDependentFields(index) {
+    const fromLineSel = document.getElementById('etsf-' + index);
+    const toLineSel = document.getElementById('etst-' + index);
+    const fromGuidSel = document.getElementById('etsfg-' + index);
+    const toGuidSel = document.getElementById('etstg-' + index);
+    const fromLineId = fromLineSel ? fromLineSel.value : '';
+    const toLineId = toLineSel ? toLineSel.value : '';
+    const fromLine = appData.lines.find(l => l.lineId === fromLineId) || null;
+    const toLine = appData.lines.find(l => l.lineId === toLineId) || null;
+
+    const buildGuidanceHtml = (line) => {
+        let html = '<option value="">--</option>';
+        if (line && Array.isArray(line.serviceCategories)) {
+            html += line.serviceCategories.map(c => {
+                if (Array.isArray(c)) {
+                    const id = c[0] || '';
+                    const label = c[1] || c[0] || '';
+                    return `<option value="${esc(label)}" data-gid="${esc(id)}">${esc(id)}・${esc(label)}</option>`;
+                } else {
+                    const label = c || '';
+                    return `<option value="${esc(label)}">${esc(label)}</option>`;
+                }
+            }).join('');
+        }
+        return html;
+    };
+
+    if (fromGuidSel) {
+        const prev = fromGuidSel.value || '';
+        fromGuidSel.innerHTML = buildGuidanceHtml(fromLine);
+        if (prev && fromLine && Array.isArray(fromLine.serviceCategories) && (fromLine.serviceCategories||[]).some(c => ((Array.isArray(c) ? (c[1] || c[0]) : c) === prev))) {
+            fromGuidSel.value = prev;
+        } else {
+            fromGuidSel.value = '';
+        }
+        fromGuidSel.disabled = !fromLine;
+    }
+
+    if (toGuidSel) {
+        const prev = toGuidSel.value || '';
+        toGuidSel.innerHTML = buildGuidanceHtml(toLine);
+        if (prev && toLine && Array.isArray(toLine.serviceCategories) && (toLine.serviceCategories||[]).some(c => ((Array.isArray(c) ? (c[1] || c[0]) : c) === prev))) {
+            toGuidSel.value = prev;
+        } else {
+            toGuidSel.value = '';
+        }
+        toGuidSel.disabled = !toLine;
+    }
 }
 
 // のりば乗換
@@ -1382,7 +2034,7 @@ function renderPlatformTransfers() {
         tr.innerHTML = `
             <td class="row-number">${index + 1}</td>
             <td>${esc(pt.transferId)}</td>
-            <td>${esc(pt.stationId)}</td>
+            <td>${esc(getStationNameById(pt.stationId) || pt.stationName || pt.stationId || '')}</td>
             <td>${esc(pt.fromPlatform)}</td>
             <td>${esc(pt.toPlatform)}</td>
             <td>${formatSeconds(pt.transferTime)}</td>
@@ -1426,10 +2078,13 @@ function editPlatformTransferRow(index) {
     const t = parseInt(pt.transferTime) || 0;
     tr.innerHTML = `
         <td class="row-number">${index + 1}</td>
-        <td><input type="text" value="${esc(pt.transferId)}" id="epti-${index}" required></td>
-        <td><input type="text" value="${esc(pt.stationId)}" id="epts-${index}" oninput="_renderPlatformStationSuggestionsFor(${index})" onfocus="_renderPlatformStationSuggestionsFor(${index})" autocomplete="off" required></td>
-        <td><input type="text" value="${esc(pt.fromPlatform)}" id="eptf-${index}" required></td>
-        <td><input type="text" value="${esc(pt.toPlatform)}" id="eptt-${index}" required></td>
+        <td><input type="text" value="${esc(pt.transferId)}" id="epti-${index}" style="width: 100%; background:#e9e9e9;" readonly title="乗換IDは自動生成されます" required></td>
+        <td>
+            <input type="text" value="${esc(getStationNameById(pt.stationId) || pt.stationName || pt.stationId || '')}" id="epts-${index}" oninput="(function(i){ _hidePlatformStationSuggestionsFor(i); _renderPlatformStationSuggestionsFor(i); updatePlatformTransferIdPreview(i); })(${index})" onfocus="_renderPlatformStationSuggestionsFor(${index})" autocomplete="off" required>
+            <input type="hidden" id="epts-id-${index}" value="${esc(pt.stationId || '')}">
+        </td>
+        <td><input type="text" value="${esc(pt.fromPlatform)}" id="eptf-${index}" oninput="updatePlatformTransferIdPreview(${index})" required></td>
+        <td><input type="text" value="${esc(pt.toPlatform)}" id="eptt-${index}" oninput="updatePlatformTransferIdPreview(${index})" required></td>
         <td>
             <input type="number" value="${t}" id="epttime-${index}" min="0" required> 秒
         </td>
@@ -1438,6 +2093,8 @@ function editPlatformTransferRow(index) {
             <button class="cancel-btn" onclick="renderPlatformTransfers()">取消</button>
         </td>
     `;
+    // initialize previewed transfer id based on current values
+    try { updatePlatformTransferIdPreview(index); } catch (e) {}
     // highlight if duplicate transferId
     const id = (pt.transferId || pt.id || '').toString();
     if (id) {
@@ -1450,12 +2107,28 @@ function editPlatformTransferRow(index) {
 }
 
 function savePlatformTransfer(index) {
+    // resolve stationId: prefer hidden resolved id, else try by name, else keep raw
+    const stationNameEl = document.getElementById('epts-' + index);
+    const stationHiddenEl = document.getElementById('epts-id-' + index);
+    const fromEl = document.getElementById('eptf-' + index);
+    const toEl = document.getElementById('eptt-' + index);
+    const timeEl = document.getElementById('epttime-' + index);
+    const stationName = stationNameEl ? stationNameEl.value : '';
+    let stationId = '';
+    if (stationHiddenEl && stationHiddenEl.value) stationId = stationHiddenEl.value;
+    if (!stationId) stationId = getStationIdByName(stationName) || stationName;
+    const fromPlatform = fromEl ? fromEl.value : '';
+    const toPlatform = toEl ? toEl.value : '';
+    const transferTime = parseInt(timeEl ? timeEl.value || 0 : 0);
+    const transferId = generatePlatformTransferId(stationId, fromPlatform, toPlatform);
+
     appData.platformTransfers[index] = {
-        transferId: document.getElementById('epti-' + index).value,
-        stationId: document.getElementById('epts-' + index).value,
-        fromPlatform: document.getElementById('eptf-' + index).value,
-        toPlatform: document.getElementById('eptt-' + index).value,
-        transferTime: parseInt(document.getElementById('epttime-' + index).value || 0)
+        transferId: transferId,
+        stationId: stationId,
+        stationName: stationName,
+        fromPlatform: fromPlatform,
+        toPlatform: toPlatform,
+        transferTime: transferTime
     };
     renderPlatformTransfers();
 }
@@ -1466,12 +2139,19 @@ function deletePlatformTransfer(index) {
 
 // エクスポート/インポート
 async function exportData() {
+    // Before saving, ensure there are no red-highlighted invalid cells.
+    try {
+        updateSaveWarningVisibility();
+        if (hasInvalidHighlights()) {
+            // Do not proceed with save when invalid parts exist.
+            return;
+        }
+    } catch (e) { /* continue anyway */ }
+
     appData.meta.lastUpdated = new Date().toISOString().split('T')[0];
-    
     // エクスポート用にデータをクリーンアップ
     const exportData = cleanDataForExport(appData);
-    // サーバーへのアップロードは行いません。ローカル保存のため
-    // ユーザー名を入力してもらうUIを一時表示します。
+    // ローカル保存専用モード: サーバーへはアップロードせずダウンロードするUIを表示
     const exportSectionBtn = document.querySelector('#export .export-btn');
     if (!exportSectionBtn) {
         // Fallback: immediately download with default name
@@ -1495,7 +2175,6 @@ async function exportData() {
 
     const box = document.createElement('div');
     box.id = 'save-username-box';
-    // reuse editor's input/button styling by placing input inside .search-box
     box.className = 'search-box';
 
     const input = document.createElement('input');
@@ -1604,6 +2283,11 @@ function loadDataFile() {
             appData = JSON.parse(e.target.result);
             // オフライン（ローカル）モードで編集を開始します。
             // サーバーへ自動アップロードは行いません。
+            try {
+                _lastSavedJson = JSON.stringify(cleanDataForExport(appData));
+            } catch (e) { _lastSavedJson = JSON.stringify(appData); }
+            checkUnsavedChanges();
+
             alert('データを読み込みました。ローカル編集モードで開始します。');
             updateServerStatus(false);
             
