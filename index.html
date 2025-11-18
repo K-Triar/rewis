@@ -26,6 +26,8 @@
 
     <div class="container">
 
+        <div class="content-wrapper">
+
         <main>
             <section class="search-section" id="search-section">
                 <!-- 検索モード切替（所要時間優先 / バランス / 乗換回数優先） -->
@@ -161,6 +163,87 @@
                 <p>経路を検索中...</p>
             </section>
         </main>
+
+        <aside class="sidebar" id="sidebar" aria-label="メインメニュー">
+            <nav class="sidebar-nav">
+                <ul class="top-group">
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="home">
+                            <span class="icon icon-home" aria-hidden="true"></span>
+                            <span class="label">ホーム</span>
+                        </button>
+                    </li>
+                    <li class="nav-item active">
+                        <button class="nav-btn" data-target="transfer">
+                            <span class="icon icon-walking" aria-hidden="true"></span>
+                            <span class="label">乗換案内</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="lines">
+                            <span class="icon icon-train" aria-hidden="true"></span>
+                            <span class="label">路線・運行情報</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <hr class="sidebar-divider">
+
+                <ul class="bottom-group">
+                    <li class="nav-item small">
+                        <button class="nav-btn" data-target="about">
+                            <span class="icon icon-info" aria-hidden="true"></span>
+                            <span class="label">REWISについて</span>
+                        </button>
+                    </li>
+                    <li class="nav-item small">
+                        <button class="nav-btn" data-target="business">
+                            <span class="icon icon-business" aria-hidden="true"></span>
+                            <span class="label">事業者向けページ</span>
+                        </button>
+                    </li>
+                    <li class="nav-item small">
+                        <button class="nav-btn" data-target="news">
+                            <span class="icon icon-news" aria-hidden="true"></span>
+                            <span class="label">お知らせ</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        </div>
+    </div>
+
+    <!-- Mobile bottom navigation (visible <=768px) -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="下部ナビゲーション">
+        <button class="mb-item" data-target="home">
+            <span class="mb-icon icon-home" aria-hidden="true"></span>
+            <span class="mb-label">ホーム</span>
+        </button>
+        <button class="mb-item" data-target="transfer">
+            <span class="mb-icon icon-walking" aria-hidden="true"></span>
+            <span class="mb-label">乗換</span>
+        </button>
+        <button class="mb-item" data-target="lines">
+            <span class="mb-icon icon-train" aria-hidden="true"></span>
+            <span class="mb-label">路線</span>
+        </button>
+        <button class="mb-item mb-menu" id="mb-menu-btn" aria-expanded="false" aria-controls="bottom-sheet">
+            <span class="mb-icon icon-menu" aria-hidden="true"></span>
+            <span class="mb-label">メニュー</span>
+        </button>
+    </nav>
+
+    <!-- Bottom sheet that appears when mobile menu clicked -->
+    <div class="sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
+    <div class="bottom-sheet" id="bottom-sheet" role="dialog" aria-hidden="true">
+        <div class="bottom-sheet-content">
+            <button class="sheet-item" data-target="about">REWISについて</button>
+            <button class="sheet-item" data-target="business">事業者向けページ</button>
+            <button class="sheet-item" data-target="news">お知らせ</button>
+            <button class="sheet-close" id="sheet-close">閉じる</button>
+        </div>
     </div>
 
     <footer>

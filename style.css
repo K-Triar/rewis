@@ -56,10 +56,193 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     margin-top: 100px; /* ヘッダーの高さ分の余白 */
+}
+
+/* Content wrapper: main + sidebar (desktop) */
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+/* Constrain main to 870px on desktop while sidebar sits at 300px */
+main {
+    flex: 0 1 900px;
+    max-width: 900px;
+}
+
+.sidebar {
+    flex: 0 0 250px;
+    width: 250px;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+/* Place sidebar to the left of main (desktop) */
+.sidebar { order: 0; }
+main { order: 1; }
+
+.sidebar-nav ul { list-style: none; padding: 0; margin: 0 0 12px 0; }
+.sidebar-nav .nav-item { margin-bottom: 10px; }
+.sidebar-nav .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #222;
+    text-align: left;
+}
+.sidebar-nav .bottom-group .nav-btn { font-size: 0.95rem; font-weight: 500; color: #444; }
+.sidebar-nav .nav-item.small .nav-btn { font-size: 0.95rem; }
+
+.sidebar-nav .nav-item.active .nav-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Hover: light blue background for any nav button (except active which stays primary) */
+.sidebar-nav .nav-btn:hover {
+    background: rgba(0,120,215,0.08);
+    color: var(--primary-color);
+}
+
+/* If nav item is active, ensure its icon/text remain white */
+.sidebar-nav .nav-item.active .nav-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.sidebar-divider { border: none; height: 1px; background: var(--border-color); margin: 12px 0; }
+
+.icon {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: #666; /* default icon fill color for masks */
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+.nav-item.active .icon { background-color: white; }
+
+/* Per-icon masks */
+.icon-home { -webkit-mask-image: url('src/home.svg'); mask-image: url('src/home.svg'); }
+.icon-walking { -webkit-mask-image: url('src/walking.svg'); mask-image: url('src/walking.svg'); }
+.icon-train { -webkit-mask-image: url('src/train.svg'); mask-image: url('src/train.svg'); }
+.icon-menu { -webkit-mask-image: url('src/menu.svg'); mask-image: url('src/menu.svg'); }
+.icon-info, .icon-business, .icon-news { /* no icon next to bottom items per request */ display: none; }
+
+/* Mobile bottom navigation (hidden on desktop) */
+.mobile-bottom-nav { display: none; }
+.mobile-bottom-nav .mb-item {
+    background: transparent;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px; /* consistent padding to avoid width shift on click */
+    border-radius: 10px;
+    font-size: 12px;
+    flex: 1 1 0; /* equal width items */
+    text-align: center;
+}
+.mobile-bottom-nav .mb-item .mb-icon { width: 26px; height: 26px; display:block; background-color: currentColor; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; mask-size: contain; mask-repeat: no-repeat; mask-position: center; }
+.mobile-bottom-nav .mb-item .mb-label { font-size: 11px; }
+.mobile-bottom-nav .mb-item.active { background: rgba(0,120,215,0.12); color: var(--primary-color); }
+
+/* Bottom sheet (mobile menu) */
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* hidden below viewport by default; will slide up when .open is added */
+    bottom: calc(-100% - var(--mobile-nav-height, 72px));
+    height: 50vh;
+    max-height: 70vh;
+    transition: bottom 0.28s ease;
+    /* place the sheet behind the mobile nav (nav z-index:1400) */
+    z-index: 1300;
+    pointer-events: none;
+    display: block;
+}
+.bottom-sheet.open {
+    bottom: var(--mobile-nav-height, 72px);
+    pointer-events: auto;
+}
+.bottom-sheet-content {
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+.sheet-item { padding: 12px; border-radius: 8px; background: transparent; border: none; text-align: left; font-weight: 600; }
+.sheet-close { padding: 10px; border-radius: 8px; background: #f0f0f0; border: none; }
+
+/* Backdrop that appears when bottom-sheet is open. It should be behind the
+   mobile nav but above page content. */
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1200; /* behind bottom-sheet (1300) and below mobile nav (1400) */
+    display: none;
+}
+.sheet-backdrop.open {
+    display: block;
+}
+
+/* Responsive behaviour: hide desktop sidebar and show mobile nav on small screens */
+@media (max-width: 768px) {
+    .content-wrapper { flex-direction: column; }
+    main { flex: 1 1 auto; max-width: 100%; }
+    /* On mobile, main should occupy full width and remove decorative framing */
+    main {
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+    .sidebar { display: none; }
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: #fff;
+        border-top: 1px solid var(--border-color);
+        padding: 6px; /* uniform padding */
+        gap: 6px; /* 6px space between items */
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1400;
+    }
+    /* bottom-sheet positioning controlled globally; no override here */
 }
 
 /* ========================================
@@ -147,6 +330,10 @@ main {
     /* Make main tall enough to center content relative to the viewport.
        Using calc allows room for the fixed header/footer; adjust if needed. */
     min-height: calc(100svh - 160px);
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
 }
 
 /* Desktop: ensure main doesn't force extra height on wider screens
@@ -1503,6 +1690,11 @@ footer {
     
     footer {
         margin-top: 0px;
+        /* Ensure footer clears the fixed mobile bottom nav by increasing
+           its bottom padding by 72px (original bottom padding 24px + 72px).
+           Also reset negative bottom margin on small screens. */
+        margin-bottom: 0;
+        padding-bottom: 96px;
     }
 }
 
@@ -2424,7 +2616,7 @@ html {
     align-items: center;
     justify-content: center;
     background: rgba(0,0,0,0.45);
-    z-index: 1200;
+    z-index: 2000;
 }
 .share-modal-content {
     background: white;

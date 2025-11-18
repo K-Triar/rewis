@@ -8,6 +8,19 @@ let viaStationCount = 0;
 // displayed sequential index which is computed from the visible items.
 let viaUniqueIdCounter = 0;
 let brandName = 'Kトライア交通グループ';
+// Remember which mobile nav target was active before opening the menu
+let _prevMobileActiveTarget = null;
+
+// Helper to set the active mobile bottom-nav item by data-target
+function setMobileActive(target) {
+    const mbNavEl = document.getElementById('mobile-bottom-nav');
+    if (!mbNavEl) return;
+    const items = mbNavEl.querySelectorAll('.mb-item');
+    items.forEach(it => it.classList.remove('active'));
+    if (!target) return;
+    const btn = mbNavEl.querySelector(`.mb-item[data-target="${target}"]`);
+    if (btn) btn.classList.add('active');
+}
 let ownCompanyId = 'KT';
 // Handlers used to prevent scrolling on mobile while keeping the scrollbar visible
 let _loadingPreventHandlers = null;
@@ -381,6 +394,63 @@ function initializeUI() {
         });
     });
 
+    // Sidebar and mobile navigation handlers
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = btn.dataset.target;
+                // Toggle active class on sidebar items
+                sidebar.querySelectorAll('.nav-item').forEach(li => li.classList.remove('active'));
+                const parentLi = btn.closest('.nav-item');
+                if (parentLi) parentLi.classList.add('active');
+
+                // Sync mobile nav active state if present
+                document.querySelectorAll('.mobile-bottom-nav .mb-item').forEach(b => {
+                    b.classList.toggle('active', b.dataset.target === target);
+                });
+
+                // Close bottom sheet if open (mobile)
+                closeBottomSheet();
+            });
+        });
+    }
+
+    const mbNav = document.getElementById('mobile-bottom-nav');
+    const mbMenuBtn = document.getElementById('mb-menu-btn');
+    if (mbNav) {
+        // Use event delegation: single handler for all mobile items
+        mbNav.addEventListener('click', (e) => {
+            const btn = e.target.closest('.mb-item');
+            if (!btn) return;
+            const target = btn.dataset.target;
+            if (btn.classList.contains('mb-menu')) {
+                toggleBottomSheet();
+                return;
+            }
+
+            // set active on mobile, remember as current page
+            setMobileActive(target);
+            _prevMobileActiveTarget = target;
+
+            // sync sidebar active state
+            document.querySelectorAll('.sidebar .nav-item').forEach(li => {
+                const nb = li.querySelector('.nav-btn');
+                if (nb) li.classList.toggle('active', nb.dataset.target === target);
+            });
+
+            // close sheet if open
+            closeBottomSheet();
+        });
+    }
+
+    // initial sync: make mobile nav reflect current sidebar active item
+    const activeSidebarBtn = document.querySelector('.sidebar .nav-item.active .nav-btn');
+    if (activeSidebarBtn) {
+        const target = activeSidebarBtn.dataset.target;
+        document.querySelectorAll('.mobile-bottom-nav .mb-item').forEach(b => b.classList.toggle('active', b.dataset.target === target));
+    }
+
     // Adaptive search-section sizing removed: stable mobile layout only.
     // Formerly `setupSearchSectionSizing()` toggled `body.search-compact` based
     // on the measured `.search-section` height; that height-dependent switching
@@ -513,6 +583,96 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+});
+
+// Mobile bottom-sheet helpers (menu)
+function openBottomSheet() {
+    const sheet = document.getElementById('bottom-sheet');
+    const btn = document.getElementById('mb-menu-btn');
+    const backdrop = document.getElementById('sheet-backdrop');
+    if (!sheet) return;
+    // Remember current mobile active (non-menu) and make menu appear active
+    const mbNavEl = document.getElementById('mobile-bottom-nav');
+    if (mbNavEl) {
+        const current = mbNavEl.querySelector('.mb-item.active:not(.mb-menu)');
+        if (current) {
+            _prevMobileActiveTarget = current.dataset.target || null;
+            current.classList.remove('active');
+        }
+        if (btn) btn.classList.add('active');
+    }
+
+    sheet.classList.add('open');
+    sheet.setAttribute('aria-hidden', 'false');
+    if (backdrop) {
+        backdrop.classList.add('open');
+        backdrop.setAttribute('aria-hidden', 'false');
+    }
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+}
+
+function closeBottomSheet() {
+    const sheet = document.getElementById('bottom-sheet');
+    const btn = document.getElementById('mb-menu-btn');
+    const backdrop = document.getElementById('sheet-backdrop');
+    if (!sheet) return;
+    sheet.classList.remove('open');
+    sheet.setAttribute('aria-hidden', 'true');
+    if (backdrop) {
+        backdrop.classList.remove('open');
+        backdrop.setAttribute('aria-hidden', 'true');
+    }
+    // restore mobile active to previously remembered page item
+    const mbNavEl = document.getElementById('mobile-bottom-nav');
+    if (mbNavEl) {
+        if (btn) btn.classList.remove('active');
+        let toActivate = _prevMobileActiveTarget;
+        if (!toActivate) {
+            const activeSidebarBtn = document.querySelector('.sidebar .nav-item.active .nav-btn');
+            if (activeSidebarBtn) toActivate = activeSidebarBtn.dataset.target;
+        }
+        if (toActivate) setMobileActive(toActivate);
+        _prevMobileActiveTarget = null;
+    }
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleBottomSheet() {
+    const sheet = document.getElementById('bottom-sheet');
+    if (!sheet) return;
+    if (sheet.classList.contains('open')) closeBottomSheet(); else openBottomSheet();
+}
+
+// Wire bottom-sheet interactions (click outside to close, sheet buttons)
+document.addEventListener('DOMContentLoaded', () => {
+    const sheet = document.getElementById('bottom-sheet');
+    const closeBtn = document.getElementById('sheet-close');
+    const backdrop = document.getElementById('sheet-backdrop');
+    if (sheet) {
+        sheet.addEventListener('click', (e) => {
+            if (e.target === sheet) closeBottomSheet();
+        });
+        const items = sheet.querySelectorAll('.sheet-item');
+        items.forEach(it => {
+            it.addEventListener('click', () => {
+                const target = it.dataset.target;
+                // sync mobile and sidebar active state. Make this the current page.
+                setMobileActive(target);
+                _prevMobileActiveTarget = target;
+                document.querySelectorAll('.sidebar .nav-item').forEach(li => {
+                    const nb = li.querySelector('.nav-btn');
+                    if (nb) li.classList.toggle('active', nb.dataset.target === target);
+                });
+                closeBottomSheet();
+            });
+        });
+    }
+    if (backdrop) {
+        backdrop.addEventListener('click', () => {
+            closeBottomSheet();
+        });
+    }
+    if (closeBtn) closeBtn.addEventListener('click', closeBottomSheet);
 });
 
 function displaySuggestions(stations, suggestionsDiv, input) {
