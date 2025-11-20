@@ -352,3 +352,164 @@ footer {
         padding: 10px;
     }
 }
+
+/* 運行状況タブ */
+.section-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.service-status-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.service-status-table-container {
+    flex: 1 1 420px;
+}
+
+.service-status-editor {
+    flex: 1 1 420px;
+    border: 1px solid #c0c0c0;
+    background: #fafafa;
+    padding: 10px;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
+.service-status-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.service-status-editor-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.service-status-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ss-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.ss-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.ss-field label {
+    font-weight: bold;
+}
+
+.ss-helper {
+    font-size: 10px;
+    color: #555;
+    display: block;
+    margin-top: 2px;
+}
+
+.ss-occurrence,
+.ss-segment {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 4px;
+    align-items: center;
+}
+
+.ss-occurrence input,
+.ss-field select,
+.ss-field textarea,
+.ss-field input[type="text"],
+.ss-field input[type="number"] {
+    font-size: 11px;
+    padding: 2px 4px;
+    border: 1px solid #808080;
+    font-family: inherit;
+}
+
+.ss-checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ss-notice-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ss-through-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ss-through-item {
+    border: 1px dashed #808080;
+    padding: 6px;
+    background: #fff;
+}
+
+.ss-through-item h4 {
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.ss-through-item select,
+.ss-through-item label {
+    font-size: 11px;
+}
+
+.ss-empty {
+    font-size: 11px;
+    color: #555;
+    padding: 4px 0;
+}
+
+.service-status-editor textarea {
+    resize: vertical;
+}
+
+.mt-4 {
+    margin-top: 4px;
+}
+
+@media (max-width: 1024px) {
+    .service-status-wrapper {
+        flex-direction: column;
+    }
+}
+
+/* On narrower screens, avoid keeping the service-status table scrollable
+   so the editor appears directly below the table (in document flow). */
+@media (max-width: 1024px) {
+    .service-status-wrapper .table-container {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .service-status-table-container {
+        flex: none;
+    }
+    .service-status-editor {
+        max-height: none;
+        position: relative;
+        margin-top: 8px;
+    }
+}

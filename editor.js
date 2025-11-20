@@ -12,10 +12,19 @@ let appData = {
     stations: [],
     segments: [],
     throughServiceConfigs: [],
-    platformTransfers: []
+    platformTransfers: [],
+    statusTemplates: [],
+    noticeTypes: [],
+    serviceStatusCauses: [],
+    serviceStatusMeta: {
+        schema_version: "1.0.0",
+        generated_at: new Date().toISOString()
+    },
+    serviceStatuses: []
 };
 // Keep a snapshot of the last-saved JSON (cleaned for export) for change detection
 let _lastSavedJson = null;
+let _currentServiceStatusIndex = null;
 // beforeunload handler (use provided code behavior)
 function _beforeUnloadHandler(event) {
     event.preventDefault();
@@ -47,6 +56,10 @@ function checkUnsavedChanges() {
 document.addEventListener('DOMContentLoaded', () => {
     initializeNavigation();
     tryLoadExistingData();
+});
+// Setup auto-preview after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    setupServiceStatusAutoPreview();
 });
 
 function initializeNavigation() {
@@ -170,6 +183,18 @@ function initializeNavigation() {
                 4: (it) => it.toPlatform || '',
                 5: (it) => Number(it.transferTime) || 0
             }
+        },
+        'service-statuses-table': {
+            getData: () => appData.serviceStatuses,
+            render: () => renderServiceStatuses(),
+            accessors: {
+                1: (it) => it.id || '',
+                2: (it) => (it.generated_text && it.generated_text.heading) || '',
+                3: (it) => (typeof getLineNameById === 'function') ? (getLineNameById(it.affected_line_id) || it.affected_line_id || '') : (it.affected_line_id || ''),
+                4: (it) => getStatusLabel(it.status ? it.status.code : ''),
+                5: (it) => it.published ? 1 : 0,
+                6: (it) => it.updated_at || it.created_at || ''
+            }
         }
     };
 
@@ -250,6 +275,7 @@ async function tryLoadExistingData() {
         }
         if (response.ok) {
                 appData = await response.json();
+                ensureServiceStatusConfig(appData);
             // データは既に秒単位で保存されているため、変換は不要
                 try {
                     _lastSavedJson = JSON.stringify(cleanDataForExport(appData));
@@ -314,12 +340,136 @@ function renderSection(sectionId) {
         case 'segments': renderSegments(); break;
         case 'through-services': renderThroughServices(); break;
         case 'platform-transfers': renderPlatformTransfers(); break;
+        case 'service-statuses': renderServiceStatuses(); break;
         case 'help': break; // 使い方セクションは静的HTMLなので処理不要
     }
     // 各テーブルのヘッダにソートボタンを有効化（表示のみのクライアントソート）
     enableTableSorting();
     // required 属性を持つ列のハイライトを実行
     applyRequiredHighlightsToAllTables();
+}
+
+function ensureServiceStatusConfig(data) {
+    if (!data) return;
+    if (!Array.isArray(data.statusTemplates) || data.statusTemplates.length === 0) {
+        data.statusTemplates = getDefaultStatusTemplates();
+    }
+    data.statusTemplates.forEach(tpl => {
+        if (tpl && !tpl.status_id) {
+            tpl.status_id = tpl.code;
+        }
+    });
+    if (!Array.isArray(data.noticeTypes) || data.noticeTypes.length === 0) {
+        data.noticeTypes = getDefaultNoticeTypes();
+    }
+    if (!Array.isArray(data.serviceStatusCauses) || data.serviceStatusCauses.length === 0) {
+        data.serviceStatusCauses = getDefaultServiceStatusCauses();
+    }
+    if (!data.serviceStatusMeta) {
+        data.serviceStatusMeta = { schema_version: '1.0.0', generated_at: new Date().toISOString() };
+    }
+    if (!Array.isArray(data.serviceStatuses)) {
+        data.serviceStatuses = [];
+    }
+    data.serviceStatuses.forEach((status) => {
+        if (!status) return;
+        status.notice_types = Array.isArray(status.notice_types) ? status.notice_types : [];
+        status.notice_types_all = !!status.notice_types_all;
+        status.status = status.status || { code: '', status_id: '', heading: '', body: '' };
+        if (!status.status.status_id) {
+            status.status.status_id = status.status.code || '';
+        }
+        status.occurrence = status.occurrence || { year: null, month: null, day: null, hour: null, minute: null, timezone: 'Asia/Tokyo' };
+        if (!status.occurrence.timezone) status.occurrence.timezone = 'Asia/Tokyo';
+        status.affected_line_id = status.affected_line_id || '';
+        status.affected_segment = status.affected_segment || { is_full_line: true, start_station_id: null, end_station_id: null };
+        status.direction = status.direction || { up: true, down: true };
+        status.cause = status.cause || { code: '', heading: null, body: null, cause_line_option: 'affected', cause_line_id: null, cause_segment: { start_station_id: null, end_station_id: null } };
+        if (!status.cause.cause_segment) status.cause.cause_segment = { start_station_id: null, end_station_id: null };
+        status.turnback = status.turnback || { start: false, end: false };
+        status.through_services = Array.isArray(status.through_services) ? status.through_services : [];
+        status.preview = status.preview || { editable: false, custom_text: null };
+        status.generated_text = status.generated_text || { heading: '', body: '' };
+        status.published_text = status.published_text || '';
+        status.history = Array.isArray(status.history) ? status.history : [];
+        if (!status.id) status.id = generateUuid();
+        if (!status.version) status.version = 1;
+        status.created_at = status.created_at || new Date().toISOString();
+        status.updated_at = status.updated_at || status.created_at;
+    });
+}
+
+function getDefaultStatusTemplates() {
+    return [
+        { code: 'OfS_SUSPEND', status_id: 'OfS', label: '運転見合わせ', heading: '運転見合わせ', body: '運転を見合わせています', description: '運転見合わせ：{影響駅間}で運転を見合わせています' },
+        { code: 'OfS_CANCEL', status_id: 'OfS', label: '運休', heading: '運休', body: '運休となっています', description: '運休：{影響駅間}で運休となっています' },
+        { code: 'Aff_UNLISTED', status_id: 'Aff', label: '乗換案内非対応', heading: '乗換案内非対応', body: '通常通り運転を行っていますが、本システムの乗換案内に表示されません', description: '乗換案内非対応：{影響駅間}で通常通り運転を行っていますが、本システムの乗換案内に表示されません' },
+        { code: 'Aff_SKIP', status_id: 'Aff', label: '一部駅通過', heading: '一部駅通過', body: '各駅を通過します', description: '一部駅通過：{影響駅間}の各駅を通過します' },
+        { code: 'DSS_STOP', status_id: 'DSS', label: '直通運転中止', heading: '直通運転中止', body: '直通運転を中止しています', description: '直通運転中止：{直通先路線}{対象}の直通運転を中止しています' }
+    ];
+}
+
+function getDefaultNoticeTypes() {
+    return [
+        { code: 'Lo', label: '普通' },
+        { code: 'Lo-KB', label: '普通(直通)' },
+        { code: 'Lo-KL', label: '各駅停車(直通)' },
+        { code: 'Ra', label: '快速' },
+        { code: 'Ra-HA', label: '直通快速' },
+        { code: 'SR-LSR', label: '新快速' },
+        { code: 'EX-AML', label: '特急アクアマリンライナー' },
+        { code: 'EX-MKR', label: '特急みかり' }
+    ];
+}
+
+function getDefaultServiceStatusCauses() {
+    return [
+        { code: 'signal_check', label: '信号の確認', heading: '信号の確認', body: '信号の確認をしているため', default_line_option: 'affected' },
+        { code: 'vehicle_check', label: '車両の確認', heading: '車両の確認', body: '車両を確認したため', default_line_option: 'affected' },
+        { code: 'track_check', label: '線路の確認', heading: '線路の確認', body: '線路を確認しているため', default_line_option: 'affected' },
+        { code: 'vehicle_track_check', label: '車両・線路確認', heading: '車両・線路確認', body: '車両と線路を確認しているため', default_line_option: 'affected' },
+        { code: 'station_facility_check', label: '駅設備の確認', heading: '駅設備の確認', body: '駅の設備を確認しているため', default_line_option: 'affected' },
+        { code: 'station_facility_track_check', label: '駅設備・線路確認', heading: '駅設備・線路確認', body: '駅の設備と線路を確認しているため', default_line_option: 'affected' },
+        { code: 'person_intrusion', label: '線路内人立入', heading: '線路内人立入', body: '線路内に人が立ち入ったため', default_line_option: 'affected' },
+        { code: 'animal_intrusion', label: '線路内動物等立入', heading: '線路内動物等立入', body: '線路内に動物等が立ち入ったため', default_line_option: 'affected' },
+        { code: 'animal_contact', label: '動物等と接触', heading: '動物等と接触', body: '列車が動物等と接触し、車両と線路を確認しているため', default_line_option: 'affected' },
+        { code: 'track_intensive_work', label: '線路の集中工事', heading: '線路の集中工事', body: '線路の集中工事を実施しているため', default_line_option: 'line' },
+        { code: 'maintenance_work', label: '保守工事', heading: '保守工事', body: '保守工事を実施しているため', default_line_option: 'line' },
+        { code: 'station_facility_work', label: '駅設備の工事', heading: '駅設備の工事', body: '駅設備の工事を実施しているため', default_line_option: 'line' },
+        { code: 'track_switch_work', label: '線路切替工事', heading: '線路切替工事', body: '線路切替工事を実施しているため', default_line_option: 'line' },
+        { code: 'other', label: 'その他', heading: null, body: null, default_line_option: 'hidden' }
+    ];
+}
+
+function getStatusTemplateByCode(code) {
+    if (!code) return null;
+    return (appData.statusTemplates || []).find(t => t.code === code) || null;
+}
+
+function getNoticeTypeOptionsForLine(lineId) {
+    if (!lineId) return [];
+    const line = (appData.lines || []).find(l => l.lineId === lineId);
+    if (line && Array.isArray(line.serviceCategories) && line.serviceCategories.length) {
+        return line.serviceCategories.map(cat => {
+            if (Array.isArray(cat)) {
+                return { code: cat[0], label: cat[1] };
+            }
+            if (cat && typeof cat === 'object') {
+                return { code: cat.id || cat.code, label: cat.label || cat.name || cat.code };
+            }
+            return null;
+        }).filter(Boolean);
+    }
+    return (appData.noticeTypes || []);
+}
+
+function getNoticeLabelByCode(code, lineId) {
+    if (!code) return '';
+    const inlineOptions = getNoticeTypeOptionsForLine(lineId);
+    const hit = inlineOptions.find(opt => opt.code === code);
+    if (hit) return hit.label || hit.code;
+    const fallback = (appData.noticeTypes || []).find(opt => opt.code === code);
+    return fallback ? (fallback.label || fallback.code) : code;
 }
 
 // --- Required highlighting / validation ---
@@ -334,7 +484,8 @@ const REQUIRED_COLUMNS_BY_TABLE = {
     'stations-table': [ false, true, true, true, true, true, false ],
     'segments-table': [ false, true, true, true, true, true, true, true, true, true, true, false, false, false ],
     'through-services-table': [ false, true, true, true, true, true, false, false, false ],
-    'platform-transfers-table': [ false, true, true, true, true, true, false ]
+    'platform-transfers-table': [ false, true, true, true, true, true, false ],
+    'service-statuses-table': [ false, false, false, false, false, false, false, false ]
 };
 
 function updateTdHighlightForInput(el) {
@@ -1683,6 +1834,15 @@ function generateThroughServiceId(fromLineId, toLineId, fromGuidanceId, toGuidan
     return `TSV-${clean(fromLineId)}-${clean(fromGuidanceId)}-${clean(toLineId)}-${clean(toGuidanceId)}`;
 }
 
+function generateUuid() {
+    const template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+    return template.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 // Resolve a guidance label to its ID for a given line's serviceCategories.
 function getGuidanceIdFor(lineId, guidanceLabel) {
     if (!lineId) return '';
@@ -2143,6 +2303,1092 @@ function deletePlatformTransfer(index) {
     showInlineDeleteConfirm('platform-transfers-tbody', index, `performDeletePlatformTransfer(${index})`);
 }
 
+// 運行状況
+function renderServiceStatuses() {
+    ensureServiceStatusConfig(appData);
+    const tbody = document.getElementById('service-statuses-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    appData.serviceStatuses.forEach((status, index) => {
+        const tr = document.createElement('tr');
+        tr.dataset.index = index;
+        tr.innerHTML = `
+            <td class="row-number">${index + 1}</td>
+            <td>${esc(status.id || '')}</td>
+            <td>${esc((status.generated_text && status.generated_text.heading) || status.status?.heading || '')}</td>
+            <td>${esc(getLineNameById(status.affected_line_id) || status.affected_line_id || '')}</td>
+            <td>${esc(getStatusLabel(status.status ? status.status.code : ''))}</td>
+            <td>${status.published ? 'ON' : ''}</td>
+            <td>${esc(formatDateTimeSummary(status.updated_at || status.created_at || ''))}</td>
+            <td>
+                <button class="edit-btn" onclick="openServiceStatusEditor(${index})">編集</button>
+                <button class="delete-btn" onclick="deleteServiceStatus(${index})">削除</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    applyRequiredHighlightsToTbody(tbody);
+}
+
+function getStatusLabel(code) {
+    if (!code) return '';
+    if (code === 'notice') return 'お知らせ';
+    if (code === 'other') return 'その他';
+    const tpl = (appData.statusTemplates || []).find(t => t.code === code);
+    return tpl ? (tpl.label || tpl.heading || tpl.code || code) : code;
+}
+
+function formatDateTimeSummary(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return value;
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${y}/${m}/${d} ${h}:${min}`;
+}
+
+function addServiceStatus() {
+    ensureServiceStatusConfig(appData);
+    const entry = createEmptyServiceStatus();
+    appData.serviceStatuses.push(entry);
+    renderServiceStatuses();
+    openServiceStatusEditor(appData.serviceStatuses.length - 1);
+    scrollToSectionBottom('service-statuses');
+}
+
+function createEmptyServiceStatus() {
+    const now = new Date().toISOString();
+    return {
+        id: generateUuid(),
+        version: 1,
+        created_at: now,
+        updated_at: now,
+        occurrence: { year: null, month: null, day: null, hour: null, minute: null, timezone: 'Asia/Tokyo' },
+        affected_line_id: '',
+        notice_types_all: true,
+        notice_types: [],
+        status: { code: '', status_id: '', heading: '', body: '' },
+        affected_segment: { is_full_line: true, start_station_id: null, end_station_id: null },
+        direction: { up: true, down: true },
+        cause: { code: '', heading: null, body: null, cause_line_option: 'affected', cause_line_id: null, cause_segment: { start_station_id: null, end_station_id: null } },
+        turnback: { start: false, end: false },
+        through_services: [],
+        preview: { editable: false, custom_text: null },
+        generated_text: { heading: '', body: '' },
+        published_text: '',
+        published: false,
+        history: []
+    };
+}
+
+function getCurrentServiceStatus() {
+    if (_currentServiceStatusIndex === null) return null;
+    return appData.serviceStatuses[_currentServiceStatusIndex] || null;
+}
+
+function openServiceStatusEditor(index) {
+    ensureServiceStatusConfig(appData);
+    const entry = appData.serviceStatuses[index];
+    if (!entry) return;
+    _currentServiceStatusIndex = index;
+    const editor = document.getElementById('service-status-editor');
+    if (editor) editor.classList.remove('hidden');
+    const title = document.getElementById('service-status-editor-title');
+    if (title) title.textContent = `運行状況詳細 (#${index + 1})`;
+    document.getElementById('ss-id').value = entry.id || '';
+
+    const occ = entry.occurrence || {};
+    document.getElementById('ss-occ-year').value = occ.year != null ? occ.year : '';
+    document.getElementById('ss-occ-month').value = occ.month != null ? occ.month : '';
+    document.getElementById('ss-occ-day').value = occ.day != null ? occ.day : '';
+    document.getElementById('ss-occ-hour').value = occ.hour != null ? occ.hour : '';
+    document.getElementById('ss-occ-minute').value = occ.minute != null ? occ.minute : '';
+
+    populateServiceStatusLineOptions(entry.affected_line_id || '');
+    populateAffectedSegmentOptions(entry);
+    const currentLineId = document.getElementById('ss-line').value || entry.affected_line_id || '';
+
+    const dir = entry.direction || { up: true, down: true };
+    document.getElementById('ss-dir-up').checked = !!dir.up;
+    document.getElementById('ss-dir-down').checked = !!dir.down;
+
+    const noticeAll = document.getElementById('ss-notice-all');
+    if (noticeAll) noticeAll.checked = !!entry.notice_types_all;
+    renderNoticeTypeCheckboxes(entry.notice_types || [], currentLineId);
+
+    populateStatusTemplateSelect(entry.status ? entry.status.code : '');
+    document.getElementById('ss-status-heading').value = entry.status?.heading || '';
+    document.getElementById('ss-status-body').value = entry.status?.body || '';
+    onServiceStatusTemplateChange();
+
+    populateCauseSelect(entry.cause?.code || '');
+    document.getElementById('ss-cause-heading').value = entry.cause?.heading || '';
+    document.getElementById('ss-cause-body').value = entry.cause?.body || '';
+    const causeLineValue = getCauseLineSelectValue(entry);
+    renderCauseLineOptions(causeLineValue);
+    updateCauseSegmentOptions(entry.cause?.cause_segment?.start_station_id || '', entry.cause?.cause_segment?.end_station_id || '');
+
+    document.getElementById('ss-turnback-start').checked = !!entry.turnback?.start;
+    document.getElementById('ss-turnback-end').checked = !!entry.turnback?.end;
+
+    const previewEditable = document.getElementById('ss-preview-editable');
+    previewEditable.checked = !!entry.preview?.editable;
+    document.getElementById('ss-preview-heading').value = entry.generated_text?.heading || '';
+    document.getElementById('ss-preview-body').value = entry.generated_text?.body || '';
+    document.getElementById('ss-preview-custom').value = entry.preview?.custom_text || '';
+    document.getElementById('ss-published').checked = !!entry.published;
+    onServiceStatusPreviewEditableToggle(true);
+
+    renderThroughServiceControls(entry);
+}
+
+function closeServiceStatusEditor() {
+    _currentServiceStatusIndex = null;
+    const editor = document.getElementById('service-status-editor');
+    if (editor) editor.classList.add('hidden');
+}
+
+function populateServiceStatusLineOptions(selectedValue) {
+    const select = document.getElementById('ss-line');
+    if (!select) return;
+    select.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '--';
+    select.appendChild(placeholder);
+    (appData.lines || []).forEach(line => {
+        const opt = document.createElement('option');
+        opt.value = line.lineId || '';
+        opt.textContent = line.lineName || line.lineId || '';
+        select.appendChild(opt);
+    });
+    select.value = selectedValue || '';
+}
+
+function renderCauseLineOptions(selectedValue) {
+    const select = document.getElementById('ss-cause-line');
+    if (!select) return;
+    const previousValue = selectedValue || select.value || 'affected';
+    select.innerHTML = '';
+    const affectedOpt = document.createElement('option');
+    affectedOpt.value = 'affected';
+    affectedOpt.textContent = '影響路線';
+    select.appendChild(affectedOpt);
+    (appData.lines || []).forEach(line => {
+        const opt = document.createElement('option');
+        opt.value = line.lineId || '';
+        opt.textContent = line.lineName || line.lineId || '';
+        select.appendChild(opt);
+    });
+    const hiddenOpt = document.createElement('option');
+    hiddenOpt.value = 'hidden';
+    hiddenOpt.textContent = '非表示';
+    select.appendChild(hiddenOpt);
+    if (Array.from(select.options).some(opt => opt.value === previousValue)) {
+        select.value = previousValue;
+    } else {
+        select.value = 'affected';
+    }
+}
+
+function getCauseLineSelectValue(entry) {
+    if (!entry || !entry.cause) return 'affected';
+    if (entry.cause.cause_line_option === 'hidden') return 'hidden';
+    if (entry.cause.cause_line_option === 'line' && entry.cause.cause_line_id) {
+        return entry.cause.cause_line_id;
+    }
+    return 'affected';
+}
+
+function getSelectedCauseLineInfo() {
+    const select = document.getElementById('ss-cause-line');
+    const value = select ? select.value : 'affected';
+    if (value === 'hidden') {
+        return { option: 'hidden', lineId: null };
+    }
+    if (value === 'affected' || !value) {
+        return { option: 'affected', lineId: document.getElementById('ss-line')?.value || null };
+    }
+    return { option: 'line', lineId: value };
+}
+
+function populateAffectedSegmentOptions(entry) {
+    const lineId = document.getElementById('ss-line').value || entry.affected_line_id || '';
+    const startSelect = document.getElementById('ss-segment-start');
+    const endSelect = document.getElementById('ss-segment-end');
+    const stations = getStationsForLine(lineId);
+    let startId = entry.affected_segment?.start_station_id || '';
+    let endId = entry.affected_segment?.end_station_id || '';
+    if (entry.affected_segment?.is_full_line) {
+        startId = stations[0]?.id || '';
+        endId = stations[stations.length - 1]?.id || '';
+    }
+    setStationOptions(startSelect, stations, startId, true, 0);
+    const startIndex = stations.findIndex(s => s.id === (startId || ''));
+    setStationOptions(endSelect, stations, endId, true, startIndex >= 0 ? startIndex : 0);
+}
+
+function getStationsForLine(lineId) {
+    if (!lineId) return [];
+    const line = (appData.lines || []).find(l => l.lineId === lineId);
+    if (!line || !Array.isArray(line.stationOrder)) return [];
+    return line.stationOrder.map(stationId => ({ id: stationId, name: getStationNameById(stationId) || stationId }));
+}
+
+function setStationOptions(selectEl, stations, selectedValue, allowBlank, minIndex) {
+    if (!selectEl) return;
+    selectEl.innerHTML = '';
+    if (allowBlank) {
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = '--';
+        selectEl.appendChild(blank);
+    }
+    stations.forEach((station, idx) => {
+        if (typeof minIndex === 'number' && idx < minIndex) return;
+        const opt = document.createElement('option');
+        opt.value = station.id || '';
+        opt.textContent = station.name || station.id || '';
+        selectEl.appendChild(opt);
+    });
+    if (selectedValue && Array.from(selectEl.options).some(opt => opt.value === selectedValue)) {
+        selectEl.value = selectedValue;
+    } else if (allowBlank) {
+        selectEl.value = '';
+    }
+    selectEl.disabled = selectEl.options.length <= (allowBlank ? 1 : 0);
+}
+
+function isCurrentStatusDss() {
+    const select = document.getElementById('ss-status-code');
+    const code = select ? select.value : '';
+    if (!code) return false;
+    if (code === 'notice' || code === 'other') return false;
+    const template = getStatusTemplateByCode(code);
+    return template ? template.status_id === 'DSS' : false;
+}
+
+function onServiceStatusLineChange() {
+    const entry = getCurrentServiceStatus() || createEmptyServiceStatus();
+    entry.affected_line_id = document.getElementById('ss-line').value;
+    populateAffectedSegmentOptions(entry);
+    const noticeSelections = document.getElementById('ss-notice-all').checked ? (entry.notice_types || []) : getNoticeTypeSelectionsFromForm();
+    renderNoticeTypeCheckboxes(noticeSelections, entry.affected_line_id);
+    if (getSelectedCauseLineInfo().option === 'affected') {
+        updateCauseSegmentOptions();
+    }
+    renderThroughServiceControls(entry);
+}
+
+function onServiceStatusSegmentChange() {
+    const lineId = document.getElementById('ss-line').value;
+    const stations = getStationsForLine(lineId);
+    const startSelect = document.getElementById('ss-segment-start');
+    const endSelect = document.getElementById('ss-segment-end');
+    const startValue = startSelect ? startSelect.value : '';
+    const startIndex = stations.findIndex(s => s.id === startValue);
+    const endValue = endSelect ? endSelect.value : '';
+    setStationOptions(endSelect, stations, endValue, true, startIndex >= 0 ? startIndex : 0);
+}
+
+function onServiceStatusNoticeAllToggle() {
+    const allChecked = document.getElementById('ss-notice-all').checked;
+    const lineId = document.getElementById('ss-line')?.value || '';
+    const selections = allChecked ? [] : getNoticeTypeSelectionsFromForm();
+    renderNoticeTypeCheckboxes(selections, lineId);
+}
+
+function onServiceStatusNoticeTypeChange() {
+    const container = document.getElementById('ss-notice-types');
+    if (!container) return;
+    const anyChecked = Array.from(container.querySelectorAll('input[type="checkbox"]')).some(cb => cb.checked);
+    if (anyChecked) {
+        document.getElementById('ss-notice-all').checked = false;
+    }
+}
+
+function renderNoticeTypeCheckboxes(selectedCodes, lineId) {
+    const container = document.getElementById('ss-notice-types');
+    if (!container) return;
+    const noticeAll = document.getElementById('ss-notice-all');
+    const allChecked = noticeAll ? noticeAll.checked : false;
+    const selected = Array.isArray(selectedCodes) ? selectedCodes : [];
+    container.innerHTML = '';
+    const options = Array.isArray(getNoticeTypeOptionsForLine(lineId)) ? [...getNoticeTypeOptionsForLine(lineId)] : [];
+    const knownCodes = new Set(options.map(opt => opt.code));
+    selected.forEach(code => {
+        if (!knownCodes.has(code)) {
+            options.push({ code, label: `${code} (未定義)` });
+            knownCodes.add(code);
+        }
+    });
+    if (!options.length) {
+        container.innerHTML = '<span class="ss-helper">影響路線を選択してください。</span>';
+        return;
+    }
+    options.forEach((type, idx) => {
+        const id = `ss-notice-${idx}`;
+        const label = document.createElement('label');
+        label.setAttribute('for', id);
+        label.innerHTML = `<input type="checkbox" id="${id}" value="${esc(type.code)}" onchange="onServiceStatusNoticeTypeChange()"> ${esc(type.label || type.code)}`;
+        container.appendChild(label);
+        const input = label.querySelector('input');
+        input.checked = selected.includes(type.code);
+        if (allChecked) input.disabled = true;
+    });
+}
+
+function getNoticeTypeSelectionsFromForm() {
+    const container = document.getElementById('ss-notice-types');
+    if (!container) return [];
+    return Array.from(container.querySelectorAll('input[type="checkbox"]'))
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+}
+
+function populateStatusTemplateSelect(selectedCode) {
+    const select = document.getElementById('ss-status-code');
+    if (!select) return;
+    select.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '--';
+    select.appendChild(placeholder);
+    (appData.statusTemplates || []).forEach(tpl => {
+        const opt = document.createElement('option');
+        opt.value = tpl.code;
+        opt.textContent = tpl.label || tpl.heading || tpl.code;
+        select.appendChild(opt);
+    });
+    const noticeOpt = document.createElement('option');
+    noticeOpt.value = 'notice';
+    noticeOpt.textContent = 'お知らせ';
+    select.appendChild(noticeOpt);
+    const otherOpt = document.createElement('option');
+    otherOpt.value = 'other';
+    otherOpt.textContent = 'その他';
+    select.appendChild(otherOpt);
+    select.value = selectedCode || '';
+}
+
+function onServiceStatusTemplateChange() {
+    const code = document.getElementById('ss-status-code').value;
+    const headingInput = document.getElementById('ss-status-heading');
+    const bodyInput = document.getElementById('ss-status-body');
+    const template = (appData.statusTemplates || []).find(t => t.code === code);
+    if (template && code !== 'other' && code !== 'notice') {
+        if (!headingInput.value) headingInput.value = template.heading || template.label || '';
+        if (!bodyInput.value) bodyInput.value = template.body || '';
+    }
+    if (code === 'notice') {
+        headingInput.value = 'お知らせ';
+        headingInput.readOnly = true;
+        headingInput.required = false;
+        bodyInput.readOnly = false;
+        bodyInput.required = true;
+    } else if (code === 'other') {
+        headingInput.readOnly = false;
+        headingInput.required = true;
+        bodyInput.readOnly = false;
+        bodyInput.required = true;
+    } else {
+        headingInput.readOnly = false;
+        headingInput.required = false;
+        bodyInput.readOnly = false;
+        bodyInput.required = true;
+    }
+    renderThroughServiceControls(getCurrentServiceStatus() || createEmptyServiceStatus());
+}
+
+function populateCauseSelect(selectedCode) {
+    const select = document.getElementById('ss-cause-code');
+    if (!select) return;
+    select.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '--';
+    select.appendChild(placeholder);
+    (appData.serviceStatusCauses || []).forEach(cause => {
+        const opt = document.createElement('option');
+        opt.value = cause.code || '';
+        opt.textContent = cause.label || cause.heading || cause.code;
+        select.appendChild(opt);
+    });
+    select.value = selectedCode || '';
+}
+
+function onServiceStatusCauseChange() {
+    const code = document.getElementById('ss-cause-code').value;
+    const headingInput = document.getElementById('ss-cause-heading');
+    const bodyInput = document.getElementById('ss-cause-body');
+    const cause = (appData.serviceStatusCauses || []).find(c => c.code === code);
+    if (!cause) {
+        headingInput.value = '';
+        bodyInput.value = '';
+        headingInput.readOnly = true;
+        headingInput.required = false;
+        bodyInput.readOnly = true;
+        bodyInput.required = false;
+        return;
+    }
+    if (code !== 'other') {
+        headingInput.value = cause.heading || cause.label || '';
+        bodyInput.value = cause.body || '';
+        headingInput.readOnly = true;
+        headingInput.required = false;
+        bodyInput.readOnly = true;
+        bodyInput.required = false;
+        if (cause.default_line_option) {
+            document.getElementById('ss-cause-line-option').value = cause.default_line_option;
+        }
+    } else {
+        headingInput.readOnly = false;
+        bodyInput.readOnly = false;
+        headingInput.required = true;
+        bodyInput.required = true;
+    }
+    updateCauseSegmentOptions();
+}
+
+function onServiceStatusCauseLineChange() {
+    const startValue = document.getElementById('ss-cause-segment-start')?.value || '';
+    const endValue = document.getElementById('ss-cause-segment-end')?.value || '';
+    updateCauseSegmentOptions(startValue, endValue);
+}
+
+function updateCauseSegmentOptions(selectedStart, selectedEnd) {
+    const startSelect = document.getElementById('ss-cause-segment-start');
+    const endSelect = document.getElementById('ss-cause-segment-end');
+    if (!startSelect || !endSelect) return;
+    const info = getSelectedCauseLineInfo();
+    if (info.option === 'hidden' || !info.lineId) {
+        setStationOptions(startSelect, [], '', true, 0);
+        setStationOptions(endSelect, [], '', true, 0);
+        startSelect.disabled = true;
+        endSelect.disabled = true;
+        return;
+    }
+    const stations = getStationsForLine(info.lineId);
+    startSelect.disabled = false;
+    endSelect.disabled = false;
+    const currentStart = (selectedStart !== undefined ? selectedStart : startSelect.value);
+    setStationOptions(startSelect, stations, currentStart, true, 0);
+    const startIndex = stations.findIndex(s => s.id === (currentStart || startSelect.value));
+    const currentEnd = (selectedEnd !== undefined ? selectedEnd : endSelect.value);
+    setStationOptions(endSelect, stations, currentEnd, true, startIndex >= 0 ? startIndex : 0);
+}
+
+function onServiceStatusCauseSegmentChange() {
+    const startSelect = document.getElementById('ss-cause-segment-start');
+    const info = getSelectedCauseLineInfo();
+    const stations = getStationsForLine(info.lineId);
+    const startIndex = stations.findIndex(s => s.id === (startSelect ? startSelect.value : ''));
+    const endSelect = document.getElementById('ss-cause-segment-end');
+    if (endSelect) {
+        setStationOptions(endSelect, stations, endSelect.value, true, startIndex >= 0 ? startIndex : 0);
+    }
+}
+
+function renderThroughServiceControls(entry) {
+    const container = document.getElementById('ss-through-services');
+    if (!container) return;
+    entry = entry || getCurrentServiceStatus() || createEmptyServiceStatus();
+    if (entry && container.querySelector('.ss-through-item')) {
+        entry.through_services = collectThroughServicesFromForm(false);
+    }
+    container.innerHTML = '';
+    const lineId = document.getElementById('ss-line').value || entry.affected_line_id || '';
+    if (!lineId) {
+        container.innerHTML = '<p class="ss-empty">影響路線を選択すると直通設定を編集できます。</p>';
+        return;
+    }
+    const links = getThroughLinesForLine(lineId);
+    if (links.length === 0) {
+        container.innerHTML = '<p class="ss-empty">直通設定はありません。</p>';
+        return;
+    }
+    const isDss = isCurrentStatusDss();
+    links.forEach((link, idx) => {
+        const existing = (entry.through_services || []).find(ts => ts.line_id === link.lineId) || { line_id: link.lineId, state: 'none', target: link.allowedTargets[0] || 'mutual', show_on_through_line: false };
+        const currentState = isDss ? 'suspended' : (existing.state || 'none');
+        const detailEnabled = currentState === 'suspended';
+        const stateId = `ss-through-state-${idx}`;
+        const targetId = `ss-through-target-${idx}`;
+        const checkboxId = `ss-through-show-${idx}`;
+        const html = `
+            <div class="ss-through-item" data-line-id="${esc(link.lineId)}" data-targets="${esc(link.allowedTargets.join(','))}">
+                <h4>${esc(getLineNameById(link.lineId) || link.lineId)}</h4>
+                <label>直通状態
+                    <select id="${stateId}" class="ss-through-state" onchange="onThroughServiceStateChange(this)">
+                        <option value="none" ${currentState === 'none' ? 'selected' : ''}>影響なし</option>
+                        <option value="suspended" ${currentState === 'suspended' ? 'selected' : ''}>直通中止</option>
+                        <option value="resumed" ${currentState === 'resumed' ? 'selected' : ''}>直通再開</option>
+                    </select>
+                </label>
+                <label>対象
+                    <select id="${targetId}" class="ss-through-target" ${detailEnabled ? '' : 'disabled'}>
+                        ${(() => {
+                            // If this link supports mutual straight-through, enable all direction choices
+                            const opts = (link.allowedTargets && link.allowedTargets.indexOf('mutual') !== -1)
+                                ? ['mutual','affected_to_through','through_to_affected']
+                                : link.allowedTargets;
+                            return opts.map(target => `<option value="${esc(target)}" ${existing.target === target ? 'selected' : ''}>${esc(getThroughTargetLabel(target))}</option>`).join('');
+                        })()}
+                    </select>
+                </label>
+                <label><input type="checkbox" id="${checkboxId}" class="ss-through-show" ${existing.show_on_through_line && detailEnabled ? 'checked' : ''} ${detailEnabled ? '' : 'disabled'}> 直通先路線に表示</label>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+        const stateSelect = document.getElementById(stateId);
+        const wrapper = stateSelect ? stateSelect.closest('.ss-through-item') : null;
+        if (stateSelect && isDss) {
+            stateSelect.value = 'suspended';
+            stateSelect.disabled = true;
+        }
+        toggleThroughDetailControls(wrapper, stateSelect ? stateSelect.value === 'suspended' : false);
+    });
+}
+
+function getThroughLinesForLine(lineId) {
+    const map = new Map();
+    if (!lineId) return [];
+    (appData.throughServiceConfigs || []).forEach(cfg => {
+        if (cfg.fromLineId !== lineId && cfg.toLineId !== lineId) return;
+        const throughLineId = cfg.fromLineId === lineId ? cfg.toLineId : cfg.fromLineId;
+        if (!throughLineId) return;
+        if (!map.has(throughLineId)) {
+            map.set(throughLineId, { lineId: throughLineId, allowedTargets: new Set() });
+        }
+        const info = map.get(throughLineId);
+        if (cfg.fromLineId === lineId) info.allowedTargets.add('affected_to_through');
+        if (cfg.toLineId === lineId) info.allowedTargets.add('through_to_affected');
+        if (cfg.isBidirectional) info.allowedTargets.add('mutual');
+    });
+    return Array.from(map.values()).map(item => {
+        if (item.allowedTargets.size === 0) item.allowedTargets.add('mutual');
+        return { lineId: item.lineId, allowedTargets: Array.from(item.allowedTargets) };
+    });
+}
+
+function getThroughTargetLabel(target) {
+    switch (target) {
+        case 'affected_to_through': return '影響路線→直通先';
+        case 'through_to_affected': return '直通先→影響路線';
+        default: return '相互';
+    }
+}
+
+function toggleThroughDetailControls(wrapper, enable) {
+    if (!wrapper) return;
+    const targetSelect = wrapper.querySelector('.ss-through-target');
+    const showCheckbox = wrapper.querySelector('.ss-through-show');
+    if (targetSelect) {
+        targetSelect.disabled = !enable;
+    }
+    if (showCheckbox) {
+        showCheckbox.disabled = !enable;
+        if (!enable) {
+            showCheckbox.checked = false;
+        }
+    }
+}
+
+function onThroughServiceStateChange(selectEl) {
+    if (!selectEl) return;
+    const wrapper = selectEl.closest('.ss-through-item');
+    if (!wrapper) return;
+    if (isCurrentStatusDss()) {
+        selectEl.value = 'suspended';
+        toggleThroughDetailControls(wrapper, true);
+        return;
+    }
+    toggleThroughDetailControls(wrapper, selectEl.value === 'suspended');
+}
+
+function buildServiceStatusFromForm(baseEntry) {
+    const entry = JSON.parse(JSON.stringify(baseEntry || createEmptyServiceStatus()));
+    entry.affected_line_id = document.getElementById('ss-line').value;
+    entry.occurrence = {
+        year: toOptionalInt(document.getElementById('ss-occ-year').value),
+        month: toOptionalInt(document.getElementById('ss-occ-month').value),
+        day: toOptionalInt(document.getElementById('ss-occ-day').value),
+        hour: toOptionalInt(document.getElementById('ss-occ-hour').value),
+        minute: toOptionalInt(document.getElementById('ss-occ-minute').value),
+        timezone: 'Asia/Tokyo'
+    };
+    entry.affected_segment = {
+        is_full_line: false,
+        start_station_id: document.getElementById('ss-segment-start').value || null,
+        end_station_id: document.getElementById('ss-segment-end').value || null
+    };
+    const lineStations = getStationsForLine(entry.affected_line_id);
+    const firstId = lineStations[0]?.id || null;
+    const lastId = lineStations[lineStations.length - 1]?.id || null;
+    if (entry.affected_segment.start_station_id === firstId && entry.affected_segment.end_station_id === lastId) {
+        entry.affected_segment.is_full_line = true;
+        entry.affected_segment.start_station_id = null;
+        entry.affected_segment.end_station_id = null;
+    }
+    entry.direction = {
+        up: document.getElementById('ss-dir-up').checked,
+        down: document.getElementById('ss-dir-down').checked
+    };
+    entry.notice_types_all = document.getElementById('ss-notice-all').checked;
+    if (entry.notice_types_all) {
+        entry.notice_types = [];
+    } else {
+        entry.notice_types = getNoticeTypeSelectionsFromForm();
+    }
+    const statusCode = document.getElementById('ss-status-code').value;
+    const template = getStatusTemplateByCode(statusCode);
+    const statusId = (statusCode === 'notice' || statusCode === 'other') ? statusCode : (template?.status_id || statusCode);
+    entry.status = {
+        code: statusCode,
+        status_id: statusId,
+        heading: document.getElementById('ss-status-heading').value.trim(),
+        body: document.getElementById('ss-status-body').value.trim()
+    };
+    const causeLineInfo = getSelectedCauseLineInfo();
+    entry.cause = {
+        code: document.getElementById('ss-cause-code').value,
+        heading: document.getElementById('ss-cause-heading').value.trim() || null,
+        body: document.getElementById('ss-cause-body').value.trim() || null,
+        cause_line_option: causeLineInfo.option,
+        cause_line_id: causeLineInfo.option === 'line' ? (causeLineInfo.lineId || null) : (causeLineInfo.option === 'affected' ? (entry.affected_line_id || null) : null),
+        cause_segment: {
+            start_station_id: document.getElementById('ss-cause-segment-start').value || null,
+            end_station_id: document.getElementById('ss-cause-segment-end').value || null
+        }
+    };
+    entry.turnback = {
+        start: document.getElementById('ss-turnback-start').checked,
+        end: document.getElementById('ss-turnback-end').checked
+    };
+    entry.through_services = collectThroughServicesFromForm(isCurrentStatusDss());
+    entry.preview = entry.preview || { editable: false, custom_text: null };
+    entry.preview.editable = document.getElementById('ss-preview-editable').checked;
+    entry.published = document.getElementById('ss-published').checked;
+    if (entry.preview.editable) {
+        entry.preview.custom_text = document.getElementById('ss-preview-custom').value || '';
+        entry.published_text = entry.preview.custom_text || '';
+    } else {
+        entry.preview.custom_text = null;
+    }
+    return entry;
+}
+
+function toOptionalInt(value) {
+    if (value === '' || value === null || value === undefined) return null;
+    const num = parseInt(value, 10);
+    return isNaN(num) ? null : num;
+}
+
+function collectThroughServicesFromForm(forceSuspended) {
+    const container = document.getElementById('ss-through-services');
+    if (!container) return [];
+    const items = container.querySelectorAll('.ss-through-item');
+    const results = [];
+    items.forEach(item => {
+        const lineId = item.dataset.lineId;
+        if (!lineId) return;
+        const stateSelect = item.querySelector('select[id^="ss-through-state-"]');
+        const targetSelect = item.querySelector('select[id^="ss-through-target-"]');
+        const showCheckbox = item.querySelector('input[type="checkbox"]');
+        const state = forceSuspended ? 'suspended' : (stateSelect ? stateSelect.value : 'none');
+        const target = targetSelect ? targetSelect.value : 'mutual';
+        results.push({
+            line_id: lineId,
+            state,
+            target,
+            show_on_through_line: (showCheckbox && !showCheckbox.disabled) ? showCheckbox.checked : false
+        });
+    });
+    return results;
+}
+
+function getCauseByCode(code) {
+    if (!code) return null;
+    return (appData.serviceStatusCauses || []).find(c => c.code === code) || null;
+}
+
+function buildNoticeTypeList(entry) {
+    if (!entry || entry.notice_types_all) return '';
+    const labels = (entry.notice_types || []).map(code => getNoticeLabelByCode(code, entry.affected_line_id)).filter(Boolean);
+    if (!labels.length) return '';
+    return `${joinWithAnd(labels)}列車が`;
+}
+
+function buildSegmentText(entry, lineName) {
+    // If full line is selected, return empty string (do not display "全線の")
+    if (!entry || entry.affected_segment?.is_full_line) return '';
+    const startName = getStationNameById(entry.affected_segment?.start_station_id) || '';
+    const endName = getStationNameById(entry.affected_segment?.end_station_id) || '';
+    if (startName && endName) return `${startName}駅～${endName}駅間`;
+    return `${lineName || ''}内`; 
+}
+
+function buildDirectionText(entry) {
+    if (!entry || (!entry.direction?.up && !entry.direction?.down)) return '';
+    // If both directions are selected, do not display direction text
+    if (entry.direction.up && entry.direction.down) return '';
+    if (entry.direction.up) return '上り線で';
+    if (entry.direction.down) return '下り線で';
+    return '';
+}
+
+function buildTurnbackText(entry) {
+    if (!entry) return '';
+    let startId = entry.affected_segment?.start_station_id;
+    let endId = entry.affected_segment?.end_station_id;
+    if (entry.affected_segment?.is_full_line) {
+        const stations = getStationsForLine(entry.affected_line_id);
+        startId = stations[0]?.id;
+        endId = stations[stations.length - 1]?.id;
+    }
+    const startName = getStationNameById(startId) || '';
+    const endName = getStationNameById(endId) || '';
+    const start = entry.turnback?.start;
+    const end = entry.turnback?.end;
+    if (start && end && startName && endName) {
+        return `${startName}駅および${endName}駅で折り返し運転を行っています。`;
+    }
+    if (start && startName) return `${startName}駅で折り返し運転を行っています。`;
+    if (end && endName) return `${endName}駅で折り返し運転を行っています。`;
+    return '';
+}
+
+function buildOccurrenceText(occ) {
+    if (!occ || !occ.month || !occ.day) return '';
+    if (occ.hour !== null && occ.hour !== undefined && occ.minute !== null && occ.minute !== undefined) {
+        return `${occ.month}月${occ.day}日${occ.hour}時${String(occ.minute).padStart(2, '0')}分ごろ、`;
+    }
+    return `${occ.month}月${occ.day}日、`;
+}
+
+function buildCauseText(entry) {
+    const cause = entry.cause || {};
+    const config = getCauseByCode(cause.code);
+    const body = cause.body || config?.body || '';
+    if (!body) return '';
+    if (cause.cause_line_option === 'hidden') {
+        return `${body}、`;
+    }
+    let lineName = '';
+    if (cause.cause_line_option === 'line') {
+        lineName = getLineNameById(cause.cause_line_id) || cause.cause_line_id || '';
+    } else {
+        lineName = getLineNameById(entry.affected_line_id) || entry.affected_line_id || '';
+    }
+    if (!lineName) lineName = '当該路線';
+    const startName = getStationNameById(cause.cause_segment?.start_station_id) || '';
+    const endName = getStationNameById(cause.cause_segment?.end_station_id) || '';
+    if (startName && endName) {
+        return `${lineName}：${startName}駅～${endName}駅間で${body}、`;
+    }
+    if (startName) {
+        return `${lineName}：${startName}駅で${body}、`;
+    }
+    return `${lineName}で${body}、`;
+}
+
+function buildThroughServicesText(entry, isDss) {
+    const list = Array.isArray(entry.through_services) ? entry.through_services : [];
+    const suspended = list.filter(ts => ts.state === 'suspended');
+    const resumed = list.filter(ts => ts.state === 'resumed');
+    const sentences = [];
+    const suspendedSentence = formatThroughStateSentence(suspended, '中止しています');
+    if (suspendedSentence) {
+        sentences.push(suspendedSentence);
+    } else if (isDss) {
+        sentences.push('直通運転を中止しています。');
+    }
+    if (!isDss) {
+        const resumedSentence = formatThroughStateSentence(resumed, '再開しました');
+        if (resumedSentence) {
+            sentences.push(resumedSentence);
+        }
+    }
+    return sentences.join('');
+}
+
+function formatThroughStateSentence(items, verb) {
+    if (!items || !items.length) return '';
+    const fragments = buildThroughFragments(items);
+    if (!fragments.length) return '';
+    return `${fragments.join('、')}を${verb}。`;
+}
+
+function buildThroughFragments(items) {
+    const order = ['mutual', 'affected_to_through', 'through_to_affected'];
+    const grouped = new Map();
+    items.forEach(ts => {
+        const key = ts.target || 'mutual';
+        const label = getLineNameById(ts.line_id) || ts.line_id || '';
+        if (!label) return;
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(label);
+    });
+    const fragments = [];
+    const appendFragment = (key, names) => {
+        if (!names || !names.length) return;
+        const joined = joinWithAnd(names);
+        if (!joined) return;
+        if (key === 'mutual') {
+            fragments.push(`${joined}との直通運転`);
+        } else if (key === 'affected_to_through') {
+            fragments.push(`${joined}への直通運転`);
+        } else if (key === 'through_to_affected') {
+            fragments.push(`${joined}からの直通運転`);
+        } else {
+            fragments.push(`${joined}との直通運転`);
+        }
+    };
+    order.forEach(key => appendFragment(key, grouped.get(key)));
+    grouped.forEach((names, key) => {
+        if (!order.includes(key)) {
+            appendFragment(key, names);
+        }
+    });
+    return fragments;
+}
+
+function joinWithAnd(items) {
+    if (!items || items.length === 0) return '';
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]}および${items[1]}`;
+    return `${items.slice(0, -1).join('、')}、および${items[items.length - 1]}`;
+}
+
+function generateServiceStatusText(entry) {
+    const lineName = getLineNameById(entry.affected_line_id) || entry.affected_line_id || '';
+    const causeHeading = entry.cause?.heading || getCauseByCode(entry.cause?.code)?.heading || '';
+    const statusHeading = entry.status.heading || getStatusLabel(entry.status.code);
+    const heading = `【${lineName}】${causeHeading ? `${causeHeading}　` : ''}${statusHeading}`;
+    const occurrence = buildOccurrenceText(entry.occurrence);
+    const causeText = buildCauseText(entry);
+    let body = '';
+    if (entry.status.status_id === 'DSS') {
+        body = buildThroughServicesText(entry, true);
+    } else {
+        const subject = buildNoticeTypeList(entry); // empty when "全て" is selected
+        const segment = buildSegmentText(entry, lineName); // empty when full line
+        const direction = buildDirectionText(entry); // empty when both directions
+        const bothDirectionsSelected = !!(entry.direction && entry.direction.up && entry.direction.down);
+        const statusBody = entry.status.body || '';
+        const fallbackBody = statusHeading || '影響が発生しています';
+        const trimmedBodyRaw = statusBody.endsWith('。') ? statusBody.slice(0, -1) : statusBody;
+        const trimmedBody = trimmedBodyRaw || fallbackBody;
+        // Build prefix only from non-empty parts. Use appropriate particles.
+        let prefix = '';
+        if (subject) prefix += subject;
+        if (segment) prefix += bothDirectionsSelected ? `${segment}で` : `${segment}の`;
+        if (direction) prefix += direction;
+        if (prefix) {
+            body = `${prefix}${trimmedBody}。`;
+        } else {
+            // If nothing to prefix (all-general case), output only the main sentence
+            body = `${trimmedBody}。`;
+        }
+    }
+    const turnback = buildTurnbackText(entry);
+    const through = entry.status.status_id === 'DSS' ? '' : buildThroughServicesText(entry, false);
+    const composed = `${occurrence}${causeText}${body}${turnback}${through}`.replace(/\s+/g, ' ').trim();
+    return {
+        heading: heading.trim(),
+        body: composed
+    };
+}
+
+function regenerateCurrentServiceStatusPreview() {
+    const base = getCurrentServiceStatus();
+    if (!base) return;
+    const entry = buildServiceStatusFromForm(base);
+    if (!entry.occurrence.year) {
+        entry.occurrence.year = new Date().getFullYear();
+    }
+    const generated = generateServiceStatusText(entry);
+    entry.generated_text = generated;
+    if (!entry.preview.editable) {
+        entry.published_text = `${generated.heading}\n${generated.body}`;
+    }
+    document.getElementById('ss-preview-heading').value = generated.heading;
+    document.getElementById('ss-preview-body').value = generated.body;
+}
+
+function onServiceStatusPreviewEditableToggle(skipValueReset) {
+    const editable = document.getElementById('ss-preview-editable').checked;
+    const autoBody = document.getElementById('ss-preview-body');
+    const customBody = document.getElementById('ss-preview-custom');
+    const heading = document.getElementById('ss-preview-heading');
+    if (editable) {
+        autoBody.setAttribute('readonly', 'readonly');
+        autoBody.classList.add('hidden');
+        customBody.classList.remove('hidden');
+        customBody.removeAttribute('readonly');
+        // when editing is enabled, ensure heading remains read-only (heading is derived)
+        if (heading) heading.removeAttribute('readonly');
+        if (!skipValueReset && !customBody.value) {
+            customBody.value = autoBody.value;
+        }
+    } else {
+        // when editing is disabled, keep preview fields read-only and hide custom editor
+        autoBody.setAttribute('readonly', 'readonly');
+        autoBody.classList.remove('hidden');
+        customBody.classList.add('hidden');
+        customBody.value = skipValueReset ? customBody.value : '';
+        if (heading) heading.setAttribute('readonly', 'readonly');
+    }
+}
+
+// Check whether all required service-status inputs are filled
+function areRequiredServiceStatusFieldsFilled(entry) {
+    if (!entry) return false;
+    // Mirror the same basic validation as `saveServiceStatus` but return boolean
+    if (!entry.affected_line_id) return false;
+    if (!entry.occurrence.month || !entry.occurrence.day) return false;
+    if (!entry.affected_segment.is_full_line && (!entry.affected_segment.start_station_id || !entry.affected_segment.end_station_id)) return false;
+    if (!entry.direction.up && !entry.direction.down) return false;
+    if (!entry.status.code) return false;
+    if (!entry.notice_types_all && (!entry.notice_types || entry.notice_types.length === 0)) return false;
+    if (!entry.cause.code) return false;
+    if (entry.cause.code === 'other' && (!entry.cause.heading || !entry.cause.body)) return false;
+    if (entry.cause.cause_line_option === 'line' && !entry.cause.cause_line_id) return false;
+    return true;
+}
+
+// Debounce helper
+function debounce(fn, wait) {
+    let t = null;
+    return function () {
+        const args = arguments;
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(null, args), wait);
+    };
+}
+
+// Attach event listeners to service-status editor to auto-generate preview
+function setupServiceStatusAutoPreview() {
+    const editor = document.getElementById('service-status-editor');
+    if (!editor) return;
+    const handler = debounce(() => {
+        const base = getCurrentServiceStatus();
+        if (!base) return;
+        const entry = buildServiceStatusFromForm(base);
+        if (areRequiredServiceStatusFieldsFilled(entry)) {
+            regenerateCurrentServiceStatusPreview();
+        } else {
+            // clear preview fields when incomplete
+            const h = document.getElementById('ss-preview-heading');
+            const b = document.getElementById('ss-preview-body');
+            if (h) h.value = '';
+            if (b) b.value = '';
+        }
+    }, 250);
+
+    // Listen for input/change inside the editor
+    editor.addEventListener('input', handler);
+    editor.addEventListener('change', handler);
+
+    // Also ensure toggle changes update UI correctly
+    const editableCheckbox = document.getElementById('ss-preview-editable');
+    if (editableCheckbox) editableCheckbox.addEventListener('change', () => onServiceStatusPreviewEditableToggle(false));
+}
+
+function saveServiceStatus() {
+    if (_currentServiceStatusIndex === null) return;
+    const base = appData.serviceStatuses[_currentServiceStatusIndex];
+    const entry = buildServiceStatusFromForm(base);
+    // Basic validation
+    if (!entry.affected_line_id) {
+        alert('影響路線を選択してください');
+        return;
+    }
+    if (!entry.occurrence.month || !entry.occurrence.day) {
+        alert('発生日時の月・日を入力してください');
+        return;
+    }
+    if (!entry.affected_segment.is_full_line && (!entry.affected_segment.start_station_id || !entry.affected_segment.end_station_id)) {
+        alert('影響区間の始点・終点を選択してください');
+        return;
+    }
+    if (!entry.direction.up && !entry.direction.down) {
+        alert('方向（上り・下り）のいずれかを選択してください');
+        return;
+    }
+    if (!entry.status.code) {
+        alert('状態を選択してください');
+        return;
+    }
+    if (!entry.notice_types_all && entry.notice_types.length === 0) {
+        alert('影響案内種別を少なくとも1つ選択するか「全て」を選択してください');
+        return;
+    }
+    if (!entry.cause.code) {
+        alert('原因を選択してください');
+        return;
+    }
+    if (entry.cause.code === 'other' && (!entry.cause.heading || !entry.cause.body)) {
+        alert('原因見出しと原因本文を入力してください');
+        return;
+    }
+    if (entry.cause.cause_line_option === 'line' && !entry.cause.cause_line_id) {
+        alert('原因路線を選択してください');
+        return;
+    }
+    if (!entry.occurrence.year) {
+        entry.occurrence.year = new Date().getFullYear();
+        document.getElementById('ss-occ-year').value = entry.occurrence.year;
+    }
+    const generated = generateServiceStatusText(entry);
+    entry.generated_text = generated;
+    if (!entry.preview.editable) {
+        document.getElementById('ss-preview-heading').value = generated.heading;
+        document.getElementById('ss-preview-body').value = generated.body;
+        entry.published_text = `${generated.heading}\n${generated.body}`;
+    } else {
+        entry.published_text = document.getElementById('ss-preview-custom').value || '';
+    }
+    const now = new Date().toISOString();
+    entry.updated_at = now;
+    if (!base.id) {
+        entry.id = generateUuid();
+        entry.created_at = now;
+        entry.version = 1;
+        entry.history = [];
+    } else {
+        const snapshot = JSON.parse(JSON.stringify(base));
+        entry.id = base.id;
+        entry.created_at = base.created_at || now;
+        entry.version = (base.version || 1) + 1;
+        entry.history = Array.isArray(base.history) ? [...base.history] : [];
+        entry.history.push({ version: base.version || 1, changed_at: now, changed_by: null, snapshot });
+    }
+    appData.serviceStatuses[_currentServiceStatusIndex] = entry;
+    if (appData.serviceStatusMeta) {
+        appData.serviceStatusMeta.generated_at = now;
+    }
+    renderServiceStatuses();
+    openServiceStatusEditor(_currentServiceStatusIndex);
+}
+
+function deleteServiceStatus(index) {
+    showInlineDeleteConfirm('service-statuses-tbody', index, `performDeleteServiceStatus(${index})`);
+}
+
+function deleteCurrentServiceStatus() {
+    if (_currentServiceStatusIndex === null) return;
+    deleteServiceStatus(_currentServiceStatusIndex);
+}
+
+function performDeleteServiceStatus(index) {
+    appData.serviceStatuses.splice(index, 1);
+    closeServiceStatusEditor();
+    renderServiceStatuses();
+}
+
 // エクスポート/インポート
 async function exportData() {
     // Before saving, ensure there are no red-highlighted invalid cells.
@@ -2243,6 +3489,7 @@ function loadDataFile() {
     reader.onload = async (e) => {
         try {
             appData = JSON.parse(e.target.result);
+            ensureServiceStatusConfig(appData);
                 try {
                     _lastSavedJson = JSON.stringify(cleanDataForExport(appData));
                 } catch (e) { _lastSavedJson = JSON.stringify(appData); }

@@ -2865,5 +2865,262 @@
       "toPlatform": "3",
       "transferTime": 7
     }
+  ],
+  "statusTemplates": [
+    {
+      "code": "OfS_SUSPEND",
+      "status_id": "OfS",
+      "label": "運転見合わせ",
+      "heading": "運転見合わせ",
+      "body": "運転を見合わせています",
+      "description": "運転見合わせ：{影響駅間}で運転を見合わせています"
+    },
+    {
+      "code": "OfS_CANCEL",
+      "status_id": "OfS",
+      "label": "運休",
+      "heading": "運休",
+      "body": "運休となっています",
+      "description": "運休：{影響駅間}で運休となっています"
+    },
+    {
+      "code": "Aff_UNLISTED",
+      "status_id": "Aff",
+      "label": "乗換案内非対応",
+      "heading": "乗換案内非対応",
+      "body": "通常通り運転を行っていますが、本システムの乗換案内に表示されません",
+      "description": "乗換案内非対応：{影響駅間}で通常通り運転を行っていますが、本システムの乗換案内に表示されません"
+    },
+    {
+      "code": "Aff_SKIP",
+      "status_id": "Aff",
+      "label": "一部駅通過",
+      "heading": "一部駅通過",
+      "body": "各駅を通過します",
+      "description": "一部駅通過：{影響駅間}の各駅を通過します"
+    },
+    {
+      "code": "DSS_STOP",
+      "status_id": "DSS",
+      "label": "直通運転中止",
+      "heading": "直通運転中止",
+      "body": "直通運転を中止しています",
+      "description": "直通運転中止：{直通先路線}{対象}の直通運転を中止しています"
+    }
+  ],
+  "noticeTypes": [
+    {
+      "code": "Lo",
+      "label": "普通"
+    },
+    {
+      "code": "Lo-KB",
+      "label": "普通(直通)"
+    },
+    {
+      "code": "Lo-KL",
+      "label": "各駅停車(直通)"
+    },
+    {
+      "code": "Ra",
+      "label": "快速"
+    },
+    {
+      "code": "Ra-HA",
+      "label": "直通快速"
+    },
+    {
+      "code": "SR-LSR",
+      "label": "新快速"
+    },
+    {
+      "code": "EX-AML",
+      "label": "特急アクアマリンライナー"
+    },
+    {
+      "code": "EX-MKR",
+      "label": "特急みかり"
+    }
+  ],
+  "serviceStatusCauses": [
+    {
+      "code": "signal_check",
+      "label": "信号の確認",
+      "heading": "信号の確認",
+      "body": "信号の確認をしているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "vehicle_check",
+      "label": "車両の確認",
+      "heading": "車両の確認",
+      "body": "車両を確認したため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "track_check",
+      "label": "線路の確認",
+      "heading": "線路の確認",
+      "body": "線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "vehicle_track_check",
+      "label": "車両・線路確認",
+      "heading": "車両・線路確認",
+      "body": "車両と線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "station_facility_check",
+      "label": "駅設備の確認",
+      "heading": "駅設備の確認",
+      "body": "駅の設備を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "station_facility_track_check",
+      "label": "駅設備・線路確認",
+      "heading": "駅設備・線路確認",
+      "body": "駅の設備と線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "person_intrusion",
+      "label": "線路内人立入",
+      "heading": "線路内人立入",
+      "body": "線路内に人が立ち入ったため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "animal_intrusion",
+      "label": "線路内動物等立入",
+      "heading": "線路内動物等立入",
+      "body": "線路内に動物等が立ち入ったため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "animal_contact",
+      "label": "動物等と接触",
+      "heading": "動物等と接触",
+      "body": "列車が動物等と接触し、車両と線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "track_intensive_work",
+      "label": "線路の集中工事",
+      "heading": "線路の集中工事",
+      "body": "線路の集中工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "maintenance_work",
+      "label": "保守工事",
+      "heading": "保守工事",
+      "body": "保守工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "station_facility_work",
+      "label": "駅設備の工事",
+      "heading": "駅設備の工事",
+      "body": "駅設備の工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "track_switch_work",
+      "label": "線路切替工事",
+      "heading": "線路切替工事",
+      "body": "線路切替工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "other",
+      "label": "その他",
+      "heading": null,
+      "body": null,
+      "default_line_option": "hidden"
+    }
+  ],
+  "serviceStatusMeta": {
+    "schema_version": "1.0.0",
+    "generated_at": "2025-11-20T09:15:00+09:00"
+  },
+  "serviceStatuses": [
+    {
+      "id": "11111111-2222-3333-4444-555555555555",
+      "version": 1,
+      "created_at": "2025-11-20T09:00:00+09:00",
+      "updated_at": "2025-11-20T09:15:00+09:00",
+      "occurrence": {
+        "year": 2025,
+        "month": 11,
+        "day": 20,
+        "hour": 8,
+        "minute": 30,
+        "timezone": "Asia/Tokyo"
+      },
+      "affected_line_id": "KT-L",
+      "notice_types_all": false,
+      "notice_types": [
+        "Ra",
+        "SR-LSR"
+      ],
+      "status": {
+        "code": "OfS_SUSPEND",
+        "status_id": "OfS",
+        "heading": "運転見合わせ",
+        "body": "運転を見合わせています"
+      },
+      "affected_segment": {
+        "is_full_line": false,
+        "start_station_id": "KL07",
+        "end_station_id": "KL10"
+      },
+      "direction": {
+        "up": true,
+        "down": true
+      },
+      "cause": {
+        "code": "signal_check",
+        "heading": "信号の確認",
+        "body": "信号の確認をしているため",
+        "cause_line_option": "affected",
+        "cause_line_id": null,
+        "cause_segment": {
+          "start_station_id": null,
+          "end_station_id": null
+        }
+      },
+      "turnback": {
+        "start": true,
+        "end": false
+      },
+      "through_services": [
+        {
+          "line_id": "CR-K",
+          "state": "suspended",
+          "target": "mutual",
+          "show_on_through_line": true
+        },
+        {
+          "line_id": "SUI-J",
+          "state": "none",
+          "target": "mutual",
+          "show_on_through_line": false
+        }
+      ],
+      "preview": {
+        "editable": false,
+        "custom_text": null
+      },
+      "generated_text": {
+        "heading": "【瑠璃線】信号の確認　運転見合わせ",
+        "body": "11月20日8時30分ごろ、瑠璃線で信号の確認をしているため、快速および新快速列車がクォーツ駅～瑠順中央駅間で運転を見合わせています。クォーツ駅で折り返し運転を行っています。ころりん鉄道アカシア線との直通運転を中止しています。"
+      },
+      "published_text": "【瑠璃線】信号の確認　運転見合わせ\n11月20日8時30分ごろ、瑠璃線で信号の確認をしているため、快速および新快速列車がクォーツ駅～瑠順中央駅間で運転を見合わせています。クォーツ駅で折り返し運転を行っています。ころりん鉄道アカシア線との直通運転を中止しています。",
+      "published": false,
+      "history": []
+    }
   ]
 }
