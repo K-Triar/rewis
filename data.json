@@ -374,14 +374,14 @@
     },
     {
       "stationId": "KL02",
-      "stationName": "オット(未開業)",
+      "stationName": "オット",
       "stationNameKana": "おっと",
       "latitude": 35.004,
       "longitude": 139.004
     },
     {
       "stationId": "KL03",
-      "stationName": "瑠前TT(未開業)",
+      "stationName": "瑠前TT（未開業）",
       "stationNameKana": "るぜんてぃーてぃー",
       "latitude": 35.008,
       "longitude": 139.008
@@ -577,15 +577,253 @@
     },
     {
       "stationId": "KL06",
-      "stationName": "南セナポン(未開業)",
+      "stationName": "南セナポン（未開業）",
       "stationNameKana": "みなみせなぽん",
       "latitude": 35,
       "longitude": 139
     },
     {
       "stationId": "KL11",
-      "stationName": "瑠順農園(未開業)",
+      "stationName": "瑠順農園（未開業）",
       "stationNameKana": "るじゅんのうえん",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "IAR",
+      "stationName": "伊有尾",
+      "stationNameKana": "いありお",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KJE",
+      "stationName": "旧自治領入口",
+      "stationNameKana": "きゅうじちりょういりぐち",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "BDN",
+      "stationName": "本社ビル",
+      "stationNameKana": "ほんしゃびる",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "IAF",
+      "stationName": "イアリーオ国際空港前",
+      "stationNameKana": "いありーおこくさいくうこうまえ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SPU",
+      "stationName": "洲璃府地下",
+      "stationNameKana": "すりぷちか",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KSG",
+      "stationName": "強杉",
+      "stationNameKana": "こわすぎ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NSP",
+      "stationName": "北洲璃府",
+      "stationNameKana": "きたすりぷ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO02",
+      "stationName": "蔵前",
+      "stationNameKana": "くらまえ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO03",
+      "stationName": "瑠璃ゲートウェイ",
+      "stationNameKana": "るりげーとうぇい",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO04",
+      "stationName": "地下交易所",
+      "stationNameKana": "ちかこうえきじょ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO05",
+      "stationName": "瑠璃新報本社",
+      "stationNameKana": "るりしんぽうほんしゃ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KY02",
+      "stationName": "KT石炭",
+      "stationNameKana": "けーてぃーせきたん",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KYe01",
+      "stationName": "北藤江田静岡口",
+      "stationNameKana": "きたふじえだしずおかぐち",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NE01",
+      "stationName": "瑠璃ゲートウェイ（ネザー）",
+      "stationNameKana": "るりげーとうぇい",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NE03",
+      "stationName": "凍山（ネザー）",
+      "stationNameKana": "こおりやま",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NE04",
+      "stationName": "流刑地（ネザー）",
+      "stationNameKana": "るけいち",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NA03",
+      "stationName": "西水ゲートウェイ（ネザー）",
+      "stationNameKana": "にしみずげーとうぇい",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "JSC",
+      "stationName": "ジストニア中央",
+      "stationNameKana": "じすとにあちゅうおう",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "TSJ",
+      "stationName": "大使館",
+      "stationNameKana": "たいしかん",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "MRP",
+      "stationName": "みらーく広場",
+      "stationNameKana": "みらーくひろば",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SSM",
+      "stationName": "紫水湊",
+      "stationNameKana": "しすいみなと",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "CKT",
+      "stationName": "中継TT",
+      "stationNameKana": "ちゅうけいてぃーてぃー",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NHV",
+      "stationName": "ニューヘルヴェティア",
+      "stationNameKana": "にゅーへるゔぇてぃあ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "JAL",
+      "stationName": "JRアルミラール",
+      "stationNameKana": "じぇいあーるあるみらーる",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NNS",
+      "stationName": "新西水",
+      "stationNameKana": "しんにしみず",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SOL",
+      "stationName": "左大池",
+      "stationNameKana": "さおおいけ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "TSK",
+      "stationName": "鉄塚",
+      "stationNameKana": "てつか",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "DGM",
+      "stationName": "ダジトス学園前",
+      "stationNameKana": "だじとすがくえんまえ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "TMN",
+      "stationName": "トマトナイ",
+      "stationNameKana": "とまとない",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "CNZ",
+      "stationName": "チェルノゼーム",
+      "stationNameKana": "ちぇるのぜーむ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NSK",
+      "stationName": "ニシコ",
+      "stationNameKana": "にしこ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SGG",
+      "stationName": "採ヶ崖",
+      "stationNameKana": "さいががけ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "FPZ",
+      "stationName": "フロポツィヒ",
+      "stationNameKana": "ふろぽつぃひ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NTP",
+      "stationName": "自然公園",
+      "stationNameKana": "しぜんこうえん",
       "latitude": 35,
       "longitude": 139
     }
