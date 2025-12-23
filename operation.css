@@ -1,0 +1,750 @@
+/* ========================================
+   リセット & ベーススタイル
+======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0078D7;
+    --secondary-color: #E67E22;
+    --danger-color: #E60012;
+    --warning-color: #F1C40F;
+    --text-color: #333;
+    --border-color: #ddd;
+    --bg-gray: #f5f5f5;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+                 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: #f0f0f0;
+    min-height: 100svh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 100px; /* ヘッダーの高さ分の余白 */
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+main {
+    flex: 0 1 900px;
+    max-width: 900px;
+}
+
+.sidebar {
+    flex: 0 0 250px;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
+
+.sidebar { order: 0; }
+main { order: 1; }
+
+.sidebar-nav ul { list-style: none; padding: 0; margin: 0 0 12px 0; }
+.sidebar-nav .nav-item { margin-bottom: 10px; }
+.sidebar-nav .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #222;
+    text-align: left;
+}
+.sidebar-nav .bottom-group .nav-btn { font-size: 0.95rem; font-weight: 500; color: #444; }
+.sidebar-nav .nav-item.small .nav-btn { font-size: 0.95rem; }
+.sidebar-nav .nav-item.active .nav-btn { background: var(--primary-color); color: #fff; }
+.sidebar-nav .nav-btn:hover { background: rgba(0,120,215,0.08); color: var(--primary-color); }
+.sidebar-nav .nav-item.active .nav-btn:hover { background: var(--primary-color); color: #fff; }
+.sidebar-divider { border: none; height: 1px; background: var(--border-color); margin: 12px 0; }
+
+.icon {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: #666;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+.nav-item.active .icon { background-color: #fff; }
+
+.icon-home { -webkit-mask-image: url('src/home.svg'); mask-image: url('src/home.svg'); }
+.icon-walking { -webkit-mask-image: url('src/walking.svg'); mask-image: url('src/walking.svg'); }
+.icon-train { -webkit-mask-image: url('src/train.svg'); mask-image: url('src/train.svg'); }
+.icon-menu { -webkit-mask-image: url('src/menu.svg'); mask-image: url('src/menu.svg'); }
+.icon-info, .icon-business, .icon-news { display: none; }
+
+/* Mobile bottom navigation */
+.mobile-bottom-nav { display: none; }
+.mobile-bottom-nav .mb-item {
+    background: transparent;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    flex: 1 1 0;
+    text-align: center;
+}
+.mobile-bottom-nav .mb-item .mb-icon {
+    width: 26px;
+    height: 26px;
+    display: block;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+.mobile-bottom-nav .mb-item .mb-label { font-size: 11px; }
+.mobile-bottom-nav .mb-item.active { background: rgba(0,120,215,0.12); color: var(--primary-color); }
+
+/* Bottom sheet (mobile menu) */
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(-100% - var(--mobile-nav-height, 72px));
+    height: 50vh;
+    max-height: 70vh;
+    transition: bottom 0.28s ease;
+    z-index: 1300;
+    pointer-events: none;
+    display: block;
+}
+.bottom-sheet.open {
+    bottom: var(--mobile-nav-height, 72px);
+    pointer-events: auto;
+}
+.bottom-sheet-content {
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+.sheet-item { padding: 12px; border-radius: 8px; background: transparent; border: none; text-align: left; font-weight: 600; }
+.sheet-close { padding: 10px; border-radius: 8px; background: #f0f0f0; border: none; }
+
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1200;
+    display: none;
+}
+.sheet-backdrop.open { display: block; }
+
+@media (max-width: 768px) {
+    .content-wrapper { flex-direction: column; }
+    main { flex: 1 1 auto; max-width: 100%; }
+    main {
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+    .sidebar { display: none; }
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: #fff;
+        border-top: 1px solid var(--border-color);
+        padding: 6px;
+        gap: 6px;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1400;
+    }
+}
+
+/* ========================================
+   ヘッダー
+======================================== */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--primary-color), #005fa3);
+    color: #fff;
+    padding: 10px 0px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-logo {
+    height: 3rem;
+    width: auto;
+    display: block;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* Help button in header (transfer と揃えたスタイル) */
+.help-button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+}
+.help-button img {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+.help-button:focus {
+    outline: none;
+}
+
+/* ========================================
+   メインコンテンツ：路線・運行情報
+======================================== */
+.operation-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 16px 24px;
+    box-shadow: var(--shadow);
+}
+
+.mode-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.mode-toggle-label {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.mode-toggle {
+    display: inline-flex;
+    background: #f1f3f5;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.mode-toggle-btn {
+    border: none;
+    background: transparent;
+    color: #333;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mode-toggle-btn.selected {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.line-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.line-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.line-section-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.line-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.line-card {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    cursor: pointer;
+}
+
+.line-card-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.line-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.line-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.line-name {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.line-status-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.status-icon-circle {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+}
+
+.status-icon-cross {
+    font-size: 1rem;
+    color: var(--danger-color);
+}
+
+.status-icon-warning {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 14px solid var(--warning-color);
+}
+
+.line-status-text {
+    font-weight: 600;
+}
+
+.line-status-sub {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.line-card-chevron {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    color: #999;
+}
+
+.line-card--suspend { border-color: var(--danger-color); }
+.line-card--warning { border-color: var(--warning-color); }
+
+.area-view-placeholder {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    padding: 24px 8px 8px;
+}
+
+/* ========================================
+   路線詳細ビュー
+======================================== */
+.line-detail-view {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 16px 24px;
+    box-shadow: var(--shadow);
+}
+
+.line-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.line-detail-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.line-detail-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.line-detail-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.back-to-list-btn {
+    border-radius: 999px;
+    padding: 6px 14px;
+    border: 1px solid var(--primary-color);
+    background: #fff;
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.back-to-list-btn:hover {
+    background: rgba(0,120,215,0.05);
+}
+
+.line-alert-box {
+    border-radius: 12px;
+    border: 2px solid var(--primary-color);
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    background: #f7fbff;
+    font-size: 0.9rem;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.alert-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-icon-cross { color: var(--danger-color); font-weight: 700; }
+.alert-title { font-weight: 700; }
+.alert-updated { font-size: 0.8rem; color: #666; }
+.alert-body { font-size: 0.85rem; color: #444; white-space: pre-wrap; }
+
+.alert-normal { border-style: dashed; background: #f8f9fa; }
+
+.line-layout {
+    display: grid;
+    grid-template-columns: minmax(80px, 140px) 1fr;
+    gap: 16px;
+}
+
+.service-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.line-diagram {
+    position: relative;
+    padding-left: 20px;
+}
+
+.diagram-row {
+    position: relative;
+    padding: 10px 0;
+}
+
+.diagram-line {
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #1b4ac2;
+    border-radius: 999px;
+}
+
+.diagram-line.affected {
+    background: linear-gradient(180deg, var(--danger-color), var(--primary-color));
+}
+
+.diagram-node {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid #1b4ac2;
+    background: #fff;
+    margin-left: 1px;
+}
+
+.diagram-node.affected {
+    border-color: var(--danger-color);
+}
+
+.station-list-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.station-row {
+    padding: 8px 0;
+}
+
+.station-name-main {
+    font-weight: 700;
+}
+
+.station-transfer {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    body { padding: 16px; padding-bottom: 90px; }
+    .operation-section, .line-detail-view { border-radius: 20px; }
+    .line-layout { grid-template-columns: minmax(70px, 120px) 1fr; }
+}
+
+/* ========================================
+   モバイル用ヘッダー調整（transfer と同等）
+======================================== */
+@media (max-width: 768px) {
+    .header-content {
+        padding: 10px 15px;
+    }
+
+    .header-logo {
+        height: 28px;
+    }
+
+    header h1 {
+        font-size: 1.3rem;
+    }
+}
+
+/* モバイル時のヘルプアイコンサイズ調整 */
+@media (max-width: 768px) {
+    .help-button img {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* ========================================
+   エラー・ローディング (画面上部ポップアップ表示)
+======================================== */
+/* Popup container (hidden by default; JS toggles display) */
+#error-section {
+    position: fixed;
+    top: 120px; /* below the fixed header; adjust if header height changes */
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 920px;
+    z-index: 1500;
+    display: none; /* controlled by JS via inline style */
+    padding: 0 20px;
+    pointer-events: none; /* allow clicks to pass through except the message itself */
+}
+
+/* Keep the original class animation available for other places that use .error-section */
+.error-section {
+    animation: fadeIn 0.5s;
+}
+
+/* Visible message box inside the popup container */
+#error-section .error-message {
+    pointer-events: auto; /* make the message itself interactive (clickable) */
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 16px 20px;
+    border-radius: 8px;
+    color: #856404;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    width: 100%;
+    box-sizing: border-box;
+    animation: slideDown 0.28s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; margin-top: -8px; }
+    to   { opacity: 1; margin-top: 0; }
+}
+
+/* Error popup content */
+#error-section .error-message { position: relative; }
+#error-section .error-message .error-text {
+    display: inline-block;
+    width: 95%; /* reserve space so the close button doesn't overlap */
+    box-sizing: border-box;
+    vertical-align: middle;
+    color: #6b4b00;
+    overflow-wrap: break-word; /* allow long text to wrap */
+}
+
+#error-section .error-message .error-close {
+    position: absolute;
+    top: 50%; /* vertically center inside the message */
+    right: 8px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #6b4b00;
+    font-size: 20px;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+}
+
+#error-section .error-message .error-close:hover {
+    background: rgba(0,0,0,0.04);
+    color: #333;
+}
+
+/* ========================================
+   フッター
+======================================== */
+footer {
+    background: #012169; /* コーポレートカラー */
+    padding: 24px 0;
+    color: #ffffff;
+    font-size: 0.9rem;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-bottom: -20px;
+    margin-top: 20px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-logo {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .footer-logo {
+        height: 48px;
+    }
+
+    footer {
+        margin-top: 0px;
+        margin-bottom: 0;
+        padding-bottom: 96px;
+    }
+}

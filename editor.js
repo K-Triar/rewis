@@ -2312,6 +2312,7 @@ function renderServiceStatuses() {
     appData.serviceStatuses.forEach((status, index) => {
         const tr = document.createElement('tr');
         tr.dataset.index = index;
+        const isGenerated = status.generated_from && status.generated_from.source_id;
         tr.innerHTML = `
             <td class="row-number">${index + 1}</td>
             <td>${esc(status.id || '')}</td>
@@ -2321,8 +2322,7 @@ function renderServiceStatuses() {
             <td>${status.published ? 'ON' : ''}</td>
             <td>${esc(formatDateTimeSummary(status.updated_at || status.created_at || ''))}</td>
             <td>
-                <button class="edit-btn" onclick="openServiceStatusEditor(${index})">編集</button>
-                <button class="delete-btn" onclick="deleteServiceStatus(${index})">削除</button>
+                ${isGenerated ? `<button class="view-btn" onclick="openServiceStatusEditor(${index})">参照</button>` : `<button class="edit-btn" onclick="openServiceStatusEditor(${index})">編集</button><button class="delete-btn" onclick="deleteServiceStatus(${index})">削除</button>`}
             </td>
         `;
         tbody.appendChild(tr);
@@ -2442,6 +2442,23 @@ function openServiceStatusEditor(index) {
     document.getElementById('ss-published').checked = !!entry.published;
     onServiceStatusPreviewEditableToggle(true);
 
+    // If this entry was generated from another via ss-through-show, make editor mostly read-only
+    const isGenerated = !!(entry.generated_from && entry.generated_from.source_id);
+    const editorEl = document.getElementById('service-status-editor');
+    if (editorEl) {
+        // Disable form controls when generated, but keep close button enabled
+        const controls = editorEl.querySelectorAll('input, select, textarea, button');
+        controls.forEach(ctrl => {
+            if (ctrl.classList && ctrl.classList.contains('cancel-btn')) return; // keep close usable
+            // Don't disable the view button in listing
+            if (ctrl.classList && ctrl.classList.contains('view-btn')) return;
+            ctrl.disabled = isGenerated;
+        });
+        // Ensure ID is visible and readonly
+        const idField = document.getElementById('ss-id');
+        if (idField) { idField.disabled = false; idField.readOnly = true; }
+    }
+
     renderThroughServiceControls(entry);
 }
 
@@ -2449,6 +2466,13 @@ function closeServiceStatusEditor() {
     _currentServiceStatusIndex = null;
     const editor = document.getElementById('service-status-editor');
     if (editor) editor.classList.add('hidden');
+    // Re-enable any disabled controls when closing editor
+    if (editor) {
+        const controls = editor.querySelectorAll('input, select, textarea, button');
+        controls.forEach(ctrl => { ctrl.disabled = false; });
+        const idField = document.getElementById('ss-id');
+        if (idField) idField.readOnly = true;
+    }
 }
 
 function populateServiceStatusLineOptions(selectedValue) {
@@ -2796,9 +2820,6 @@ function renderThroughServiceControls(entry) {
     const container = document.getElementById('ss-through-services');
     if (!container) return;
     entry = entry || getCurrentServiceStatus() || createEmptyServiceStatus();
-    if (entry && container.querySelector('.ss-through-item')) {
-        entry.through_services = collectThroughServicesFromForm(false);
-    }
     container.innerHTML = '';
     const lineId = document.getElementById('ss-line').value || entry.affected_line_id || '';
     if (!lineId) {
@@ -3370,8 +3391,113 @@ function saveServiceStatus() {
     if (appData.serviceStatusMeta) {
         appData.serviceStatusMeta.generated_at = now;
     }
+    // Synchronize generated "show on through line" statuses linked to this source
+    try {
+        syncGeneratedThroughStatusesForSource(entry);
+    } catch (e) { console.error('syncGeneratedThroughStatusesForSource failed', e); }
     renderServiceStatuses();
     openServiceStatusEditor(_currentServiceStatusIndex);
+}
+
+// Synchronize generated service-status entries created by "直通先路線に表示" (ss-through-show)
+function syncGeneratedThroughStatusesForSource(sourceEntry) {
+    if (!sourceEntry || !sourceEntry.id) return;
+    const now = new Date().toISOString();
+    const desiredLines = new Set((sourceEntry.through_services || []).filter(ts => ts.show_on_through_line).map(ts => ts.line_id).filter(Boolean));
+
+    // Map existing generated entries from this source by affected_line_id
+    const existingMap = new Map();
+    appData.serviceStatuses.forEach((s, idx) => {
+        if (s && s.generated_from && s.generated_from.source_id === sourceEntry.id) {
+            existingMap.set(s.affected_line_id, {entry: s, index: idx});
+        }
+    });
+
+    // Remove generated entries that are no longer desired
+    const toRemoveIndices = [];
+    existingMap.forEach((val, lineId) => {
+        if (!desiredLines.has(lineId)) {
+            toRemoveIndices.push(val.index);
+        }
+    });
+    // Remove in descending order to keep indices valid
+    toRemoveIndices.sort((a,b) => b - a).forEach(i => {
+        appData.serviceStatuses.splice(i, 1);
+    });
+
+    // Rebuild existingMap after removals
+    const updatedExisting = new Map();
+    appData.serviceStatuses.forEach((s, idx) => {
+        if (s && s.generated_from && s.generated_from.source_id === sourceEntry.id) {
+            updatedExisting.set(s.affected_line_id, {entry: s, index: idx});
+        }
+    });
+
+    // For each desired line, update existing generated entry or create new one
+    desiredLines.forEach(lineId => {
+        const existing = updatedExisting.get(lineId);
+        const clone = JSON.parse(JSON.stringify(sourceEntry));
+        // Ensure generated entry targets the through line
+        clone.affected_line_id = lineId;
+        // Set affected segment to full line
+        clone.affected_segment = { is_full_line: true, start_station_id: null, end_station_id: null };
+        // Set direction to both
+        clone.direction = { up: true, down: true };
+        // Set notice types to all
+        clone.notice_types_all = true;
+        clone.notice_types = [];
+        // Set status to直通運転中止 (use template if available)
+        const tpl = getStatusTemplateByCode('DSS_STOP') || { status_id: 'DSS', heading: '直通運転中止', body: '直通運転を中止しています' };
+        clone.status = { code: 'DSS_STOP', status_id: tpl.status_id || 'DSS', heading: tpl.heading || '直通運転中止', body: tpl.body || '直通運転を中止しています' };
+        // Use original cause but mark cause_line as the source line
+        const srcCause = sourceEntry.cause || {};
+        clone.cause = JSON.parse(JSON.stringify(srcCause));
+        clone.cause.cause_line_option = 'line';
+        clone.cause.cause_line_id = sourceEntry.affected_line_id || null;
+        clone.cause.cause_segment = (sourceEntry.cause && sourceEntry.cause.cause_segment) ? JSON.parse(JSON.stringify(sourceEntry.cause.cause_segment)) : { start_station_id: null, end_station_id: null };
+        // Build through_services for generated entry: inverse the direction relative to source
+        const srcTs = (sourceEntry.through_services || []).find(t => t.line_id === lineId) || null;
+        const invertTarget = (t) => {
+            if (t === 'affected_to_through') return 'through_to_affected';
+            if (t === 'through_to_affected') return 'affected_to_through';
+            return t || 'mutual';
+        };
+        const genTarget = invertTarget(srcTs ? srcTs.target : 'mutual');
+        const genState = srcTs ? srcTs.state : 'suspended';
+        clone.through_services = [{ line_id: sourceEntry.affected_line_id || '', state: genState, target: genTarget, show_on_through_line: false }];
+        // Generated entries must be non-editable
+        clone.preview = clone.preview || { editable: false, custom_text: null };
+        clone.preview.editable = false;
+        // Ensure turnback flags are unset for generated entries
+        clone.turnback = { start: false, end: false };
+        // Mark metadata linking back to source
+        clone.generated_from = { source_id: sourceEntry.id, source_line_id: sourceEntry.affected_line_id, type: 'through-show', source_version: sourceEntry.version || 1 };
+        // Clean history for generated copy
+        clone.history = clone.history || [];
+        // Update timestamps and id/version if creating
+        if (existing) {
+            // Preserve created_at and id; increment version
+            clone.id = existing.entry.id;
+            clone.created_at = existing.entry.created_at || now;
+            clone.version = (existing.entry.version || 1) + 1;
+            clone.updated_at = now;
+            // Regenerate generated_text/published_text
+            const gen = generateServiceStatusText(clone);
+            clone.generated_text = gen;
+            if (!clone.preview.editable) clone.published_text = `${gen.heading}\n${gen.body}`;
+            appData.serviceStatuses[existing.index] = clone;
+        } else {
+            // New generated entry
+            clone.id = generateUuid();
+            clone.created_at = now;
+            clone.updated_at = now;
+            clone.version = 1;
+            const gen = generateServiceStatusText(clone);
+            clone.generated_text = gen;
+            if (!clone.preview.editable) clone.published_text = `${gen.heading}\n${gen.body}`;
+            appData.serviceStatuses.push(clone);
+        }
+    });
 }
 
 function deleteServiceStatus(index) {
