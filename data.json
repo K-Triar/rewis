@@ -1,0 +1,3418 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "ownCompanyId": "KT",
+    "lastUpdated": "2025-10-28",
+    "appName": "Kトライア瑠璃 乗換案内システム"
+  },
+  "companies": [
+    {
+      "companyId": "KT",
+      "companyName": "Kトライア瑠璃",
+      "isOwnCompany": true
+    },
+    {
+      "companyId": "HRA",
+      "companyName": "ヘルヴェティア鉄道局",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "CR",
+      "companyName": "ころりん鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "ERB",
+      "companyName": "エメラルド国有鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "DKR",
+      "companyName": "ダイヤきらメキ鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "JR",
+      "companyName": "ジストリオ鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "SUI",
+      "companyName": "翠玉急行電気鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "NE",
+      "companyName": "西水都市高速鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "RGK",
+      "companyName": "瑠莉学術公国国営鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "STA",
+      "companyName": "セナポンタウン交通局",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "MET",
+      "companyName": "メトロトクテルダム",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "YFR",
+      "companyName": "山田ふってぃ鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "KE",
+      "companyName": "鰹節高速鉄道",
+      "isOwnCompany": false
+    },
+    {
+      "companyId": "SVB",
+      "companyName": "スマラクブルク交通局",
+      "isOwnCompany": false
+    }
+  ],
+  "trainTypes": [
+    {
+      "trainTypeId": "TC",
+      "trainTypeName": "TrainCarts",
+      "trainTypeNameShort": "TC",
+      "priority": 1,
+      "color": "#00aaff"
+    },
+    {
+      "trainTypeId": "SX",
+      "trainTypeName": "新幹線",
+      "trainTypeNameShort": "幹",
+      "priority": 2,
+      "color": "#ff0000"
+    },
+    {
+      "trainTypeId": "MC",
+      "trainTypeName": "トロッコ",
+      "trainTypeNameShort": "ト",
+      "priority": 3,
+      "color": "#808080"
+    }
+  ],
+  "lines": [
+    {
+      "lineId": "KT-B",
+      "lineName": "貿易港線",
+      "companyId": "KT",
+      "lineColor": "#e67e22",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "Lo",
+          "普通"
+        ]
+      ],
+      "stationOrder": [
+        "KL10",
+        "KB02",
+        "KB03",
+        "KB04",
+        "KB05",
+        "KB06"
+      ]
+    },
+    {
+      "lineId": "KT-EX-MKR",
+      "lineName": "特急みかり",
+      "companyId": "KT",
+      "lineColor": "#d2691e",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "EX-MKR",
+          "特急"
+        ]
+      ],
+      "stationOrder": [
+        "KU06",
+        "KU05",
+        "KU04",
+        "KU03",
+        "KU02",
+        "KL04",
+        "KL09",
+        "KL10",
+        "KB03",
+        "KB04",
+        "KB05",
+        "KB06"
+      ]
+    },
+    {
+      "lineId": "KT-L",
+      "lineName": "瑠璃線",
+      "companyId": "KT",
+      "lineColor": "#0078d7",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "Lo",
+          "普通"
+        ],
+        [
+          "Lo-KB",
+          "普通(直通)"
+        ],
+        [
+          "Ra",
+          "快速"
+        ],
+        [
+          "Ra-HA",
+          "直通快速"
+        ],
+        [
+          "SR-LSR",
+          "新快速"
+        ]
+      ],
+      "stationOrder": [
+        "KL01",
+        "KL04",
+        "KL05",
+        "KL07",
+        "KL08",
+        "KL09",
+        "KL10",
+        "KL12",
+        "KL13"
+      ]
+    },
+    {
+      "lineId": "KT-EX-AML",
+      "lineName": "特急アクアマリンライナー",
+      "companyId": "KT",
+      "lineColor": "#0078d7",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "EX-AML",
+          "特急"
+        ]
+      ],
+      "stationOrder": []
+    },
+    {
+      "lineId": "KT-U",
+      "lineName": "地下鉄中央線",
+      "companyId": "KT",
+      "lineColor": "#1b4ac2",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "Lo",
+          "各駅停車"
+        ],
+        [
+          "Lo-KL",
+          "各駅停車(直通)"
+        ],
+        [
+          "SR-LSR",
+          "新快速"
+        ]
+      ],
+      "stationOrder": [
+        "KU06",
+        "KU05",
+        "KU04",
+        "KU03",
+        "KU02",
+        "KL04"
+      ]
+    },
+    {
+      "lineId": "SUI-J",
+      "lineName": "翠鉄城東線",
+      "companyId": "SUI",
+      "lineColor": "#009e60",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "Lo",
+          "普通"
+        ]
+      ],
+      "stationOrder": [
+        "KL13",
+        "LM-2",
+        "LM-3",
+        "LM-4"
+      ]
+    },
+    {
+      "lineId": "HRA-H",
+      "lineName": "HRA赤石線",
+      "companyId": "HRA",
+      "lineColor": "#ff0000",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "Lo",
+          "普通"
+        ],
+        [
+          "SR-LSR",
+          "新快速"
+        ]
+      ],
+      "stationOrder": [
+        "KL10",
+        "KB02",
+        "QUL",
+        "SCK",
+        "MZK",
+        "GSK",
+        "NSC"
+      ]
+    },
+    {
+      "lineId": "HRA-EX-AML",
+      "lineName": "HRA 特急アクアマリンライナー",
+      "companyId": "HRA",
+      "lineColor": "#ff0000",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "EX-AML",
+          "特急"
+        ]
+      ],
+      "stationOrder": []
+    },
+    {
+      "lineId": "CR-K",
+      "lineName": "ころりん鉄道アカシア線",
+      "companyId": "CR",
+      "lineColor": "#8e44ad",
+      "trainType": "TC",
+      "serviceCategories": [
+        [
+          "Lo",
+          "普通"
+        ],
+        [
+          "Ra",
+          "快速"
+        ],
+        [
+          "Ra-HA",
+          "直通快速"
+        ]
+      ],
+      "stationOrder": [
+        "IIA",
+        "KL01"
+      ]
+    }
+  ],
+  "throughServiceConfigs": [
+    {
+      "configId": "TSV-CR-K-Lo-KT-L-Lo",
+      "fromLineId": "CR-K",
+      "toLineId": "KT-L",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "普通",
+      "toGuidance": "普通"
+    },
+    {
+      "configId": "TSV-CR-K-Ra-KT-L-Ra",
+      "fromLineId": "CR-K",
+      "toLineId": "KT-L",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "快速",
+      "toGuidance": "快速"
+    },
+    {
+      "configId": "TSV-CR-K-Ra-HA-KT-L-Ra-HA",
+      "fromLineId": "CR-K",
+      "toLineId": "KT-L",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "直通快速",
+      "toGuidance": "直通快速"
+    },
+    {
+      "configId": "TSV-KT-L-Lo-SUI-J-Lo",
+      "fromLineId": "KT-L",
+      "toLineId": "SUI-J",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "普通",
+      "toGuidance": "普通"
+    },
+    {
+      "configId": "TSV-KT-L-Ra-SUI-J-Lo",
+      "fromLineId": "KT-L",
+      "toLineId": "SUI-J",
+      "isBidirectional": false,
+      "description": "",
+      "fromGuidance": "快速",
+      "toGuidance": "普通"
+    },
+    {
+      "configId": "TSV-KT-L-Ra-HA-HRA-H-Lo",
+      "fromLineId": "KT-L",
+      "toLineId": "HRA-H",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "直通快速",
+      "toGuidance": "普通"
+    },
+    {
+      "configId": "TSV-KT-U-SR-KT-L-SR",
+      "fromLineId": "KT-U",
+      "toLineId": "KT-L",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "新快速",
+      "toGuidance": "新快速"
+    },
+    {
+      "configId": "TSV-KT-L-SR-HRA-H-SR",
+      "fromLineId": "KT-L",
+      "toLineId": "HRA-H",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "新快速",
+      "toGuidance": "新快速"
+    },
+    {
+      "configId": "TSV-KT-B-Lo-KT-L-Lo-KB",
+      "fromLineId": "KT-B",
+      "toLineId": "KT-L",
+      "isBidirectional": false,
+      "description": "",
+      "fromGuidance": "普通",
+      "toGuidance": "普通(直通)"
+    },
+    {
+      "configId": "TSV-KT-EX-AML-EX-AML-HRA-EX-AML-EX-AML",
+      "fromLineId": "KT-EX-AML",
+      "toLineId": "HRA-EX-AML",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "特急",
+      "toGuidance": "特急"
+    },
+    {
+      "configId": "TSV-KT-L-Lo-KB-KT-U-Lo-L",
+      "fromLineId": "KT-L",
+      "toLineId": "KT-U",
+      "isBidirectional": true,
+      "description": "",
+      "fromGuidance": "普通(直通)",
+      "toGuidance": "各駅停車"
+    }
+  ],
+  "stations": [
+    {
+      "stationId": "KL01",
+      "stationName": "アカシア島",
+      "stationNameKana": "あかしあとう",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KL02",
+      "stationName": "オット",
+      "stationNameKana": "おっと",
+      "latitude": 35.004,
+      "longitude": 139.004
+    },
+    {
+      "stationId": "KL03",
+      "stationName": "瑠前TT（未開業）",
+      "stationNameKana": "るぜんてぃーてぃー",
+      "latitude": 35.008,
+      "longitude": 139.008
+    },
+    {
+      "stationId": "KL04",
+      "stationName": "瑠璃中央",
+      "stationNameKana": "るりちゅうおう",
+      "latitude": 35.012,
+      "longitude": 139.012
+    },
+    {
+      "stationId": "KL05",
+      "stationName": "セナポンタウン",
+      "stationNameKana": "せなぽんたうん",
+      "latitude": 35.016,
+      "longitude": 139.016
+    },
+    {
+      "stationId": "KL07",
+      "stationName": "クォーツ",
+      "stationNameKana": "くぉーつ",
+      "latitude": 35.02,
+      "longitude": 139.02
+    },
+    {
+      "stationId": "KL08",
+      "stationName": "クォーツ南口",
+      "stationNameKana": "くぉーつみなみぐち",
+      "latitude": 35.024,
+      "longitude": 139.024
+    },
+    {
+      "stationId": "KL09",
+      "stationName": "瑠交研前",
+      "stationNameKana": "るこうけんまえ",
+      "latitude": 35.028,
+      "longitude": 139.028
+    },
+    {
+      "stationId": "KL10",
+      "stationName": "瑠順中央",
+      "stationNameKana": "るじゅんちゅうおう",
+      "latitude": 35.032,
+      "longitude": 139.032
+    },
+    {
+      "stationId": "KL12",
+      "stationName": "瑠順要塞",
+      "stationNameKana": "るじゅんようさい",
+      "latitude": 35.04,
+      "longitude": 139.04
+    },
+    {
+      "stationId": "KL13",
+      "stationName": "エメラルド城",
+      "stationNameKana": "えめらるどじょう",
+      "latitude": 35.044,
+      "longitude": 139.044
+    },
+    {
+      "stationId": "KU06",
+      "stationName": "二労",
+      "stationNameKana": "にぎらい",
+      "latitude": 35.02,
+      "longitude": 139
+    },
+    {
+      "stationId": "KU05",
+      "stationName": "羊ノ森",
+      "stationNameKana": "ようのもり",
+      "latitude": 35.017,
+      "longitude": 139.002
+    },
+    {
+      "stationId": "KU04",
+      "stationName": "鍛冶ヶ淵",
+      "stationNameKana": "たんがやぶち",
+      "latitude": 35.014,
+      "longitude": 139.004
+    },
+    {
+      "stationId": "KU03",
+      "stationName": "クロアチア",
+      "stationNameKana": "くろあちあ",
+      "latitude": 35.011,
+      "longitude": 139.006
+    },
+    {
+      "stationId": "KU02",
+      "stationName": "瑠璃要塞",
+      "stationNameKana": "るりようさい",
+      "latitude": 35.008,
+      "longitude": 139.008
+    },
+    {
+      "stationId": "KB02",
+      "stationName": "南瑠順",
+      "stationNameKana": "みなみるじゅん",
+      "latitude": 34.987,
+      "longitude": 139.032
+    },
+    {
+      "stationId": "KB03",
+      "stationName": "瑠順採掘場",
+      "stationNameKana": "るじゅんさいくつじょう",
+      "latitude": 34.984,
+      "longitude": 139.034
+    },
+    {
+      "stationId": "KB04",
+      "stationName": "貿易港",
+      "stationNameKana": "ぼうえきこう",
+      "latitude": 34.981,
+      "longitude": 139.036
+    },
+    {
+      "stationId": "KB05",
+      "stationName": "東ヘルべチア",
+      "stationNameKana": "ひがしへるべちあ",
+      "latitude": 34.978,
+      "longitude": 139.038
+    },
+    {
+      "stationId": "KB06",
+      "stationName": "ラピスTT",
+      "stationNameKana": "らぴすてぃーてぃー",
+      "latitude": 34.975,
+      "longitude": 139.04
+    },
+    {
+      "stationId": "LM-2",
+      "stationName": "セブマ開発区",
+      "stationNameKana": "せぶまかいはつく",
+      "latitude": 35.012,
+      "longitude": 139.046
+    },
+    {
+      "stationId": "LM-3",
+      "stationName": "匿茶ノ水",
+      "stationNameKana": "とくちゃのみず",
+      "latitude": 35.014,
+      "longitude": 139.052
+    },
+    {
+      "stationId": "LM-4",
+      "stationName": "トクテルダム中央",
+      "stationNameKana": "とくてるだむちゅうおう",
+      "latitude": 35.016,
+      "longitude": 139.058
+    },
+    {
+      "stationId": "QUL",
+      "stationName": "クォーツ湖",
+      "stationNameKana": "くぉーつこ",
+      "latitude": 34.985,
+      "longitude": 139.016
+    },
+    {
+      "stationId": "SCK",
+      "stationName": "セブ地峡",
+      "stationNameKana": "せぶちきょう",
+      "latitude": 34.9875,
+      "longitude": 139.019
+    },
+    {
+      "stationId": "MZK",
+      "stationName": "水高地港",
+      "stationNameKana": "みずこうちこう",
+      "latitude": 34.99,
+      "longitude": 139.022
+    },
+    {
+      "stationId": "GSK",
+      "stationName": "学園新樫樺",
+      "stationNameKana": "がくえんしんかしかば",
+      "latitude": 34.9925,
+      "longitude": 139.025
+    },
+    {
+      "stationId": "NSC",
+      "stationName": "西水中央",
+      "stationNameKana": "にしみずちゅうおう",
+      "latitude": 34.995,
+      "longitude": 139.028
+    },
+    {
+      "stationId": "IIA",
+      "stationName": "洲璃府",
+      "stationNameKana": "すりぷ",
+      "latitude": 35,
+      "longitude": 138.99
+    },
+    {
+      "stationId": "KL06",
+      "stationName": "南セナポン（未開業）",
+      "stationNameKana": "みなみせなぽん",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KL11",
+      "stationName": "瑠順農園（未開業）",
+      "stationNameKana": "るじゅんのうえん",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "IAR",
+      "stationName": "伊有尾",
+      "stationNameKana": "いありお",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KJE",
+      "stationName": "旧自治領入口",
+      "stationNameKana": "きゅうじちりょういりぐち",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "BDN",
+      "stationName": "本社ビル",
+      "stationNameKana": "ほんしゃびる",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "IAF",
+      "stationName": "イアリーオ国際空港前",
+      "stationNameKana": "いありーおこくさいくうこうまえ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SPU",
+      "stationName": "洲璃府地下",
+      "stationNameKana": "すりぷちか",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KSG",
+      "stationName": "強杉",
+      "stationNameKana": "こわすぎ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NSP",
+      "stationName": "北洲璃府",
+      "stationNameKana": "きたすりぷ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO02",
+      "stationName": "蔵前",
+      "stationNameKana": "くらまえ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO03",
+      "stationName": "瑠璃ゲートウェイ",
+      "stationNameKana": "るりげーとうぇい",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO04",
+      "stationName": "地下交易所",
+      "stationNameKana": "ちかこうえきじょ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KO05",
+      "stationName": "瑠璃新報本社",
+      "stationNameKana": "るりしんぽうほんしゃ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KY02",
+      "stationName": "KT石炭",
+      "stationNameKana": "けーてぃーせきたん",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "KYe01",
+      "stationName": "北藤江田静岡口",
+      "stationNameKana": "きたふじえだしずおかぐち",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NE01",
+      "stationName": "瑠璃ゲートウェイ（ネザー）",
+      "stationNameKana": "るりげーとうぇい",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NE03",
+      "stationName": "凍山（ネザー）",
+      "stationNameKana": "こおりやま",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NE04",
+      "stationName": "流刑地（ネザー）",
+      "stationNameKana": "るけいち",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NA03",
+      "stationName": "西水ゲートウェイ（ネザー）",
+      "stationNameKana": "にしみずげーとうぇい",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "JSC",
+      "stationName": "ジストニア中央",
+      "stationNameKana": "じすとにあちゅうおう",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "TSJ",
+      "stationName": "大使館",
+      "stationNameKana": "たいしかん",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "MRP",
+      "stationName": "みらーく広場",
+      "stationNameKana": "みらーくひろば",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SSM",
+      "stationName": "紫水湊",
+      "stationNameKana": "しすいみなと",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "CKT",
+      "stationName": "中継TT",
+      "stationNameKana": "ちゅうけいてぃーてぃー",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NHV",
+      "stationName": "ニューヘルヴェティア",
+      "stationNameKana": "にゅーへるゔぇてぃあ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "JAL",
+      "stationName": "JRアルミラール",
+      "stationNameKana": "じぇいあーるあるみらーる",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NNS",
+      "stationName": "新西水",
+      "stationNameKana": "しんにしみず",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SOL",
+      "stationName": "左大池",
+      "stationNameKana": "さおおいけ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "TSK",
+      "stationName": "鉄塚",
+      "stationNameKana": "てつか",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "DGM",
+      "stationName": "ダジトス学園前",
+      "stationNameKana": "だじとすがくえんまえ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "TMN",
+      "stationName": "トマトナイ",
+      "stationNameKana": "とまとない",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "CNZ",
+      "stationName": "チェルノゼーム",
+      "stationNameKana": "ちぇるのぜーむ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NSK",
+      "stationName": "ニシコ",
+      "stationNameKana": "にしこ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "SGG",
+      "stationName": "採ヶ崖",
+      "stationNameKana": "さいががけ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "FPZ",
+      "stationName": "フロポツィヒ",
+      "stationNameKana": "ふろぽつぃひ",
+      "latitude": 35,
+      "longitude": 139
+    },
+    {
+      "stationId": "NTP",
+      "stationName": "自然公園",
+      "stationNameKana": "しぜんこうえん",
+      "latitude": 35,
+      "longitude": 139
+    }
+  ],
+  "segments": [
+    {
+      "segmentId": "SGM-CR-K-Lo-IIA-KL01",
+      "platforms": {
+        "IIA": "1",
+        "KL01": "KT1"
+      },
+      "lineId": "CR-K",
+      "companyId": "CR",
+      "fromStationId": "IIA",
+      "toStationId": "KL01",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL01-KL04",
+      "platforms": {
+        "KL01": "KT1",
+        "KL04": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL01",
+      "toStationId": "KL04",
+      "duration": 48,
+      "distance": 40,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL04-KL05",
+      "platforms": {
+        "KL04": "2",
+        "KL05": "6"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL05",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL05-KL07",
+      "platforms": {
+        "KL05": "6",
+        "KL07": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL07",
+      "duration": 19,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL07-KL08",
+      "platforms": {
+        "KL07": "2",
+        "KL08": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL08",
+      "duration": 13,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL08-KL09",
+      "platforms": {
+        "KL08": "2",
+        "KL09": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL08",
+      "toStationId": "KL09",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL09-KL10",
+      "platforms": {
+        "KL09": "1",
+        "KL10": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL10",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL10-KL12",
+      "platforms": {
+        "KL10": "1",
+        "KL12": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL12",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL12-KL13",
+      "platforms": {
+        "KL12": "1",
+        "KL13": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL12",
+      "toStationId": "KL13",
+      "duration": 19,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-SUI-J-Lo-KL13-LM-2",
+      "platforms": {
+        "KL13": "2",
+        "LM-2": ""
+      },
+      "lineId": "SUI-J",
+      "companyId": "SUI",
+      "fromStationId": "KL13",
+      "toStationId": "LM-2",
+      "duration": 13,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-SUI-J-Lo-LM-2-LM-3",
+      "platforms": {
+        "LM-2": "",
+        "LM-3": ""
+      },
+      "lineId": "SUI-J",
+      "companyId": "SUI",
+      "fromStationId": "LM-2",
+      "toStationId": "LM-3",
+      "duration": 16,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-SUI-J-Lo-LM-3-LM-4",
+      "platforms": {
+        "LM-3": "",
+        "LM-4": ""
+      },
+      "lineId": "SUI-J",
+      "companyId": "SUI",
+      "fromStationId": "LM-3",
+      "toStationId": "LM-4",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-CR-K-Ra-IIA-KL01",
+      "platforms": {
+        "IIA": "1",
+        "KL01": "KT1"
+      },
+      "lineId": "CR-K",
+      "companyId": "CR",
+      "fromStationId": "IIA",
+      "toStationId": "KL01",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL01-KL04",
+      "platforms": {
+        "KL01": "KT1",
+        "KL04": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL01",
+      "toStationId": "KL04",
+      "duration": 48,
+      "distance": 40,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL04-KL05",
+      "platforms": {
+        "KL04": "2",
+        "KL05": "6"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL05",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL05-KL07",
+      "platforms": {
+        "KL05": "6",
+        "KL07": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL07",
+      "duration": 19,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL07-KL09",
+      "platforms": {
+        "KL07": "2",
+        "KL09": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL09",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL09-KL10",
+      "platforms": {
+        "KL09": "1",
+        "KL10": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL10",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL10-KL12",
+      "platforms": {
+        "KL10": "1",
+        "KL12": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL12",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL12-KL13",
+      "platforms": {
+        "KL12": "1",
+        "KL13": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL12",
+      "toStationId": "KL13",
+      "duration": 19,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-SUI-J-Lo-LM-4-LM-3",
+      "platforms": {
+        "LM-4": "",
+        "LM-3": ""
+      },
+      "lineId": "SUI-J",
+      "companyId": "SUI",
+      "fromStationId": "LM-4",
+      "toStationId": "LM-3",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-SUI-J-Lo-LM-3-LM-2",
+      "platforms": {
+        "LM-3": "",
+        "LM-2": ""
+      },
+      "lineId": "SUI-J",
+      "companyId": "SUI",
+      "fromStationId": "LM-3",
+      "toStationId": "LM-2",
+      "duration": 16,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-SUI-J-Lo-LM-2-KL13",
+      "platforms": {
+        "LM-2": "",
+        "KL13": "1"
+      },
+      "lineId": "SUI-J",
+      "companyId": "SUI",
+      "fromStationId": "LM-2",
+      "toStationId": "KL13",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL13-KL12",
+      "platforms": {
+        "KL13": "1",
+        "KL12": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL13",
+      "toStationId": "KL12",
+      "duration": 19,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL12-KL10",
+      "platforms": {
+        "KL12": "2",
+        "KL10": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL12",
+      "toStationId": "KL10",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL10-KL09",
+      "platforms": {
+        "KL10": "2",
+        "KL09": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL09",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL09-KL08",
+      "platforms": {
+        "KL09": "2",
+        "KL08": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL08",
+      "duration": 13,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL08-KL07",
+      "platforms": {
+        "KL08": "1",
+        "KL07": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL08",
+      "toStationId": "KL07",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL07-KL05",
+      "platforms": {
+        "KL07": "3",
+        "KL05": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL05",
+      "duration": 19,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL05-KL04",
+      "platforms": {
+        "KL05": "3",
+        "KL04": "5"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-KL04-KL01",
+      "platforms": {
+        "KL04": "5",
+        "KL01": "KT2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL01",
+      "duration": 48,
+      "distance": 40,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-CR-K-Lo-KL01-IIA",
+      "platforms": {
+        "KL01": "KT2",
+        "IIA": "2"
+      },
+      "lineId": "CR-K",
+      "companyId": "CR",
+      "fromStationId": "KL01",
+      "toStationId": "IIA",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL13-KL12",
+      "platforms": {
+        "KL13": "1",
+        "KL12": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL13",
+      "toStationId": "KL12",
+      "duration": 19,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL12-KL10",
+      "platforms": {
+        "KL12": "2",
+        "KL10": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL12",
+      "toStationId": "KL10",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL10-KL09",
+      "platforms": {
+        "KL10": "2",
+        "KL09": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL09",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL09-KL07",
+      "platforms": {
+        "KL09": "2",
+        "KL07": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL07",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL07-KL05",
+      "platforms": {
+        "KL07": "3",
+        "KL05": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL05",
+      "duration": 19,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL05-KL04",
+      "platforms": {
+        "KL05": "3",
+        "KL04": "5"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-KL04-KL01",
+      "platforms": {
+        "KL04": "5",
+        "KL01": "KT2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL01",
+      "duration": 48,
+      "distance": 40,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-CR-K-Ra-KL01-IIA",
+      "platforms": {
+        "KL01": "KT2",
+        "IIA": "2"
+      },
+      "lineId": "CR-K",
+      "companyId": "CR",
+      "fromStationId": "KL01",
+      "toStationId": "IIA",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "快速"
+    },
+    {
+      "segmentId": "SGM-CR-K-Ra-HA-IIA-KL01",
+      "platforms": {
+        "IIA": "1",
+        "KL01": "KT1"
+      },
+      "lineId": "CR-K",
+      "companyId": "CR",
+      "fromStationId": "IIA",
+      "toStationId": "KL01",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL01-KL04",
+      "platforms": {
+        "KL01": "KT1",
+        "KL04": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL01",
+      "toStationId": "KL04",
+      "duration": 48,
+      "distance": 40,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL04-KL05",
+      "platforms": {
+        "KL04": "2",
+        "KL05": "6"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL05",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL05-KL07",
+      "platforms": {
+        "KL05": "6",
+        "KL07": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL07",
+      "duration": 19,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL07-KL09",
+      "platforms": {
+        "KL07": "2",
+        "KL09": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL09",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL09-KL10",
+      "platforms": {
+        "KL09": "1",
+        "KL10": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL10",
+      "duration": 15,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-KL10-KB02",
+      "platforms": {
+        "KL10": "3",
+        "KB02": "2"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "KL10",
+      "toStationId": "KB02",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-KB02-QUL",
+      "platforms": {
+        "KB02": "2",
+        "QUL": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "KB02",
+      "toStationId": "QUL",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-QUL-SCK",
+      "platforms": {
+        "QUL": "",
+        "SCK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "QUL",
+      "toStationId": "SCK",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-SCK-MZK",
+      "platforms": {
+        "SCK": "",
+        "MZK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "SCK",
+      "toStationId": "MZK",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-MZK-GSK",
+      "platforms": {
+        "MZK": "",
+        "GSK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "MZK",
+      "toStationId": "GSK",
+      "duration": 18,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-GSK-NSC",
+      "platforms": {
+        "GSK": "",
+        "NSC": "2"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "GSK",
+      "toStationId": "NSC",
+      "duration": 22,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-NSC-GSK",
+      "platforms": {
+        "NSC": "1",
+        "GSK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "NSC",
+      "toStationId": "GSK",
+      "duration": 23,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-GSK-MZK",
+      "platforms": {
+        "GSK": "",
+        "MZK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "GSK",
+      "toStationId": "MZK",
+      "duration": 16,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-MZK-SCK",
+      "platforms": {
+        "MZK": "",
+        "SCK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "MZK",
+      "toStationId": "SCK",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-SCK-QUL",
+      "platforms": {
+        "SCK": "",
+        "QUL": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "SCK",
+      "toStationId": "QUL",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-QUL-KB02",
+      "platforms": {
+        "QUL": "",
+        "KB02": "3"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "QUL",
+      "toStationId": "KB02",
+      "duration": 15,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-HRA-H-Lo-KB02-KL10",
+      "platforms": {
+        "KB02": "3",
+        "KL10": "4"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "KB02",
+      "toStationId": "KL10",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU06-KU05",
+      "platforms": {
+        "KU06": "1",
+        "KU05": "1"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU06",
+      "toStationId": "KU05",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU05-KU04",
+      "platforms": {
+        "KU05": "1",
+        "KU04": "1"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU05",
+      "toStationId": "KU04",
+      "duration": 8,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU04-KU03",
+      "platforms": {
+        "KU04": "1",
+        "KU03": "1"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU04",
+      "toStationId": "KU03",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU03-KU02",
+      "platforms": {
+        "KU03": "1",
+        "KU02": "1"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU02",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU02-KL04",
+      "platforms": {
+        "KU02": "1",
+        "KL04": "1"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU02",
+      "toStationId": "KL04",
+      "duration": 13,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KL04-KU02",
+      "platforms": {
+        "KL04": "1",
+        "KU02": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KU02",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU02-KU03",
+      "platforms": {
+        "KU02": "2",
+        "KU03": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU02",
+      "toStationId": "KU03",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU03-KU04",
+      "platforms": {
+        "KU03": "2",
+        "KU04": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU04",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU04-KU05",
+      "platforms": {
+        "KU04": "2",
+        "KU05": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU04",
+      "toStationId": "KU05",
+      "duration": 8,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-KU05-KU06",
+      "platforms": {
+        "KU05": "2",
+        "KU06": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU05",
+      "toStationId": "KU06",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "各駅停車"
+    },
+    {
+      "segmentId": "SGM-KT-U-SR-KU06-KU03",
+      "platforms": {
+        "KU06": "2",
+        "KU03": "1"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU06",
+      "toStationId": "KU03",
+      "duration": 14,
+      "distance": 30,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-U-SR-KU03-KL04",
+      "platforms": {
+        "KU03": "1",
+        "KL04": "3"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KL04",
+      "duration": 14,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-SR-KL04-KL05",
+      "platforms": {
+        "KL04": "3",
+        "KL05": "5"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL05",
+      "duration": 13,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-SR-KL05-KL10",
+      "platforms": {
+        "KL05": "5",
+        "KL10": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL10",
+      "duration": 30,
+      "distance": 50,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-HRA-H-SR-KL10-GSK",
+      "platforms": {
+        "KL10": "3",
+        "GSK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "KL10",
+      "toStationId": "GSK",
+      "duration": 36,
+      "distance": 50,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-HRA-H-SR-GSK-NSC",
+      "platforms": {
+        "GSK": "",
+        "NSC": "2"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "GSK",
+      "toStationId": "NSC",
+      "duration": 15,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-HRA-H-SR-NSC-GSK",
+      "platforms": {
+        "NSC": "2",
+        "GSK": ""
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "NSC",
+      "toStationId": "GSK",
+      "duration": 18,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-HRA-H-SR-GSK-KL10",
+      "platforms": {
+        "GSK": "",
+        "KL10": "4"
+      },
+      "lineId": "HRA-H",
+      "companyId": "HRA",
+      "fromStationId": "GSK",
+      "toStationId": "KL10",
+      "duration": 34,
+      "distance": 50,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-SR-KL10-KL05",
+      "platforms": {
+        "KL10": "4",
+        "KL05": "4"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL05",
+      "duration": 30,
+      "distance": 50,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-SR-KL05-KL04",
+      "platforms": {
+        "KL05": "4",
+        "KL04": "4"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
+      "duration": 13,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-U-SR-KL04-KU03",
+      "platforms": {
+        "KL04": "4",
+        "KU03": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KU03",
+      "duration": 14,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-U-SR-KU03-KU06",
+      "platforms": {
+        "KU03": "2",
+        "KU06": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU06",
+      "duration": 15,
+      "distance": 30,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "新快速"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KL10-KB02",
+      "platforms": {
+        "KL10": "3",
+        "KB02": "1"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KB02",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB02-KB03",
+      "platforms": {
+        "KB02": "1",
+        "KB03": "1"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB02",
+      "toStationId": "KB03",
+      "duration": 8,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB03-KB04",
+      "platforms": {
+        "KB03": "1",
+        "KB04": "1"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB03",
+      "toStationId": "KB04",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB04-KB05",
+      "platforms": {
+        "KB04": "1",
+        "KB05": "1"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB04",
+      "toStationId": "KB05",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB05-KB06",
+      "platforms": {
+        "KB05": "1",
+        "KB06": "1"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB05",
+      "toStationId": "KB06",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB06-KB05",
+      "platforms": {
+        "KB06": "2",
+        "KB05": "2"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB06",
+      "toStationId": "KB05",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB05-KB04",
+      "platforms": {
+        "KB05": "2",
+        "KB04": "2"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB05",
+      "toStationId": "KB04",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB04-KB03",
+      "platforms": {
+        "KB04": "2",
+        "KB03": "2"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB04",
+      "toStationId": "KB03",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB03-KB02",
+      "platforms": {
+        "KB03": "2",
+        "KB02": "2"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB03",
+      "toStationId": "KB02",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-B-Lo-KB02-KL10",
+      "platforms": {
+        "KB02": "2",
+        "KL10": "4"
+      },
+      "lineId": "KT-B",
+      "companyId": "KT",
+      "fromStationId": "KB02",
+      "toStationId": "KL10",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "普通"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU06-KU05",
+      "platforms": {
+        "KU06": "1",
+        "KU05": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU06",
+      "toStationId": "KU05",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU05-KU04",
+      "platforms": {
+        "KU05": "1",
+        "KU04": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU05",
+      "toStationId": "KU04",
+      "duration": 7,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU04-KU03",
+      "platforms": {
+        "KU04": "1",
+        "KU03": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU04",
+      "toStationId": "KU03",
+      "duration": 8,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU03-KU02",
+      "platforms": {
+        "KU03": "1",
+        "KU02": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU02",
+      "duration": 9,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU02-KL04",
+      "platforms": {
+        "KU02": "1",
+        "KL04": "3"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU02",
+      "toStationId": "KL04",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KL04-KL09",
+      "platforms": {
+        "KL04": "3",
+        "KL09": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL09",
+      "duration": 31,
+      "distance": 50,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KL09-KL10",
+      "platforms": {
+        "KL09": "1",
+        "KL10": "3"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL10",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KL10-KB03",
+      "platforms": {
+        "KL10": "3",
+        "KB03": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KB03",
+      "duration": 11,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KB03-KB04",
+      "platforms": {
+        "KB03": "1",
+        "KB04": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KB03",
+      "toStationId": "KB04",
+      "duration": 9,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KB04-KB05",
+      "platforms": {
+        "KB04": "1",
+        "KB05": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KB04",
+      "toStationId": "KB05",
+      "duration": 9,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KB05-KB06",
+      "platforms": {
+        "KB05": "1",
+        "KB06": "1"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KB05",
+      "toStationId": "KB06",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KB06-KB05",
+      "platforms": {
+        "KB06": "2",
+        "KB05": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KB06",
+      "toStationId": "KB05",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KB05-KB04",
+      "platforms": {
+        "KB05": "2",
+        "KB04": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KB05",
+      "toStationId": "KB04",
+      "duration": 8,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KB04-KB03",
+      "platforms": {
+        "KB04": "2",
+        "KB03": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KB04",
+      "toStationId": "KB03",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KB03-KL10",
+      "platforms": {
+        "KB03": "2",
+        "KL10": "4"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KB03",
+      "toStationId": "KL10",
+      "duration": 12,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KL10-KL09",
+      "platforms": {
+        "KL10": "4",
+        "KL09": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL09",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": false,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KL09-KL04",
+      "platforms": {
+        "KL09": "2",
+        "KL04": "4"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL04",
+      "duration": 31,
+      "distance": 50,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KL04-KU02",
+      "platforms": {
+        "KL04": "4",
+        "KU02": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KU02",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU02-KU03",
+      "platforms": {
+        "KU02": "2",
+        "KU03": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU02",
+      "toStationId": "KU03",
+      "duration": 9,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU03-KU04",
+      "platforms": {
+        "KU03": "2",
+        "KU04": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU04",
+      "duration": 8,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU04-KU05",
+      "platforms": {
+        "KU04": "2",
+        "KU05": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU04",
+      "toStationId": "KU05",
+      "duration": 7,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-EX-MKR-KU05-KU06",
+      "platforms": {
+        "KU05": "2",
+        "KU06": "2"
+      },
+      "lineId": "KT-EX-MKR",
+      "companyId": "KT",
+      "fromStationId": "KU05",
+      "toStationId": "KU06",
+      "duration": 9,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "特急"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL10-KL09",
+      "platforms": {
+        "KL10": "4",
+        "KL09": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL09",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL09-KL07",
+      "platforms": {
+        "KL09": "2",
+        "KL07": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL07",
+      "duration": 20,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL07-KL05",
+      "platforms": {
+        "KL07": "3",
+        "KL05": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL05",
+      "duration": 19,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL05-KL04",
+      "platforms": {
+        "KL05": "3",
+        "KL04": "5"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Ra-HA-KL04-KL01",
+      "platforms": {
+        "KL04": "5",
+        "KL01": "KT2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KL01",
+      "duration": 48,
+      "distance": 40,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-CR-K-Ra-HA-KL01-IIA",
+      "platforms": {
+        "KL01": "KT2",
+        "IIA": "2"
+      },
+      "lineId": "CR-K",
+      "companyId": "CR",
+      "fromStationId": "KL01",
+      "toStationId": "IIA",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "直通快速"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-B-KL10-KL09",
+      "platforms": {
+        "KL10": "4",
+        "KL09": "2"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL10",
+      "toStationId": "KL09",
+      "duration": 15,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "普通(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-B-KL09-KL08",
+      "platforms": {
+        "KL09": "2",
+        "KL08": "1"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL09",
+      "toStationId": "KL08",
+      "duration": 13,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "普通(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-B-KL08-KL07",
+      "platforms": {
+        "KL08": "1",
+        "KL07": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL08",
+      "toStationId": "KL07",
+      "duration": 12,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "普通(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-B-KL07-KL05",
+      "platforms": {
+        "KL07": "3",
+        "KL05": "3"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL07",
+      "toStationId": "KL05",
+      "duration": 19,
+      "distance": 20,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "普通(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-L-Lo-B-KL05-KL04",
+      "platforms": {
+        "KL05": "3",
+        "KL04": "4"
+      },
+      "lineId": "KT-L",
+      "companyId": "KT",
+      "fromStationId": "KL05",
+      "toStationId": "KL04",
+      "duration": 17,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "普通(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-L-KL04-KU02",
+      "platforms": {
+        "KL04": "4",
+        "KU02": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KL04",
+      "toStationId": "KU02",
+      "duration": 14,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "各駅停車(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-L-KU02-KU03",
+      "platforms": {
+        "KU02": "2",
+        "KU03": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU02",
+      "toStationId": "KU03",
+      "duration": 11,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "各駅停車(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-L-KU03-KU04",
+      "platforms": {
+        "KU03": "2",
+        "KU04": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU03",
+      "toStationId": "KU04",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "各駅停車(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-L-KU04-KU05",
+      "platforms": {
+        "KU04": "2",
+        "KU05": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU04",
+      "toStationId": "KU05",
+      "duration": 8,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "各駅停車(直通)"
+    },
+    {
+      "segmentId": "SGM-KT-U-Lo-L-KU05-KU06",
+      "platforms": {
+        "KU05": "2",
+        "KU06": "2"
+      },
+      "lineId": "KT-U",
+      "companyId": "KT",
+      "fromStationId": "KU05",
+      "toStationId": "KU06",
+      "duration": 10,
+      "distance": 10,
+      "isBidirectional": false,
+      "isAlightOnly": true,
+      "guidance": "各駅停車(直通)"
+    }
+  ],
+  "platformTransfers": [
+    {
+      "transferId": "TSF-KL04-1-2",
+      "stationId": "KL04",
+      "fromPlatform": "1",
+      "toPlatform": "2",
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-1-3",
+      "stationId": "KL04",
+      "fromPlatform": "1",
+      "toPlatform": "3",
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-1-5",
+      "stationId": "KL04",
+      "fromPlatform": "1",
+      "toPlatform": "5",
+      "transferTime": 24
+    },
+    {
+      "transferId": "TSF-KL04-2-1",
+      "stationId": "KL04",
+      "fromPlatform": "2",
+      "toPlatform": "1",
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-2-3",
+      "stationId": "KL04",
+      "fromPlatform": "2",
+      "toPlatform": "3",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KL04-2-4",
+      "stationId": "KL04",
+      "fromPlatform": "2",
+      "toPlatform": "4",
+      "transferTime": 20
+    },
+    {
+      "transferId": "TSF-KL04-2-5",
+      "stationId": "KL04",
+      "fromPlatform": "2",
+      "toPlatform": "5",
+      "transferTime": 20
+    },
+    {
+      "transferId": "TSF-KL04-3-1",
+      "stationId": "KL04",
+      "fromPlatform": "3",
+      "toPlatform": "1",
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-3-2",
+      "stationId": "KL04",
+      "fromPlatform": "3",
+      "toPlatform": "2",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KL04-3-4",
+      "stationId": "KL04",
+      "fromPlatform": "3",
+      "toPlatform": "4",
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-3-5",
+      "stationId": "KL04",
+      "fromPlatform": "3",
+      "toPlatform": "5",
+      "transferTime": 19
+    },
+    {
+      "transferId": "TSF-KL04-4-1",
+      "stationId": "KL04",
+      "fromPlatform": "4",
+      "toPlatform": "1",
+      "transferTime": 24
+    },
+    {
+      "transferId": "TSF-KL04-4-5",
+      "stationId": "KL04",
+      "fromPlatform": "4",
+      "toPlatform": "5",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KL04-5-1",
+      "stationId": "KL04",
+      "fromPlatform": "5",
+      "toPlatform": "1",
+      "transferTime": 24
+    },
+    {
+      "transferId": "TSF-KL04-5-4",
+      "stationId": "KL04",
+      "fromPlatform": "5",
+      "toPlatform": "4",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KL05-6-5",
+      "stationId": "KL05",
+      "fromPlatform": "6",
+      "toPlatform": "5",
+      "transferTime": 6
+    },
+    {
+      "transferId": "TSF-KL05-5-6",
+      "stationId": "KL05",
+      "fromPlatform": "5",
+      "toPlatform": "6",
+      "transferTime": 6
+    },
+    {
+      "transferId": "TSF-KL05-4-3",
+      "stationId": "KL05",
+      "fromPlatform": "4",
+      "toPlatform": "3",
+      "transferTime": 6
+    },
+    {
+      "transferId": "TSF-KL05-3-4",
+      "stationId": "KL05",
+      "fromPlatform": "3",
+      "toPlatform": "4",
+      "transferTime": 6
+    },
+    {
+      "transferId": "TSF-KL10-1-3",
+      "stationId": "KL10",
+      "fromPlatform": "1",
+      "toPlatform": "3",
+      "transferTime": 11
+    },
+    {
+      "transferId": "TSF-KL10-2-3",
+      "stationId": "KL10",
+      "fromPlatform": "2",
+      "toPlatform": "3",
+      "transferTime": 10
+    },
+    {
+      "transferId": "TSF-KL10-2-4",
+      "stationId": "KL10",
+      "fromPlatform": "2",
+      "toPlatform": "4",
+      "transferTime": 11
+    },
+    {
+      "transferId": "TSF-KL10-3-1",
+      "stationId": "KL10",
+      "fromPlatform": "3",
+      "toPlatform": "1",
+      "transferTime": 11
+    },
+    {
+      "transferId": "TSF-KL10-3-4",
+      "stationId": "KL10",
+      "fromPlatform": "3",
+      "toPlatform": "4",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KL10-4-1",
+      "stationId": "KL10",
+      "fromPlatform": "4",
+      "toPlatform": "1",
+      "transferTime": 12
+    },
+    {
+      "transferId": "TSF-KL10-4-2",
+      "stationId": "KL10",
+      "fromPlatform": "4",
+      "toPlatform": "2",
+      "transferTime": 11
+    },
+    {
+      "transferId": "TSF-KL10-4-3",
+      "stationId": "KL10",
+      "fromPlatform": "4",
+      "toPlatform": "3",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KB02-1-2",
+      "stationId": "KB02",
+      "fromPlatform": "1",
+      "toPlatform": "2",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KB02-2-1",
+      "stationId": "KB02",
+      "fromPlatform": "2",
+      "toPlatform": "1",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KB02-3-4",
+      "stationId": "KB02",
+      "fromPlatform": "3",
+      "toPlatform": "4",
+      "transferTime": 7
+    },
+    {
+      "transferId": "TSF-KB02-4-2",
+      "stationId": "KB02",
+      "fromPlatform": "4",
+      "toPlatform": "2",
+      "transferTime": 15
+    },
+    {
+      "transferId": "TSF-KB02-4-3",
+      "stationId": "KB02",
+      "fromPlatform": "4",
+      "toPlatform": "3",
+      "transferTime": 7
+    }
+  ],
+  "statusTemplates": [
+    {
+      "code": "OfS_SUSPEND",
+      "status_id": "OfS",
+      "label": "運転見合わせ",
+      "heading": "運転見合わせ",
+      "body": "運転を見合わせています",
+      "description": "運転見合わせ：{影響駅間}で運転を見合わせています"
+    },
+    {
+      "code": "OfS_CANCEL",
+      "status_id": "OfS",
+      "label": "運休",
+      "heading": "運休",
+      "body": "運休となっています",
+      "description": "運休：{影響駅間}で運休となっています"
+    },
+    {
+      "code": "Aff_UNLISTED",
+      "status_id": "Aff",
+      "label": "乗換案内非対応",
+      "heading": "乗換案内非対応",
+      "body": "通常通り運転を行っていますが、本システムの乗換案内に表示されません",
+      "description": "乗換案内非対応：{影響駅間}で通常通り運転を行っていますが、本システムの乗換案内に表示されません"
+    },
+    {
+      "code": "Aff_SKIP",
+      "status_id": "Aff",
+      "label": "一部駅通過",
+      "heading": "一部駅通過",
+      "body": "各駅を通過します",
+      "description": "一部駅通過：{影響駅間}の各駅を通過します"
+    },
+    {
+      "code": "DSS_STOP",
+      "status_id": "DSS",
+      "label": "直通運転中止",
+      "heading": "直通運転中止",
+      "body": "直通運転を中止しています",
+      "description": "直通運転中止：{直通先路線}{対象}の直通運転を中止しています"
+    }
+  ],
+  "noticeTypes": [
+    {
+      "code": "Lo",
+      "label": "普通"
+    },
+    {
+      "code": "Lo-KB",
+      "label": "普通(直通)"
+    },
+    {
+      "code": "Lo-KL",
+      "label": "各駅停車(直通)"
+    },
+    {
+      "code": "Ra",
+      "label": "快速"
+    },
+    {
+      "code": "Ra-HA",
+      "label": "直通快速"
+    },
+    {
+      "code": "SR-LSR",
+      "label": "新快速"
+    },
+    {
+      "code": "EX-AML",
+      "label": "特急アクアマリンライナー"
+    },
+    {
+      "code": "EX-MKR",
+      "label": "特急みかり"
+    }
+  ],
+  "serviceStatusCauses": [
+    {
+      "code": "signal_check",
+      "label": "信号の確認",
+      "heading": "信号の確認",
+      "body": "信号の確認をしているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "vehicle_check",
+      "label": "車両の確認",
+      "heading": "車両の確認",
+      "body": "車両を確認したため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "track_check",
+      "label": "線路の確認",
+      "heading": "線路の確認",
+      "body": "線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "vehicle_track_check",
+      "label": "車両・線路確認",
+      "heading": "車両・線路確認",
+      "body": "車両と線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "station_facility_check",
+      "label": "駅設備の確認",
+      "heading": "駅設備の確認",
+      "body": "駅の設備を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "station_facility_track_check",
+      "label": "駅設備・線路確認",
+      "heading": "駅設備・線路確認",
+      "body": "駅の設備と線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "person_intrusion",
+      "label": "線路内人立入",
+      "heading": "線路内人立入",
+      "body": "線路内に人が立ち入ったため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "animal_intrusion",
+      "label": "線路内動物等立入",
+      "heading": "線路内動物等立入",
+      "body": "線路内に動物等が立ち入ったため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "animal_contact",
+      "label": "動物等と接触",
+      "heading": "動物等と接触",
+      "body": "列車が動物等と接触し、車両と線路を確認しているため",
+      "default_line_option": "affected"
+    },
+    {
+      "code": "track_intensive_work",
+      "label": "線路の集中工事",
+      "heading": "線路の集中工事",
+      "body": "線路の集中工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "maintenance_work",
+      "label": "保守工事",
+      "heading": "保守工事",
+      "body": "保守工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "station_facility_work",
+      "label": "駅設備の工事",
+      "heading": "駅設備の工事",
+      "body": "駅設備の工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "track_switch_work",
+      "label": "線路切替工事",
+      "heading": "線路切替工事",
+      "body": "線路切替工事を実施しているため",
+      "default_line_option": "line"
+    },
+    {
+      "code": "other",
+      "label": "その他",
+      "heading": null,
+      "body": null,
+      "default_line_option": "hidden"
+    }
+  ],
+  "serviceStatusMeta": {
+    "schema_version": "1.0.0",
+    "generated_at": "2025-11-20T09:15:00+09:00"
+  },
+  "serviceStatuses": [
+    {
+      "id": "11111111-2222-3333-4444-555555555555",
+      "version": 1,
+      "created_at": "2025-11-20T09:00:00+09:00",
+      "updated_at": "2025-11-20T09:15:00+09:00",
+      "occurrence": {
+        "year": 2025,
+        "month": 11,
+        "day": 20,
+        "hour": 8,
+        "minute": 30,
+        "timezone": "Asia/Tokyo"
+      },
+      "affected_line_id": "KT-L",
+      "notice_types_all": false,
+      "notice_types": [
+        "Ra",
+        "SR-LSR"
+      ],
+      "status": {
+        "code": "OfS_SUSPEND",
+        "status_id": "OfS",
+        "heading": "運転見合わせ",
+        "body": "運転を見合わせています"
+      },
+      "affected_segment": {
+        "is_full_line": false,
+        "start_station_id": "KL05",
+        "end_station_id": "KL10"
+      },
+      "direction": {
+        "up": true,
+        "down": true
+      },
+      "cause": {
+        "code": "signal_check",
+        "heading": "信号の確認",
+        "body": "信号の確認をしているため",
+        "cause_line_option": "affected",
+        "cause_line_id": null,
+        "cause_segment": {
+          "start_station_id": null,
+          "end_station_id": null
+        }
+      },
+      "turnback": {
+        "start": true,
+        "end": false
+      },
+      "through_services": [
+        {
+          "line_id": "CR-K",
+          "state": "suspended",
+          "target": "mutual",
+          "show_on_through_line": true
+        },
+        {
+          "line_id": "SUI-J",
+          "state": "none",
+          "target": "mutual",
+          "show_on_through_line": false
+        }
+      ],
+      "preview": {
+        "editable": false,
+        "custom_text": null
+      },
+      "generated_text": {
+        "heading": "【瑠璃線】信号の確認　運転見合わせ",
+        "body": "11月20日8時30分ごろ、瑠璃線で信号の確認をしているため、快速および新快速列車がセナポンタウン駅～瑠順中央駅間で運転を見合わせています。セナポンタウン駅で折り返し運転を行っています。ころりん鉄道アカシア線との直通運転を中止しています。"
+      },
+      "published_text": "【瑠璃線】信号の確認　運転見合わせ\n11月20日8時30分ごろ、瑠璃線で信号の確認をしているため、快速および新快速列車がセナポンタウン駅～瑠順中央駅間で運転を見合わせています。セナポンタウン駅で折り返し運転を行っています。ころりん鉄道アカシア線との直通運転を中止しています。",
+      "published": false,
+      "history": []
+    }
+  ]
+}

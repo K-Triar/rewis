@@ -1,0 +1,549 @@
+/* Excel風テーブルエディタ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'MS Gothic', 'Courier New', monospace;
+    font-size: 12px;
+    background: #f0f0f0;
+    color: #000;
+}
+
+/* Ensure form controls inherit the document font so buttons/inputs/selects
+   use the same font as the rest of the site (fixes MS Gothic not applying
+   to buttons in some environments). */
+button, input, select, textarea, optgroup {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.container {
+    max-width: 100%;
+    margin: 0;
+    background: #fff;
+}
+
+
+/* ヘッダー */
+header {
+    background: #e0e0e0;
+    border-bottom: 2px solid #808080;
+    padding: 5px 10px;
+}
+
+header h1 {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.subtitle {
+    display: none;
+}
+
+/* ナビゲーション */
+.main-nav {
+    background: #d4d0c8;
+    border-bottom: 1px solid #808080;
+    display: flex;
+    padding: 0;
+}
+
+.nav-btn {
+    background: #d4d0c8;
+    border: 1px solid #808080;
+    border-bottom: none;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-right: -1px;
+}
+
+.nav-btn:hover {
+    background: #e8e8e8;
+}
+
+.nav-btn.active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    position: relative;
+    z-index: 1;
+}
+
+/* メイン */
+main {
+    padding: 0;
+}
+
+.edit-section {
+    display: none;
+}
+
+.edit-section.active {
+    display: block;
+}
+
+.section-header {
+    background: #d4d0c8;
+    border-bottom: 1px solid #808080;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.help-text {
+    display: none;
+}
+
+.search-box, .filter-box {
+    padding: 5px 10px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #c0c0c0;
+}
+
+.search-box input,
+.filter-box select {
+    border: 1px solid #808080;
+    padding: 2px 4px;
+    font-size: 11px;
+    font-family: inherit;
+}
+
+/* ボタン */
+.add-btn, .export-btn, .preview-btn, .file-label {
+    background: #d4d0c8;
+    border: 1px solid #000;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.add-btn:active, .export-btn:active, .preview-btn:active, .file-label:active {
+    border: 1px solid #fff;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
+
+#file-input {
+    display: none;
+}
+
+/* テーブル */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.data-table th {
+    background: #c0c0c0;
+    border: 1px solid #808080;
+    padding: 3px 5px;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: left;
+    position: sticky;
+    top: 0;
+}
+
+.data-table td {
+    border: 1px solid #c0c0c0;
+    padding: 2px 4px;
+    font-size: 11px;
+}
+
+.data-table tr:hover {
+    background: #e0e0ff;
+}
+
+.data-table input[type="text"],
+.data-table input[type="number"],
+.data-table select {
+    width: 100%;
+    border: 1px solid #808080;
+    padding: 1px 2px;
+    font-size: 11px;
+    font-family: inherit;
+}
+
+.data-table input[type="checkbox"] {
+    margin: 0;
+}
+
+.data-table input[type="color"] {
+    width: 50px;
+    height: 20px;
+    border: 1px solid #808080;
+    padding: 0;
+}
+
+.edit-btn, .delete-btn, .save-btn, .cancel-btn {
+    background: #d4d0c8;
+    border: 1px solid #000;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    padding: 1px 6px;
+    font-size: 10px;
+    cursor: pointer;
+    margin-right: 2px;
+}
+
+.edit-btn:active, .delete-btn:active, .save-btn:active, .cancel-btn:active {
+    border: 1px solid #fff;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
+
+/* データリスト（旧スタイル非表示） */
+.data-list {
+    display: none;
+}
+
+.data-card {
+    display: none;
+}
+
+/* エクスポート */
+.export-card {
+    border: 1px solid #808080;
+    background: #f0f0f0;
+    padding: 10px;
+    margin: 10px;
+}
+
+.export-card h3 {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.export-card p {
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.worker-config-grid {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 6px 10px;
+    margin-top: 6px;
+}
+
+.worker-config-grid label {
+    font-size: 11px;
+    align-self: center;
+}
+
+.worker-config-grid input {
+    border: 1px solid #808080;
+    padding: 2px 4px;
+    font-size: 11px;
+    font-family: inherit;
+    width: 100%;
+}
+
+.worker-config-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.worker-auth-status {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #444;
+}
+
+#json-preview {
+    background: #fff;
+    border: 1px solid #808080;
+    padding: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    overflow: auto;
+    max-height: 400px;
+    margin-top: 5px;
+}
+
+/* フッター */
+footer {
+    background: #d4d0c8;
+    border-top: 1px solid #808080;
+    padding: 5px 10px;
+    font-size: 10px;
+    text-align: center;
+}
+
+.warning {
+    color: #c00;
+    font-weight: bold;
+}
+
+/* スクロール可能なテーブルコンテナ */
+.table-container {
+    overflow: auto;
+    max-height: calc(100vh - 165px);
+}
+
+/* 行番号 */
+.row-number {
+    background: #e0e0e0;
+    text-align: center;
+    font-weight: bold;
+    width: 40px;
+}
+
+/* セル編集中 */
+.editing {
+    background: #ffffcc !important;
+}
+
+/* レスポンシブ無効化 */
+@media (max-width: 768px) {
+    .main-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 使い方セクション */
+.help-content {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+}
+
+.help-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #c0c0c0;
+    background: #fafafa;
+}
+
+.help-section h3 {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #000;
+    border-bottom: 2px solid #808080;
+    padding-bottom: 5px;
+}
+
+.help-section p {
+    font-size: 12px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.help-section ul,
+.help-section ol {
+    font-size: 12px;
+    line-height: 1.6;
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.help-section li {
+    margin-bottom: 8px;
+}
+
+.help-section strong {
+    font-weight: bold;
+    color: #000;
+}
+
+.help-section ul ul {
+    margin-top: 5px;
+    margin-left: 15px;
+}
+
+/* 使い方セクションのレスポンシブ */
+@media (max-width: 768px) {
+    .help-content {
+        padding: 10px;
+    }
+    
+    .help-section {
+        padding: 10px;
+    }
+}
+
+/* 運行状況タブ */
+.section-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.service-status-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.service-status-table-container {
+    flex: 1 1 420px;
+}
+
+.service-status-editor {
+    flex: 1 1 420px;
+    border: 1px solid #c0c0c0;
+    background: #fafafa;
+    padding: 10px;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
+.service-status-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.service-status-editor-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.service-status-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ss-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.ss-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.ss-field label {
+    font-weight: bold;
+}
+
+.ss-helper {
+    font-size: 10px;
+    color: #555;
+    display: block;
+    margin-top: 2px;
+}
+
+.ss-occurrence,
+.ss-segment {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 4px;
+    align-items: center;
+}
+
+.ss-occurrence input,
+.ss-field select,
+.ss-field textarea,
+.ss-field input[type="text"],
+.ss-field input[type="number"] {
+    font-size: 11px;
+    padding: 2px 4px;
+    border: 1px solid #808080;
+    font-family: inherit;
+}
+
+.ss-checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ss-notice-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ss-through-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ss-through-item {
+    border: 1px dashed #808080;
+    padding: 6px;
+    background: #fff;
+}
+
+.ss-through-item h4 {
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.ss-through-item select,
+.ss-through-item label {
+    font-size: 11px;
+}
+
+.ss-empty {
+    font-size: 11px;
+    color: #555;
+    padding: 4px 0;
+}
+
+.service-status-editor textarea {
+    resize: vertical;
+}
+
+.mt-4 {
+    margin-top: 4px;
+}
+
+@media (max-width: 1024px) {
+    .service-status-wrapper {
+        flex-direction: column;
+    }
+}
+
+/* On narrower screens, avoid keeping the service-status table scrollable
+   so the editor appears directly below the table (in document flow). */
+@media (max-width: 1024px) {
+    .service-status-wrapper .table-container {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .service-status-table-container {
+        flex: none;
+    }
+    .service-status-editor {
+        max-height: none;
+        position: relative;
+        margin-top: 8px;
+    }
+}
