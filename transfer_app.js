@@ -14,6 +14,22 @@ let _loadingPreventHandlers = null;
 // 検索モード: 'time' | 'balance' | 'transfer' (default: balance)
 let searchMode = 'balance';
 
+function getPublicWorkerApiBase() {
+    const configured = String(window.REWIS_PUBLIC_DATA_SOURCE?.workerApiBase || '').trim();
+    const saved = String(localStorage.getItem('rewis_worker_api_base') || '').trim();
+    return (configured || saved).replace(/\/$/, '');
+}
+
+function extractPublicDataPayload(payload) {
+    if (payload && typeof payload === 'object') {
+        if (payload.data && typeof payload.data === 'object') {
+            return payload.data;
+        }
+        return payload;
+    }
+    throw new Error('不正なデータ形式です');
+}
+
 function getTransferPenalty(mode) {
     switch (mode) {
         case 'time':
@@ -66,7 +82,23 @@ function getTransferPenalty(mode) {
 // ========================================
 async function loadData() {
     try {
-        const response = await fetch('data.json');
+        const workerBase = getPublicWorkerApiBase();
+        if (workerBase) {
+            try {
+                const workerResponse = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
+                if (workerResponse.ok) {
+                    const payload = await workerResponse.json();
+                    const data = extractPublicDataPayload(payload);
+                    console.log('Workers からデータ読み込み完了:', data);
+                    return data;
+                }
+                console.warn('Workers data fetch failed with status:', workerResponse.status);
+            } catch (workerError) {
+                console.warn('Workers data fetch failed, fallback to data.json:', workerError);
+            }
+        }
+
+        const response = await fetch('data.json', { cache: 'no-store' });
         if (!response.ok) {
             throw new Error('データファイルが見つかりません');
         }

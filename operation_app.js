@@ -9,6 +9,42 @@ let opStationLinesMap = null; // stationId -> Set<lineId>
 let opStatusByLine = null;    // lineId -> latest serviceStatus
 let _loadingPreventHandlers = null;
 
+function getPublicWorkerApiBase() {
+    const configured = String(window.REWIS_PUBLIC_DATA_SOURCE?.workerApiBase || '').trim();
+    const saved = String(localStorage.getItem('rewis_worker_api_base') || '').trim();
+    return (configured || saved).replace(/\/$/, '');
+}
+
+function extractPublicDataPayload(payload) {
+    if (payload && typeof payload === 'object') {
+        if (payload.data && typeof payload.data === 'object') {
+            return payload.data;
+        }
+        return payload;
+    }
+    throw new Error('不正なデータ形式です');
+}
+
+async function fetchPublicDataWithFallback() {
+    const workerBase = getPublicWorkerApiBase();
+    if (workerBase) {
+        try {
+            const workerRes = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
+            if (workerRes.ok) {
+                const payload = await workerRes.json();
+                return extractPublicDataPayload(payload);
+            }
+            console.warn('Workers data fetch failed with status:', workerRes.status);
+        } catch (err) {
+            console.warn('Workers data fetch failed, fallback to data.json:', err);
+        }
+    }
+
+    const res = await fetch('data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('運行情報データの取得に失敗しました');
+    return res.json();
+}
+
 function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
 
@@ -32,9 +68,7 @@ async function loadOperationData() {
         hideError();
         showLoading();
 
-        const res = await fetch('data.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error('運行情報データの取得に失敗しました');
-        opData = await res.json();
+        opData = await fetchPublicDataWithFallback();
         buildOperationIndexes();
         renderLineListView();
     } catch (err) {
