@@ -1,0 +1,4948 @@
+﻿/* Unified REWIS stylesheet */
+/* Priority rule: transfer.css wins on conflicts */
+
+/* --- operation.css --- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0078D7;
+    --secondary-color: #E67E22;
+    --danger-color: #E60012;
+    --warning-color: #F1C40F;
+    --text-color: #333;
+    --border-color: #ddd;
+    --bg-gray: #f5f5f5;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+        'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: #f0f0f0;
+    min-height: 100svh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 100px;
+    
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+main {
+    flex: 0 1 900px;
+    max-width: 900px;
+    min-height: calc(100svh - 160px);
+}
+
+@media (min-width: 769px) {
+    main {
+        min-height: 0;
+    }
+}
+
+.sidebar {
+    flex: 0 0 250px;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
+
+.sidebar {
+    order: 0;
+}
+
+main {
+    order: 1;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+}
+
+.sidebar-nav .nav-item {
+    margin-bottom: 10px;
+}
+
+.sidebar-nav .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #222;
+    text-align: left;
+    text-decoration: none;
+}
+
+.sidebar-nav .bottom-group .nav-btn {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.sidebar-nav .nav-item.small .nav-btn {
+    font-size: 0.95rem;
+}
+
+.sidebar-nav .nav-item.active .nav-btn {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.sidebar-nav .nav-btn:hover {
+    background: rgba(0, 120, 215, 0.08);
+    color: var(--primary-color);
+}
+
+.sidebar-nav .nav-item.active .nav-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.sidebar-divider {
+    border: none;
+    height: 1px;
+    background: var(--border-color);
+    margin: 12px 0;
+}
+
+.icon {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: #666;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+.nav-item.active .icon {
+    background-color: #fff;
+}
+
+.icon-home {
+    -webkit-mask-image: url('src/home.svg');
+    mask-image: url('src/home.svg');
+}
+
+.icon-walking {
+    -webkit-mask-image: url('src/walking.svg');
+    mask-image: url('src/walking.svg');
+}
+
+.icon-train {
+    -webkit-mask-image: url('src/train.svg');
+    mask-image: url('src/train.svg');
+}
+
+.icon-menu {
+    -webkit-mask-image: url('src/menu.svg');
+    mask-image: url('src/menu.svg');
+}
+
+.icon-info,
+.icon-business,
+.icon-news {
+    display: none;
+}
+
+/* Mobile bottom navigation */
+.mobile-bottom-nav {
+    display: none;
+}
+
+.mobile-bottom-nav .mb-item {
+    background: transparent;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    flex: 1 1 0;
+    text-align: center;
+    text-decoration: none;
+}
+
+.mobile-bottom-nav .mb-item .mb-icon {
+    width: 26px;
+    height: 26px;
+    display: block;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+.mobile-bottom-nav .mb-item .mb-label {
+    font-size: 11px;
+}
+
+.mobile-bottom-nav .mb-item.active {
+    background: rgba(0, 120, 215, 0.12);
+    color: var(--primary-color);
+}
+
+/* Bottom sheet (mobile menu) */
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(-100% - var(--mobile-nav-height, 72px));
+    height: 50vh;
+    max-height: 70vh;
+    transition: bottom 0.28s ease;
+    z-index: 1300;
+    pointer-events: none;
+    display: block;
+}
+
+.bottom-sheet.open {
+    bottom: var(--mobile-nav-height, 72px);
+    pointer-events: auto;
+}
+
+.bottom-sheet-content {
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sheet-item {
+    padding: 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-weight: 600;
+    display: block;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sheet-close {
+    padding: 10px;
+    border-radius: 8px;
+    background: #f0f0f0;
+    border: none;
+}
+
+.nav-btn.is-current-page,
+.mb-item.is-current-page {
+    pointer-events: none;
+    cursor: default;
+}
+
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1200;
+    display: none;
+}
+
+.sheet-backdrop.open {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1 1 auto;
+        max-width: 100%;
+    }
+
+    main {
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: #fff;
+        border-top: 1px solid var(--border-color);
+        padding: 6px;
+        gap: 6px;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1400;
+    }
+}
+
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--primary-color), #005fa3);
+    color: #fff;
+    padding: 10px 0px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-logo {
+    height: 3rem;
+    width: auto;
+    display: block;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+
+.help-button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.help-button img {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+
+.help-button:focus {
+    outline: none;
+}
+
+
+.operation-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 16px 24px;
+    box-shadow: var(--shadow);
+    position: relative;
+}
+
+.mode-toggle-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: fit-content;
+    margin: 0 auto 48px;
+}
+
+@media (max-width: 768px) {
+    .mode-toggle-wrapper {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        z-index: 600;
+        width: fit-content;
+    }
+}
+
+.mode-toggle-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 6px;
+    color: #666;
+}
+
+.mode-toggle {
+    display: flex;
+    position: relative;
+    gap: 8px;
+    align-items: center;
+    background: #eee;
+    padding: 6px;
+    border-radius: 999px;
+    width: fit-content;
+    box-sizing: border-box;
+}
+
+.mode-toggle::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: var(--bg-left, 6px);
+    width: var(--bg-width, 0);
+    height: calc(100% - 12px);
+    background: var(--primary-color);
+    border-radius: 999px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.mode-toggle-btn {
+    background: transparent;
+    color: #222;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem;
+    position: relative;
+    z-index: 1;
+    transition: color 0.2s;
+}
+
+.mode-toggle-btn.selected {
+    background: transparent;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+}
+
+.mode-toggle-btn:focus {
+    outline: none;
+}
+
+.mode-toggle-btn:focus-visible {
+    outline: 2px solid rgba(0, 120, 215, 0.25);
+    outline-offset: 2px;
+}
+
+.line-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 10px;
+}
+
+.line-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.line-section-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.line-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.line-card {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+}
+
+.line-card-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.line-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color);
+    flex-shrink: 0;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.line-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.line-name {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.line-status-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.status-icon-circle {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+}
+
+.status-icon-cross {
+    font-size: 1rem;
+    color: var(--danger-color);
+}
+
+.status-icon-warning {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 14px solid var(--warning-color);
+}
+
+.line-status-text {
+    font-weight: 600;
+}
+
+.line-status-sub {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.line-card-chevron {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    color: #999;
+}
+
+.line-card--suspend {
+    border-color: var(--danger-color);
+}
+
+.line-card--warning {
+    border-color: var(--warning-color);
+}
+
+.area-view-placeholder {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    padding: 24px 8px 8px;
+}
+
+
+.line-detail-view {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 16px 24px;
+    box-shadow: var(--shadow);
+}
+
+.line-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.line-detail-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.line-detail-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color);
+    flex-shrink: 0;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.line-detail-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.back-to-list-btn {
+    background: #ffffff;
+    color: #1976d2;
+    border: 2px solid #1976d2;
+    padding: 6px 14px;
+    border-radius: 60px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.back-to-list-btn:hover {
+    background: #1976d2;
+    color: white;
+}
+
+.back-to-list-btn:active {
+    transform: scale(0.98);
+}
+
+.line-alert-box {
+    border-radius: 12px;
+    border: 2px solid var(--primary-color);
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    background: #f7fbff;
+    font-size: 0.9rem;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.alert-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-icon-cross {
+    color: var(--danger-color);
+    font-weight: 700;
+}
+
+.alert-title {
+    font-weight: 700;
+}
+
+.alert-updated {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.alert-body {
+    font-size: 0.85rem;
+    color: #444;
+    white-space: pre-wrap;
+}
+
+.alert-normal {
+    border-style: dashed;
+    background: #f8f9fa;
+}
+
+
+.line-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+.op-header-row,
+.op-body-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.op-diagram-headers,
+.op-diagram-cells {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-left: 10px;
+    padding-right: 20px;
+    
+}
+
+
+.service-label {
+    width: 32px;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #020C38;
+    display: flex;
+    align-items: center;
+    
+    justify-content: flex-end;
+    
+    padding-bottom: 10px;
+}
+
+.op-diagram-cell {
+    width: 32px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0;
+    
+    min-height: 48px;
+}
+
+.op-station-spacer {
+    flex: 1;
+}
+
+.op-station-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.diagram-line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: #020C38;
+    z-index: 0;
+}
+
+.diagram-line.line-start {
+    top: 50%;
+}
+
+.diagram-line.line-end {
+    bottom: 50%;
+}
+
+.diagram-pill {
+    position: absolute;
+    left: 13px;
+    right: 23px;
+    top: 50%;
+    height: 22px;
+    transform: translateY(-50%);
+    background: #000000;
+    border-radius: 11px;
+    z-index: 1;
+}
+
+.diagram-node {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 5px solid #020C38;
+    background: #fff;
+    z-index: 2;
+}
+
+.diagram-node.is-all-stop {
+    border: none !important;
+    width: 12px;
+    height: 12px;
+    box-shadow: none !important;
+}
+
+.diagram-line.affected {
+    box-shadow: none;
+}
+
+.diagram-line.affected::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    box-shadow: -5px 0 0 0 var(--danger-color), 5px 0 0 0 var(--danger-color);
+    pointer-events: none;
+}
+
+.diagram-line.affected.affected-start:not(.line-start)::after {
+    top: 50%;
+}
+
+.diagram-line.affected.affected-end:not(.line-end)::after {
+    bottom: 50%;
+}
+
+.station-name-main {
+    font-weight: 700;
+}
+
+.station-transfer {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+
+    html,
+    body {
+        height: 100%;
+        overflow-x: hidden;
+        padding: 0;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100svh;
+        max-width: 100%;
+        margin: 0;
+        padding-top: 80px;
+        /* Ensure content is below header while background is white */
+        border-radius: 0;
+        box-shadow: none;
+        background: #ffffff;
+        overflow: visible;
+    }
+
+    main {
+        padding-left: 0;
+        padding-right: 0;
+        flex: 1 0 auto;
+    }
+
+    .operation-section,
+    .line-detail-view {
+        border-radius: 0;
+        margin: 0;
+        box-shadow: none;
+    }
+
+    .operation-section {
+        padding-top: 100px;
+    }
+
+    .line-layout {
+        grid-template-columns: minmax(70px, 120px) 1fr;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .header-content {
+        padding: 10px 15px;
+    }
+
+    .header-logo {
+        height: 28px;
+    }
+
+    header h1 {
+        font-size: 1.3rem;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .help-button img {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+
+/* Popup container (hidden by default; JS toggles display) */
+#error-section {
+    position: fixed;
+    top: 120px;
+    /* below the fixed header; adjust if header height changes */
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 920px;
+    z-index: 1500;
+    display: none;
+    /* controlled by JS via inline style */
+    padding: 0 20px;
+    pointer-events: none;
+    /* allow clicks to pass through except the message itself */
+}
+
+/* Keep the original class animation available for other places that use .error-section */
+.error-section {
+    animation: fadeIn 0.5s;
+}
+
+/* Visible message box inside the popup container */
+#error-section .error-message {
+    pointer-events: auto;
+    /* make the message itself interactive (clickable) */
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 16px 20px;
+    border-radius: 8px;
+    color: #856404;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    width: 100%;
+    box-sizing: border-box;
+    animation: slideDown 0.28s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        margin-top: -8px;
+    }
+
+    to {
+        opacity: 1;
+        margin-top: 0;
+    }
+}
+
+/* Error popup content */
+#error-section .error-message {
+    position: relative;
+}
+
+#error-section .error-message .error-text {
+    display: inline-block;
+    width: 95%;
+    /* reserve space so the close button doesn't overlap */
+    box-sizing: border-box;
+    vertical-align: middle;
+    color: #6b4b00;
+    overflow-wrap: break-word;
+    /* allow long text to wrap */
+}
+
+#error-section .error-message .error-close {
+    position: absolute;
+    top: 50%;
+    /* vertically center inside the message */
+    right: 8px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #6b4b00;
+    font-size: 20px;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+}
+
+#error-section .error-message .error-close:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #333;
+}
+
+
+.loading-section {
+    text-align: center;
+    padding: 40px;
+    animation: fadeIn 0.5s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Disable scrolling (applied while loading is shown) */
+body.no-scroll,
+html.no-scroll {
+    height: 100%;
+    overflow: hidden !important;
+    touch-action: none;
+}
+
+/* Mobile: display loading as a full-screen white overlay */
+@media (max-width: 768px) {
+    #loading-section {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2000;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 20px 18px;
+        border-radius: 0;
+        box-sizing: border-box;
+        text-align: center;
+        animation: fadeIn 0.5s;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    #loading-section::before {
+        content: none;
+    }
+
+    #loading-section .loading-spinner {
+        width: 64px;
+        height: 64px;
+        border-width: 5px;
+        margin-bottom: 16px;
+    }
+
+    #loading-section p {
+        color: #222222;
+        font-size: 1rem;
+        margin: 0;
+        line-height: 1.3;
+    }
+}
+
+
+footer {
+    background: #012169;
+    
+    padding: 24px 0;
+    color: #ffffff;
+    font-size: 0.9rem;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-bottom: -20px;
+    margin-top: 20px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-logo {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .footer-logo {
+        height: 48px;
+    }
+
+    footer {
+        margin-top: 0px;
+        margin-bottom: 0;
+        padding-bottom: 96px;
+    }
+}
+
+
+.back-to-search-btn {
+    background: #ffffff;
+    color: #1976d2;
+    border: 2px solid #1976d2;
+    padding: 6px 14px;
+    border-radius: 60px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.back-to-search-btn:hover {
+    background: #1976d2;
+    color: white;
+}
+
+.back-to-search-btn:active {
+    transform: scale(0.98);
+}
+
+.share-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+}
+
+.share-modal-content {
+    background: white;
+    padding: 18px;
+    border-radius: 10px;
+    width: 92%;
+    max-width: 520px;
+    box-shadow: var(--shadow);
+}
+
+.share-modal-content h3 {
+    margin: 0 0 8px 0;
+    color: var(--primary-color);
+}
+
+.share-modal-content p {
+    margin: 0 0 10px 0;
+    color: #444;
+}
+
+.share-modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.share-modal .back-to-search-btn {
+    padding: 6px 12px;
+    font-size: 0.95rem;
+}
+
+
+.share-modal-content ul {
+    margin: 0.5rem 0 1rem 1.2rem;
+    padding-left: 1.05rem;
+    list-style-position: outside;
+    list-style-type: disc;
+    color: #444;
+}
+
+.share-modal-content li {
+    margin-bottom: 0.45rem;
+    line-height: 1.45;
+}
+
+.share-modal-content {
+    word-break: break-word;
+}
+
+/* --- about.css --- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0078D7;
+    --secondary-color: #E67E22;
+    --danger-color: #E60012;
+    --warning-color: #F1C40F;
+    --text-color: #333;
+    --border-color: #ddd;
+    --bg-gray: #f5f5f5;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+        'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: #f0f0f0;
+    min-height: 100svh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 100px;
+    
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+main {
+    flex: 0 1 900px;
+    max-width: 900px;
+    min-height: calc(100svh - 160px);
+}
+
+@media (min-width: 769px) {
+    main {
+        min-height: 0;
+    }
+}
+
+.sidebar {
+    flex: 0 0 250px;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
+
+.sidebar {
+    order: 0;
+}
+
+main {
+    order: 1;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+}
+
+.sidebar-nav .nav-item {
+    margin-bottom: 10px;
+}
+
+.sidebar-nav .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #222;
+    text-align: left;
+    text-decoration: none;
+}
+
+.sidebar-nav .bottom-group .nav-btn {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.sidebar-nav .nav-item.small .nav-btn {
+    font-size: 0.95rem;
+}
+
+.sidebar-nav .nav-item.active .nav-btn {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.sidebar-nav .nav-btn:hover {
+    background: rgba(0, 120, 215, 0.08);
+    color: var(--primary-color);
+}
+
+.sidebar-nav .nav-item.active .nav-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.sidebar-divider {
+    border: none;
+    height: 1px;
+    background: var(--border-color);
+    margin: 12px 0;
+}
+
+.icon {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: #666;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+.nav-item.active .icon {
+    background-color: #fff;
+}
+
+.icon-home {
+    -webkit-mask-image: url('src/home.svg');
+    mask-image: url('src/home.svg');
+}
+
+.icon-walking {
+    -webkit-mask-image: url('src/walking.svg');
+    mask-image: url('src/walking.svg');
+}
+
+.icon-train {
+    -webkit-mask-image: url('src/train.svg');
+    mask-image: url('src/train.svg');
+}
+
+.icon-menu {
+    -webkit-mask-image: url('src/menu.svg');
+    mask-image: url('src/menu.svg');
+}
+
+.icon-info,
+.icon-business,
+.icon-news {
+    display: none;
+}
+
+/* Mobile bottom navigation */
+.mobile-bottom-nav {
+    display: none;
+}
+
+.mobile-bottom-nav .mb-item {
+    background: transparent;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    flex: 1 1 0;
+    text-align: center;
+    text-decoration: none;
+}
+
+.mobile-bottom-nav .mb-item .mb-icon {
+    width: 26px;
+    height: 26px;
+    display: block;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+.mobile-bottom-nav .mb-item .mb-label {
+    font-size: 11px;
+}
+
+.mobile-bottom-nav .mb-item.active {
+    background: rgba(0, 120, 215, 0.12);
+    color: var(--primary-color);
+}
+
+/* Bottom sheet (mobile menu) */
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(-100% - var(--mobile-nav-height, 72px));
+    height: 50vh;
+    max-height: 70vh;
+    transition: bottom 0.28s ease;
+    z-index: 1300;
+    pointer-events: none;
+    display: block;
+}
+
+.bottom-sheet.open {
+    bottom: var(--mobile-nav-height, 72px);
+    pointer-events: auto;
+}
+
+.bottom-sheet-content {
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sheet-item {
+    padding: 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-weight: 600;
+    display: block;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sheet-close {
+    padding: 10px;
+    border-radius: 8px;
+    background: #f0f0f0;
+    border: none;
+}
+
+.nav-btn.is-current-page,
+.mb-item.is-current-page {
+    pointer-events: none;
+    cursor: default;
+}
+
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1200;
+    display: none;
+}
+
+.sheet-backdrop.open {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1 1 auto;
+        max-width: 100%;
+    }
+
+    main {
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: #fff;
+        border-top: 1px solid var(--border-color);
+        padding: 6px;
+        gap: 6px;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1400;
+    }
+}
+
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--primary-color), #005fa3);
+    color: #fff;
+    padding: 10px 0px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-logo {
+    height: 3rem;
+    width: auto;
+    display: block;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+
+.help-button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+main {
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.help-button img {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+
+.help-button:focus {
+    outline: none;
+}
+
+
+.about-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: var(--shadow);
+}
+.about-section h2 {
+    margin-bottom: 24px;
+    font-size: 1.5rem;
+    color: #111;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 8px;
+}
+.about-card {
+    background: #fdfdfd;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 24px;
+}
+.about-card h3 {
+    margin-bottom: 12px;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+.about-card p {
+    margin-bottom: 8px;
+    color: #333;
+}
+.about-card ul {
+    margin-left: 24px;
+    margin-top: 12px;
+}
+.about-card li {
+    margin-bottom: 8px;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .about-section {
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .about-section h2 {
+        font-size: 1.35rem;
+    }
+
+    .about-card {
+        margin-top: 16px;
+        padding: 16px;
+    }
+}
+
+
+footer {
+    background: #012169;
+    padding: 24px 0;
+    color: #fff;
+    font-size: 0.9rem;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-bottom: -20px;
+    margin-top: 20px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-logo {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .footer-logo {
+        height: 48px;
+    }
+
+    footer {
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-bottom: 96px;
+    }
+}
+
+
+/* --- information.css --- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0078D7;
+    --secondary-color: #E67E22;
+    --danger-color: #E60012;
+    --warning-color: #F1C40F;
+    --text-color: #333;
+    --border-color: #ddd;
+    --bg-gray: #f5f5f5;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+        'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: #f0f0f0;
+    min-height: 100svh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 100px;
+    
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+main {
+    flex: 0 1 900px;
+    max-width: 900px;
+    min-height: calc(100svh - 160px);
+}
+
+@media (min-width: 769px) {
+    main {
+        min-height: 0;
+    }
+}
+
+.sidebar {
+    flex: 0 0 250px;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
+
+.sidebar {
+    order: 0;
+}
+
+main {
+    order: 1;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+}
+
+.sidebar-nav .nav-item {
+    margin-bottom: 10px;
+}
+
+.sidebar-nav .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #222;
+    text-align: left;
+    text-decoration: none;
+}
+
+.sidebar-nav .bottom-group .nav-btn {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.sidebar-nav .nav-item.small .nav-btn {
+    font-size: 0.95rem;
+}
+
+.sidebar-nav .nav-item.active .nav-btn {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.sidebar-nav .nav-btn:hover {
+    background: rgba(0, 120, 215, 0.08);
+    color: var(--primary-color);
+}
+
+.sidebar-nav .nav-item.active .nav-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.sidebar-divider {
+    border: none;
+    height: 1px;
+    background: var(--border-color);
+    margin: 12px 0;
+}
+
+.icon {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: #666;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+.nav-item.active .icon {
+    background-color: #fff;
+}
+
+.icon-home {
+    -webkit-mask-image: url('src/home.svg');
+    mask-image: url('src/home.svg');
+}
+
+.icon-walking {
+    -webkit-mask-image: url('src/walking.svg');
+    mask-image: url('src/walking.svg');
+}
+
+.icon-train {
+    -webkit-mask-image: url('src/train.svg');
+    mask-image: url('src/train.svg');
+}
+
+.icon-menu {
+    -webkit-mask-image: url('src/menu.svg');
+    mask-image: url('src/menu.svg');
+}
+
+.icon-info,
+.icon-business,
+.icon-news {
+    display: none;
+}
+
+/* Mobile bottom navigation */
+.mobile-bottom-nav {
+    display: none;
+}
+
+.mobile-bottom-nav .mb-item {
+    background: transparent;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    flex: 1 1 0;
+    text-align: center;
+    text-decoration: none;
+}
+
+.mobile-bottom-nav .mb-item .mb-icon {
+    width: 26px;
+    height: 26px;
+    display: block;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+.mobile-bottom-nav .mb-item .mb-label {
+    font-size: 11px;
+}
+
+.mobile-bottom-nav .mb-item.active {
+    background: rgba(0, 120, 215, 0.12);
+    color: var(--primary-color);
+}
+
+/* Bottom sheet (mobile menu) */
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(-100% - var(--mobile-nav-height, 72px));
+    height: 50vh;
+    max-height: 70vh;
+    transition: bottom 0.28s ease;
+    z-index: 1300;
+    pointer-events: none;
+    display: block;
+}
+
+.bottom-sheet.open {
+    bottom: var(--mobile-nav-height, 72px);
+    pointer-events: auto;
+}
+
+.bottom-sheet-content {
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sheet-item {
+    padding: 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-weight: 600;
+    display: block;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sheet-close {
+    padding: 10px;
+    border-radius: 8px;
+    background: #f0f0f0;
+    border: none;
+}
+
+.nav-btn.is-current-page,
+.mb-item.is-current-page {
+    pointer-events: none;
+    cursor: default;
+}
+
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1200;
+    display: none;
+}
+
+.sheet-backdrop.open {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1 1 auto;
+        max-width: 100%;
+    }
+
+    main {
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: #fff;
+        border-top: 1px solid var(--border-color);
+        padding: 6px;
+        gap: 6px;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1400;
+    }
+}
+
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--primary-color), #005fa3);
+    color: #fff;
+    padding: 10px 0px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-logo {
+    height: 3rem;
+    width: auto;
+    display: block;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+
+.help-button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.help-button img {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+
+.help-button:focus {
+    outline: none;
+}
+
+
+main {
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+
+.information-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: var(--shadow);
+}
+.information-section h2 {
+    margin-bottom: 24px;
+    font-size: 1.5rem;
+    color: #111;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 8px;
+}
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.info-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px;
+    background: #fcfcfc;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    border-left: 6px solid var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.info-date {
+    font-weight: 700;
+    color: #444;
+    font-size: 1rem;
+}
+.info-badge {
+    background: #e9ecef;
+    color: #333;
+    padding: 4px 12px;
+    border-radius: 24px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.info-badge.new {
+    background: var(--danger-color);
+    color: white;
+}
+.info-text {
+    flex: 1;
+    min-width: 200px;
+    font-size: 1.05rem;
+    color: #222;
+}
+
+@media (max-width: 768px) {
+    .information-section {
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .information-section h2 {
+        font-size: 1.35rem;
+    }
+
+    .info-item {
+        padding: 16px;
+        gap: 10px;
+    }
+
+    .info-text {
+        min-width: 100%;
+        font-size: 1rem;
+    }
+}
+
+
+footer {
+    background: #012169;
+    padding: 24px 0;
+    color: #fff;
+    font-size: 0.9rem;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-bottom: -20px;
+    margin-top: 20px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-logo {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .footer-logo {
+        height: 48px;
+    }
+
+    footer {
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-bottom: 96px;
+    }
+}
+
+
+/* --- transfer.css (priority) --- */
+/* 逡ｪ邱夊｡ｨ遉ｺ */
+.station-platform {
+    display: inline-block;
+    background: #f3f6fa;
+    color: #1976d2;
+    border: 1px solid #bcd;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: 600;
+    padding: 2px 10px;
+    margin-left: 8px;
+    margin-top: 2px;
+    vertical-align: middle;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #0078D7;
+    --secondary-color: #E67E22;
+    --danger-color: #E60012;
+    --warning-color: #404040;
+    --success-color: #808080;
+    --sr-rapid-color: #202020;
+    --text-color: #333;
+    --border-color: #ddd;
+    --bg-gray: #f5f5f5;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+        font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 
+                                 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background: #f0f0f0;
+        min-height: 100svh;
+        padding: 20px;
+}
+
+/* Noto Sans JP utility class (optional) */
+.noto-sans-jp {
+    font-family: "Noto Sans JP", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 100px; 
+}
+
+/* Content wrapper: main + sidebar (desktop) */
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+/* Constrain main to 870px on desktop while sidebar sits at 300px */
+main {
+    flex: 0 1 900px;
+    max-width: 900px;
+}
+
+.sidebar {
+    flex: 0 0 250px;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+/* Place sidebar to the left of main (desktop) */
+.sidebar { order: 0; }
+main { order: 1; }
+
+.sidebar-nav ul { list-style: none; padding: 0; margin: 0 0 12px 0; }
+.sidebar-nav .nav-item { margin-bottom: 10px; }
+.sidebar-nav .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #222;
+    text-align: left;
+    text-decoration: none;
+}
+.sidebar-nav .bottom-group .nav-btn { font-size: 0.95rem; font-weight: 500; color: #444; }
+.sidebar-nav .nav-item.small .nav-btn { font-size: 0.95rem; }
+
+.sidebar-nav .nav-item.active .nav-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Hover: light blue background for any nav button (except active which stays primary) */
+.sidebar-nav .nav-btn:hover {
+    background: rgba(0,120,215,0.08);
+    color: var(--primary-color);
+}
+
+/* If nav item is active, ensure its icon/text remain white */
+.sidebar-nav .nav-item.active .nav-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.sidebar-divider { border: none; height: 1px; background: var(--border-color); margin: 12px 0; }
+
+.icon {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: #666; /* default icon fill color for masks */
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+.nav-item.active .icon { background-color: white; }
+
+/* Per-icon masks */
+.icon-home { -webkit-mask-image: url('src/home.svg'); mask-image: url('src/home.svg'); }
+.icon-walking { -webkit-mask-image: url('src/walking.svg'); mask-image: url('src/walking.svg'); }
+.icon-train { -webkit-mask-image: url('src/train.svg'); mask-image: url('src/train.svg'); }
+.icon-menu { -webkit-mask-image: url('src/menu.svg'); mask-image: url('src/menu.svg'); }
+.icon-info, .icon-business, .icon-news { /* no icon next to bottom items per request */ display: none; }
+
+/* Mobile bottom navigation (hidden on desktop) */
+.mobile-bottom-nav { display: none; }
+.mobile-bottom-nav .mb-item {
+    background: transparent;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px; /* consistent padding to avoid width shift on click */
+    border-radius: 10px;
+    font-size: 12px;
+    flex: 1 1 0; /* equal width items */
+    text-align: center;
+    text-decoration: none;
+}
+.mobile-bottom-nav .mb-item .mb-icon { width: 26px; height: 26px; display:block; background-color: currentColor; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; mask-size: contain; mask-repeat: no-repeat; mask-position: center; }
+.mobile-bottom-nav .mb-item .mb-label { font-size: 11px; }
+.mobile-bottom-nav .mb-item.active { background: rgba(0,120,215,0.12); color: var(--primary-color); }
+
+/* Bottom sheet (mobile menu) */
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* hidden below viewport by default; will slide up when .open is added */
+    bottom: calc(-100% - var(--mobile-nav-height, 72px));
+    height: 50vh;
+    max-height: 70vh;
+    transition: bottom 0.28s ease;
+    /* place the sheet behind the mobile nav (nav z-index:1400) */
+    z-index: 1300;
+    pointer-events: none;
+    display: block;
+}
+.bottom-sheet.open {
+    bottom: var(--mobile-nav-height, 72px);
+    pointer-events: auto;
+}
+.bottom-sheet-content {
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+.sheet-item { padding: 12px; border-radius: 8px; background: transparent; border: none; text-align: left; font-weight: 600; display: block; width: 100%; color: inherit; text-decoration: none; }
+.sheet-close { padding: 10px; border-radius: 8px; background: #f0f0f0; border: none; }
+
+.nav-btn.is-current-page,
+.mb-item.is-current-page {
+    pointer-events: none;
+    cursor: default;
+}
+
+/* Backdrop that appears when bottom-sheet is open. It should be behind the
+   mobile nav but above page content. */
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1200; /* behind bottom-sheet (1300) and below mobile nav (1400) */
+    display: none;
+}
+.sheet-backdrop.open {
+    display: block;
+}
+
+/* Responsive behaviour: hide desktop sidebar and show mobile nav on small screens */
+@media (max-width: 768px) {
+    .content-wrapper { flex-direction: column; }
+    main { flex: 1 1 auto; max-width: 100%; }
+    /* On mobile, main should occupy full width and remove decorative framing */
+    main {
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+    .sidebar { display: none; }
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: #fff;
+        border-top: 1px solid var(--border-color);
+        padding: 6px; /* uniform padding */
+        gap: 6px; /* 6px space between items */
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1400;
+    }
+    /* bottom-sheet positioning controlled globally; no override here */
+}
+
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--primary-color), #005fa3);
+    color: white;
+    padding: 10px 0px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between; /* put help icon to the right */
+}
+
+.header-logo {
+    height: 3rem;
+    width: auto;
+    display: block;
+}
+
+/* header left group to keep logo + title together */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Help button in header */
+.help-button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+}
+.help-button img {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+.help-button:focus {
+    outline: none;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.subtitle {
+    display: none;
+}
+
+
+main {
+    padding: 30px;
+    /* Center main content vertically so the search section sits in the
+       vertical middle of the available main area. Keep a column layout
+       so stacked sections (results, errors) naturally flow below. */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* vertical centering */
+    align-items: stretch;
+    position: relative; /* allow absolutely positioned children (results) to anchor to top */
+    /* Make main tall enough to center content relative to the viewport.
+       Using calc allows room for the fixed header/footer; adjust if needed. */
+    min-height: calc(100svh - 160px);
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+/* Desktop: ensure main doesn't force extra height on wider screens
+   For viewports >= 769px we want the page flow to determine height, so
+   explicitly reset min-height to 0. Mobile (<=768px) continues to use
+   the calc(...) value above. */
+@media (min-width: 769px) {
+    main {
+        min-height: 0;
+    }
+}
+
+
+.search-mode-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* label left-aligned relative to toggle */
+    width: fit-content; /* shrink to fit inner content */
+    margin: 0 auto 48px; /* center the whole wrapper */
+}
+/* Mobile: place search-mode-wrapper independently at the very top of main */
+@media (max-width: 768px) {
+    .search-mode-wrapper {
+        position: absolute;
+        top: 20px; /* align to the top of the main element (exclude any border-top) */
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0; /* remove default bottom margin used in desktop */
+        z-index: 600;
+        width: fit-content;
+    }
+}
+.search-mode-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 6px;
+    color: #666;
+}
+.search-mode-toggle {
+    display: flex;
+    position: relative;
+    gap: 8px;
+    align-items: center;
+    background: #eee; /* pill-shaped gray background */
+    padding: 6px; /* inner spacing so buttons sit comfortably */
+    border-radius: 999px;
+    width: fit-content; /* shrink to fit inner buttons */
+    box-sizing: border-box;
+}
+
+
+.search-mode-toggle::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: var(--bg-left, 6px);
+    width: var(--bg-width, 0);
+    height: calc(100% - 12px);
+    background: var(--primary-color);
+    border-radius: 999px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+    pointer-events: none;
+}
+.search-mode-btn {
+    background: transparent; /* let container provide the gray pill background */
+    color: #222;
+    border: none; /* no border per request */
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem; /* match filter caption size */
+    position: relative;
+    z-index: 1;
+    transition: color 0.2s;
+}
+.search-mode-btn.selected {
+    background: transparent;
+    color: #fff;
+    font-weight: 600;
+    border: none; /* ensure selected has no border */
+}
+.search-mode-btn:focus {
+    /* Remove default focus ring for mouse/touch activation */
+    outline: none;
+}
+
+.search-mode-btn:focus-visible {
+    /* Preserve an accessible focus ring for keyboard users */
+    outline: 2px solid rgba(0,120,215,0.25);
+    outline-offset: 2px;
+}
+
+
+.station-row {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+}
+
+
+.station-input-row {
+    /* center the row horizontally; keep children aligned center vertically */
+    display: flex;
+    justify-content: center; /* horizontally center the inner content */
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.station-badge {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.departure-badge {
+    background: var(--primary-color);
+}
+
+.arrival-badge {
+    background: var(--primary-color);
+}
+
+.input-wrapper {
+    flex: 1;
+    position: relative;
+    max-width: 400px;
+}
+
+.station-input {
+    width: 100%;
+    height: 48px;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    background: #f5f5f5;
+}
+
+.station-input { max-width: 400px; }
+
+.station-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+}
+
+.station-suffix {
+    font-size: 16px;
+    color: var(--text-color);
+    flex-shrink: 0;
+    min-width: 50px;
+    font-weight: 600;
+}
+
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: var(--shadow);
+}
+
+.suggestions.active {
+    display: block;
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-item:hover {
+    background: #f8f9fa;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.station-name {
+    font-weight: 600;
+    display: block;
+}
+
+.station-lines {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 3px;
+}
+
+
+.swap-button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+
+/* Use a centered, padded flex container so its inner content aligns with
+   `.station-input-row` (which uses max-width + horizontal padding). The
+   add-via button is absolutely centered inside the wrapper while the
+   swap button is a normal flex item pushed to the right with
+   `margin-left: auto` 窶・this avoids brittle `right:` calculations. */
+.via-swap-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* keeps the add-via button visually centered */
+    gap: 12px;
+    margin: 0 auto 30px auto;
+    max-width: 520px; /* match .station-input-row on desktop */
+    box-sizing: border-box;
+    padding: 0 12px; /* same horizontal inset as .station-input-row */
+    min-height: 40px; /* provide height so centered button has room */
+}
+
+.via-swap-row .add-via-button {
+    /* absolutely center inside the wrapper (horizontal + vertical) */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    max-width: 220px;
+    width: auto;
+    font-size: 1rem;
+}
+
+.via-swap-row .swap-button-container {
+    /* make the swap button a normal flex item and push it to the right
+       edge of the inner content area using auto margin. This keeps its
+       right edge aligned to the same padding as .station-input-row. */
+    position: static;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.swap-button {
+    background: white;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.swap-button:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Click-triggered full rotation */
+.swap-button.spinning {
+    animation: swap-spin 0.6s ease-in-out;
+}
+
+@keyframes swap-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+
+.add-via-button {
+    width: 100%;
+    max-width: 100px;
+    margin: 0 auto 15px auto;
+    display: block;
+    background: #e0e0e0;
+    color: var(--text-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.add-via-button:hover {
+    background: #d0d0d0;
+}
+
+
+/* Desktop (PC) adjustments: constrain station input width and center station rows */
+@media (min-width: 769px) {
+    /* Center the departure/arrival/via rows horizontally */
+    .station-input-row {
+        /* center the row on larger screens */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0 auto;
+        margin-bottom: 30px;
+        box-sizing: border-box;
+        padding: 0 12px; /* keep horizontal inset consistent with via-station items */
+    }
+
+    /* Limit the input wrapper to a maximum width and allow it to shrink/grow
+       so the input box doesn't stretch too wide on large screens. */
+    .input-wrapper {
+        /* cap input width to 400px on desktop */
+        flex: 0 1 400px;
+        max-width: 400px;
+        width: 100%;
+        position: relative;
+    }
+
+    /* Ensure via stations stack centered under the main inputs */
+    .via-stations {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    /* Keep each via-station row centered and prevent inputs from expanding
+       beyond a comfortable width while leaving room for the badge and remove button. */
+    .via-station-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        /* preserve vertical spacing while keeping width equal to children */
+        margin: 0 auto 30px auto;
+        justify-content: center; /* center the contents horizontally */
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        padding: 0 12px; /* same horizontal inset as station-input-row */
+    }
+
+    /* Tweak the remove button so it stays visually close to the input */
+    .remove-via-button {
+        margin-left: 8px;
+        align-self: center;
+    }
+
+    /* Slight spacing adjustment for the suffix so it aligns nicely with centered inputs */
+    .station-suffix {
+        margin-left: 8px;
+    }
+
+    /* Make remove button and station-suffix identical width on desktop */
+    /* Assumption: 48px chosen to match other badge sizes (e.g. .station-badge) */
+    .remove-via-button,
+    .station-suffix {
+        width: 48px;
+        height: 48px; /* ensure the remove button stays circular */
+        min-width: 48px;
+        max-width: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+}
+
+.via-station-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.via-station-item .station-badge {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.via-station-item .input-wrapper {
+    flex: 0 1 400px;
+    max-width: 400px;
+}
+
+.remove-via-button {
+    background: transparent;
+    color: #999;
+    border: none;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.remove-via-button:hover {
+    background: #f0f0f0;
+    color: #666;
+}
+
+
+
+
+.filter-section {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group > label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 20px;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.train-type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.train-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+}
+
+
+.train-type-badge.tc {
+    background: #00aaff;
+}
+.train-type-badge.sx {
+    background: #ff0000;
+}
+.train-type-badge.mc {
+    background: #808080;
+}
+
+
+.search-button {
+    width: auto;
+    max-width: 300px;
+    margin: 30px auto 40px auto;
+    display: block;
+    padding: 12px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.search-button:hover {
+    background: #005fa3;
+}
+
+.search-button:active {
+    transform: scale(0.98);
+}
+
+
+.results-section {
+    animation: fadeIn 0.5s;
+    /* On mobile we show results as an overlay to keep search visible
+       beneath; on wider screens (desktop) prefer normal document flow
+       so the results area doesn't get clipped by parent containers. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin-top: 0; /* ensure it sits at the top of main */
+    z-index: 400;
+}
+
+/* Desktop: render results in normal flow so container's overflow:hidden
+   doesn't clip the content. This makes results-info and results-container
+   visible on wider viewports. */
+@media (min-width: 769px) {
+    .results-section {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        z-index: auto;
+        margin-top: 0;
+        /* allow it to participate in normal layout and push other content */
+    }
+}
+
+/* fadeIn: animate opacity only to avoid clobbering existing transform values
+   (some elements use transform for centering; animating transform here
+    caused their translateX to be lost during the animation and produced
+    the horizontal shift observed). */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.results-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.results-info {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+.route-tabs {
+    /* Full-width, horizontally scrollable tab bar that shows up to 3 tabs
+       at once. When there are <=3 tabs they share the available width.
+       When there are 4+ tabs the bar scrolls horizontally. */
+    display: flex;
+    gap: 0; /* rectangular look: no gaps between tabs */
+    align-items: stretch;
+    width: 100%;
+    overflow-x: auto; /* enable horizontal scrolling when needed */
+    -webkit-overflow-scrolling: touch;
+    background: #f2f2f2; /* subtle neutral band across the top */
+    padding: 0; /* tabs provide their own padding */
+    border-radius: 0; /* rectangular */
+    border: none;
+    margin-bottom: 12px;
+}
+
+/* Hide default scrollbar while keeping scrolling accessible; small visible track for desktop */
+.route-tabs::-webkit-scrollbar { height: 8px; }
+.route-tabs::-webkit-scrollbar-track { background: transparent; }
+.route-tabs::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 8px; }
+.route-tabs { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.12) transparent; }
+
+.route-tab {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    /* Let tabs expand evenly when <=3, but ensure a reasonable minimum width
+       so that when there are 4+ tabs they overflow and the container scrolls. */
+    flex: 1 1 auto; /* grow to fill space for 1-3 tabs */
+    min-width: calc(100% / 3); /* ensure at most 3 visible tabs without scrolling */
+    box-sizing: border-box;
+    padding: 12px 18px;
+    margin: 0;
+    cursor: pointer;
+    font-weight: 400;
+    color: #333;
+    font-size: 1rem;
+    text-align: center;
+    transition: background 0.12s ease, color 0.12s ease;
+    border-radius: 0; /* rectangular */
+    border-top: 4px solid #aaa;
+}
+
+/* Desktop (>=769px): show all tabs without horizontal scrolling.
+   Let tabs shrink as needed so that any number of tabs fit the available width.
+   Also hide the chevrons since there will be no scrolling. */
+@media (min-width: 769px) {
+    .route-tabs {
+        overflow-x: visible; /* don't allow horizontal scrolling */
+        -webkit-overflow-scrolling: auto;
+    }
+
+    .route-tab {
+        /* allow tabs to shrink below the earlier min-width so they can all fit */
+        flex: 1 1 0%;
+        min-width: 0;
+    }
+
+    /* Ensure chevrons are hidden on desktop even if JS toggles classes */
+    .route-tabs-wrapper .route-tabs-chevron { display: none !important; }
+}
+
+
+
+.route-tab:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.route-tab.active {
+    background: #eaf6ff; /* selected tab sits on a white block for contrast */
+    font-weight: 600;
+    /* clear rectangular top accent to match the requested image */
+    border-top: 4px solid var(--primary-color);
+}
+
+/* If the tab is the last visible child we don't need a right border to avoid double lines */
+.route-tab:last-child { border-right: none; }
+
+.route-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 2px solid #f0f0f0;
+}
+
+
+.back-to-search-btn {
+    background: #ffffff;
+    color: #1976d2;
+    border: 2px solid #1976d2;
+    padding: 6px 14px;
+    border-radius: 60px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.back-to-search-btn:hover {
+    background: #1976d2;
+    color: white;
+}
+
+.back-to-search-btn:active {
+    transform: scale(0.98);
+}
+
+.route-header {
+    display: flex;
+    /* Keep the number and summary grouped at the left, so summary sits right next to number */
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px; /* small gap between number and summary */
+    margin-bottom: 20px;
+}
+
+.route-number {
+    background: var(--primary-color);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.route-summary {
+    display: flex;
+    gap: 18px;
+    /* Keep the same weight but use a slightly smaller base size; numeric digits will be emphasized separately */
+    font-size: 1rem;
+    font-weight: 700;
+    color: #000;
+    align-items: center;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: #000;
+}
+
+.summary-item strong {
+    color: #000;
+    font-size: 1rem;
+}
+
+
+.route-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 10px 0;
+}
+
+.timeline-row {
+    display: grid;
+    grid-template-columns: 50px 40px 1fr;
+    gap: 12px;
+    align-items: start;
+    min-height: 40px;
+}
+
+/* 譎る俣陦ｨ遉ｺ */
+.timeline-time {
+    text-align: right;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1976d2;
+    padding-top: 4px;
+}
+
+
+.timeline-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.timeline-marker {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 4px solid #999;
+    background: white;
+    z-index: 3; /* keep above the vertical line */
+    flex-shrink: 0;
+}
+
+.marker-start {
+    border-color: #4CAF50;
+    background: #4CAF50;
+}
+
+.marker-end {
+    border-color: #E60012;
+    background: #E60012;
+}
+
+.marker-via {
+    border-color: #1976d2;
+    background: white;
+}
+
+.marker-transfer {
+    border-color: #FF9800;
+    background: #FF9800;
+    width: 16px;
+    height: 16px;
+}
+
+/* Vertical timeline line: place behind markers and stretch to the center of markers so
+   the line appears continuous. The parent (.timeline-icon) is position:relative. */
+.timeline-line {
+    position: absolute;
+    /* Anchor to the right edge of the marker column so alignment is stable across layouts */
+    right: 8px;
+    left: auto;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    border-radius: 3px;
+    background: #e0e0e0; /* fallback color */
+    z-index: 1; /* behind .timeline-marker which has z-index:3 */
+}
+
+
+.timeline-content {
+    padding-top: 0;
+    padding-bottom: 12px;
+}
+
+.station-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+/* 蛹ｺ髢捺ュ蝣ｱ */
+.segment-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 8px;
+}
+
+.segment-line-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.line-symbol {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-color: var(--icon-color, #000);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.line-symbol img {
+    display: none;
+}
+
+.line-text {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #333;
+}
+
+.train-type-badge {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+}
+
+.train-type-badge.tc { background: #00aaff; }
+.train-type-badge.sx { background: #ff0000; }
+.train-type-badge.mc { background: #808080; }
+
+
+.filter-section .filter-icons {
+    /* Use a grid so the left edge, inter-icon gaps and right edge all share equal width.
+       Structure for 4 icons: spacer(1fr) | icon | spacer(1fr) | icon | spacer | icon | spacer | icon | spacer
+       This makes the five spacer columns grow equally while icons keep a fixed width. */
+    --filter-icon-size: 56px;
+    display: grid;
+    grid-template-columns: 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr;
+    align-items: center;
+    padding: 8px 4px;
+    column-gap: 0; /* spacing controlled by spacer columns */
+    position: relative; /* needed so pseudo-element can act as a grid item */
+}
+
+.filter-label input[type="checkbox"] {
+    /* keep the checkbox for functionality but hide it visually */
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.filter-item {
+    /* make the visible item compact and centered inside its grid cell */
+    width: var(--filter-icon-size);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    position: relative;
+    box-sizing: border-box;
+    overflow: visible; /* allow captions to overflow horizontally so they don't wrap */
+}
+
+
+
+/* Place the vertical divider exactly in the spacer column between KT (col 2)
+   and TC (col 4). Using the container's ::before as a grid item lets it sit
+   squarely in grid-column 3 so it always remains at the midpoint regardless
+   of container width. */
+.filter-section .filter-icons::before {
+    content: "";
+    grid-column: 3 / 4; /* spacer between icon 1 and icon 2 */
+    grid-row: 1 / 2;
+    justify-self: center;
+    align-self: center;
+    width: 1px;
+    height: calc(var(--filter-icon-size) * 1.5);
+    background: var(--border-color);
+    border-radius: 1px;
+}
+
+/* Position the label elements into the icon columns so spacer columns stay empty */
+.filter-section .filter-icons > .filter-label { justify-self: center; align-self: center; }
+.filter-section .filter-icons > .filter-label:nth-child(1) { grid-column: 2 / 3; }
+.filter-section .filter-icons > .filter-label:nth-child(2) { grid-column: 4 / 5; }
+.filter-section .filter-icons > .filter-label:nth-child(3) { grid-column: 6 / 7; }
+.filter-section .filter-icons > .filter-label:nth-child(4) { grid-column: 8 / 9; }
+
+.filter-item .top-label {
+    position: absolute;
+    /* Raise the label further above the icon and align horizontally with the icon center
+       (use left: 0 so it doesn't appear left-biased). */
+    left: -8px;
+    top: -20px;
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 700;
+    z-index: 6;
+    white-space: nowrap; /* keep on one line */
+    display: inline-block;
+    max-width: none; /* allow overflow if needed */
+}
+
+.filter-icon {
+    width: 56px;
+    height: 56px;
+    background-color: #bdbdbd; /* inactive gray */
+    transition: background-color 0.18s ease, transform 0.12s ease, box-shadow 0.12s ease;
+    box-shadow: none;
+}
+
+/* per-icon mask images (use local src/ paths) */
+.filter-icon-kt {
+    -webkit-mask-image: url('src/kt_icon.svg');
+    mask-image: url('src/kt_icon.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.filter-icon-tc {
+    -webkit-mask-image: url('src/TC.svg');
+    mask-image: url('src/TC.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.filter-icon-sx {
+    -webkit-mask-image: url('src/SX.svg');
+    mask-image: url('src/SX.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.filter-icon-mc {
+    -webkit-mask-image: url('src/mc.svg');
+    mask-image: url('src/mc.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+/* Caption and status under each icon */
+.filter-caption {
+    font-size: 0.95rem;
+    color: #444;
+    font-weight: 600;
+}
+.filter-caption .status-on { display: none; }
+.filter-caption .status-off { display: inline; }
+
+/* Prevent caption text from wrapping; allow it to extend beyond the icon width */
+.filter-caption {
+    white-space: nowrap;
+    display: inline-block;
+    max-width: none;
+}
+
+/* Checked state styles: color the SVG by setting background-color on the masked element */
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-icon {
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: none; /* removed the upward movement on selection */
+}
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-caption { color: var(--primary-color); }
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-caption .status-on { display: inline; }
+.filter-label input[type="checkbox"]:checked + .filter-item .filter-caption .status-off { display: none; }
+
+/* Unchecked subtle hover to indicate clickability */
+.filter-label:hover .filter-icon { transform: none; }
+
+/* Make train type captions slightly smaller to keep visual balance */
+.filter-item .filter-caption { font-size: 0.8rem; }
+
+@media (max-width: 768px) {
+    .filter-section .filter-icons { gap: 8px; }
+    .filter-icon { width: 48px; height: 48px; }
+    /* keep the top-label above the icon on mobile as well and center-align horizontally */
+    .filter-item .top-label { left: -4px; top: -18px; font-size: 0.8rem; white-space: nowrap; }
+}
+
+.segment-details-row {
+    display: flex;
+    gap: 16px;
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.segment-duration, .segment-stops {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+
+.transfer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff3e0;
+    color: #e65100;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+
+.toggle-stops-btn {
+    background: white;
+    color: #1976d2;
+    border: 2px solid #1976d2;
+    padding: 4px 12px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    margin-top: 6px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.toggle-stops-btn:hover {
+    background: #1976d2;
+    color: white;
+}
+
+.stops-list {
+    display: none;
+    margin-top: 10px;
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+.stops-list.active {
+    display: block;
+}
+
+.stop-item {
+    padding: 6px 0;
+    border-bottom: 1px dashed #eee;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.stop-item:last-child {
+    border-bottom: none;
+}
+
+
+.route-summary {
+    display: flex;
+    gap: 18px;
+    /* Keep summary prominent. This rule is intentionally larger than earlier defaults. */
+    font-size: 1.25rem;
+    font-weight: 700;
+    align-items: center;
+}
+
+.summary-time,
+.summary-transfer {
+    /* Base styling for summary items (units and non-numeric text) */
+    font-size: 0.95rem;
+    font-weight: 700; /* keep weight as requested */
+    color: #000;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+/* Numeric parts (digits) - large and blue */
+.summary-number {
+    color: var(--primary-color);
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+/* Unit/label parts - small and black */
+.summary-unit {
+    color: #000;
+    font-size: 0.9rem;
+    line-height: 1;
+    margin-left: 3px;
+}
+
+
+@media (max-width: 768px) {
+    .timeline-row {
+        grid-template-columns: 45px 35px 1fr;
+        gap: 8px;
+    }
+    
+    .timeline-time {
+        font-size: 0.95rem;
+    }
+    
+    .station-name {
+        font-size: 1.05rem;
+    }
+    
+    .segment-line-name {
+        gap: 8px;
+    }
+}
+
+
+/* Popup container (hidden by default; JS toggles display) */
+#error-section {
+    position: fixed;
+    top: 120px; /* below the fixed header; adjust if header height changes */
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 920px;
+    z-index: 1500;
+    display: none; /* controlled by app.js via inline style */
+    padding: 0 20px;
+    pointer-events: none; /* allow clicks to pass through except the message itself */
+}
+
+/* Keep the original class animation available for other places that use .error-section */
+.error-section {
+    animation: fadeIn 0.5s;
+}
+
+/* Visible message box inside the popup container */
+#error-section .error-message {
+    pointer-events: auto; /* make the message itself interactive (clickable) */
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 16px 20px;
+    border-radius: 8px;
+    color: #856404;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    width: 100%;
+    box-sizing: border-box;
+    animation: slideDown 0.28s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; margin-top: -8px; }
+    to   { opacity: 1; margin-top: 0; }
+}
+
+/* Error popup content */
+#error-section .error-message { position: relative; }
+#error-section .error-message .error-text {
+    display: inline-block;
+    width: 95%; /* reserve space so the close button doesn't overlap */
+    box-sizing: border-box;
+    vertical-align: middle;
+    color: #6b4b00;
+    overflow-wrap: break-word; /* allow long text to wrap */
+}
+
+#error-section .error-message .error-close {
+    position: absolute;
+    top: 50%; /* vertically center inside the message */
+    right: 8px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #6b4b00;
+    font-size: 20px;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+}
+
+#error-section .error-message .error-close:hover {
+    background: rgba(0,0,0,0.04);
+    color: #333;
+}
+
+/* Loading container: center contents and stack vertically on all viewports.
+   JS typically toggles inline `display` (e.g. 'flex'), but we ensure the
+   container uses a column layout so spinner sits above the message on desktop
+   as well as mobile. Mobile-specific sizing is handled in the media query
+   further below. */
+.loading-section {
+    text-align: center;
+    padding: 40px;
+    animation: fadeIn 0.5s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px; /* space between spinner and text */
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+footer {
+    background: #012169; 
+    padding: 24px 0;
+    color: #ffffff;
+    font-size: 0.9rem;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-bottom: -20px;
+    margin-top: 20px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-copyright {
+    margin: 0;
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+.footer-logo {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+/* Footer mobile adjustments: stack content and keep it above bottom navigation */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 16px;
+    }
+    
+    .footer-logo {
+        height: 48px;
+    }
+    
+    footer {
+        margin-top: 0px;
+        /* Ensure footer clears the fixed mobile bottom nav by increasing
+           its bottom padding by 72px (original bottom padding 24px + 72px).
+           Also reset negative bottom margin on small screens. */
+        margin-bottom: 0;
+        padding-bottom: 96px;
+    }
+}
+
+/* ========================================
+    Mobile Responsive Adjustments
+======================================== */
+@media (max-width: 768px) {
+    .station-badge {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+    }
+
+    .station-suffix {
+        font-size: 14px;
+        min-width: 40px;
+    }
+
+    .swap-button {
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+
+    .via-station-item .station-badge {
+        width: 48px;
+        height: 48px;
+        font-size: 16px;
+    }
+
+    .route-summary {
+        /* Keep route-summary on a single row for mobile as well (user requested same one-line layout) */
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+    }
+
+    /* Keep main content aligned under the fixed header on mobile. */
+    main {
+        padding: 0px;
+        justify-content: flex-start;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-content {
+        padding: 12px 20px;
+    }
+
+    .header-logo {
+        height: 32px;
+    }
+
+    .segment-timeline {
+        min-width: 50px;
+    }
+
+    .segment-line {
+        width: 8px;
+        height: 100%;
+        min-height: 60px;
+        border-radius: 4px;
+        margin: 0 auto;
+        display: block;
+    }
+}
+
+/* Apply 480px-and-below adjustments here so 768px and below use the
+   same (smaller) header & layout settings. This consolidates the
+   previous separate @media (max-width:480px) rules into the
+   @media (max-width:768px) block as requested. */
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+     /* NOTE: The `body.search-compact` height-dependent rule was removed.
+         Layout no longer switches based on `.search-section` measured height
+         to avoid instability on mobile devices. Keep main's padding-top and
+         justification consistent across mobile viewports. */
+
+    .container {
+        margin-top: 76px; /* fixed-header offset on mobile */
+        border-radius: 8px;
+    }
+
+    .header-content {
+        padding: 10px 15px;
+    }
+
+    .header-logo {
+        height: 28px;
+    }
+
+    header h1 {
+        font-size: 1.3rem;
+    }
+
+    .route-card {
+        padding: 15px;
+    }
+
+    /* Mobile: tighten columns so markers remain aligned on small screens */
+    .table-row.station-row {
+        grid-template-columns: 76px 40px 1fr;
+    }
+    .table-row.segment-row {
+        grid-template-columns: 76px 40px 1fr;
+    }
+    .segment-marker-container {
+        min-width: 40px;
+    }
+    .station-marker-badge { width: 32px; height: 32px; flex: 0 0 32px; font-size: 16px; }
+
+    /* Mobile-specific adjustments: nudge vertical lines to align with markers */
+    .timeline-line {
+        right: 8px;
+        left: auto;
+        width: 6px;
+    }
+
+    .segment-marker-container .segment-line {
+        right: 8px;
+        left: auto;
+        top: -44px;
+        bottom: -44px;
+        width: 6px;
+    }
+
+    .train-duration {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
+
+
+.route-table {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 60px 36px 1fr;
+    align-items: start;
+    min-height: 46px;
+    border-bottom: 1px solid #f2f2f2;
+    background: transparent;
+}
+.table-row:last-child {
+    border-bottom: none;
+}
+
+
+.table-row.station-row {
+    /* Reserve larger middle column to fit square marker badge without compression
+       Increase first column so arrival/departure times don't wrap */
+    grid-template-columns: 120px 56px 1fr; /* first: time (wider), second: marker, third: content */
+    align-items: center;
+    /* subtle light-blue background for station rows */
+    background: #eaf6ff;
+}
+
+
+.table-row.segment-row {
+    /* Use the same column sizes as station rows so markers align vertically */
+    grid-template-columns: 99px 56px 1fr; /* time | marker | content */
+    min-height: 120px;
+    align-items: stretch;
+}
+
+.table-time {
+    /* stacked times: arrival (top) and departure/boarding (bottom) */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    color: #1976d2;
+    font-weight: 700;
+    padding-right: 4px;
+    white-space: nowrap; /* keep each time on a single line */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.time-arrival {
+    font-size: 0.92rem;
+    line-height: 1;
+    opacity: 0.85;
+}
+.time-departure {
+    font-size: 0.92rem;
+    line-height: 1;
+    opacity: 0.85;
+}
+
+.time-arrival + .time-departure {
+    margin-top: 6px; /* spacing only when both arrival and departure are present */
+}
+
+.transfer-time {
+    font-size: 0.95rem;
+    color: #e65100;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.transfer-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    color: #000000;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.walking-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    opacity: 0.9;
+}
+.table-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+/* Ensure station marker column reserves enough space and marker doesn't stretch */
+.table-row.station-row .table-marker {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0; /* remove extra padding that could compress the badge */
+    box-sizing: content-box;
+}
+.station-marker {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: 0 0 14px; /* don't stretch or shrink inside flex container */
+    position: relative;
+    z-index: 3; /* keep station markers above the segment/timeline lines */
+}
+
+/* Transfer station: larger circular marker with white fill and blue stroke */
+.station-marker.transfer {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ffffff; /* fill */
+    border: 7.5px solid #1976d2; /* stroke */
+    display: inline-block;
+    box-sizing: border-box;
+    flex: 0 0 30px; /* reserve space in flex containers */
+}
+
+
+.station-marker-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #1976d2;
+    color: #fff;
+    font-weight: 800;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    line-height: 1;
+    flex: 0 0 40px; /* keep square size and avoid flex stretching */
+    position: relative;
+    z-index: 3;
+}
+
+@media (max-width: 768px) {
+    /* Reduce time column on smaller screens but still try to avoid wrapping */
+    .table-row.station-row {
+        grid-template-columns: 96px 48px 1fr;
+    }
+    .station-marker-badge { width: 36px; height: 36px; flex: 0 0 36px; font-size: 18px; }
+    /* Ensure segment rows align with station rows on tablet sizes */
+    .table-row.segment-row {
+        grid-template-columns: 78px 48px 1fr; /* time | marker | content */
+    }
+    .segment-marker-container {
+        min-width: 48px; /* match the marker column width */
+    }
+}
+
+/* start/end share .station-marker-badge styles; separate classes kept on elements only */
+.segment-line {
+    width: 7px;
+    border-radius: 4px;
+    display: block;
+}
+.transfer-icon {
+    font-size: 1.2rem;
+    color: #FF9800;
+}
+.table-station, .table-content {
+    padding: 10px 0 10px 0;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+}
+
+
+.table-station {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Disable scrolling (applied while loading is shown) */
+body.no-scroll, html.no-scroll {
+    height: 100%;
+    overflow: hidden !important;
+    touch-action: none; /* prevent touch scrolling on mobile */
+}
+
+/* Mobile: display loading as a centered overlay with a semi-transparent white backdrop */
+@media (max-width: 768px) {
+    /* Make the loading section a fixed, centered card above a white translucent backdrop */
+    /* Make the loading section a full-screen white overlay on mobile.
+       The overlay covers the entire viewport and centers the spinner + text.
+       JS will toggle the inline display to 'flex' when showing the overlay. */
+    #loading-section {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2000; /* in front of other UI */
+        width: 100%;
+        height: 100%;
+    background: rgba(255,255,255,0.85); /* semi-transparent white backdrop */
+        padding: 20px 18px;
+        border-radius: 0;
+        box-sizing: border-box;
+        text-align: center;
+        animation: fadeIn 0.5s;
+        display: none; /* controlled by app.js (will set to 'flex') */
+        /* Center children when visible; JS will set inline display to 'flex' */
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    /* Remove separate backdrop pseudo element; the overlay itself is solid white */
+    #loading-section::before { content: none; }
+
+    /* Slightly enlarge the spinner for mobile visibility */
+    #loading-section .loading-spinner {
+        width: 64px;
+        height: 64px;
+        border-width: 5px;
+        margin-bottom: 16px;
+    }
+
+    /* Ensure the loading message is visible and readable on white background */
+    #loading-section p {
+        color: #222222;
+        font-size: 1rem;
+        margin: 0;
+        line-height: 1.3;
+    }
+}
+
+/* Time styles (kept here so they're not accidentally nested) */
+.time-arrival {
+    font-size: 0.92rem;
+    line-height: 1;
+    opacity: 0.85;
+}
+.time-departure {
+    font-size: 0.92rem;
+    line-height: 1;
+    opacity: 0.85;
+}
+.time-arrival + .time-departure {
+    margin-top: 6px; /* spacing only when both arrival and departure are present */
+}
+
+/* Ensure station name and transfer time are vertically centered inside the station row */
+.table-station .station-name,
+.table-station .transfer-time {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    line-height: 1.1;
+}
+.table-station .station-name { align-self: center; }
+
+.station-name {
+    font-weight: 700;
+    font-size: 1.13rem;
+    color: #333;
+}
+.line-symbol {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--icon-color, #000);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.line-name {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #222;
+}
+.train-type-badge {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.87rem;
+    font-weight: 600;
+    color: white;
+}
+.train-type-badge.tc { background: #00aaff; }
+.train-type-badge.sx { background: #ff0000; }
+.train-type-badge.mc { background: #808080; }
+
+.segment-detail {
+    color: #888;
+    font-size: 0.93rem;
+    margin-left: 10px;
+}
+
+
+.segment-marker-container {
+    /* keep marker column predictable inside the 36px grid column */
+    display: flex !important;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0 4px;
+    height: 100%;
+    gap: 6px;
+    /* match the grid column width used for station/segment marker column (56px above) */
+    min-width: 56px;
+    box-sizing: border-box;
+        position: relative; /* needed so .segment-line can be positioned to the center of this column */
+}
+
+.marker-inner-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    justify-content: space-between;
+    min-width: 18px; /* allow the stack to fit inside the marker column */
+    max-width: 20px; /* prevent expanding beyond needed width */
+    flex: 0 0 auto; /* don't grow, just take needed space */
+    height: 100%;
+}
+
+
+.station-platform-inline {
+    background: #1976d2;
+    color: #ffffff;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    /* add 3px top/bottom spacing to avoid touching segment-row edges */
+    margin: 6px 0;
+    white-space: nowrap;
+}
+
+.platform-top {
+    align-self: flex-end;
+}
+
+.platform-bottom {
+    align-self: flex-end;
+}
+
+.platform-spacer {
+    height: 22px;
+}
+
+
+.boarding-duration {
+    color: #666;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: right;
+    margin: auto 0;
+    align-self: flex-end; 
+    padding-right: 5px;
+}
+
+
+.segment-marker-container .segment-line {
+    /* Anchor to the right inside the marker column so the line lines up with the markers' visual stack.
+       Placing via `right` is more stable than percentage offsets when inner elements have varying widths. */
+    position: absolute;
+    right: 3px;
+    left: auto;
+    top: -30px;
+    bottom: -36px;
+    width: 8px;
+    border-radius: 3px;
+    display: block;
+    z-index: 0; /* behind marker content */
+    box-sizing: border-box;
+    pointer-events: none; /* don't interfere with clicks */
+}
+
+@media (max-width: 768px) {
+.segment-marker-container .segment-line {
+    right: 10px;
+    height: calc(100% + 70px); 
+    top: -36px; 
+}
+}
+
+.transfer-label {
+    background: #fff7e0;
+    color: #e65100;
+    padding: 7px 13px;
+    border-radius: 16px;
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+
+.transfer-label.through-service {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+
+.transfer-label.type-change {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+
+.segment-line-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.segment-meta-row {
+    display: block;
+    font-size: 0.95rem;
+    color: #666;
+    margin-left: 0;
+    margin-bottom: 8px;
+    line-height: 1.7;
+}
+
+.segment-meta-row .segment-detail {
+    display: inline-block;
+    margin-right: 16px;
+}
+
+.segment-stops-row {
+    margin-left: 0;
+    margin-bottom: 0.5em;
+}
+
+/* 蜈ｨ菴薙・蟾ｦ蟇・○ */
+.table-content,
+.segment-block,
+.segment-line-row,
+.segment-meta-row,
+.segment-stops-row,
+.stops-list,
+.stop-row {
+    align-items: flex-start;
+    padding-left: 0;
+    background: transparent;
+    border: none;
+}
+
+.segment-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-left: 12px; /* spacing between segment-line and content */
+    box-sizing: border-box;
+}
+
+
+.stops-list {
+    display: none;
+    margin-top: 8px;
+    padding-left: 0;
+    background: transparent;
+    border: none;
+    text-align: left;
+}
+.stops-list.active {
+    display: block;
+}
+.stop-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    margin-bottom: 4px;
+}
+
+
+.stops-marker-list {
+    display: none;
+    position: relative;
+    width: 100%;
+}
+
+.stops-marker-list.active {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stop-marker-row {
+    display: flex;
+    justify-content: flex-end; /* push marker toward the right to align with segment-line */
+    align-items: center;
+    min-height: 30px;
+}
+
+.stop-marker {
+    /* Match main timeline marker dimensions so vertical centers align */
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 4px solid #1976d2;
+    background: #ffffff;
+    flex-shrink: 0;
+    z-index: 2;
+    margin: 0 6px 0 0; /* no top offset; right spacing to sit over the segment-line */
+    align-self: center;
+     
+     transform: translate(10px, 140px);
+    
+}
+
+@media (max-width: 768px) {
+    .stop-marker {
+        transform: translate(3px, 140px); 
+    }
+}
+
+
+.stop-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 2px;
+}
+
+.stop-name {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.stop-elapsed {
+    font-size: 0.85rem;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.segment-line-row,
+.segment-meta-row,
+.segment-stops-row {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+}
+.segment-meta-row,
+.segment-stops-row {
+    margin-left: 0;
+}
+
+/* ==================================================
+   Mobile (<=768px) overrides for PWA / full-width
+   Make route cards display edge-to-edge (no padding)
+   and remove outer card chrome so it behaves like a
+   native full-width panel on small screens.
+   ==================================================
+*/
+@media (max-width: 768px) {
+
+    /* Prevent horizontal scroll when we make elements full-bleed */
+    html, body {
+        height: 100%;
+        overflow-x: hidden;
+        padding: 0; /* remove body padding so content can reach edges */
+    }
+
+    /* Container becomes a column flex so footer is pushed to the bottom when
+       content is short. Use min-height:100svh so background (body gradient)
+       is fully covered by the white container on short pages. */
+    .container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100svh; /* ensure container fills viewport height */
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: #ffffff;
+          /* Use page-level scrolling instead of making the container a
+              scroll container. Setting `overflow: visible` ensures the body
+              (page) scrollbar is used so main + footer scroll together. */
+          overflow: visible;
+    }
+
+    /* Remove main horizontal padding so inner content can be full-bleed where needed
+       and allow main to expand to push footer to the bottom. */
+    main {
+        padding-left: 0;
+        padding-right: 0;
+        
+        flex: 1 0 auto; /* grow to fill remaining vertical space */
+    }
+
+    /* Keep search area usable but slightly reduced padding */
+    .search-section {
+        border-radius: 0;
+        padding: 14px;
+        padding-top: 140px;
+    }
+
+    /* Results should have breathing room on mobile, but station rows
+       will visually stretch to the viewport edges. */
+    .results-section {
+        /* On mobile, make results flow in the document so they push the
+           footer down and become part of the page scroll (avoid absolute
+           positioning which keeps them out of flow and can hide the footer). */
+        position: static;
+        padding: 20px;
+    }
+
+    .results-container {
+        gap: 0px;
+    }
+    /* Make station rows (the big separator rows) visually full-bleed while
+       keeping their inner content aligned with the results padding.
+       We use negative margins equal to the results padding so the row's
+       background reaches the container edges without altering internal layout. */
+    .results-section .table-row.station-row {
+        margin-left: -20px;
+        margin-right: -20px;
+        width: calc(100% + 40px);
+        box-sizing: border-box; /* ensure padding stays internal */
+        /* Keep the content aligned with other rows by re-adding inner padding */
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    /* Make the route card full width with no padding or border chrome */
+    .route-card {
+        width: 100vw; /* stretch to viewport width */
+        margin-left: calc(-1 * (100vw - 100%)/2); /* center in case container has different centering */
+        margin-right: 0;
+        border-radius: 0;
+        padding: 20px; /* user requested no padding */
+        box-shadow: none;
+        border: none;
+        background: #ffffff;
+    }
+
+    /* make the route-tabs span the full width too */
+    .route-tabs {
+        border-radius: 0;
+        margin-bottom: 0px;
+        margin-left: -20px;
+        margin-right: -20px;
+        width: calc(100% + 40px);
+    }
+
+    /* Make back button align nicely at the edges */
+    .back-to-search-btn {
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+
+     /* NOTE: Removed behavior that toggled layout when results opened.
+         The previous rules targeted `body.results-open` and changed
+         `main`/`.container` min-height and alignment based on whether
+         results were visible. That height-dependent layout switching
+         caused instability on some mobile devices and has been removed
+         to keep mobile layout stable. */
+}
+
+/* ========================================
+   Scrollable route-tabs: hide scrollbar and show chevrons
+   - When tabs overflow horizontally, show left/right chevrons
+   - Native scrollbars are hidden, user can still scroll (touch/drag/wheel)
+   - When the user starts scrolling, chevrons fade out with a transition
+======================================== */
+
+.route-tabs-wrapper {
+    position: relative; /* anchors chevrons */
+    width: 100%;
+}
+
+/* Completely hide native scrollbars but keep scrolling functional */
+.route-tabs {
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
+}
+.route-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+.route-tabs-chevron {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-70%);
+    font-size: 20px;
+    color: rgba(0,0,0,0.5);
+    pointer-events: none;
+    user-select: none;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+    line-height: 1;
+}
+.route-tabs-chevron.left { left: 10px; }
+.route-tabs-chevron.right { right: 10px; }
+
+/* When there's no overflow, keep chevrons hidden (display controlled via JS as well) */
+.route-tabs-wrapper:not(.has-overflow) .route-tabs-chevron { display: none; }
+
+/* Fade out state when the user scrolls */
+.route-tabs-wrapper.chevrons-hidden .route-tabs-chevron {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Slightly reduce visual weight on small screens */
+@media (max-width: 768px) {
+    .route-tabs-chevron { font-size: 18px; 
+    transform: translateY(-45%); }
+    .route-tabs-chevron.left { left: 0px; }
+    .route-tabs-chevron.right { right: 0px; }
+}
+
+@media (max-width: 768px) {
+    #error-section {
+        position: fixed;
+        top: 100px;
+    }
+}
+
+html {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive sizing for header help icon */
+@media (max-width: 768px) {
+    .help-button img {
+        width: 24px;
+        height: 24px;
+    }
+}
+/* 480px rules consolidated into 768px block per request */
+
+/* Mobile: center via-station items (<=768px) */
+@media (max-width: 768px) {
+    .via-station-item {
+        justify-content: center; /* center children horizontally */
+        width: 100%;
+        margin: 0 auto 30px auto;
+        box-sizing: border-box;
+        padding: 0;
+    }
+
+    /* Keep input wrapper sizing reasonable on small screens */
+    .via-station-item .input-wrapper {
+        flex: 1 1 100%;
+        max-width: 400px;
+    }
+}
+
+/* Share modal styles */
+.share-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.45);
+    z-index: 2000;
+}
+.share-modal-content {
+    background: white;
+    padding: 18px;
+    border-radius: 10px;
+    width: 92%;
+    max-width: 520px;
+    box-shadow: var(--shadow);
+}
+.share-modal-content h3 { margin: 0 0 8px 0; color: var(--primary-color); }
+.share-modal-content p { margin: 0 0 10px 0; color: #444; }
+.share-url-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    background: #f8f8f8;
+}
+.share-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.share-modal .back-to-search-btn { padding: 6px 12px; font-size: 0.95rem; }
+
+/* Center the share button under route cards */
+.share-result-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+}
+.share-result-wrapper .back-to-search-btn {
+    /* ensure it doesn't stretch full width */
+    display: inline-block;
+    min-width: 160px;
+}
+
+/* Fix: ensure lists inside the modal have visible bullets and proper left spacing
+   (some global reset rules remove default ul padding). This keeps bullets inside
+   the rounded popup and prevents them from being clipped. */
+.share-modal-content ul {
+    margin: 0.5rem 0 1rem 1.2rem; /* top/right/bottom/left */
+    padding-left: 1.05rem; /* extra space for bullets */
+    list-style-position: outside;
+    list-style-type: disc;
+    color: #444;
+}
+.share-modal-content li {
+    margin-bottom: 0.45rem;
+    line-height: 1.45;
+}
+
+/* Ensure long list items wrap nicely inside the modal without overflowing */
+.share-modal-content {
+    word-break: break-word;
+}
+
+/* Prevent mobile tap highlight (blue/cyan rectangle) on touch devices */
+/* Keeps keyboard focus rings intact for accessibility. */
+a, button, input, textarea, label, .search-mode-btn, .search-button,
+.swap-button, .add-via-button, .remove-via-button, .back-to-search-btn,
+.route-tab, .filter-item {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ========================================
+   Page-specific overrides after merge
+======================================== */
+body.about-page main,
+body.information-page main {
+    display: block;
+    justify-content: flex-start;
+    min-height: 0;
+}
+
+/* Keep top padding neutral on static pages */
+body.about-page .about-section,
+body.information-page .information-section {
+    margin-top: 0;
+    padding-top: 24px;
+}
+
+@media (max-width: 768px) {
+    body.about-page .about-section,
+    body.information-page .information-section {
+        padding-top: 20px;
+    }
+}
+
+
+
+
