@@ -8,6 +8,7 @@ let opStationMap = null;
 let opStationLinesMap = null; // stationId -> Set<lineId>
 let opStatusByLine = null;    // lineId -> latest serviceStatus
 let _loadingPreventHandlers = null;
+let opCurrentLineId = null;
 
 function getPublicWorkerApiBase() {
     const configured = String(window.REWIS_PUBLIC_DATA_SOURCE?.workerApiBase || '').trim();
@@ -62,6 +63,72 @@ function applyLineTypeIcon(el, line) {
     el.style.maskImage = `url(${iconPath})`;
 }
 
+function scoreServiceCategoryMatch(rawServiceId, categoryId) {
+    const raw = String(rawServiceId || '').trim();
+    const cat = String(categoryId || '').trim();
+    if (!raw || !cat) return -1;
+
+    if (raw === cat) return 1000;
+    if (raw.startsWith(cat + '-')) return 800 + cat.length;
+    if (cat.startsWith(raw + '-')) return 700 + raw.length;
+
+    const rawTokens = raw.split('-');
+    const catTokens = cat.split('-');
+    if (rawTokens.length === catTokens.length) {
+        let compatible = true;
+        for (let i = 0; i < rawTokens.length; i++) {
+            const rt = rawTokens[i];
+            const ct = catTokens[i];
+            if (!(rt === ct || ct.endsWith(rt) || rt.endsWith(ct))) {
+                compatible = false;
+                break;
+            }
+        }
+        if (compatible) return 600 + cat.length;
+    }
+
+    const rawHead = rawTokens[0];
+    const catHead = catTokens[0];
+    if (rawHead && rawHead === catHead) return 100;
+
+    return -1;
+}
+
+function matchServiceCategoryIdForSegment(seg, cats) {
+    if (!seg || !Array.isArray(cats) || cats.length === 0) return null;
+
+    if (seg.guidance) {
+        const byGuidance = cats.find(c => c[1] === seg.guidance);
+        if (byGuidance) return byGuidance[0];
+    }
+
+    const prefix = `SGM-${seg.lineId}-`;
+    const suffix = `-${seg.fromStationId}-${seg.toStationId}`;
+    if (!seg.segmentId || !seg.segmentId.startsWith(prefix) || !seg.segmentId.endsWith(suffix)) {
+        return null;
+    }
+
+    const rawServiceId = seg.segmentId.substring(prefix.length, seg.segmentId.length - suffix.length);
+
+    let bestCat = null;
+    let bestScore = -1;
+    cats.forEach(cat => {
+        const score = scoreServiceCategoryMatch(rawServiceId, cat[0]);
+        if (score > bestScore) {
+            bestScore = score;
+            bestCat = cat[0];
+        }
+    });
+
+    return bestScore >= 0 ? bestCat : null;
+}
+
+function formatVerticalServiceLabel(label) {
+    return String(label || '')
+        .replace(/\(/g, '（')
+        .replace(/\)/g, '）');
+}
+
 // データ読み込み
 async function loadOperationData() {
     try {
@@ -71,12 +138,86 @@ async function loadOperationData() {
         opData = await fetchPublicDataWithFallback();
         buildOperationIndexes();
         renderLineListView();
+        loadOperationFromUrlParams();
     } catch (err) {
         console.error(err);
         showError('運行情報の取得に失敗しました。時間をおいて再度お試しください。');
     } finally {
         hideLoading();
     }
+}
+
+function setOperationUrlLineParam(lineId, useReplace) {
+    try {
+        const urlObj = new URL(window.location.href);
+        const params = new URLSearchParams();
+
+        if (lineId) {
+            params.set('line', lineId);
+        } else {
+            params.delete('line');
+        }
+
+        const query = params.toString();
+        const newUrl = `${urlObj.pathname}${query ? '?' + query : ''}`;
+        if (useReplace) {
+            window.history.replaceState({}, '', newUrl);
+        } else {
+            window.history.pushState({}, '', newUrl);
+        }
+    } catch (e) {
+        console.warn('URL更新に失敗しました:', e);
+    }
+}
+
+function loadOperationFromUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const lineId = params.get('line');
+    if (!lineId) return;
+
+    if (opLineMap && opLineMap.has(lineId)) {
+        showLineDetail(lineId, { syncUrl: false });
+    } else {
+        setOperationUrlLineParam(null, true);
+    }
+}
+
+function handleOperationPopState() {
+    const params = new URLSearchParams(window.location.search);
+    const lineId = params.get('line');
+    if (lineId && opLineMap && opLineMap.has(lineId)) {
+        showLineDetail(lineId, { syncUrl: false });
+    } else {
+        hideLineDetail({ syncUrl: false });
+    }
+}
+
+function scrollOperationTopOnMobile() {
+    if (!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches)) {
+        return;
+    }
+
+    // Wait for layout to settle after view switching, then force top position.
+    requestAnimationFrame(() => {
+        const container = document.querySelector('.container');
+        if (container) {
+            container.scrollTop = 0;
+            try {
+                container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            } catch (e) {
+                /* ignore */
+            }
+        }
+
+        const root = document.scrollingElement || document.documentElement;
+        if (root) root.scrollTop = 0;
+        document.body.scrollTop = 0;
+        try {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        } catch (e) {
+            window.scrollTo(0, 0);
+        }
+    });
 }
 
 function buildOperationIndexes() {
@@ -172,9 +313,12 @@ function renderLineListView() {
     container.innerHTML = '';
 
     const ownCompanyId = opData.meta?.ownCompanyId || 'KT';
-    const mainCompanies = [ownCompanyId, 'HRA'];
+    
+    // 登録されている全ての会社を取得し、自社(ownCompanyId)を先頭にする
+    const allCompanyIds = opData.companies.map(c => c.companyId);
+    const targetCompanies = [ownCompanyId, ...allCompanyIds.filter(id => id !== ownCompanyId)];
 
-    mainCompanies.forEach(companyId => {
+    targetCompanies.forEach(companyId => {
         const company = opCompanyMap.get(companyId);
         if (!company) return;
 
@@ -259,7 +403,7 @@ function renderLineListView() {
             card.appendChild(chevron);
 
             card.addEventListener('click', () => {
-                showLineDetail(line.lineId);
+                showLineDetail(line.lineId, { syncUrl: true });
             });
 
             cardsWrap.appendChild(card);
@@ -271,9 +415,13 @@ function renderLineListView() {
 }
 
 // 詳細ビュー表示
-function showLineDetail(lineId) {
+function showLineDetail(lineId, options) {
+    const opts = options || {};
+    const syncUrl = opts.syncUrl !== false;
+
     const line = opLineMap.get(lineId);
     if (!line) return;
+    opCurrentLineId = lineId;
 
     const listView = document.getElementById('operation-section');
     const detailView = document.getElementById('line-detail-view');
@@ -290,14 +438,138 @@ function showLineDetail(lineId) {
 
     renderLineAlertBox(lineId);
     renderLineDiagram(lineId);
+    ensureLineShareButton();
+    scrollOperationTopOnMobile();
+
+    if (syncUrl) {
+        setOperationUrlLineParam(lineId, false);
+    }
 }
 
-function hideLineDetail() {
+function hideLineDetail(options) {
+    const opts = options || {};
+    const syncUrl = opts.syncUrl !== false;
+
     const listView = document.getElementById('operation-section');
     const detailView = document.getElementById('line-detail-view');
     detailView.style.display = 'none';
     detailView.setAttribute('aria-hidden', 'true');
     listView.style.display = 'block';
+    opCurrentLineId = null;
+
+    if (syncUrl) {
+        setOperationUrlLineParam(null, false);
+    }
+}
+
+function showShareDialog(url) {
+    let existing = document.getElementById('share-modal');
+    if (existing) {
+        const input = existing.querySelector('.share-url-input');
+        if (input) input.value = url;
+        existing.style.display = 'flex';
+        try { existing.querySelector('.share-url-input').select(); } catch (e) {}
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'share-modal';
+    modal.className = 'share-modal';
+
+    modal.innerHTML = `
+        <div class="share-modal-content" role="dialog" aria-modal="true" aria-label="路線を共有">
+            <h3>路線を共有する</h3>
+            <p>以下のURLを共有してください。</p>
+            <input class="share-url-input" type="text" readonly aria-label="共有URL">
+            <div class="share-modal-actions">
+                <button type="button" class="back-to-search-btn share-copy-btn">コピー</button>
+                <button type="button" class="back-to-search-btn share-native-btn">共有</button>
+                <button type="button" class="back-to-search-btn share-close-btn">閉じる</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const input = modal.querySelector('.share-url-input');
+    const copyBtn = modal.querySelector('.share-copy-btn');
+    const nativeBtn = modal.querySelector('.share-native-btn');
+    const closeBtn = modal.querySelector('.share-close-btn');
+
+    input.value = url;
+    try { input.select(); } catch (e) {}
+
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(input.value);
+            copyBtn.textContent = 'コピーしました';
+            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
+        } catch (err) {
+            try { input.select(); } catch (e) {}
+            copyBtn.textContent = 'クリップボード失敗';
+            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
+        }
+    });
+
+    nativeBtn.addEventListener('click', async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: document.title, url: input.value });
+            } catch (e) { /* user cancelled or failed */ }
+        } else {
+            try {
+                await navigator.clipboard.writeText(input.value);
+                nativeBtn.textContent = 'コピーしました';
+                setTimeout(() => { nativeBtn.textContent = '共有'; }, 1500);
+            } catch (err) {
+                try { input.select(); } catch (e) {}
+            }
+        }
+    });
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (ev) => {
+        if (ev.target === modal) closeModal();
+    });
+}
+
+function ensureLineShareButton() {
+    const detailView = document.getElementById('line-detail-view');
+    if (!detailView) return;
+
+    let wrapper = document.getElementById('line-share-wrapper');
+    if (!wrapper) {
+        wrapper = document.createElement('div');
+        wrapper.id = 'line-share-wrapper';
+        wrapper.className = 'share-result-wrapper';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'back-to-search-btn share-result-btn';
+        btn.id = 'share-line-btn';
+        btn.textContent = '路線を共有する';
+
+        btn.addEventListener('click', () => {
+            const lineId = opCurrentLineId;
+            if (!lineId) return;
+            try {
+                const urlObj = new URL(window.location.href);
+                const params = new URLSearchParams();
+                params.set('line', lineId);
+                const shareUrl = `${urlObj.origin}${urlObj.pathname}?${params.toString()}`;
+                showShareDialog(shareUrl);
+            } catch (e) {
+                showShareDialog(window.location.href);
+            }
+        });
+
+        wrapper.appendChild(btn);
+        detailView.appendChild(wrapper);
+    }
 }
 
 // アラート枠
@@ -372,24 +644,10 @@ function renderLineDiagram(lineId) {
     // 2. セグメントから停車駅を推測収集
     opData.segments.forEach(seg => {
         if (seg.lineId !== lineId) return;
-        const prefix = `SGM-${lineId}-`;
-        const suffix = `-${seg.fromStationId}-${seg.toStationId}`;
-        if (seg.segmentId.startsWith(prefix) && seg.segmentId.endsWith(suffix)) {
-            const rawServiceId = seg.segmentId.substring(prefix.length, seg.segmentId.length - suffix.length);
-            let matchedCat = null;
-            for (const cat of cats) {
-                if (rawServiceId === cat[0] ||
-                    rawServiceId.startsWith(cat[0] + '-') ||
-                    cat[0].startsWith(rawServiceId + '-') ||
-                    rawServiceId.split('-')[0] === cat[0].split('-')[0]) {
-                    matchedCat = cat[0];
-                    break;
-                }
-            }
-            if (matchedCat) {
-                stopsByCat[matchedCat].add(seg.fromStationId);
-                stopsByCat[matchedCat].add(seg.toStationId);
-            }
+        const matchedCat = matchServiceCategoryIdForSegment(seg, cats);
+        if (matchedCat) {
+            stopsByCat[matchedCat].add(seg.fromStationId);
+            stopsByCat[matchedCat].add(seg.toStationId);
         }
     });
 
@@ -452,7 +710,7 @@ function renderLineDiagram(lineId) {
     cats.forEach(c => {
         const lbl = document.createElement('div');
         lbl.className = 'service-label';
-        lbl.textContent = c[1];
+        lbl.textContent = formatVerticalServiceLabel(c[1]);
         headerDiagram.appendChild(lbl);
     });
 
@@ -703,7 +961,7 @@ function initializeOperationUI() {
     if (closeBtn) closeBtn.addEventListener('click', closeBottomSheet);
 
     const backBtn = document.getElementById('back-to-list-btn');
-    if (backBtn) backBtn.addEventListener('click', hideLineDetail);
+    if (backBtn) backBtn.addEventListener('click', () => hideLineDetail({ syncUrl: true }));
 
     // Error popup close button
     const errorCloseBtn = document.getElementById('error-close');
@@ -739,6 +997,8 @@ function initializeOperationUI() {
     document.querySelectorAll('a[data-noop="true"], a.is-current-page').forEach(link => {
         link.addEventListener('click', (e) => e.preventDefault());
     });
+
+    window.addEventListener('popstate', handleOperationPopState);
 }
 
 // ローディング表示

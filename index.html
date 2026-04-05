@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ホーム - REWIS</title>
+    <meta property="og:title" content="ホーム - REWIS">
+    <meta property="og:description" content="情報で、世界がつながる。Kトライア瑠璃の鉄道情報システム REWIS">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://k-triar.github.io/rewis/">
+    <meta property="og:site_name" content="REWIS">
+    <meta name="twitter:card" content="summary">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
@@ -418,6 +424,13 @@
                 return query ? `transfer.html?${query}` : 'transfer.html';
             }
 
+            function buildOperationLineUrl(lineId) {
+                if (!lineId) return 'operation.html';
+                const params = new URLSearchParams();
+                params.set('line', lineId);
+                return `operation.html?${params.toString()}`;
+            }
+
             function showSearchError(message) {
                 errorEl.textContent = message;
                 errorEl.hidden = false;
@@ -428,7 +441,7 @@
                 errorEl.hidden = true;
             }
 
-            function renderStatusCard(lineName, statusRecord, extraText = '') {
+            function renderStatusCard(lineName, statusRecord, extraText = '', lineId = null, forceLink = false) {
                 const summary = classifyStatus(statusRecord);
                 const card = document.createElement('article');
                 card.className = `home-status-card home-status-card--${summary.tone}`;
@@ -449,6 +462,25 @@
                 card.appendChild(heading);
                 card.appendChild(body);
 
+                if (lineId || forceLink) {
+                    const destination = buildOperationLineUrl(lineId);
+                    card.classList.add('home-status-card--link');
+                    card.setAttribute('role', 'link');
+                    card.tabIndex = 0;
+                    card.setAttribute('aria-label', `${lineName}の運行情報を開く`);
+
+                    card.addEventListener('click', () => {
+                        window.location.href = destination;
+                    });
+
+                    card.addEventListener('keydown', (ev) => {
+                        if (ev.key === 'Enter' || ev.key === ' ') {
+                            ev.preventDefault();
+                            window.location.href = destination;
+                        }
+                    });
+                }
+
                 return card;
             }
 
@@ -461,7 +493,7 @@
                 const cards = [];
                 targetLineNames.forEach(name => {
                     const line = lineMap.get(name) || null;
-                    cards.push(renderStatusCard(name, line ? latestStatusByLine.get(line.lineId) : null));
+                    cards.push(renderStatusCard(name, line ? latestStatusByLine.get(line.lineId) : null, '', line ? line.lineId : null));
                 });
 
                 let otherStatus = null;
@@ -475,8 +507,8 @@
                     }
                 });
 
-                const otherSummary = otherLines.length > 0 ? `${otherLines.length}路線をまとめて表示` : '対象となる路線はありません。';
-                cards.push(renderStatusCard('その他', otherStatus, otherSummary));
+                const otherSummary = otherLines.length > 0 ? `すべての路線を表示` : '対象となる路線はありません。';
+                cards.push(renderStatusCard('その他', otherStatus, otherSummary, null, true));
 
                 gridEl.innerHTML = '';
                 cards.forEach(card => gridEl.appendChild(card));

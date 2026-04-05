@@ -330,6 +330,21 @@ body.home-page main {
     gap: 8px;
 }
 
+.home-status-card--link {
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.home-status-card--link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.home-status-card--link:focus-visible {
+    outline: 3px solid rgba(0, 120, 215, 0.35);
+    outline-offset: 2px;
+}
+
 .home-status-card--normal {
     border-color: rgba(34, 197, 94, 0.18);
 }

@@ -397,7 +397,6 @@ header h1 {
     background: #fff;
     border-radius: 16px;
     padding: 20px 16px 24px;
-    box-shadow: var(--shadow);
     position: relative;
 }
 
@@ -622,7 +621,6 @@ header h1 {
     background: #fff;
     border-radius: 16px;
     padding: 20px 16px 24px;
-    box-shadow: var(--shadow);
 }
 
 .line-detail-header {
@@ -755,7 +753,7 @@ header h1 {
 .service-label {
     width: 32px;
     writing-mode: vertical-rl;
-    text-orientation: upright;
+    text-orientation: mixed;
     font-size: 0.85rem;
     font-weight: 700;
     color: #020C38;
@@ -1645,7 +1643,6 @@ main {
     background: #fff;
     border-radius: 16px;
     padding: 24px 32px;
-    box-shadow: var(--shadow);
 }
 .about-section h2 {
     margin-bottom: 24px;
@@ -2147,7 +2144,6 @@ main {
     background: #fff;
     border-radius: 16px;
     padding: 24px 32px;
-    box-shadow: var(--shadow);
 }
 .information-section h2 {
     margin-bottom: 24px;
@@ -4887,7 +4883,7 @@ html {
 .share-result-wrapper .back-to-search-btn {
     /* ensure it doesn't stretch full width */
     display: inline-block;
-    min-width: 160px;
+    min-width: 80px;
 }
 
 /* Fix: ensure lists inside the modal have visible bullets and proper left spacing
@@ -4942,7 +4938,3 @@ body.information-page .information-section {
         padding-top: 20px;
     }
 }
-
-
-
-
