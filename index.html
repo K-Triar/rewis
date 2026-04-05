@@ -10,6 +10,13 @@
     <meta property="og:url" content="https://k-triar.github.io/rewis/">
     <meta property="og:site_name" content="REWIS">
     <meta name="twitter:card" content="summary">
+    <meta name="theme-color" content="#003366">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="REWIS">
+    <link rel="icon" type="image/png" href="kt_luli_logo.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="kt_luli_logo.png">
+    <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
@@ -657,6 +664,18 @@
 
             init();
         })();
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/rewis/service-worker.js', { scope: '/rewis/' })
+                .then((registration) => {
+                    console.log('Service Worker 登録成功:', registration);
+                })
+                .catch((error) => {
+                    console.error('Service Worker 登録失敗:', error);
+                });
+        }
     </script>
 </body>
 </html>
