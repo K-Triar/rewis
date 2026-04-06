@@ -272,7 +272,18 @@ function switchSection(sectionId) {
     document.querySelectorAll('.edit-section').forEach(section => {
         section.classList.toggle('active', section.id === sectionId);
     });
-    renderSection(sectionId);
+    renderSectionAsync(sectionId);
+}
+
+async function renderSectionAsync(sectionId) {
+    if (sectionId === 'history') {
+        renderWorkerHistorySection();
+        if (!_workerHistoryLoaded) {
+            await loadWorkerHistory(false);
+        }
+    } else {
+        renderSection(sectionId);
+    }
 }
 
 async function tryLoadExistingData() {
@@ -602,26 +613,36 @@ async function loadWorkerHistory(showAlertOnError = false) {
         return;
     }
 
+    console.log('[History] 取得開始: ', base);
     setWorkerHistoryStatus('履歴を取得中...', false);
 
     const doFetch = async () => {
         const headers = {};
         if (isWorkerAuthValid()) {
+            console.log('[History] 認証トークンを使用');
             headers.Authorization = 'Bearer ' + _workerAuthToken;
+        } else {
+            console.log('[History] 認証なしで取得を試みる');
         }
-        return fetch(base + '/data/history?limit=50', {
+        const url = base + '/data/history?limit=50';
+        console.log('[History] リクエスト URL: ', url);
+        return fetch(url, {
             method: 'GET',
-            headers
+            headers,
+            cache: 'no-store'
         });
     };
 
     try {
         let response = await doFetch();
+        console.log('[History] レスポンスステータス: ', response.status);
 
         if (response.status === 401) {
+            console.log('[History] 401認証エラー。認証を試みる...');
             clearWorkerAuthSession(false);
             const authOk = await authenticateWorkerUser(false);
             if (!authOk) {
+                console.log('[History] 認証失敗');
                 _workerHistoryItems = [];
                 _workerHistoryLoaded = false;
                 renderWorkerHistorySection();
@@ -629,20 +650,35 @@ async function loadWorkerHistory(showAlertOnError = false) {
                 if (showAlertOnError) alert('履歴取得には認証が必要です。');
                 return;
             }
+            console.log('[History] 認証成功。再度リクエスト...');
             response = await doFetch();
         }
 
         if (!response.ok) {
-            throw new Error('HTTP ' + response.status);
+            const errorText = await response.text();
+            console.log('[History] エラーレスポンス: ', response.status, errorText);
+            throw new Error('HTTP ' + response.status + ': ' + errorText.substring(0, 100));
         }
 
-        const payload = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        console.log('[History] Content-Type: ', contentType);
+        let payload;
+        try {
+            payload = await response.json();
+            console.log('[History] JSONパース成功: ', payload);
+        } catch (e) {
+            const text = await response.text();
+            console.error('[History] JSONパースエラー: ', e, '本体:', text);
+            throw new Error('レスポンスが有効なJSON形式ではありません: ' + e.message);
+        }
         const items = Array.isArray(payload.items) ? payload.items : [];
+        console.log('[History] 履歴アイテム数: ', items.length);
         _workerHistoryItems = items;
         _workerHistoryLoaded = true;
         renderWorkerHistorySection();
         setWorkerHistoryStatus(`履歴 ${items.length} 件を表示中`, true);
     } catch (error) {
+        console.error('[History] 取得エラー: ', error);
         _workerHistoryItems = [];
         _workerHistoryLoaded = false;
         renderWorkerHistorySection();
@@ -661,12 +697,6 @@ function renderSection(sectionId) {
         case 'through-services': renderThroughServices(); break;
         case 'platform-transfers': renderPlatformTransfers(); break;
         case 'service-statuses': renderServiceStatuses(); break;
-        case 'history':
-            renderWorkerHistorySection();
-            if (!_workerHistoryLoaded) {
-                loadWorkerHistory(false);
-            }
-            break;
         case 'help': break; // 使い方セクションは静的HTMLなので処理不要
     }
     // 各テーブルのヘッダにソートボタンを有効化（表示のみのクライアントソート）

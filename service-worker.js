@@ -36,10 +36,17 @@ self.addEventListener('fetch', (event) => {
   const isSameOrigin = requestUrl.origin === self.location.origin;
   const isHtmlRequest = event.request.mode === 'navigate' || event.request.destination === 'document';
   const isJsonRequest = requestUrl.pathname.endsWith('.json');
+  const isWorkerApiRequest = requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.includes('/data/');
 
-  // HTML/JSON は常に最新を優先（失敗時のみキャッシュにフォールバック）
+  // Worker API リクエスト（/api/*、/data/latest など）は常にネットワーク優先で、キャッシュ保存しない
+  if (isSameOrigin && isWorkerApiRequest) {
+    event.respondWith(networkOnlyNoCache(event.request));
+    return;
+  }
+
+  // HTML/JSON は通常のネットワーク優先（ただしキャッシュリフレッシュ機構を使用）
   if (isSameOrigin && (isHtmlRequest || isJsonRequest)) {
-    event.respondWith(networkFirst(event.request));
+    event.respondWith(networkFirstWithValidation(event.request));
     return;
   }
 
@@ -47,13 +54,34 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(cacheFirst(event.request));
 });
 
-async function networkFirst(request) {
+// Worker APIはキャッシュせずにネットワークオンリー
+async function networkOnlyNoCache(request) {
+  try {
+    console.log('Worker API リクエスト（ネットワークのみ）:', request.url);
+    const response = await fetch(request);
+    console.log('Worker API レスポンス:', response.status, response.statusText);
+    return response;
+  } catch (error) {
+    console.error('Worker API リクエスト失敗:', error);
+    // キャッシュなしなのでエラーをそのまま返す
+    throw error;
+  }
+}
+
+// ネットワーク優先だが、レスポンスヘッダを検査してキャッシュを更新
+async function networkFirstWithValidation(request) {
   try {
     const response = await fetch(request);
 
     if (response && response.status === 200 && response.type !== 'error') {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
+      // キャッシュ制御ヘッダを確認
+      const cacheControl = response.headers.get('cache-control') || '';
+      
+      // Cache-Control に no-store または no-cache がない場合のみキャッシュ保存
+      if (!cacheControl.includes('no-store') && !cacheControl.includes('no-cache')) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, response.clone());
+      }
     }
 
     return response;
