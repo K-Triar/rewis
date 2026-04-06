@@ -30,6 +30,7 @@
             <button class="nav-btn" data-section="platform-transfers">のりば乗換</button>
             <button class="nav-btn" data-section="service-statuses">運行状況</button>
             <button class="nav-btn" data-section="export">保存/読込</button>
+            <button class="nav-btn" data-section="history">履歴</button>
             <button class="nav-btn" data-section="help">使い方</button>
         </nav>
 
@@ -95,6 +96,7 @@
                                 <th style="width: 250px;">路線名</th>
                                 <th style="width: 150px;">運営会社名</th>
                                 <th style="width: 100px;">路線カラー</th>
+                                <th style="width: 100px;">列車種別</th>
                                 <th style="width: 180px;">案内種別</th>
                                 <th style="width: 220px;">駅順序</th>
                                 <th style="width: 120px;">操作</th>
@@ -405,6 +407,36 @@
                     <h3>プレビュー</h3>
                     <button class="preview-btn" onclick="togglePreview()">表示/非表示</button>
                     <pre id="json-preview" style="display: none;"></pre>
+                </div>
+            </section>
+
+            <!-- 履歴セクション -->
+            <section id="history" class="edit-section">
+                <div class="section-header">
+                    <h2>履歴</h2>
+                    <button class="preview-btn" onclick="loadWorkerHistory(true)">更新</button>
+                </div>
+
+                <div class="export-card">
+                    <h3>Cloudflare Workers 保存履歴</h3>
+                    <p>Workers API URL が設定されている場合、外部正本の保存履歴を表示します。</p>
+                    <div id="worker-history-status" class="worker-auth-status">未取得</div>
+                    <div class="table-container" style="max-height: 520px; overflow: auto; margin-top: 8px;">
+                        <table class="data-table" id="history-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">#</th>
+                                    <th style="width: 260px;">保存日時</th>
+                                    <th style="width: 200px;">更新者</th>
+                                    <th style="width: 180px;">クライアント</th>
+                                    <th>キー</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <tr><td colspan="5" style="text-align:center; color:#666;">履歴未取得</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 

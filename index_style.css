@@ -8,6 +8,12 @@ body.home-page {
     background: #f0f0f0;
 }
 
+@media (hover: none) and (pointer: coarse) {
+    body.home-page * {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
 /* Keep header dimensions identical to the shared stylesheet. */
 body.home-page header {
     padding: 10px 0;

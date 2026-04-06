@@ -30,6 +30,8 @@ const WORKER_AUTH_EXPIRES_KEY = 'rewis_worker_token_expires_at';
 const WORKER_AUTH_USER_KEY = 'rewis_worker_user_id';
 let _workerAuthToken = null;
 let _workerAuthExpiresAt = 0;
+let _workerHistoryItems = [];
+let _workerHistoryLoaded = false;
 // beforeunload handler (use provided code behavior)
 function _beforeUnloadHandler(event) {
     event.preventDefault();
@@ -129,12 +131,13 @@ function initializeNavigation() {
                 2: (it) => it.lineName || '',
                 3: (it) => (typeof getCompanyNameById === 'function') ? (getCompanyNameById(it.companyId) || it.companyId || '') : (it.companyId || ''),
                 4: (it) => it.lineColor || '',
-                5: (it) => (it.serviceCategories && it.serviceCategories.length) ? it.serviceCategories.map(c => {
+                5: (it) => it.trainType || '',
+                6: (it) => (it.serviceCategories && it.serviceCategories.length) ? it.serviceCategories.map(c => {
                     const id = Array.isArray(c) ? (c[0] || (c[1] || '')) : (c || '');
                     const label = Array.isArray(c) ? (c[1] || c[0]) : c;
                     return `${id},${label}`;
                 }).join(',') : '',
-                6: (it) => (it.stationOrder && Array.isArray(it.stationOrder)) ? it.stationOrder.map(s => (typeof s === 'string' ? s : (s.stationId || ''))).join(',') : ''
+                7: (it) => (it.stationOrder && Array.isArray(it.stationOrder)) ? it.stationOrder.map(s => (typeof s === 'string' ? s : (s.stationId || ''))).join(',') : ''
             }
         },
         'stations-table': {
@@ -544,6 +547,110 @@ async function loadFromWorkerSource() {
     }
 }
 
+function setWorkerHistoryStatus(message, success) {
+    const el = document.getElementById('worker-history-status');
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = success ? '#080' : '#444';
+}
+
+function formatHistoryDateTime(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
+function renderWorkerHistorySection() {
+    const tbody = document.getElementById('history-tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    if (!_workerHistoryItems || _workerHistoryItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#666;">履歴はありません</td></tr>';
+        return;
+    }
+
+    _workerHistoryItems.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="row-number">${index + 1}</td>
+            <td>${esc(formatHistoryDateTime(item.savedAt || item.updatedAt || ''))}</td>
+            <td>${esc(item.updatedBy || '')}</td>
+            <td>${esc(item.client || '')}</td>
+            <td>${esc(item.key || '')}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function loadWorkerHistory(showAlertOnError = false) {
+    const base = getWorkerBaseUrl();
+    if (!base) {
+        _workerHistoryItems = [];
+        _workerHistoryLoaded = false;
+        renderWorkerHistorySection();
+        setWorkerHistoryStatus('Workers API URL を設定してください。', false);
+        if (showAlertOnError) alert('Workers API URL を設定してください。');
+        return;
+    }
+
+    setWorkerHistoryStatus('履歴を取得中...', false);
+
+    const doFetch = async () => {
+        const headers = {};
+        if (isWorkerAuthValid()) {
+            headers.Authorization = 'Bearer ' + _workerAuthToken;
+        }
+        return fetch(base + '/data/history?limit=50', {
+            method: 'GET',
+            headers
+        });
+    };
+
+    try {
+        let response = await doFetch();
+
+        if (response.status === 401) {
+            clearWorkerAuthSession(false);
+            const authOk = await authenticateWorkerUser(false);
+            if (!authOk) {
+                _workerHistoryItems = [];
+                _workerHistoryLoaded = false;
+                renderWorkerHistorySection();
+                setWorkerHistoryStatus('認証が必要です。認証テストを実行してください。', false);
+                if (showAlertOnError) alert('履歴取得には認証が必要です。');
+                return;
+            }
+            response = await doFetch();
+        }
+
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload.items) ? payload.items : [];
+        _workerHistoryItems = items;
+        _workerHistoryLoaded = true;
+        renderWorkerHistorySection();
+        setWorkerHistoryStatus(`履歴 ${items.length} 件を表示中`, true);
+    } catch (error) {
+        _workerHistoryItems = [];
+        _workerHistoryLoaded = false;
+        renderWorkerHistorySection();
+        setWorkerHistoryStatus('履歴取得に失敗: ' + error.message, false);
+        if (showAlertOnError) alert('履歴取得に失敗しました: ' + error.message);
+    }
+}
+
 function renderSection(sectionId) {
     switch (sectionId) {
         case 'companies': renderCompanies(); break;
@@ -554,6 +661,12 @@ function renderSection(sectionId) {
         case 'through-services': renderThroughServices(); break;
         case 'platform-transfers': renderPlatformTransfers(); break;
         case 'service-statuses': renderServiceStatuses(); break;
+        case 'history':
+            renderWorkerHistorySection();
+            if (!_workerHistoryLoaded) {
+                loadWorkerHistory(false);
+            }
+            break;
         case 'help': break; // 使い方セクションは静的HTMLなので処理不要
     }
     // 各テーブルのヘッダにソートボタンを有効化（表示のみのクライアントソート）
@@ -693,7 +806,7 @@ function getNoticeLabelByCode(code, lineId) {
 const REQUIRED_COLUMNS_BY_TABLE = {
     'companies-table': [ false, true, true, false, false ],
     'train-types-table': [ false, true, true, true, true, true, false ],
-    'lines-table': [ false, true, true, true, true, false, false, false ],
+    'lines-table': [ false, true, true, true, true, false, false, false, false ],
     'stations-table': [ false, true, true, true, true, true, false ],
     'segments-table': [ false, true, true, true, true, true, true, true, true, true, true, false, false, false ],
     'through-services-table': [ false, true, true, true, true, true, false, false, false ],
@@ -1001,6 +1114,24 @@ function deleteTrainType(index) {
 }
 
 // 路線
+function getLineTrainTypeOptions() {
+    const fixedDefaults = ['TC', 'SX', 'MC'];
+    const fromMaster = (appData.trainTypes || []).map(t => String(t.trainTypeId || '').trim()).filter(Boolean);
+    const uniq = [];
+    [...fixedDefaults, ...fromMaster].forEach(id => {
+        if (!uniq.includes(id)) uniq.push(id);
+    });
+    return uniq;
+}
+
+function getTrainTypeLabel(trainTypeId) {
+    const id = String(trainTypeId || '').trim();
+    if (!id) return '';
+    const t = (appData.trainTypes || []).find(x => String(x.trainTypeId || '').trim() === id);
+    if (!t) return id;
+    return t.trainTypeNameShort || t.trainTypeName || t.trainTypeId || id;
+}
+
 function renderLines() {
     const tbody = document.getElementById('lines-tbody');
     tbody.innerHTML = '';
@@ -1020,6 +1151,7 @@ function renderLines() {
             <td>${esc(line.lineName)}</td>
             <td>${esc(getCompanyNameById(line.companyId) || line.companyId)}</td>
             <td><input type="color" value="${line.lineColor}" disabled style="width: 100%;"></td>
+            <td>${esc(getTrainTypeLabel(line.trainType || ''))}</td>
             <td>${(line.serviceCategories && line.serviceCategories.length) ? line.serviceCategories.map(c => {
                 const id = Array.isArray(c) ? (c[0] || (c[1] || '')) : (c || '');
                 const label = Array.isArray(c) ? (c[1] || c[0]) : c;
@@ -1044,7 +1176,7 @@ function addLine() {
     // generate a visually-uniform random color by sampling H (hue) uniformly
     // and choosing reasonable S/L ranges so colors are vivid but not too dark/light.
     const color = randomNiceHexColor();
-    appData.lines.push({lineId: '', lineName: '', companyId: '', lineColor: color, throughServices: []});
+    appData.lines.push({lineId: '', lineName: '', companyId: '', lineColor: color, trainType: 'TC', throughServices: []});
     renderLines();
     editLineRow(appData.lines.length - 1);
     scrollToSectionBottom('lines');
@@ -1087,12 +1219,22 @@ function editLineRow(index) {
     const opts = appData.companies.map(c => 
         `<option value="${esc(c.companyId)}" ${c.companyId === l.companyId ? 'selected' : ''}>${esc(c.companyName)}</option>`
     ).join('');
+    const trainTypeOptions = getLineTrainTypeOptions();
+    const selectedTrainType = (l.trainType || '').trim() || 'TC';
+    if (selectedTrainType && !trainTypeOptions.includes(selectedTrainType)) {
+        trainTypeOptions.push(selectedTrainType);
+    }
+    const trainTypeOpts = trainTypeOptions.map(id => {
+        const label = getTrainTypeLabel(id);
+        return `<option value="${esc(id)}" ${id === selectedTrainType ? 'selected' : ''}>${esc(id)}${label && label !== id ? ' (' + esc(label) + ')' : ''}</option>`;
+    }).join('');
     tr.innerHTML = `
         <td class="row-number">${index + 1}</td>
         <td><input type="text" value="${esc(l.lineId)}" id="eli-${index}" required></td>
         <td><input type="text" value="${esc(l.lineName)}" id="eln-${index}" required></td>
         <td><select id="elc-${index}" required>${opts}</select></td>
         <td><input type="color" value="${l.lineColor}" id="elco-${index}" required></td>
+        <td><select id="elt-${index}" required>${trainTypeOpts}</select></td>
             <td>
             <div id="el-sc-${index}" style="min-height:28px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px; border:1px solid #ddd; background:#fafafa;">
             </div>
@@ -1165,8 +1307,7 @@ function saveLine(index) {
         lineName: document.getElementById('eln-' + index).value,
         companyId: document.getElementById('elc-' + index).value,
         lineColor: document.getElementById('elco-' + index).value,
-        // keep trainType as in data.json (UI does not edit this)
-        trainType: prev.trainType || '',
+        trainType: document.getElementById('elt-' + index).value,
         throughServices: prev.throughServices || [],
         serviceCategories: prev.serviceCategories || [],
         stationOrder: prev.stationOrder || []

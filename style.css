@@ -4906,12 +4906,12 @@ html {
     word-break: break-word;
 }
 
-/* Prevent mobile tap highlight (blue/cyan rectangle) on touch devices */
-/* Keeps keyboard focus rings intact for accessibility. */
-a, button, input, textarea, label, .search-mode-btn, .search-button,
-.swap-button, .add-via-button, .remove-via-button, .back-to-search-btn,
-.route-tab, .filter-item {
-    -webkit-tap-highlight-color: transparent;
+/* Disable WebKit tap highlight on all public pages for mobile touch interactions.
+   editor.html is unaffected because it uses editor.css (not this file). */
+@media (hover: none) and (pointer: coarse) {
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
 }
 
 

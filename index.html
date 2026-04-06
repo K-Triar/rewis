@@ -667,6 +667,87 @@
     </script>
 
     <script>
+        function openBottomSheet() {
+            const sheet = document.getElementById('bottom-sheet');
+            const btn = document.getElementById('mb-menu-btn');
+            const backdrop = document.getElementById('sheet-backdrop');
+            if (!sheet) return;
+            if (btn) btn.classList.add('active');
+            sheet.classList.add('open');
+            sheet.setAttribute('aria-hidden', 'false');
+            if (backdrop) {
+                backdrop.classList.add('open');
+                backdrop.setAttribute('aria-hidden', 'false');
+            }
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeBottomSheet() {
+            const sheet = document.getElementById('bottom-sheet');
+            const btn = document.getElementById('mb-menu-btn');
+            const backdrop = document.getElementById('sheet-backdrop');
+            if (!sheet) return;
+            sheet.classList.remove('open');
+            sheet.setAttribute('aria-hidden', 'true');
+            if (backdrop) {
+                backdrop.classList.remove('open');
+                backdrop.setAttribute('aria-hidden', 'true');
+            }
+            if (btn) btn.classList.remove('active');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleBottomSheet() {
+            const sheet = document.getElementById('bottom-sheet');
+            if (!sheet) return;
+            if (sheet.classList.contains('open')) {
+                closeBottomSheet();
+            } else {
+                openBottomSheet();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mbNav = document.getElementById('mobile-bottom-nav');
+            if (mbNav) {
+                mbNav.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.mb-item');
+                    if (!btn) return;
+                    if (btn.classList.contains('mb-menu')) {
+                        toggleBottomSheet();
+                        return;
+                    }
+                    closeBottomSheet();
+                });
+            }
+
+            const sheet = document.getElementById('bottom-sheet');
+            const closeBtn = document.getElementById('sheet-close');
+            const backdrop = document.getElementById('sheet-backdrop');
+            if (sheet) {
+                sheet.addEventListener('click', (e) => {
+                    if (e.target === sheet) closeBottomSheet();
+                });
+                const items = sheet.querySelectorAll('.sheet-item');
+                items.forEach((item) => {
+                    item.addEventListener('click', () => closeBottomSheet());
+                });
+            }
+
+            if (backdrop) {
+                backdrop.addEventListener('click', () => closeBottomSheet());
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeBottomSheet);
+            }
+
+            document.querySelectorAll('a[data-noop="true"], a.is-current-page').forEach((link) => {
+                link.addEventListener('click', (e) => e.preventDefault());
+            });
+        });
+    </script>
+
+    <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/rewis/service-worker.js', { scope: '/rewis/' })
                 .then((registration) => {
