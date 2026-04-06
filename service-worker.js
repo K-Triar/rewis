@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rewis-v3';
+const CACHE_NAME = 'rewis-v4';
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 function toScopedPath(path) {
@@ -44,6 +44,7 @@ self.addEventListener('fetch', (event) => {
 
   const requestUrl = new URL(event.request.url);
   const isSameOrigin = requestUrl.origin === self.location.origin;
+  const requestPath = requestUrl.pathname;
   const isHtmlRequest = event.request.mode === 'navigate' || event.request.destination === 'document';
   const isJsonRequest = requestUrl.pathname.endsWith('.json');
   const isScriptOrStyleRequest =
@@ -51,10 +52,19 @@ self.addEventListener('fetch', (event) => {
     event.request.destination === 'style' ||
     requestUrl.pathname.endsWith('.js') ||
     requestUrl.pathname.endsWith('.css');
-  const isWorkerApiRequest = requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.includes('/api/') || requestUrl.pathname.includes('/data/');
+  const isWorkerApiRequest =
+    requestPath.startsWith('/api/') ||
+    requestPath.includes('/api/') ||
+    requestPath.includes('/data/');
+  const isNoStoreLikeRequest =
+    event.request.cache === 'no-store' ||
+    event.request.cache === 'reload' ||
+    requestPath.endsWith('/data/latest') ||
+    requestPath.endsWith('/data/latest/');
 
-  // Worker API リクエスト（/api/*、/data/latest など）は常にネットワーク優先で、キャッシュ保存しない
-  if (isSameOrigin && isWorkerApiRequest) {
+  // API/データ取得や no-store 指定のリクエストはオリジンに関係なく常にネットワークのみ
+  // （外部Workersの /data/latest が cacheFirst に入って古いデータ化するのを防ぐ）
+  if (isWorkerApiRequest || isNoStoreLikeRequest) {
     event.respondWith(networkOnlyNoCache(event.request));
     return;
   }
@@ -108,7 +118,7 @@ async function networkFirstWithValidation(request) {
     }
 
     if (request.mode === 'navigate') {
-      const fallback = await caches.match('/index.html');
+      const fallback = await caches.match(toScopedPath('/index.html'));
       if (fallback) {
         return fallback;
       }
