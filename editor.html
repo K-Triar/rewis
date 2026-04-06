@@ -616,5 +616,16 @@
     </div>
 
     <script src="editor.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/rewis/service-worker.js', { scope: '/rewis/' })
+                .then((registration) => {
+                    console.log('Service Worker 登録成功:', registration);
+                })
+                .catch((error) => {
+                    console.error('Service Worker 登録失敗:', error);
+                });
+        }
+    </script>
 </body>
 </html>

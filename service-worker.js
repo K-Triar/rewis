@@ -1,15 +1,25 @@
-const CACHE_NAME = 'rewis-v2';
+const CACHE_NAME = 'rewis-v3';
+const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
+
+function toScopedPath(path) {
+  const base = SCOPE_PATH === '/' ? '' : SCOPE_PATH;
+  return `${base}${path}`;
+}
+
 const APP_SHELL_URLS = [
-  '/',
-  '/index.html',
-  '/about.html',
-  '/information.html',
-  '/transfer.html',
-  '/operation.html',
-  '/editor.html',
-  '/style.css',
-  '/index_style.css',
-  '/editor.css'
+  toScopedPath('/'),
+  toScopedPath('/index.html'),
+  toScopedPath('/about.html'),
+  toScopedPath('/information.html'),
+  toScopedPath('/transfer.html'),
+  toScopedPath('/operation.html'),
+  toScopedPath('/editor.html'),
+  toScopedPath('/style.css'),
+  toScopedPath('/index_style.css'),
+  toScopedPath('/editor.css'),
+  toScopedPath('/editor.js'),
+  toScopedPath('/transfer_app.js'),
+  toScopedPath('/operation_app.js')
 ];
 
 // インストールイベント
@@ -36,7 +46,12 @@ self.addEventListener('fetch', (event) => {
   const isSameOrigin = requestUrl.origin === self.location.origin;
   const isHtmlRequest = event.request.mode === 'navigate' || event.request.destination === 'document';
   const isJsonRequest = requestUrl.pathname.endsWith('.json');
-  const isWorkerApiRequest = requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.includes('/data/');
+  const isScriptOrStyleRequest =
+    event.request.destination === 'script' ||
+    event.request.destination === 'style' ||
+    requestUrl.pathname.endsWith('.js') ||
+    requestUrl.pathname.endsWith('.css');
+  const isWorkerApiRequest = requestUrl.pathname.startsWith('/api/') || requestUrl.pathname.includes('/api/') || requestUrl.pathname.includes('/data/');
 
   // Worker API リクエスト（/api/*、/data/latest など）は常にネットワーク優先で、キャッシュ保存しない
   if (isSameOrigin && isWorkerApiRequest) {
@@ -44,8 +59,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // HTML/JSON は通常のネットワーク優先（ただしキャッシュリフレッシュ機構を使用）
-  if (isSameOrigin && (isHtmlRequest || isJsonRequest)) {
+  // HTML/JSON/JS/CSS は通常のネットワーク優先（古い資産の固定化を防ぐ）
+  if (isSameOrigin && (isHtmlRequest || isJsonRequest || isScriptOrStyleRequest)) {
     event.respondWith(networkFirstWithValidation(event.request));
     return;
   }
