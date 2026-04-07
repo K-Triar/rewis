@@ -1359,12 +1359,18 @@ function renderStations() {
         s.stationNameKana.toLowerCase().includes(search) ||
         s.stationId.toLowerCase().includes(search)
     );
-    // duplicate detection across stationId
+    // duplicate detection across stationId and stationName
     const idCounts = {};
+    const nameCounts = {};
     appData.stations.forEach(s => {
         const id = (s.stationId || '').toString();
         if (!id) return;
         idCounts[id] = (idCounts[id] || 0) + 1;
+    });
+    appData.stations.forEach(s => {
+        const name = (s.stationName || '').toString();
+        if (!name) return;
+        nameCounts[name] = (nameCounts[name] || 0) + 1;
     });
     filtered.forEach((station, i) => {
         const idx = appData.stations.indexOf(station);
@@ -1383,7 +1389,8 @@ function renderStations() {
             </td>
         `;
         const id = (station.stationId || '').toString();
-        if (id && idCounts[id] > 1) tr.style.backgroundColor = '#ff0000';
+        const name = (station.stationName || '').toString();
+        if ((id && idCounts[id] > 1) || (name && nameCounts[name] > 1)) tr.style.backgroundColor = '#ff0000';
         tbody.appendChild(tr);
     });
     // Apply required highlights for stations table
@@ -1425,12 +1432,15 @@ function editStationRow(index) {
             <button class="cancel-btn" onclick="renderStations()">取消</button>
         </td>
     `;
-    // highlight if duplicate stationId
+    // highlight if duplicate stationId or stationName
     const id = (s.stationId || '').toString();
-    if (id) {
+    const name = (s.stationName || '').toString();
+    if (id || name) {
         const counts = {};
         appData.stations.forEach(x => { const k = (x.stationId||'').toString(); if (!k) return; counts[k] = (counts[k]||0)+1; });
-        tr.style.backgroundColor = counts[id] > 1 ? '#ff0000' : '';
+        const nameCounts = {};
+        appData.stations.forEach(x => { const n = (x.stationName||'').toString(); if (!n) return; nameCounts[n] = (nameCounts[n]||0)+1; });
+        tr.style.backgroundColor = (counts[id] > 1 || nameCounts[name] > 1) ? '#ff0000' : '';
     } else {
         tr.style.backgroundColor = '';
     }
