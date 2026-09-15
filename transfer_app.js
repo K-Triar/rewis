@@ -1,6 +1,18 @@
 // ========================================
 // グローバル変数
 // ========================================
+import { loadPublicModel } from './shared/data-source.js';
+import {
+    showShareDialog,
+    setupBottomSheet,
+    setupHelpModal,
+    setupNoopLinks,
+    showLoading,
+    hideLoading,
+    showError,
+    hideError,
+} from './shared/ui-dom.js';
+
 let appData = null;
 let preprocessedData = null;
 let viaStationCount = 0;
@@ -9,26 +21,8 @@ let viaStationCount = 0;
 let viaUniqueIdCounter = 0;
 let brandName = 'Kトライア交通グループ';
 let ownCompanyId = 'KT';
-// Handlers used to prevent scrolling on mobile while keeping the scrollbar visible
-let _loadingPreventHandlers = null;
 // 検索モード: 'time' | 'balance' | 'transfer' (default: balance)
 let searchMode = 'balance';
-
-function getPublicWorkerApiBase() {
-    const configured = String(window.REWIS_PUBLIC_DATA_SOURCE?.workerApiBase || '').trim();
-    const saved = String(localStorage.getItem('rewis_worker_api_base') || '').trim();
-    return (configured || saved).replace(/\/$/, '');
-}
-
-function extractPublicDataPayload(payload) {
-    if (payload && typeof payload === 'object') {
-        if (payload.data && typeof payload.data === 'object') {
-            return payload.data;
-        }
-        return payload;
-    }
-    throw new Error('不正なデータ形式です');
-}
 
 function getTransferPenalty(mode) {
     switch (mode) {
@@ -46,10 +40,11 @@ function getTransferPenalty(mode) {
     try {
         showLoading();
         console.log('データ読み込み開始...');
-        appData = await loadData();
+        const { v1Raw } = await loadPublicModel({});
+        appData = v1Raw;
         console.log('データ読み込み完了:', appData ? 'OK' : 'NG');
         console.log('駅数:', appData?.stations?.length || 0);
-        
+
         // ブランド名・自社線ID取得
         if (appData && appData.meta) {
             if (appData.meta.appName) {
@@ -66,7 +61,7 @@ function getTransferPenalty(mode) {
         initializeUI();
         console.log('UI初期化完了');
         hideLoading();
-        
+
         // URLパラメータがあれば自動検索を実行
         loadFromUrlParams();
     } catch (error) {
@@ -74,43 +69,6 @@ function getTransferPenalty(mode) {
         showError('データの読み込みに失敗しました: ' + error.message);
     }
 })();
-
-// ========================================
-// （async即時実行バージョンのみ残す）
-
-// データ読み込み
-// ========================================
-async function loadData() {
-    try {
-        const workerBase = getPublicWorkerApiBase();
-        if (!workerBase) {
-            throw new Error('データ取得元（Workers API）が設定されていません');
-        }
-
-        const publicResponse = await fetch(workerBase + '/data/public', { cache: 'no-store' });
-        if (publicResponse.ok) {
-            const payload = await publicResponse.json();
-            const data = extractPublicDataPayload(payload);
-            console.log('Workers からデータ読み込み完了:', data);
-            return data;
-        }
-        if (publicResponse.status === 404) {
-            // 移行中のため、/data/public が未初期化のときだけ /data/latest に切り替える
-            const latestResponse = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
-            if (!latestResponse.ok) {
-                throw new Error('データファイルが見つかりません');
-            }
-            const payload = await latestResponse.json();
-            const data = extractPublicDataPayload(payload);
-            console.log('Workers からデータ読み込み完了:', data);
-            return data;
-        }
-        throw new Error('データファイルが見つかりません');
-    } catch (error) {
-        console.error('データ読み込みエラー:', error);
-        throw error;
-    }
-}
 
 // ========================================
 // データ前処理（高速化のためのインデックス作成）
@@ -414,23 +372,6 @@ function initializeUI() {
         });
     });
 
-    const mbNav = document.getElementById('mobile-bottom-nav');
-    const mbMenuBtn = document.getElementById('mb-menu-btn');
-    if (mbNav) {
-        // Use event delegation: single handler for all mobile items
-        mbNav.addEventListener('click', (e) => {
-            const btn = e.target.closest('.mb-item');
-            if (!btn) return;
-            if (btn.classList.contains('mb-menu')) {
-                toggleBottomSheet();
-                return;
-            }
-
-            // close sheet if open when moving to a linked page
-            closeBottomSheet();
-        });
-    }
-
     // Adaptive search-section sizing removed: stable mobile layout only.
     // Formerly `setupSearchSectionSizing()` toggled `body.search-compact` based
     // on the measured `.search-section` height; that height-dependent switching
@@ -531,106 +472,11 @@ function searchStations(query) {
     }).slice(0, 10);
 }
 
-// ----------------------------------------
-// ヘルプモーダルの開閉 (index.html のヘルプボタン)
-// ----------------------------------------
-// このスクリプトは既存の initializeUI と独立しており、
-// DOM が利用可能になったらイベントをバインドします。
-document.addEventListener('DOMContentLoaded', () => {
-    const helpButton = document.getElementById('help-button');
-    const helpModal = document.getElementById('help-modal');
-    const closeHelpBtn = document.getElementById('close-help');
-
-    function openHelp() {
-        if (!helpModal) return;
-        // share-modal styles expect a centered overlay; use flex for centering
-        helpModal.style.display = 'flex';
-    }
-
-    function closeHelp() {
-        if (!helpModal) return;
-        helpModal.style.display = 'none';
-    }
-
-    if (helpButton) helpButton.addEventListener('click', openHelp);
-    if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelp);
-
-    // Click on backdrop (modal container) closes the modal
-    if (helpModal) {
-        helpModal.addEventListener('click', (e) => {
-            if (e.target === helpModal) {
-                closeHelp();
-            }
-        });
-    }
-});
-
-// Mobile bottom-sheet helpers (menu)
-function openBottomSheet() {
-    const sheet = document.getElementById('bottom-sheet');
-    const btn = document.getElementById('mb-menu-btn');
-    const backdrop = document.getElementById('sheet-backdrop');
-    if (!sheet) return;
-    if (btn) btn.classList.add('active');
-
-    sheet.classList.add('open');
-    sheet.setAttribute('aria-hidden', 'false');
-    if (backdrop) {
-        backdrop.classList.add('open');
-        backdrop.setAttribute('aria-hidden', 'false');
-    }
-    if (btn) btn.setAttribute('aria-expanded', 'true');
-}
-
-function closeBottomSheet() {
-    const sheet = document.getElementById('bottom-sheet');
-    const btn = document.getElementById('mb-menu-btn');
-    const backdrop = document.getElementById('sheet-backdrop');
-    if (!sheet) return;
-    sheet.classList.remove('open');
-    sheet.setAttribute('aria-hidden', 'true');
-    if (backdrop) {
-        backdrop.classList.remove('open');
-        backdrop.setAttribute('aria-hidden', 'true');
-    }
-    if (btn) btn.classList.remove('active');
-    if (btn) btn.setAttribute('aria-expanded', 'false');
-}
-
-function toggleBottomSheet() {
-    const sheet = document.getElementById('bottom-sheet');
-    if (!sheet) return;
-    if (sheet.classList.contains('open')) closeBottomSheet(); else openBottomSheet();
-}
-
-// Wire bottom-sheet interactions (click outside to close, sheet buttons)
-document.addEventListener('DOMContentLoaded', () => {
-    const sheet = document.getElementById('bottom-sheet');
-    const closeBtn = document.getElementById('sheet-close');
-    const backdrop = document.getElementById('sheet-backdrop');
-    if (sheet) {
-        sheet.addEventListener('click', (e) => {
-            if (e.target === sheet) closeBottomSheet();
-        });
-        const items = sheet.querySelectorAll('.sheet-item');
-        items.forEach(it => {
-            it.addEventListener('click', () => {
-                closeBottomSheet();
-            });
-        });
-    }
-    if (backdrop) {
-        backdrop.addEventListener('click', () => {
-            closeBottomSheet();
-        });
-    }
-    if (closeBtn) closeBtn.addEventListener('click', closeBottomSheet);
-
-    // Placeholder links (#) and current-page links should not navigate.
-    document.querySelectorAll('a[data-noop="true"], a.is-current-page').forEach(link => {
-        link.addEventListener('click', (e) => e.preventDefault());
-    });
-});
+// ヘルプモーダル・ボトムシート・noopリンクは shared/ui-dom.js に集約済み。
+// DOM はモジュールスクリプト実行時点で利用可能なため、ここで直接呼び出す。
+setupHelpModal();
+setupBottomSheet();
+setupNoopLinks();
 
 function displaySuggestions(stations, suggestionsDiv, input) {
     if (stations.length === 0) {
@@ -2284,116 +2130,8 @@ function createStopsButton(leg) {
 }
 
 // ========================================
-// UI制御関数
+// UI制御関数（showLoading/hideLoading/showError/hideError は shared/ui-dom.js を使用）
 // ========================================
-function showLoading() {
-    const el = document.getElementById('loading-section');
-    if (!el) return;
-    // Use flex so the overlay centers spinner + text even when JS sets inline style
-    el.style.display = 'flex';
-
-    // Mobile: keep scrollbar visible but effectively prevent scrolling by
-    // intercepting touch/wheel/keyboard events on the document. On desktop
-    // we keep the old behavior (hide scrollbar) for a consistent UX.
-    try {
-        const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile) {
-            // Install passive:false listeners to be able to preventDefault on touchmove
-            const onTouchMove = function(e) { e.preventDefault(); };
-            const onWheel = function(e) { e.preventDefault(); };
-            const onKeyDown = function(e) {
-                // prevent common keys that cause scrolling
-                const keys = ['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '];
-                if (keys.includes(e.key)) {
-                    e.preventDefault();
-                }
-            };
-
-            // Store handlers so we can remove them later
-            _loadingPreventHandlers = { onTouchMove, onWheel, onKeyDown };
-
-            document.addEventListener('touchmove', onTouchMove, { passive: false });
-            document.addEventListener('wheel', onWheel, { passive: false });
-            document.addEventListener('keydown', onKeyDown, { passive: false });
-            // Ensure the overlay captures pointer events so background doesn't receive them
-            el.style.pointerEvents = 'auto';
-        } else {
-            // Desktop: hide page scrollbar to prevent scroll while loading
-            document.body.classList.add('no-scroll');
-            document.documentElement.classList.add('no-scroll');
-        }
-    } catch (e) {
-        /* ignore */
-    }
-
-    // Improve accessibility: hide main content from assistive tech while loading
-    const main = document.querySelector('main');
-    if (main) main.setAttribute('aria-hidden', 'true');
-}
-
-function hideLoading() {
-    const el = document.getElementById('loading-section');
-    if (el) el.style.display = 'none';
-
-    // Re-enable scrolling: remove any installed mobile handlers or the no-scroll class
-    try {
-        if (_loadingPreventHandlers) {
-            document.removeEventListener('touchmove', _loadingPreventHandlers.onTouchMove, { passive: false });
-            document.removeEventListener('wheel', _loadingPreventHandlers.onWheel, { passive: false });
-            document.removeEventListener('keydown', _loadingPreventHandlers.onKeyDown, { passive: false });
-            _loadingPreventHandlers = null;
-            if (el) el.style.pointerEvents = '';
-        }
-        document.body.classList.remove('no-scroll');
-        document.documentElement.classList.remove('no-scroll');
-    } catch (e) {
-        /* ignore */
-    }
-
-    // Restore accessibility state
-    const main = document.querySelector('main');
-    if (main) main.removeAttribute('aria-hidden');
-}
-
-function showError(message) {
-    const errorSection = document.getElementById('error-section');
-    const errorMessage = document.getElementById('error-message');
-
-    // Clear existing content
-    errorMessage.innerHTML = '';
-
-    // Message content (text-only to avoid XSS)
-    const msgSpan = document.createElement('span');
-    msgSpan.className = 'error-text';
-    msgSpan.textContent = message;
-    msgSpan.setAttribute('role', 'status');
-    msgSpan.setAttribute('aria-live', 'assertive');
-    errorMessage.appendChild(msgSpan);
-
-    // Close button
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'error-close';
-    closeBtn.setAttribute('aria-label', '閉じる');
-    closeBtn.innerHTML = '&times;';
-    closeBtn.addEventListener('click', hideError);
-    errorMessage.appendChild(closeBtn);
-
-    // Show popup
-    errorSection.style.display = 'block';
-}
-
-function hideError() {
-    const errorSection = document.getElementById('error-section');
-    if (!errorSection) return;
-    errorSection.style.display = 'none';
-    const errorMessage = document.getElementById('error-message');
-    if (errorMessage) errorMessage.innerHTML = '';
-    if (errorSection._hideTimeout) {
-        clearTimeout(errorSection._hideTimeout);
-        errorSection._hideTimeout = null;
-    }
-}
-
 function hideResults() {
     document.getElementById('results-section').style.display = 'none';
     try {
@@ -2409,88 +2147,7 @@ function showSearchSection() {
     document.getElementById('search-section').style.display = 'block';
 }
 
-// ========================================
-// 共有ダイアログ表示
-// ========================================
-function showShareDialog(url) {
-    // If a modal already exists, update the URL and focus
-    let existing = document.getElementById('share-modal');
-    if (existing) {
-        const input = existing.querySelector('.share-url-input');
-        if (input) input.value = url;
-        existing.style.display = 'flex';
-        try { existing.querySelector('.share-url-input').select(); } catch (e) {}
-        return;
-    }
-
-    const modal = document.createElement('div');
-    modal.id = 'share-modal';
-    modal.className = 'share-modal';
-
-    modal.innerHTML = `
-        <div class="share-modal-content" role="dialog" aria-modal="true" aria-label="検索結果を共有">
-            <h3>検索結果を共有する</h3>
-            <p>以下のURLを共有してください。</p>
-            <input class="share-url-input" type="text" readonly aria-label="共有URL">
-            <div class="share-modal-actions">
-                <button type="button" class="back-to-search-btn share-copy-btn">コピー</button>
-                <button type="button" class="back-to-search-btn share-native-btn">共有</button>
-                <button type="button" class="back-to-search-btn share-close-btn">閉じる</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const input = modal.querySelector('.share-url-input');
-    const copyBtn = modal.querySelector('.share-copy-btn');
-    const nativeBtn = modal.querySelector('.share-native-btn');
-    const closeBtn = modal.querySelector('.share-close-btn');
-
-    input.value = url;
-    try { input.select(); } catch (e) {}
-
-    copyBtn.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(input.value);
-            copyBtn.textContent = 'コピーしました';
-            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
-        } catch (err) {
-            // fallback: select so user can copy manually
-            try { input.select(); } catch (e) {}
-            copyBtn.textContent = 'クリップボード失敗';
-            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
-        }
-    });
-
-    nativeBtn.addEventListener('click', async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: document.title, url: input.value });
-            } catch (e) { /* user cancelled or failed */ }
-        } else {
-            // If native share not available, copy as fallback
-            try {
-                await navigator.clipboard.writeText(input.value);
-                nativeBtn.textContent = 'コピーしました';
-                setTimeout(() => { nativeBtn.textContent = '共有'; }, 1500);
-            } catch (err) {
-                try { input.select(); } catch (e) {}
-            }
-        }
-    });
-
-    function closeModal() {
-        modal.style.display = 'none';
-    }
-
-    closeBtn.addEventListener('click', closeModal);
-
-    // clicking outside content closes
-    modal.addEventListener('click', (ev) => {
-        if (ev.target === modal) closeModal();
-    });
-}
+// 共有ダイアログ表示は shared/ui-dom.js の showShareDialog を使用（インポート済み）
 
 // ========================================
 // タブスクロール用の補助（スクロールバー非表示 + 両端に矢印）

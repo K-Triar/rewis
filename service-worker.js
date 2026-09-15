@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rewis-v5';
+const CACHE_NAME = 'rewis-v6';
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 function toScopedPath(path) {
@@ -18,10 +18,20 @@ const APP_SHELL_URLS = [
   toScopedPath('/index_style.css'),
   toScopedPath('/editor.css'),
   toScopedPath('/editor.js'),
+  toScopedPath('/index_app.js'),
   toScopedPath('/transfer_app.js'),
   toScopedPath('/operation_app.js'),
   toScopedPath('/shared/validate-v1.js'),
-  toScopedPath('/shared/escape.js')
+  toScopedPath('/shared/escape.js'),
+  toScopedPath('/shared/ids.js'),
+  toScopedPath('/shared/schema-v2.js'),
+  toScopedPath('/shared/convert-v1-to-v2.js'),
+  toScopedPath('/shared/v1-overrides.js'),
+  toScopedPath('/shared/notice-text.js'),
+  toScopedPath('/shared/public-v1.js'),
+  toScopedPath('/shared/model.js'),
+  toScopedPath('/shared/data-source.js'),
+  toScopedPath('/shared/ui-dom.js')
 ];
 
 // インストールイベント
