@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rewis-v6';
+const CACHE_NAME = 'rewis-v7';
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 function toScopedPath(path) {
@@ -31,7 +31,8 @@ const APP_SHELL_URLS = [
   toScopedPath('/shared/public-v1.js'),
   toScopedPath('/shared/model.js'),
   toScopedPath('/shared/data-source.js'),
-  toScopedPath('/shared/ui-dom.js')
+  toScopedPath('/shared/ui-dom.js'),
+  toScopedPath('/shared/route-search.js')
 ];
 
 // インストールイベント
