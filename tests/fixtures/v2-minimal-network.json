@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "2.0.0",
+  "kind": "network",
+  "meta": { "ownCompanyId": "C1", "appName": "テスト路線網" },
+  "companies": [ { "id": "C1", "name": "C鉄道" } ],
+  "vehicleTypes": [ { "id": "V1", "name": "V型車両", "shortName": "V1", "color": "#123456", "order": 1 } ],
+  "stations": [
+    { "id": "S1", "name": "S1駅", "kana": "えすいち", "platforms": [ { "id": "1", "label": "1" } ], "location": null },
+    { "id": "S2", "name": "S2駅", "kana": "えすに", "platforms": [ { "id": "1", "label": "1" }, { "id": "2", "label": "2" } ], "location": null },
+    { "id": "S3", "name": "S3駅", "kana": "えすさん", "platforms": [ { "id": "1", "label": "1" } ], "location": null },
+    { "id": "S4", "name": "S4駅", "kana": "えすよん", "platforms": [ { "id": "1", "label": "1" } ], "location": null }
+  ],
+  "stationGroups": [],
+  "transfers": [
+    { "id": "tr_s2_1_2", "from": { "stationId": "S2", "platformId": "1" }, "to": { "stationId": "S2", "platformId": "2" }, "seconds": 120, "bidirectional": false, "note": "" },
+    { "id": "tr_s1_s4_walk", "from": { "stationId": "S1", "platformId": null }, "to": { "stationId": "S4", "platformId": null }, "seconds": 300, "bidirectional": true, "note": "徒歩連絡" }
+  ],
+  "transferDefaults": { "samePlatform": 5, "unknown": 10 },
+  "lines": [
+    {
+      "id": "LA", "name": "A線", "companyId": "C1", "color": "#e67e22", "vehicleTypeId": "V1",
+      "stations": ["S1", "S2", "S3"], "loop": null,
+      "directions": { "forward": "下り線", "backward": "上り線" },
+      "categories": [ { "id": "Lo", "name": "普通" } ]
+    },
+    {
+      "id": "LB", "name": "B線", "companyId": "C1", "color": "#3498db", "vehicleTypeId": "V1",
+      "stations": ["S2", "S3", "S4"], "loop": { "startIndex": 0 },
+      "directions": { "forward": "外回り", "backward": "内回り" },
+      "categories": [ { "id": "Lo", "name": "普通" } ]
+    }
+  ],
+  "services": [
+    {
+      "id": "sv_through", "name": "", "headsign": "S4駅", "active": true, "circular": false,
+      "stops": [
+        { "stationId": "S1", "platformId": "1", "run": 60 },
+        { "stationId": "S2", "platformId": "1", "run": 90, "board": true, "alight": true },
+        { "stationId": "S3", "platformId": "1", "run": 70 },
+        { "stationId": "S4", "platformId": "1" }
+      ],
+      "sections": [
+        { "lineId": "LA", "categoryId": "Lo", "from": 0, "to": 1 },
+        { "lineId": "LB", "categoryId": "Lo", "from": 1, "to": 3 }
+      ]
+    },
+    {
+      "id": "sv_circular", "name": "", "headsign": null, "active": true, "circular": true,
+      "stops": [
+        { "stationId": "S2", "platformId": "1", "run": 50 },
+        { "stationId": "S3", "platformId": "1", "run": 40 },
+        { "stationId": "S4", "platformId": "1", "run": 70 }
+      ],
+      "sections": [
+        { "lineId": "LB", "categoryId": "Lo", "from": 0, "to": 2 }
+      ]
+    },
+    {
+      "id": "sv_back", "name": "", "headsign": "S1駅", "active": true, "circular": false,
+      "stops": [
+        { "stationId": "S3", "platformId": "1", "run": 70 },
+        { "stationId": "S2", "platformId": "1", "run": 60 },
+        { "stationId": "S1", "platformId": "1" }
+      ],
+      "sections": [
+        { "lineId": "LA", "categoryId": "Lo", "from": 0, "to": 2 }
+      ]
+    }
+  ]
+}
