@@ -765,20 +765,6 @@ header h1 {
     padding-bottom: 10px;
 }
 
-.service-label:has(.service-through) {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-}
-
-.service-through {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-size: 0.65rem;
-    font-weight: 400;
-    color: #6b7280;
-}
-
 .op-diagram-cell {
     width: 32px;
     position: relative;

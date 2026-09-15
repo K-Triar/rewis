@@ -454,18 +454,6 @@ function renderLineAlertBox(lineId) {
     box.appendChild(body);
 }
 
-// 種別列見出しの下に付ける直通先表示（要望3）
-function buildThroughText(lineId, categoryId) {
-    const entry = model.throughLinks.get(lineId)?.get(categoryId);
-    if (!entry) return '';
-    const names = [...entry.to, ...entry.from]
-        .map(id => model.lineName(id))
-        .filter(Boolean);
-    const unique = Array.from(new Set(names));
-    if (unique.length === 0) return '';
-    return `直通 ${unique.join('・')}`;
-}
-
 // 路線図＋駅リスト
 function renderLineDiagram(lineId) {
     const line = model.lineById.get(lineId);
@@ -515,7 +503,7 @@ function renderLineDiagram(lineId) {
 
     // --- DOM生成 ---
 
-    // ヘッダー行 (種別名 + 直通先)
+    // ヘッダー行 (種別名)
     const headerRow = document.createElement('div');
     headerRow.className = 'op-header-row';
     const headerDiagram = document.createElement('div');
@@ -525,15 +513,6 @@ function renderLineDiagram(lineId) {
         const lbl = document.createElement('div');
         lbl.className = 'service-label';
         lbl.textContent = formatVerticalServiceLabel(c.name);
-
-        const throughText = buildThroughText(lineId, c.id);
-        if (throughText) {
-            const through = document.createElement('div');
-            through.className = 'service-through';
-            through.textContent = throughText;
-            lbl.appendChild(through);
-        }
-
         headerDiagram.appendChild(lbl);
     });
 
