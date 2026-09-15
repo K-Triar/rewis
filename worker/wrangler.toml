@@ -6,6 +6,7 @@ compatibility_date = "2025-12-01"
 [vars]
 ALLOWED_ORIGIN = "https://k-triar.github.io"
 TOKEN_TTL_SECONDS = "1800"
+LATEST_REQUIRES_AUTH = "true"
 
 # ユーザー定義は JSON 文字列で渡します（パスワードは平文でなくハッシュ）
 # 例: [{"userId":"admin","passwordHash":"..."}]
