@@ -1,0 +1,16 @@
+# Cloudflare Worker の秘密情報（本物のユーザーID・パスワードハッシュ・ソルト）
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Wrangler のローカル状態・キャッシュ（アカウント情報を含む）
+.wrangler/
+
+# 依存パッケージ
+node_modules/
+
+# 計画ドキュメント（ローカル専用）
+docs/
+
+# 開発用ツールの出力
+tools/out/

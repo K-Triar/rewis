@@ -1,0 +1,20 @@
+name = "rewis-editor-api"
+main = "src/index.js"
+compatibility_date = "2025-12-01"
+
+# GitHub Pages の公開URLに置き換えてください
+[vars]
+ALLOWED_ORIGIN = "https://k-triar.github.io"
+TOKEN_TTL_SECONDS = "1800"
+
+# ユーザー定義は JSON 文字列で渡します（パスワードは平文でなくハッシュ）
+# 例: [{"userId":"admin","passwordHash":"..."}]
+# wrangler secret put AUTH_USERS_JSON で設定推奨
+
+[[kv_namespaces]]
+binding = "DATA_KV"
+id = "2fac11df14294dbabe14eeef77abb063"
+
+[[kv_namespaces]]
+binding = "TOKEN_KV"
+id = "651fb9fdfb8f4d74a9f6f283222c779e"
