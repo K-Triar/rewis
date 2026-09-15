@@ -7,15 +7,8 @@ import { renderVehicleTypesView } from './views/vehicle-types.js';
 import { renderStationsView } from './views/stations.js';
 import { renderLinesView } from './views/lines.js';
 import { renderServicesView } from './views/services.js';
+import { renderTransfersView } from './views/transfers.js';
 import { getSavedApiBase } from './api.js';
-
-function renderPlaceholder(container) {
-  container.textContent = '';
-  const p = document.createElement('p');
-  p.className = 'ed2-placeholder';
-  p.textContent = 'このタブは次のステップで実装します。';
-  container.appendChild(p);
-}
 
 const TABS = [
   { id: 'companies', label: '鉄道会社', render: renderCompaniesView },
@@ -23,7 +16,7 @@ const TABS = [
   { id: 'stations', label: '駅', render: renderStationsView },
   { id: 'lines', label: '路線', render: renderLinesView },
   { id: 'services', label: '運行系統', render: renderServicesView },
-  { id: 'transfers', label: '乗換・駅グループ', render: renderPlaceholder },
+  { id: 'transfers', label: '乗換・駅グループ', render: renderTransfersView },
   { id: 'export', label: '保存/読込', render: renderIoView },
   { id: 'history', label: '履歴', render: renderHistoryView }
 ];
