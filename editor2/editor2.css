@@ -108,3 +108,44 @@
   color: #fff;
   border-color: #2266cc;
 }
+
+.ed2-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.ed2-picker-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 220px;
+  max-height: 220px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ed2-picker-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.ed2-picker-item:hover {
+  background: #eef4ff;
+}
+
+.ed2-drag-row {
+  cursor: grab;
+}
+
+.ed2-drag-row.ed2-drag-over {
+  outline: 2px dashed #2266cc;
+}

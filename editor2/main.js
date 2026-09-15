@@ -5,6 +5,7 @@ import { renderHistoryView } from './views/history.js';
 import { renderCompaniesView } from './views/companies.js';
 import { renderVehicleTypesView } from './views/vehicle-types.js';
 import { renderStationsView } from './views/stations.js';
+import { renderLinesView } from './views/lines.js';
 import { getSavedApiBase } from './api.js';
 
 function renderPlaceholder(container) {
@@ -19,7 +20,7 @@ const TABS = [
   { id: 'companies', label: '鉄道会社', render: renderCompaniesView },
   { id: 'vehicle-types', label: '車両種別', render: renderVehicleTypesView },
   { id: 'stations', label: '駅', render: renderStationsView },
-  { id: 'lines', label: '路線', render: renderPlaceholder },
+  { id: 'lines', label: '路線', render: renderLinesView },
   { id: 'services', label: '運行系統', render: renderPlaceholder },
   { id: 'transfers', label: '乗換・駅グループ', render: renderPlaceholder },
   { id: 'export', label: '保存/読込', render: renderIoView },
