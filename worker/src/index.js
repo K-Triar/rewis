@@ -307,10 +307,14 @@ async function getLatestRecord(env) {
   return JSON.parse(text);
 }
 
+let _histSeq = 0;
+
 async function putRecordAsLatestAndHistory(env, record) {
   await env.DATA_KV.put('data:latest', JSON.stringify(record));
-  // 反転タイムスタンプに乱数を添えて、同一ミリ秒内の連続保存でもキーが衝突しないようにする。
-  const histKey = NEW_HISTORY_PREFIX + invertedTimestamp(Date.now()) + '-' + randomHex(4);
+  // 反転タイムスタンプだけでは同一ミリ秒内の連続保存でキーが衝突し、かつ順序も不定になる。
+  // 単調増加カウンタを反転させた値を添えて、一意性と新しい順の並びを両立させる。
+  _histSeq += 1;
+  const histKey = NEW_HISTORY_PREFIX + invertedTimestamp(Date.now()) + '-' + invertedSeq(_histSeq);
   await env.DATA_KV.put(histKey, JSON.stringify(record), { metadata: record.meta });
 }
 
@@ -318,9 +322,8 @@ function invertedTimestamp(ts) {
   return String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0');
 }
 
-function randomHex(bytesLength) {
-  const bytes = crypto.getRandomValues(new Uint8Array(bytesLength));
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+function invertedSeq(seq) {
+  return String(Number.MAX_SAFE_INTEGER - seq).padStart(16, '0');
 }
 
 function newFormatKeyToItem(k) {
