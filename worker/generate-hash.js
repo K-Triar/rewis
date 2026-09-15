@@ -9,7 +9,7 @@
  *   node generate-hash.js "my-password" "my-salt"
  */
 
-const crypto = require('crypto');
+import crypto from 'node:crypto';
 
 const args = process.argv.slice(2);
 const password = args[0] || 'replace-this-password';
