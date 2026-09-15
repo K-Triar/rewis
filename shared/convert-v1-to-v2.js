@@ -284,10 +284,10 @@ function buildThroughCandidates(v1data, lineCategoryNameToId) {
 
 function joinChains(chains, v1data, lineCategoryNameToId, overrides, report) {
   const chainByKey = new Map(chains.map(c => [chainKeyOf(c), c]));
-  const chainNextOf = new Map(); // key -> key
-  const chainPrevOf = new Map(); // key -> key
+  const chainNextOf = new Map(); // fromKey -> toKey（1つの流れは1方向にしか続かない）
+  // toKey -> fromKey[]（複数の路線・種別が同じ続き駅に直通することがあるため、1対多を許す）
+  const chainPrevOf = new Map();
   const usedAsFrom = new Set();
-  const usedAsTo = new Set();
 
   function wouldCycle(fromKey, toKey) {
     let cur = toKey;
@@ -303,13 +303,13 @@ function joinChains(chains, v1data, lineCategoryNameToId, overrides, report) {
 
   function tryLink(fromKey, toKey) {
     if (!chainByKey.has(fromKey) || !chainByKey.has(toKey)) return false;
-    if (usedAsFrom.has(fromKey) || usedAsTo.has(toKey)) return false;
+    if (usedAsFrom.has(fromKey)) return false;
     if (fromKey === toKey) return false;
     if (wouldCycle(fromKey, toKey)) return false;
     chainNextOf.set(fromKey, toKey);
-    chainPrevOf.set(toKey, fromKey);
+    if (!chainPrevOf.has(toKey)) chainPrevOf.set(toKey, []);
+    chainPrevOf.get(toKey).push(fromKey);
     usedAsFrom.add(fromKey);
-    usedAsTo.add(toKey);
     return true;
   }
 
@@ -380,9 +380,11 @@ function joinChains(chains, v1data, lineCategoryNameToId, overrides, report) {
     const [a, b] = pair;
     if (chainNextOf.get(a) === b) {
       chainNextOf.delete(a);
-      chainPrevOf.delete(b);
+      const prevs = chainPrevOf.get(b) || [];
+      const idx = prevs.indexOf(a);
+      if (idx !== -1) prevs.splice(idx, 1);
+      if (prevs.length === 0) chainPrevOf.delete(b);
       usedAsFrom.delete(a);
-      usedAsTo.delete(b);
       throughJoined--;
     }
   });
@@ -399,7 +401,6 @@ function assembleServices(chains, chainNextOf, chainPrevOf, overrides, report) {
   const chainByKey = new Map(chains.map(c => [chainKeyOf(c), c]));
   const services = [];
   const usedServiceIds = new Set();
-  const visited = new Set();
 
   function nextServiceId(baseKey) {
     let id = 'sv_' + sanitizeIdPart(baseKey);
@@ -412,17 +413,21 @@ function assembleServices(chains, chainNextOf, chainPrevOf, overrides, report) {
     return id;
   }
 
+  // 複数の路線・種別が同じ続き駅に直通することがあるため（例：普通・快速の両方が
+  // 同じ路線に直通する）、続き駅の流れ（chain）は複数の運行系統から共有されうる。
+  // そのため「訪問済み」はこの1本の運行系統をたどる間だけ有効な、たどりごとのガード
+  // （wouldCycle で構造的な循環は作られない前提の保険）にする。
   chains.forEach(c => {
     const key = chainKeyOf(c);
-    if (chainPrevOf.has(key) || visited.has(key)) return;
+    if (chainPrevOf.has(key)) return;
     const seqKeys = [key];
-    visited.add(key);
+    const pathVisited = new Set([key]);
     let cur = key;
     while (chainNextOf.has(cur)) {
       const nextKey = chainNextOf.get(cur);
-      if (visited.has(nextKey)) break;
+      if (pathVisited.has(nextKey)) break;
       seqKeys.push(nextKey);
-      visited.add(nextKey);
+      pathVisited.add(nextKey);
       cur = nextKey;
     }
     const chainSeq = seqKeys.map(k => chainByKey.get(k));

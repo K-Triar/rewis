@@ -93,7 +93,7 @@ test('本番のフィクスチャ：変換すると validateNetwork の errors �
   assert.deepEqual(check.errors, []);
 });
 
-test('本番のフィクスチャ：すべての hop がどこかの運行系統にちょうど1回現れる', () => {
+test('本番のフィクスチャ：すべての hop がどこかの運行系統に少なくとも1回現れる（重複は直通の分岐先が共有される場合のみ許す）', () => {
   const v1data = loadV1Latest();
   const { network } = convertV1ToV2(v1data);
 
@@ -116,6 +116,11 @@ test('本番のフィクスチャ：すべての hop がどこかの運行系統
     }
   });
 
-  assert.equal(seenHopKeys.length, expectedHopCount);
+  // すべての hop は少なくとも1回現れる（変換で取りこぼされていない）
   assert.equal(new Set(seenHopKeys).size, expectedHopCount);
+  // 2回以上現れるのは、複数の路線・種別が同じ続き駅に直通する場合だけ許す
+  const counts = new Map();
+  seenHopKeys.forEach(k => counts.set(k, (counts.get(k) || 0) + 1));
+  const duplicated = Array.from(counts.entries()).filter(([, c]) => c > 1);
+  assert.ok(duplicated.every(([, c]) => c === 2), `重複は2回までのはず: ${JSON.stringify(duplicated)}`);
 });
