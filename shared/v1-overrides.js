@@ -1,12 +1,20 @@
 // v1 → v2 変換のときに、人が判断した内容を書いておくファイル。1-7 でユーザーと決めた内容を書き込む
 export default {
   lines: {
-    // "CR-O": { loop: { startIndex: 0 }, directions: { forward: "外回り", backward: "内回り" } }
+    // CR-O（洲璃府環状線）はセグメント未設定のプレースホルダー路線のため、今回は環状線として設定しない（Q-2、2026-09-16）
   },
   categoryMerge: {
-    // "KT-L": { "Lo-KB": "Lo" }      // 変換元の種別ID → 統合先の種別ID（同じ路線の中で）
+    // Q-2（2026-09-16）：瑠璃線の「普通(直通)」(Lo-KB) は「普通」(Lo) に統合する
+    'KT-L': { 'Lo-KB': 'Lo' },
+    // Q-2（2026-09-16）：地下鉄中央線の「各駅停車(直通)」(Lo-KL) は「各駅停車」(Lo) に統合する
+    'KT-U': { 'Lo-KL': 'Lo' },
+    // 瑠璃線の「直通快速」(Ra-HA) は独立した種別のまま（Q-2、2026-09-16）
   },
-  joins: [],        // [ "<chainKeyA>", "<chainKeyB>" ] の配列。A の終点から B へ直通させる
+  // Q-2（2026-09-16）：瑠璃線「普通(直通)」(KL10→KL04着) と地下鉄中央線「各駅停車」(KL04発→二労方面) を
+  // KL04駅で手動接続する（のりば番号が一致しないため自動接続されなかった、THROUGH_UNUSED の解消）
+  joins: [
+    ['KT-L|Lo-KB|KL10|KL04', 'KT-U|Lo|KL04|KU06'],
+  ],
   forbidJoins: [],  // 自動でつながれた直通をやめさせる。形は joins と同じ
-  directionMap: {}, // { "<lineId>": { up: "forward"|"backward" } }。既定値は up→backward（D-006）
+  directionMap: {}, // { "<lineId>": { up: "forward"|"backward" } }。既定値は up→backward（D-006、Q-2で維持を確認）
 };
