@@ -95,6 +95,36 @@ function buildNoticesByLine(publicNotices) {
   return map;
 }
 
+export function computeAffectedIndices(line, range) {
+  const stations = (line && line.stations) || [];
+  if (range == null) {
+    return stations.map((_, i) => i);
+  }
+
+  const fromIdx = stations.indexOf(range.fromStationId);
+  const toIdx = stations.indexOf(range.toStationId);
+  if (fromIdx === -1 || toIdx === -1) return [];
+
+  if (line && line.loop && range.direction) {
+    const indices = [];
+    let i = fromIdx;
+    for (let guard = 0; guard <= stations.length; guard++) {
+      indices.push(i);
+      if (i === toIdx) break;
+      i = range.direction === 'forward'
+        ? (i + 1) % stations.length
+        : (i - 1 + stations.length) % stations.length;
+    }
+    return indices;
+  }
+
+  const from = Math.min(fromIdx, toIdx);
+  const to = Math.max(fromIdx, toIdx);
+  const indices = [];
+  for (let i = from; i <= to; i++) indices.push(i);
+  return indices;
+}
+
 export function buildModel(network, publicNotices = [], masters) {
   const stationById = buildStationById(network);
   const lineById = buildLineById(network);

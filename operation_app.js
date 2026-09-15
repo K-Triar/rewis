@@ -1,127 +1,37 @@
 // ========================================
 // 路線・運行情報ページ用スクリプト
 // ========================================
-let opData = null;
-let opCompanyMap = null;
-let opLineMap = null;
-let opStationMap = null;
-let opStationLinesMap = null; // stationId -> Set<lineId>
-let opStatusByLine = null;    // lineId -> latest serviceStatus
-let _loadingPreventHandlers = null;
+import { loadPublicModel } from './shared/data-source.js';
+import { computeAffectedIndices } from './shared/model.js';
+import {
+    showShareDialog,
+    setupBottomSheet,
+    setupHelpModal,
+    setupNoopLinks,
+    showLoading,
+    hideLoading,
+    showError,
+    hideError,
+} from './shared/ui-dom.js';
+
+let model = null;
 let opCurrentLineId = null;
-
-function getPublicWorkerApiBase() {
-    const configured = String(window.REWIS_PUBLIC_DATA_SOURCE?.workerApiBase || '').trim();
-    const saved = String(localStorage.getItem('rewis_worker_api_base') || '').trim();
-    return (configured || saved).replace(/\/$/, '');
-}
-
-function extractPublicDataPayload(payload) {
-    if (payload && typeof payload === 'object') {
-        if (payload.data && typeof payload.data === 'object') {
-            return payload.data;
-        }
-        return payload;
-    }
-    throw new Error('不正なデータ形式です');
-}
-
-async function fetchPublicDataWithFallback() {
-    const workerBase = getPublicWorkerApiBase();
-    if (!workerBase) {
-        throw new Error('データ取得元（Workers API）が設定されていません');
-    }
-
-    const publicRes = await fetch(workerBase + '/data/public', { cache: 'no-store' });
-    if (publicRes.ok) {
-        const payload = await publicRes.json();
-        return extractPublicDataPayload(payload);
-    }
-    if (publicRes.status === 404) {
-        // 移行中のため、/data/public が未初期化のときだけ /data/latest に切り替える
-        const latestRes = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
-        if (!latestRes.ok) throw new Error('運行情報データの取得に失敗しました');
-        const payload = await latestRes.json();
-        return extractPublicDataPayload(payload);
-    }
-    throw new Error('運行情報データの取得に失敗しました');
-}
 
 function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
 
-    const trainType = (line.trainType || 'TC').toUpperCase();
+    const vehicleTypeId = (line.vehicleTypeId || 'TC').toUpperCase();
     const iconPathMap = {
         TC: 'src/TC.svg',
         SX: 'src/SX.svg',
         MC: 'src/mc.svg'
     };
-    const iconPath = iconPathMap[trainType] || iconPathMap.TC;
+    const iconPath = iconPathMap[vehicleTypeId] || iconPathMap.TC;
 
     el.textContent = '';
-    el.style.backgroundColor = line.lineColor || 'var(--primary-color)';
+    el.style.backgroundColor = line.color || 'var(--primary-color)';
     el.style.webkitMaskImage = `url(${iconPath})`;
     el.style.maskImage = `url(${iconPath})`;
-}
-
-function scoreServiceCategoryMatch(rawServiceId, categoryId) {
-    const raw = String(rawServiceId || '').trim();
-    const cat = String(categoryId || '').trim();
-    if (!raw || !cat) return -1;
-
-    if (raw === cat) return 1000;
-    if (raw.startsWith(cat + '-')) return 800 + cat.length;
-    if (cat.startsWith(raw + '-')) return 700 + raw.length;
-
-    const rawTokens = raw.split('-');
-    const catTokens = cat.split('-');
-    if (rawTokens.length === catTokens.length) {
-        let compatible = true;
-        for (let i = 0; i < rawTokens.length; i++) {
-            const rt = rawTokens[i];
-            const ct = catTokens[i];
-            if (!(rt === ct || ct.endsWith(rt) || rt.endsWith(ct))) {
-                compatible = false;
-                break;
-            }
-        }
-        if (compatible) return 600 + cat.length;
-    }
-
-    const rawHead = rawTokens[0];
-    const catHead = catTokens[0];
-    if (rawHead && rawHead === catHead) return 100;
-
-    return -1;
-}
-
-function matchServiceCategoryIdForSegment(seg, cats) {
-    if (!seg || !Array.isArray(cats) || cats.length === 0) return null;
-
-    if (seg.guidance) {
-        const byGuidance = cats.find(c => c[1] === seg.guidance);
-        if (byGuidance) return byGuidance[0];
-    }
-
-    const prefix = `SGM-${seg.lineId}-`;
-    const suffix = `-${seg.fromStationId}-${seg.toStationId}`;
-    if (!seg.segmentId || !seg.segmentId.startsWith(prefix) || !seg.segmentId.endsWith(suffix)) {
-        return null;
-    }
-
-    const rawServiceId = seg.segmentId.substring(prefix.length, seg.segmentId.length - suffix.length);
-
-    let bestCat = null;
-    let bestScore = -1;
-    cats.forEach(cat => {
-        const score = scoreServiceCategoryMatch(rawServiceId, cat[0]);
-        if (score > bestScore) {
-            bestScore = score;
-            bestCat = cat[0];
-        }
-    });
-
-    return bestScore >= 0 ? bestCat : null;
 }
 
 function formatVerticalServiceLabel(label) {
@@ -130,14 +40,50 @@ function formatVerticalServiceLabel(label) {
         .replace(/\)/g, '）');
 }
 
+function formatSeconds(seconds) {
+    const total = Math.max(0, Math.round(seconds || 0));
+    const minutes = Math.floor(total / 60);
+    const remSec = total % 60;
+    if (minutes === 0) return `${remSec}秒`;
+    if (remSec === 0) return `${minutes}分`;
+    return `${minutes}分${remSec}秒`;
+}
+
+function isSuspendNotice(notice) {
+    if (!notice) return false;
+    const masters = model.masters || {};
+    const template = (masters.statusTemplates || []).find(t => t.code === notice.status?.code);
+    const statusId = template ? template.statusId : '';
+    const code = notice.status?.code || '';
+    const heading = notice.status?.heading || '';
+    return statusId === 'OfS' || /SUSPEND/i.test(code) || (heading && heading.includes('運転見合わせ'));
+}
+
+function getCauseHeading(notice) {
+    const cause = notice.cause;
+    if (!cause) return null;
+    if (cause.heading) return cause.heading;
+    const tpl = (model.masters?.causes || []).find(c => c.code === cause.code);
+    return tpl ? (tpl.heading || tpl.label) : null;
+}
+
+function getLatestNoticeUpdatedAt() {
+    let latest = null;
+    model.noticesByLine.forEach(list => {
+        list.forEach(n => {
+            if (!latest || n.updatedAt > latest) latest = n.updatedAt;
+        });
+    });
+    return latest;
+}
+
 // データ読み込み
 async function loadOperationData() {
     try {
         hideError();
         showLoading();
 
-        opData = await fetchPublicDataWithFallback();
-        buildOperationIndexes();
+        ({ model } = await loadPublicModel({}));
         renderLineListView();
         loadOperationFromUrlParams();
     } catch (err) {
@@ -176,7 +122,7 @@ function loadOperationFromUrlParams() {
     const lineId = params.get('line');
     if (!lineId) return;
 
-    if (opLineMap && opLineMap.has(lineId)) {
+    if (model && model.lineById.has(lineId)) {
         showLineDetail(lineId, { syncUrl: false });
     } else {
         setOperationUrlLineParam(null, true);
@@ -186,7 +132,7 @@ function loadOperationFromUrlParams() {
 function handleOperationPopState() {
     const params = new URLSearchParams(window.location.search);
     const lineId = params.get('line');
-    if (lineId && opLineMap && opLineMap.has(lineId)) {
+    if (lineId && model && model.lineById.has(lineId)) {
         showLineDetail(lineId, { syncUrl: false });
     } else {
         hideLineDetail({ syncUrl: false });
@@ -221,47 +167,9 @@ function scrollOperationTopOnMobile() {
     });
 }
 
-function buildOperationIndexes() {
-    opCompanyMap = new Map();
-    opData.companies.forEach(c => opCompanyMap.set(c.companyId, c));
-
-    opLineMap = new Map();
-    opData.lines.forEach(l => opLineMap.set(l.lineId, l));
-
-    opStationMap = new Map();
-    opData.stations.forEach(s => opStationMap.set(s.stationId, s));
-
-    // stationId -> set of lineIds
-    opStationLinesMap = new Map();
-    opData.lines.forEach(line => {
-        (line.stationOrder || []).forEach(stId => {
-            if (!opStationLinesMap.has(stId)) opStationLinesMap.set(stId, new Set());
-            opStationLinesMap.get(stId).add(line.lineId);
-        });
-    });
-
-    // lineId -> 最新の serviceStatus（updated_at の降順）
-    opStatusByLine = new Map();
-    if (Array.isArray(opData.serviceStatuses)) {
-        opData.serviceStatuses.forEach(st => {
-            if (st.published !== true) return;
-            const key = st.affected_line_id;
-            if (!key) return;
-            const existing = opStatusByLine.get(key);
-            if (!existing) {
-                opStatusByLine.set(key, st);
-            } else {
-                if (new Date(st.updated_at) > new Date(existing.updated_at)) {
-                    opStatusByLine.set(key, st);
-                }
-            }
-        });
-    }
-}
-
 // ステータス判定
 function getLineStatusSummary(lineId) {
-    const st = opStatusByLine.get(lineId);
+    const st = (model.noticesByLine.get(lineId) || [])[0];
     if (!st) {
         return {
             level: 'normal',
@@ -272,32 +180,22 @@ function getLineStatusSummary(lineId) {
     }
 
     const heading = st.status?.heading || 'お知らせあり';
-    const code = st.status?.code || '';
-    const statusId = st.status?.status_id || '';
-
-    const isSuspend =
-        statusId === 'OfS' ||
-        /SUSPEND/i.test(code) ||
-        (heading && heading.includes('運転見合わせ'));
+    const isSuspend = isSuspendNotice(st);
 
     const level = isSuspend ? 'suspend' : 'warning';
     const icon = isSuspend ? 'cross' : 'warning';
 
     const subLines = [];
-    if (st.affected_segment && !st.affected_segment.is_full_line) {
-        const sId = st.affected_segment.start_station_id;
-        const eId = st.affected_segment.end_station_id;
-        const sName = sId && opStationMap.get(sId) ? opStationMap.get(sId).stationName : '一部区間';
-        const eName = eId && opStationMap.get(eId) ? opStationMap.get(eId).stationName : '';
+    if (st.range != null) {
+        const sName = model.stationName(st.range.fromStationId) || '一部区間';
+        const eName = model.stationName(st.range.toStationId) || '';
         if (sName && eName) {
             subLines.push(`区間：${sName} から ${eName} まで`);
         }
     }
-    if (st.cause) {
-        const causeHeading = st.cause.heading || st.cause.label;
-        if (causeHeading) {
-            subLines.push(`事由：${causeHeading}`);
-        }
+    const causeHeading = getCauseHeading(st);
+    if (causeHeading) {
+        subLines.push(`事由：${causeHeading}`);
     }
 
     return {
@@ -311,20 +209,20 @@ function getLineStatusSummary(lineId) {
 // 路線一覧ビュー描画（会社から探す）
 function renderLineListView() {
     const container = document.getElementById('line-list-view');
-    if (!container || !opData) return;
+    if (!container || !model) return;
     container.innerHTML = '';
 
-    const ownCompanyId = opData.meta?.ownCompanyId || 'KT';
-    
+    const ownCompanyId = model.network.meta?.ownCompanyId || 'KT';
+
     // 登録されている全ての会社を取得し、自社(ownCompanyId)を先頭にする
-    const allCompanyIds = opData.companies.map(c => c.companyId);
+    const allCompanyIds = model.network.companies.map(c => c.id);
     const targetCompanies = [ownCompanyId, ...allCompanyIds.filter(id => id !== ownCompanyId)];
 
     targetCompanies.forEach(companyId => {
-        const company = opCompanyMap.get(companyId);
+        const company = model.companyById.get(companyId);
         if (!company) return;
 
-        const lines = opData.lines.filter(l => l.companyId === companyId && (l.stationOrder || []).length > 0);
+        const lines = model.network.lines.filter(l => l.companyId === companyId && (l.stations || []).length > 0);
         if (lines.length === 0) return;
 
         const section = document.createElement('section');
@@ -332,17 +230,17 @@ function renderLineListView() {
 
         const title = document.createElement('h2');
         title.className = 'line-section-title';
-        title.textContent = company.companyName;
+        title.textContent = company.name;
         section.appendChild(title);
 
         const cardsWrap = document.createElement('div');
         cardsWrap.className = 'line-cards';
 
         lines.forEach(line => {
-            const status = getLineStatusSummary(line.lineId);
+            const status = getLineStatusSummary(line.id);
             const card = document.createElement('article');
             card.className = 'line-card';
-            card.dataset.lineId = line.lineId;
+            card.dataset.lineId = line.id;
 
             if (status.level === 'suspend') card.classList.add('line-card--suspend');
             if (status.level === 'warning') card.classList.add('line-card--warning');
@@ -357,7 +255,7 @@ function renderLineListView() {
 
             const nameEl = document.createElement('div');
             nameEl.className = 'line-name';
-            nameEl.textContent = line.lineName;
+            nameEl.textContent = line.name;
 
             const statusRow = document.createElement('div');
             statusRow.className = 'line-status-row';
@@ -409,7 +307,7 @@ function renderLineListView() {
             card.appendChild(chevron);
 
             card.addEventListener('click', () => {
-                showLineDetail(line.lineId, { syncUrl: true });
+                showLineDetail(line.id, { syncUrl: true });
             });
 
             cardsWrap.appendChild(card);
@@ -425,7 +323,7 @@ function showLineDetail(lineId, options) {
     const opts = options || {};
     const syncUrl = opts.syncUrl !== false;
 
-    const line = opLineMap.get(lineId);
+    const line = model.lineById.get(lineId);
     if (!line) return;
     opCurrentLineId = lineId;
 
@@ -440,7 +338,7 @@ function showLineDetail(lineId, options) {
     const nameEl = document.getElementById('line-detail-name');
 
     applyLineTypeIcon(icon, line);
-    nameEl.textContent = line.lineName;
+    nameEl.textContent = line.name;
 
     renderLineAlertBox(lineId);
     renderLineDiagram(lineId);
@@ -468,81 +366,6 @@ function hideLineDetail(options) {
     }
 }
 
-function showShareDialog(url) {
-    let existing = document.getElementById('share-modal');
-    if (existing) {
-        const input = existing.querySelector('.share-url-input');
-        if (input) input.value = url;
-        existing.style.display = 'flex';
-        try { existing.querySelector('.share-url-input').select(); } catch (e) {}
-        return;
-    }
-
-    const modal = document.createElement('div');
-    modal.id = 'share-modal';
-    modal.className = 'share-modal';
-
-    modal.innerHTML = `
-        <div class="share-modal-content" role="dialog" aria-modal="true" aria-label="路線を共有">
-            <h3>路線を共有する</h3>
-            <p>以下のURLを共有してください。</p>
-            <input class="share-url-input" type="text" readonly aria-label="共有URL">
-            <div class="share-modal-actions">
-                <button type="button" class="back-to-search-btn share-copy-btn">コピー</button>
-                <button type="button" class="back-to-search-btn share-native-btn">共有</button>
-                <button type="button" class="back-to-search-btn share-close-btn">閉じる</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const input = modal.querySelector('.share-url-input');
-    const copyBtn = modal.querySelector('.share-copy-btn');
-    const nativeBtn = modal.querySelector('.share-native-btn');
-    const closeBtn = modal.querySelector('.share-close-btn');
-
-    input.value = url;
-    try { input.select(); } catch (e) {}
-
-    copyBtn.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(input.value);
-            copyBtn.textContent = 'コピーしました';
-            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
-        } catch (err) {
-            try { input.select(); } catch (e) {}
-            copyBtn.textContent = 'クリップボード失敗';
-            setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500);
-        }
-    });
-
-    nativeBtn.addEventListener('click', async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: document.title, url: input.value });
-            } catch (e) { /* user cancelled or failed */ }
-        } else {
-            try {
-                await navigator.clipboard.writeText(input.value);
-                nativeBtn.textContent = 'コピーしました';
-                setTimeout(() => { nativeBtn.textContent = '共有'; }, 1500);
-            } catch (err) {
-                try { input.select(); } catch (e) {}
-            }
-        }
-    });
-
-    function closeModal() {
-        modal.style.display = 'none';
-    }
-
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (ev) => {
-        if (ev.target === modal) closeModal();
-    });
-}
-
 function ensureLineShareButton() {
     const detailView = document.getElementById('line-detail-view');
     if (!detailView) return;
@@ -567,9 +390,9 @@ function ensureLineShareButton() {
                 const params = new URLSearchParams();
                 params.set('line', lineId);
                 const shareUrl = `${urlObj.origin}${urlObj.pathname}?${params.toString()}`;
-                showShareDialog(shareUrl);
+                showShareDialog(shareUrl, { title: '路線を共有する', ariaLabel: '路線を共有' });
             } catch (e) {
-                showShareDialog(window.location.href);
+                showShareDialog(window.location.href, { title: '路線を共有する', ariaLabel: '路線を共有' });
             }
         });
 
@@ -583,12 +406,12 @@ function renderLineAlertBox(lineId) {
     const box = document.getElementById('line-alert-box');
     box.innerHTML = '';
 
-    const st = opStatusByLine.get(lineId);
+    const st = (model.noticesByLine.get(lineId) || [])[0];
     if (!st) {
         box.classList.add('alert-normal');
         const inner = document.createElement('div');
         inner.className = 'alert-body';
-        const metaTime = opData.serviceStatusMeta?.generated_at;
+        const metaTime = getLatestNoticeUpdatedAt();
         const timeText = metaTime ? formatJaDateTime(metaTime) : null;
         inner.textContent = timeText
             ? `現在、列車の遅れなどの情報はありません。（${timeText} 時点）`
@@ -618,22 +441,34 @@ function renderLineAlertBox(lineId) {
 
     const updated = document.createElement('span');
     updated.className = 'alert-updated';
-    updated.textContent = st.updated_at ? `${formatJaDateTime(st.updated_at)} 更新` : '';
+    updated.textContent = st.updatedAt ? `${formatJaDateTime(st.updatedAt)} 更新` : '';
 
     header.appendChild(main);
     header.appendChild(updated);
 
     const body = document.createElement('div');
     body.className = 'alert-body';
-    body.textContent = st.generated_text?.body || st.published_text || st.status?.body || '';
+    body.textContent = (st.rendered && st.rendered.body) || st.status?.body || '';
 
     box.appendChild(header);
     box.appendChild(body);
 }
 
+// 種別列見出しの下に付ける直通先表示（要望3）
+function buildThroughText(lineId, categoryId) {
+    const entry = model.throughLinks.get(lineId)?.get(categoryId);
+    if (!entry) return '';
+    const names = [...entry.to, ...entry.from]
+        .map(id => model.lineName(id))
+        .filter(Boolean);
+    const unique = Array.from(new Set(names));
+    if (unique.length === 0) return '';
+    return `直通 ${unique.join('・')}`;
+}
+
 // 路線図＋駅リスト
 function renderLineDiagram(lineId) {
-    const line = opLineMap.get(lineId);
+    const line = model.lineById.get(lineId);
     if (!line) return;
 
     const lineLayoutEl = document.getElementById('line-layout');
@@ -641,73 +476,46 @@ function renderLineDiagram(lineId) {
     // 古い行をクリア
     lineLayoutEl.innerHTML = '';
 
-    const cats = line.serviceCategories || [];
+    const cats = line.categories || [];
 
-    // 1. 各種別の停車駅IDのSetを作成
+    // 1. 各種別の停車駅IDのSetを作成（有効な運行系統の区間から）
+    const stopsByCategory = model.stopsByLineCategory.get(lineId) || new Map();
     const stopsByCat = {};
-    cats.forEach(c => stopsByCat[c[0]] = new Set());
+    cats.forEach(c => stopsByCat[c.id] = new Set(stopsByCategory.get(c.id) || []));
 
-    // 2. セグメントから停車駅を推測収集
-    opData.segments.forEach(seg => {
-        if (seg.lineId !== lineId) return;
-        const matchedCat = matchServiceCategoryIdForSegment(seg, cats);
-        if (matchedCat) {
-            stopsByCat[matchedCat].add(seg.fromStationId);
-            stopsByCat[matchedCat].add(seg.toStationId);
-        }
-    });
+    const order = line.stations || [];
 
-    const order = line.stationOrder || [];
-
-    // もしセグメントから全く抽出できなかった場合のフォールバック（全停車扱い）
+    // もし運行系統から全く抽出できなかった場合のフォールバック（全停車扱い）
     cats.forEach(c => {
-        const catId = c[0];
-        if (stopsByCat[catId].size === 0) {
-            order.forEach(stId => stopsByCat[catId].add(stId));
+        if (stopsByCat[c.id].size === 0) {
+            order.forEach(stId => stopsByCat[c.id].add(stId));
         }
     });
 
-    // 3. 各種別の最初と最後のインデックスを計算
+    // 2. 各種別の最初と最後のインデックスを計算
     const boundsByCat = {};
     cats.forEach(c => {
-        const catId = c[0];
         let minIdx = Infinity;
         let maxIdx = -Infinity;
         order.forEach((stId, idx) => {
-            if (stopsByCat[catId].has(stId)) {
+            if (stopsByCat[c.id].has(stId)) {
                 if (idx < minIdx) minIdx = idx;
                 if (idx > maxIdx) maxIdx = idx;
             }
         });
-        boundsByCat[catId] = { min: minIdx, max: maxIdx };
+        boundsByCat[c.id] = { min: minIdx, max: maxIdx };
     });
 
-    // この路線の区間で影響を受けている範囲
-    const st = opStatusByLine.get(lineId);
-    let affectedStart = null;
-    let affectedEnd = null;
-    if (st && st.affected_segment && !st.affected_segment.is_full_line) {
-        affectedStart = st.affected_segment.start_station_id;
-        affectedEnd = st.affected_segment.end_station_id;
-    }
-
-    const affectedIndices = new Set();
-    let minAffectedIdx = -1;
-    let maxAffectedIdx = -1;
-    if (affectedStart && affectedEnd) {
-        const sIdx = order.indexOf(affectedStart);
-        const eIdx = order.indexOf(affectedEnd);
-        if (sIdx !== -1 && eIdx !== -1) {
-            const [from, to] = sIdx <= eIdx ? [sIdx, eIdx] : [eIdx, sIdx];
-            minAffectedIdx = from;
-            maxAffectedIdx = to;
-            for (let i = from; i <= to; i++) affectedIndices.add(i);
-        }
-    }
+    // この路線の区間で影響を受けている範囲（要望4：computeAffectedIndicesを使う）
+    const st = (model.noticesByLine.get(lineId) || [])[0];
+    const affectedIndicesArray = st ? computeAffectedIndices(line, st.range) : [];
+    const affectedIndices = new Set(affectedIndicesArray);
+    const minAffectedIdx = affectedIndicesArray.length ? affectedIndicesArray[0] : -1;
+    const maxAffectedIdx = affectedIndicesArray.length ? affectedIndicesArray[affectedIndicesArray.length - 1] : -1;
 
     // --- DOM生成 ---
 
-    // ヘッダー行 (種別名)
+    // ヘッダー行 (種別名 + 直通先)
     const headerRow = document.createElement('div');
     headerRow.className = 'op-header-row';
     const headerDiagram = document.createElement('div');
@@ -716,7 +524,16 @@ function renderLineDiagram(lineId) {
     cats.forEach(c => {
         const lbl = document.createElement('div');
         lbl.className = 'service-label';
-        lbl.textContent = formatVerticalServiceLabel(c[1]);
+        lbl.textContent = formatVerticalServiceLabel(c.name);
+
+        const throughText = buildThroughText(lineId, c.id);
+        if (throughText) {
+            const through = document.createElement('div');
+            through.className = 'service-through';
+            through.textContent = throughText;
+            lbl.appendChild(through);
+        }
+
         headerDiagram.appendChild(lbl);
     });
 
@@ -728,7 +545,7 @@ function renderLineDiagram(lineId) {
 
     // データ行 (駅ごと)
     order.forEach((stId, idx) => {
-        const station = opStationMap.get(stId);
+        const station = model.stationById.get(stId);
         const isStationAffected = affectedIndices.has(idx);
 
         const row = document.createElement('div');
@@ -740,7 +557,7 @@ function renderLineDiagram(lineId) {
         // 判定: 路線の全種別がここで止まるか（種別が複数ある場合のみ）
         let isAllStop = false;
         if (cats.length > 1) {
-            isAllStop = cats.every(c => stopsByCat[c[0]].has(stId));
+            isAllStop = cats.every(c => stopsByCat[c.id].has(stId));
         }
 
         if (isAllStop) {
@@ -751,16 +568,15 @@ function renderLineDiagram(lineId) {
         }
 
         cats.forEach(c => {
-            const catId = c[0];
-            const bounds = boundsByCat[catId];
+            const bounds = boundsByCat[c.id];
             const cell = document.createElement('div');
             cell.className = 'op-diagram-cell';
 
             let isCatAffected = false;
             if (isStationAffected && st) {
-                if (st.notice_types_all !== false) {
+                if (st.categoryIds == null) {
                     isCatAffected = true;
-                } else if (Array.isArray(st.notice_types) && st.notice_types.includes(catId)) {
+                } else if (Array.isArray(st.categoryIds) && st.categoryIds.includes(c.id)) {
                     isCatAffected = true;
                 }
             }
@@ -768,7 +584,7 @@ function renderLineDiagram(lineId) {
             if (idx >= bounds.min && idx <= bounds.max) {
                 const lineBar = document.createElement('div');
                 lineBar.className = 'diagram-line';
-                lineBar.style.backgroundColor = line.lineColor || 'var(--primary-color)';
+                lineBar.style.backgroundColor = line.color || 'var(--primary-color)';
 
                 if (isCatAffected) {
                     lineBar.classList.add('affected');
@@ -777,16 +593,16 @@ function renderLineDiagram(lineId) {
                 }
 
                 if (idx === bounds.min) lineBar.classList.add('line-start');
-                if (idx === bounds.max) lineBar.classList.add('line-end');
+                if (idx === bounds.max && !line.loop) lineBar.classList.add('line-end');
                 if (idx === bounds.min && idx === bounds.max) lineBar.style.display = 'none';
 
                 cell.appendChild(lineBar);
             }
 
-            if (stopsByCat[catId].has(stId)) {
+            if (stopsByCat[c.id].has(stId)) {
                 const node = document.createElement('div');
                 node.className = 'diagram-node';
-                node.style.borderColor = line.lineColor || 'var(--primary-color)';
+                node.style.borderColor = line.color || 'var(--primary-color)';
                 // 種別に応じた色などの調整が必要な場合はここに。今回は共通デザイン。
                 if (isAllStop) node.classList.add('is-all-stop');
                 if (isCatAffected) node.classList.add('affected');
@@ -802,16 +618,16 @@ function renderLineDiagram(lineId) {
 
         const nameMain = document.createElement('div');
         nameMain.className = 'station-name-main';
-        nameMain.textContent = station ? station.stationName : stId;
+        nameMain.textContent = station ? station.name : stId;
 
         stationCell.appendChild(nameMain);
 
         // 乗換情報
-        const set = opStationLinesMap.get(stId);
-        if (set && set.size > 1) {
-            const others = Array.from(set)
+        const lineIds = model.linesByStation.get(stId) || [];
+        if (lineIds.length > 1) {
+            const others = lineIds
                 .filter(lid => lid !== lineId)
-                .map(lid => opLineMap.get(lid)?.lineName)
+                .map(lid => model.lineName(lid))
                 .filter(Boolean);
             if (others.length > 0) {
                 const transfer = document.createElement('div');
@@ -821,10 +637,48 @@ function renderLineDiagram(lineId) {
             }
         }
 
+        // 徒歩連絡（要望5）
+        const walks = model.walkTransfersByStation.get(stId) || [];
+        if (walks.length > 0) {
+            const walkText = walks
+                .map(w => `${model.stationName(w.toStationId)}（${formatSeconds(w.seconds)}）`)
+                .join('・');
+            const walk = document.createElement('div');
+            walk.className = 'station-transfer';
+            walk.textContent = `徒歩：${walkText}`;
+            stationCell.appendChild(walk);
+        }
+
         row.appendChild(rowDiagram);
         row.appendChild(stationCell);
         lineLayoutEl.appendChild(row);
     });
+
+    // 環状線：最後に「戻る」行を追加する（要望4）
+    if (line.loop) {
+        const row = document.createElement('div');
+        row.className = 'op-body-row';
+
+        const rowDiagram = document.createElement('div');
+        rowDiagram.className = 'op-diagram-cells';
+        cats.forEach(() => {
+            const cell = document.createElement('div');
+            cell.className = 'op-diagram-cell';
+            rowDiagram.appendChild(cell);
+        });
+
+        const stationCell = document.createElement('div');
+        stationCell.className = 'op-station-cell';
+        const loopStationId = order[line.loop.startIndex];
+        const transfer = document.createElement('div');
+        transfer.className = 'station-transfer';
+        transfer.textContent = `↺ ${model.stationName(loopStationId)} へ戻る`;
+        stationCell.appendChild(transfer);
+
+        row.appendChild(rowDiagram);
+        row.appendChild(stationCell);
+        lineLayoutEl.appendChild(row);
+    }
 }
 
 // 日時フォーマット（2025年12月6日 20時00分）
@@ -863,7 +717,7 @@ function setupOperationModeToggle() {
             const btnRect = selectedBtn.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
             const leftOffset = btnRect.left - containerRect.left;
-            
+
             container.style.setProperty('--bg-width', `${btnRect.width}px`);
             container.style.setProperty('--bg-left', `${leftOffset}px`);
         }
@@ -879,7 +733,7 @@ function setupOperationModeToggle() {
         }
     }
 
-    // `requestAnimationFrame` helps ensure styles flow has calculated button dimensions 
+    // `requestAnimationFrame` helps ensure styles flow has calculated button dimensions
     // before computing init layout position, matching best practice for element geometries.
     requestAnimationFrame(() => {
         setMode('company');
@@ -893,78 +747,12 @@ function setupOperationModeToggle() {
     });
 }
 
-// Bottom sheet
-function openBottomSheet() {
-    const sheet = document.getElementById('bottom-sheet');
-    const btn = document.getElementById('mb-menu-btn');
-    const backdrop = document.getElementById('sheet-backdrop');
-    if (!sheet) return;
-    if (btn) btn.classList.add('active');
-    sheet.classList.add('open');
-    sheet.setAttribute('aria-hidden', 'false');
-    if (backdrop) {
-        backdrop.classList.add('open');
-        backdrop.setAttribute('aria-hidden', 'false');
-    }
-    if (btn) btn.setAttribute('aria-expanded', 'true');
-}
-
-function closeBottomSheet() {
-    const sheet = document.getElementById('bottom-sheet');
-    const btn = document.getElementById('mb-menu-btn');
-    const backdrop = document.getElementById('sheet-backdrop');
-    if (!sheet) return;
-    sheet.classList.remove('open');
-    sheet.setAttribute('aria-hidden', 'true');
-    if (backdrop) {
-        backdrop.classList.remove('open');
-        backdrop.setAttribute('aria-hidden', 'true');
-    }
-    if (btn) btn.classList.remove('active');
-    if (btn) btn.setAttribute('aria-expanded', 'false');
-}
-
-function toggleBottomSheet() {
-    const sheet = document.getElementById('bottom-sheet');
-    if (!sheet) return;
-    if (sheet.classList.contains('open')) closeBottomSheet(); else openBottomSheet();
-}
-
 // 初期化
 function initializeOperationUI() {
     setupOperationModeToggle();
-
-    const mbNav = document.getElementById('mobile-bottom-nav');
-    if (mbNav) {
-        mbNav.addEventListener('click', (e) => {
-            const btn = e.target.closest('.mb-item');
-            if (!btn) return;
-            if (btn.classList.contains('mb-menu')) {
-                toggleBottomSheet();
-                return;
-            }
-            closeBottomSheet();
-        });
-    }
-
-    const sheet = document.getElementById('bottom-sheet');
-    const closeBtn = document.getElementById('sheet-close');
-    const backdrop = document.getElementById('sheet-backdrop');
-    if (sheet) {
-        sheet.addEventListener('click', (e) => {
-            if (e.target === sheet) closeBottomSheet();
-        });
-        const items = sheet.querySelectorAll('.sheet-item');
-        items.forEach(it => {
-            it.addEventListener('click', () => {
-                closeBottomSheet();
-            });
-        });
-    }
-    if (backdrop) {
-        backdrop.addEventListener('click', () => closeBottomSheet());
-    }
-    if (closeBtn) closeBtn.addEventListener('click', closeBottomSheet);
+    setupBottomSheet();
+    setupHelpModal();
+    setupNoopLinks();
 
     const backBtn = document.getElementById('back-to-list-btn');
     if (backBtn) backBtn.addEventListener('click', () => hideLineDetail({ syncUrl: true }));
@@ -973,119 +761,8 @@ function initializeOperationUI() {
     const errorCloseBtn = document.getElementById('error-close');
     if (errorCloseBtn) errorCloseBtn.addEventListener('click', hideError);
 
-    // Help modal (transfer ページと同様の挙動)
-    const helpButton = document.getElementById('help-button');
-    const helpModal = document.getElementById('help-modal');
-    const closeHelpBtn = document.getElementById('close-help');
-
-    function openHelp() {
-        if (!helpModal) return;
-        helpModal.style.display = 'flex';
-    }
-
-    function closeHelp() {
-        if (!helpModal) return;
-        helpModal.style.display = 'none';
-    }
-
-    if (helpButton) helpButton.addEventListener('click', openHelp);
-    if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelp);
-
-    if (helpModal) {
-        helpModal.addEventListener('click', (e) => {
-            if (e.target === helpModal) {
-                closeHelp();
-            }
-        });
-    }
-
-    // Placeholder links (#) and current-page links should not navigate.
-    document.querySelectorAll('a[data-noop="true"], a.is-current-page').forEach(link => {
-        link.addEventListener('click', (e) => e.preventDefault());
-    });
-
     window.addEventListener('popstate', handleOperationPopState);
 }
 
-// ローディング表示
-function showLoading() {
-    const el = document.getElementById('loading-section');
-    if (!el) return;
-    el.style.display = 'flex';
-
-    try {
-        const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile) {
-            const onTouchMove = function(e) {
-                e.preventDefault();
-            };
-            const onWheel = function(e) {
-                e.preventDefault();
-            };
-            const onKeyDown = function(e) {
-                const keys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '];
-                if (keys.includes(e.key)) {
-                    e.preventDefault();
-                }
-            };
-
-            _loadingPreventHandlers = { onTouchMove, onWheel, onKeyDown };
-
-            document.addEventListener('touchmove', onTouchMove, { passive: false });
-            document.addEventListener('wheel', onWheel, { passive: false });
-            document.addEventListener('keydown', onKeyDown, { passive: false });
-            el.style.pointerEvents = 'auto';
-        } else {
-            document.body.classList.add('no-scroll');
-            document.documentElement.classList.add('no-scroll');
-        }
-    } catch (e) {
-        /* ignore */
-    }
-
-    const main = document.querySelector('main');
-    if (main) main.setAttribute('aria-hidden', 'true');
-}
-
-function hideLoading() {
-    const el = document.getElementById('loading-section');
-    if (el) el.style.display = 'none';
-
-    try {
-        if (_loadingPreventHandlers) {
-            document.removeEventListener('touchmove', _loadingPreventHandlers.onTouchMove, { passive: false });
-            document.removeEventListener('wheel', _loadingPreventHandlers.onWheel, { passive: false });
-            document.removeEventListener('keydown', _loadingPreventHandlers.onKeyDown, { passive: false });
-            _loadingPreventHandlers = null;
-            if (el) el.style.pointerEvents = '';
-        }
-        document.body.classList.remove('no-scroll');
-        document.documentElement.classList.remove('no-scroll');
-    } catch (e) {
-        /* ignore */
-    }
-
-    const main = document.querySelector('main');
-    if (main) main.removeAttribute('aria-hidden');
-}
-
-// エラー表示
-function showError(message) {
-    const container = document.getElementById('error-section');
-    const msgEl = document.getElementById('error-message');
-    if (!container || !msgEl) return;
-    msgEl.textContent = message || '';
-    container.style.display = 'block';
-}
-
-function hideError() {
-    const container = document.getElementById('error-section');
-    if (!container) return;
-    container.style.display = 'none';
-}
-
-// DOMContentLoaded
-window.addEventListener('DOMContentLoaded', () => {
-    initializeOperationUI();
-    loadOperationData();
-});
+initializeOperationUI();
+loadOperationData();

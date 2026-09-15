@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { buildModel } from '../shared/model.js';
+import { buildModel, computeAffectedIndices } from '../shared/model.js';
 import { convertV1ToV2 } from '../shared/convert-v1-to-v2.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -79,6 +79,32 @@ test('補助関数 stationName / lineName / categoryName', () => {
   assert.equal(model.stationName('S1'), 'S1駅');
   assert.equal(model.lineName('LA'), 'A線');
   assert.equal(model.categoryName('LA', 'Lo'), '普通');
+});
+
+test('computeAffectedIndices: range が null なら全駅', () => {
+  const line = network.lines.find(l => l.id === 'LA');
+  assert.deepEqual(computeAffectedIndices(line, null), [0, 1, 2]);
+});
+
+test('computeAffectedIndices: direction がない場合は添字の小さい方から大きい方まで', () => {
+  const line = network.lines.find(l => l.id === 'LA');
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S3', toStationId: 'S1', direction: null }), [0, 1, 2]);
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S1', toStationId: 'S2', direction: null }), [0, 1]);
+});
+
+test('computeAffectedIndices: 環状線でdirectionがforwardなら折り返さずに進む', () => {
+  const line = network.lines.find(l => l.id === 'LB'); // stations: S2,S3,S4 loop startIndex 0
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S4', toStationId: 'S3', direction: 'forward' }), [2, 0, 1]);
+});
+
+test('computeAffectedIndices: 環状線でdirectionがbackwardなら逆向きに進む', () => {
+  const line = network.lines.find(l => l.id === 'LB');
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S2', toStationId: 'S4', direction: 'backward' }), [0, 2]);
+});
+
+test('computeAffectedIndices: 該当駅が路線にない場合は空配列', () => {
+  const line = network.lines.find(l => l.id === 'LA');
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S4', toStationId: 'S1', direction: null }), []);
 });
 
 test('本番フィクスチャを変換したものでも例外が出ない', () => {
