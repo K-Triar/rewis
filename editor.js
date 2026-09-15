@@ -32,6 +32,8 @@ let _workerAuthToken = null;
 let _workerAuthExpiresAt = 0;
 let _workerHistoryItems = [];
 let _workerHistoryLoaded = false;
+let _workerHistoryCursor = null;
+let _baseRevision = null;
 // beforeunload handler (use provided code behavior)
 function _beforeUnloadHandler(event) {
     event.preventDefault();
@@ -64,6 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeNavigation();
     initializeWorkerControls();
     tryLoadExistingData();
+    const loadMoreBtn = document.getElementById('history-load-more-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreWorkerHistory);
+    }
 });
 // Setup auto-preview after DOM ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -287,61 +293,18 @@ async function renderSectionAsync(sectionId) {
 }
 
 async function tryLoadExistingData() {
-    try {
-        // サーバーAPIから読込（サーバーが起動していない場合はローカルファイルにフォールバック）
-        let response = await fetch('/api/data');
-        let loadedMode = 'local-server';
-        if (!response.ok) {
-            response = await fetch('data.json');
-            loadedMode = 'static-file';
-        }
-        if (response.ok) {
-                appData = await response.json();
-                ensureServiceStatusConfig(appData);
-            // データは既に秒単位で保存されているため、変換は不要
-                try {
-                    _lastSavedJson = JSON.stringify(cleanDataForExport(appData));
-                } catch (e) { _lastSavedJson = JSON.stringify(appData); }
-                checkUnsavedChanges();
-            // Render the section indicated by the URL (e.g. ?companies) or the currently active nav button.
-            const urlSection = (location.search || '').replace(/^\?/,'');
-            const activeNav = document.querySelector('.nav-btn.active')?.dataset.section;
-            const sectionToShow = urlSection || activeNav || 'companies';
-            switchSection(sectionToShow);
-            if (loadedMode === 'local-server') {
-                updateServerStatus(true, 'local-server');
-            } else {
-                updateServerStatus(false, 'static-file');
-            }
-        }
-    } catch (error) {
-        console.log('data.jsonが見つかりません');
-        updateServerStatus(false, 'offline');
+    const base = getWorkerBaseUrl();
+    if (base && isWorkerAuthValid()) {
+        await loadFromWorkerSource({ silent: true });
+        return;
     }
+    updateServerStatus(false, 'unloaded');
 }
 
 // --- 時間ユーティリティ ---
 function formatSeconds(sec) {
     sec = parseInt(sec) || 0;
     return `${sec}秒`;
-}
-
-function convertTimesToSecondsIfNeeded(data) {
-    if (!data) return;
-    const segs = data.segments || [];
-    const transfers = data.platformTransfers || [];
-    const maxSeg = segs.reduce((max, s) => Math.max(max, Math.abs(Number(s.duration) || 0)), 0);
-    const maxTrans = transfers.reduce((max, t) => Math.max(max, Math.abs(Number(t.transferTime) || 0)), 0);
-    // どちらも小さめ（<=120）なら分単位で保存されていると推定して秒へ変換
-    const likelyMinutes = maxSeg > 0 && maxSeg <= 120 && maxTrans <= 120;
-    if (likelyMinutes) {
-        segs.forEach(s => {
-            if (s.duration !== undefined && s.duration !== null) s.duration = Number(s.duration) * 60;
-        });
-        transfers.forEach(t => {
-            if (t.transferTime !== undefined && t.transferTime !== null) t.transferTime = Number(t.transferTime) * 60;
-        });
-    }
 }
 
 function updateServerStatus(isOnline, mode = 'local-server') {
@@ -355,8 +318,8 @@ function updateServerStatus(isOnline, mode = 'local-server') {
             }
             statusEl.style.color = '#080';
         } else {
-            if (mode === 'static-file') {
-                statusEl.textContent = '接続状態: 静的ファイル読込モード';
+            if (mode === 'unloaded') {
+                statusEl.textContent = '未読込：保存/読込タブで外部正本から読込してください';
             } else {
                 statusEl.textContent = 'サーバー接続: オフライン（ローカルモード）';
             }
@@ -480,13 +443,13 @@ async function authenticateWorkerUser(forceStatusAlert = false) {
 async function saveToWorkerSource(exportData) {
     const base = getWorkerBaseUrl();
     if (!base) {
-        return { attempted: false, saved: false };
+        return { saved: false, status: 0, body: { error: 'no_worker_base' } };
     }
 
     if (!isWorkerAuthValid()) {
         const ok = await authenticateWorkerUser(false);
         if (!ok) {
-            return { attempted: true, saved: false, blockedByAuth: true };
+            return { saved: false, status: 401, body: { error: 'unauthorized' } };
         }
     }
 
@@ -500,7 +463,7 @@ async function saveToWorkerSource(exportData) {
             body: JSON.stringify({
                 data: exportData,
                 client: 'rewis-editor',
-                savedAt: new Date().toISOString()
+                baseRevision: _baseRevision
             })
         });
     };
@@ -511,31 +474,40 @@ async function saveToWorkerSource(exportData) {
             clearWorkerAuthSession(false);
             const relogin = await authenticateWorkerUser(false);
             if (!relogin) {
-                return { attempted: true, saved: false, blockedByAuth: true };
+                return { saved: false, status: 401, body: { error: 'unauthorized' } };
             }
             response = await doSave();
         }
 
-        if (!response.ok) {
-            const text = await response.text();
-            throw new Error(text || '保存に失敗しました');
-        }
-
-        return { attempted: true, saved: true };
+        const body = await response.json().catch(() => ({}));
+        return { saved: response.ok, status: response.status, revision: body.revision, body };
     } catch (error) {
-        return { attempted: true, saved: false, error: error.message };
+        return { saved: false, status: 0, body: { error: error.message } };
     }
 }
 
-async function loadFromWorkerSource() {
+async function loadFromWorkerSource(options = {}) {
+    const silent = !!options.silent;
     const base = getWorkerBaseUrl();
     if (!base) {
-        alert('Workers API URL を設定してください。');
+        if (!silent) alert('Workers API URL を設定してください。');
+        else updateServerStatus(false, 'unloaded');
         return;
     }
 
+    const headers = {};
+    if (isWorkerAuthValid()) {
+        headers.Authorization = 'Bearer ' + _workerAuthToken;
+    }
+
     try {
-        const response = await fetch(base + '/data/latest');
+        const response = await fetch(base + '/data/latest', { headers, cache: 'no-store' });
+        if (response.status === 401) {
+            setWorkerAuthStatus('ログインが必要です', false);
+            updateServerStatus(false, 'unloaded');
+            if (!silent) alert('ログインが必要です。認証してから読み込んでください。');
+            return;
+        }
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const payload = await response.json();
         if (!payload || !payload.data) {
@@ -544,6 +516,7 @@ async function loadFromWorkerSource() {
 
         appData = payload.data;
         ensureServiceStatusConfig(appData);
+        _baseRevision = payload.meta?.revision ?? 0;
         try {
             _lastSavedJson = JSON.stringify(cleanDataForExport(appData));
         } catch (e) { _lastSavedJson = JSON.stringify(appData); }
@@ -551,10 +524,15 @@ async function loadFromWorkerSource() {
 
         renderSection('companies');
         switchSection('companies');
-        updateServerStatus(true, 'worker');
-        alert('外部正本から読み込みました。');
+        const statusEl = document.getElementById('server-status');
+        if (statusEl) {
+            statusEl.textContent = `外部正本 版 ${_baseRevision} を編集中`;
+            statusEl.style.color = '#080';
+        }
+        if (!silent) alert('外部正本から読み込みました。');
     } catch (error) {
-        alert('外部正本からの読込に失敗しました: ' + error.message);
+        if (!silent) alert('外部正本からの読込に失敗しました: ' + error.message);
+        else updateServerStatus(false, 'unloaded');
     }
 }
 
@@ -585,105 +563,247 @@ function renderWorkerHistorySection() {
 
     tbody.innerHTML = '';
     if (!_workerHistoryItems || _workerHistoryItems.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#666;">履歴はありません</td></tr>';
-        return;
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#666;">履歴はありません</td></tr>';
+    } else {
+        _workerHistoryItems.forEach((item, index) => {
+            const tr = document.createElement('tr');
+
+            const numTd = document.createElement('td');
+            numTd.className = 'row-number';
+            numTd.textContent = String(index + 1);
+
+            const revTd = document.createElement('td');
+            revTd.textContent = item.revision === null || item.revision === undefined ? '' : String(item.revision);
+
+            const savedAtTd = document.createElement('td');
+            savedAtTd.textContent = formatHistoryDateTime(item.savedAt || item.updatedAt || '');
+
+            const updatedByTd = document.createElement('td');
+            updatedByTd.textContent = item.updatedBy || '';
+
+            const clientTd = document.createElement('td');
+            clientTd.textContent = item.client || (item.rollbackFrom ? `${item.client || ''} (復元元: ${item.rollbackFrom})` : (item.client || ''));
+
+            const keyTd = document.createElement('td');
+            keyTd.textContent = item.key || '';
+
+            const actionTd = document.createElement('td');
+            const compareBtn = document.createElement('button');
+            compareBtn.className = 'preview-btn';
+            compareBtn.textContent = '比較';
+            compareBtn.addEventListener('click', () => compareHistoryItem(item.key));
+
+            const loadBtn = document.createElement('button');
+            loadBtn.className = 'preview-btn';
+            loadBtn.textContent = 'エディタに読込';
+            loadBtn.addEventListener('click', () => loadHistoryItemIntoEditor(item.key));
+
+            const rollbackBtn = document.createElement('button');
+            rollbackBtn.className = 'export-btn';
+            rollbackBtn.textContent = 'この版に戻す';
+            rollbackBtn.addEventListener('click', () => rollbackToHistoryItem(item.key));
+
+            actionTd.appendChild(compareBtn);
+            actionTd.appendChild(loadBtn);
+            actionTd.appendChild(rollbackBtn);
+
+            tr.appendChild(numTd);
+            tr.appendChild(revTd);
+            tr.appendChild(savedAtTd);
+            tr.appendChild(updatedByTd);
+            tr.appendChild(clientTd);
+            tr.appendChild(keyTd);
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
+        });
     }
 
-    _workerHistoryItems.forEach((item, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="row-number">${index + 1}</td>
-            <td>${esc(formatHistoryDateTime(item.savedAt || item.updatedAt || ''))}</td>
-            <td>${esc(item.updatedBy || '')}</td>
-            <td>${esc(item.client || '')}</td>
-            <td>${esc(item.key || '')}</td>
-        `;
-        tbody.appendChild(tr);
-    });
+    const moreContainer = document.getElementById('history-load-more-container');
+    if (moreContainer) {
+        moreContainer.style.display = _workerHistoryCursor ? 'block' : 'none';
+    }
 }
 
-async function loadWorkerHistory(showAlertOnError = false) {
+async function fetchWorkerHistoryPage(cursor) {
+    const base = getWorkerBaseUrl();
+    const doFetch = async () => {
+        const headers = {};
+        if (isWorkerAuthValid()) {
+            headers.Authorization = 'Bearer ' + _workerAuthToken;
+        }
+        const url = base + '/data/history?limit=50' + (cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
+        return fetch(url, { method: 'GET', headers, cache: 'no-store' });
+    };
+
+    let response = await doFetch();
+    if (response.status === 401) {
+        clearWorkerAuthSession(false);
+        const authOk = await authenticateWorkerUser(false);
+        if (!authOk) {
+            throw new Error('unauthorized');
+        }
+        response = await doFetch();
+    }
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error('HTTP ' + response.status + ': ' + errorText.substring(0, 100));
+    }
+
+    return response.json();
+}
+
+async function loadWorkerHistory(showAlertOnError = false, append = false) {
     const base = getWorkerBaseUrl();
     if (!base) {
         _workerHistoryItems = [];
         _workerHistoryLoaded = false;
+        _workerHistoryCursor = null;
         renderWorkerHistorySection();
         setWorkerHistoryStatus('Workers API URL を設定してください。', false);
         if (showAlertOnError) alert('Workers API URL を設定してください。');
         return;
     }
 
-    console.log('[History] 取得開始: ', base);
     setWorkerHistoryStatus('履歴を取得中...', false);
 
-    const doFetch = async () => {
-        const headers = {};
-        if (isWorkerAuthValid()) {
-            console.log('[History] 認証トークンを使用');
-            headers.Authorization = 'Bearer ' + _workerAuthToken;
-        } else {
-            console.log('[History] 認証なしで取得を試みる');
-        }
-        const url = base + '/data/history?limit=50';
-        console.log('[History] リクエスト URL: ', url);
-        return fetch(url, {
-            method: 'GET',
-            headers,
-            cache: 'no-store'
-        });
-    };
-
     try {
-        let response = await doFetch();
-        console.log('[History] レスポンスステータス: ', response.status);
-
-        if (response.status === 401) {
-            console.log('[History] 401認証エラー。認証を試みる...');
-            clearWorkerAuthSession(false);
-            const authOk = await authenticateWorkerUser(false);
-            if (!authOk) {
-                console.log('[History] 認証失敗');
-                _workerHistoryItems = [];
-                _workerHistoryLoaded = false;
-                renderWorkerHistorySection();
-                setWorkerHistoryStatus('認証が必要です。認証テストを実行してください。', false);
-                if (showAlertOnError) alert('履歴取得には認証が必要です。');
-                return;
-            }
-            console.log('[History] 認証成功。再度リクエスト...');
-            response = await doFetch();
-        }
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.log('[History] エラーレスポンス: ', response.status, errorText);
-            throw new Error('HTTP ' + response.status + ': ' + errorText.substring(0, 100));
-        }
-
-        const contentType = response.headers.get('content-type') || '';
-        console.log('[History] Content-Type: ', contentType);
-        let payload;
-        try {
-            payload = await response.json();
-            console.log('[History] JSONパース成功: ', payload);
-        } catch (e) {
-            const text = await response.text();
-            console.error('[History] JSONパースエラー: ', e, '本体:', text);
-            throw new Error('レスポンスが有効なJSON形式ではありません: ' + e.message);
-        }
+        const payload = await fetchWorkerHistoryPage(append ? _workerHistoryCursor : null);
         const items = Array.isArray(payload.items) ? payload.items : [];
-        console.log('[History] 履歴アイテム数: ', items.length);
-        _workerHistoryItems = items;
+        _workerHistoryItems = append ? _workerHistoryItems.concat(items) : items;
+        _workerHistoryCursor = payload.cursor || null;
         _workerHistoryLoaded = true;
         renderWorkerHistorySection();
-        setWorkerHistoryStatus(`履歴 ${items.length} 件を表示中`, true);
+        setWorkerHistoryStatus(`履歴 ${_workerHistoryItems.length} 件を表示中`, true);
     } catch (error) {
-        console.error('[History] 取得エラー: ', error);
-        _workerHistoryItems = [];
-        _workerHistoryLoaded = false;
+        if (error.message === 'unauthorized') {
+            _workerHistoryItems = [];
+            _workerHistoryLoaded = false;
+            renderWorkerHistorySection();
+            setWorkerHistoryStatus('認証が必要です。認証テストを実行してください。', false);
+            if (showAlertOnError) alert('履歴取得には認証が必要です。');
+            return;
+        }
+        if (!append) {
+            _workerHistoryItems = [];
+            _workerHistoryLoaded = false;
+        }
         renderWorkerHistorySection();
         setWorkerHistoryStatus('履歴取得に失敗: ' + error.message, false);
         if (showAlertOnError) alert('履歴取得に失敗しました: ' + error.message);
+    }
+}
+
+async function loadMoreWorkerHistory() {
+    if (!_workerHistoryCursor) return;
+    await loadWorkerHistory(true, true);
+}
+
+async function fetchHistoryItemRecord(key) {
+    const base = getWorkerBaseUrl();
+    if (!base) {
+        alert('Workers API URL を設定してください。');
+        return null;
+    }
+    const headers = {};
+    if (isWorkerAuthValid()) headers.Authorization = 'Bearer ' + _workerAuthToken;
+    const response = await fetch(base + '/data/history/item?key=' + encodeURIComponent(key), { headers, cache: 'no-store' });
+    if (response.status === 401) {
+        alert('認証が必要です。');
+        return null;
+    }
+    if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+    }
+    return response.json();
+}
+
+async function compareHistoryItem(key) {
+    try {
+        const record = await fetchHistoryItemRecord(key);
+        if (!record) return;
+        const { compareCounts } = await import('./shared/validate-v1.js');
+        const rows = compareCounts(appData, record.data);
+        const summary = formatCompareCounts(rows);
+        const savedAt = formatHistoryDateTime(record.meta && record.meta.updatedAt);
+        const updatedBy = (record.meta && record.meta.updatedBy) || '不明';
+        alert(`保存日時: ${savedAt}\n保存者: ${updatedBy}\n\n${summary || '差分はありません'}`);
+    } catch (error) {
+        alert('比較に失敗しました: ' + error.message);
+    }
+}
+
+async function loadHistoryItemIntoEditor(key) {
+    try {
+        const record = await fetchHistoryItemRecord(key);
+        if (!record) return;
+
+        const { compareCounts, LARGE_DROP_RATIO } = await import('./shared/validate-v1.js');
+        const rows = compareCounts(appData, record.data);
+        const summary = formatCompareCounts(rows);
+        if (!confirm('現在の編集内容を、この履歴の内容に置き換えます。\n\n' + (summary || '差分はありません') + '\n\nよろしいですか？')) return;
+
+        const hasLargeDrop = rows.some(r => r.dropRatio >= LARGE_DROP_RATIO);
+        if (hasLargeDrop) {
+            if (!confirm('件数が大量に削除される項目があります。本当に置き換えますか？\n\n' + summary)) return;
+        }
+
+        appData = record.data;
+        ensureServiceStatusConfig(appData);
+        // _lastSavedJson と _baseRevision は更新しない（未保存の状態として扱う）
+        checkUnsavedChanges();
+
+        renderSection('companies');
+        switchSection('companies');
+        alert('エディタに読み込みました。保存するまで本番には反映されません。');
+    } catch (error) {
+        alert('読込に失敗しました: ' + error.message);
+    }
+}
+
+async function rollbackToHistoryItem(key) {
+    if (!confirm('この版に戻しますか？新しい版として保存されます。')) return;
+    const base = getWorkerBaseUrl();
+    if (!base) {
+        alert('Workers API URL を設定してください。');
+        return;
+    }
+    if (!isWorkerAuthValid()) {
+        const ok = await authenticateWorkerUser(false);
+        if (!ok) {
+            alert('ロールバックには認証が必要です。');
+            return;
+        }
+    }
+
+    try {
+        const response = await fetch(base + '/data/rollback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + _workerAuthToken
+            },
+            body: JSON.stringify({ key, baseRevision: _baseRevision })
+        });
+        const body = await response.json().catch(() => ({}));
+
+        if (response.status === 409) {
+            alert(`他の人が先に保存しました。（最新の版: ${body.latestRevision}）読込し直してから再度お試しください。`);
+            return;
+        }
+        if (response.status === 422) {
+            alert('この版は現在の検証規則では復元できません。\n\n' + formatValidationErrors(body.errors || []));
+            return;
+        }
+        if (!response.ok) {
+            throw new Error(body.error || ('HTTP ' + response.status));
+        }
+
+        alert(`版 ${body.revision} として復元しました。`);
+        await loadFromWorkerSource();
+        await loadWorkerHistory(false);
+    } catch (error) {
+        alert('ロールバックに失敗しました: ' + error.message);
     }
 }
 
@@ -748,6 +868,12 @@ function ensureServiceStatusConfig(data) {
         status.generated_text = status.generated_text || { heading: '', body: '' };
         status.published_text = status.published_text || '';
         status.history = Array.isArray(status.history) ? status.history : [];
+        // 既存データの入れ子になった history（history[i].snapshot.history）を平らにする
+        status.history.forEach((h) => {
+            if (h && h.snapshot && h.snapshot.history) {
+                delete h.snapshot.history;
+            }
+        });
         if (!status.id) status.id = generateUuid();
         if (!status.version) status.version = 1;
         status.created_at = status.created_at || new Date().toISOString();
@@ -3774,12 +3900,13 @@ function saveServiceStatus() {
         entry.version = 1;
         entry.history = [];
     } else {
-        const snapshot = JSON.parse(JSON.stringify(base));
+        const { history: _omit, ...snapshot } = JSON.parse(JSON.stringify(base));
         entry.id = base.id;
         entry.created_at = base.created_at || now;
         entry.version = (base.version || 1) + 1;
         entry.history = Array.isArray(base.history) ? [...base.history] : [];
         entry.history.push({ version: base.version || 1, changed_at: now, changed_by: null, snapshot });
+        entry.history = entry.history.slice(-10);
     }
     appData.serviceStatuses[_currentServiceStatusIndex] = entry;
     if (appData.serviceStatusMeta) {
@@ -3867,7 +3994,7 @@ function syncGeneratedThroughStatusesForSource(sourceEntry) {
         // Mark metadata linking back to source
         clone.generated_from = { source_id: sourceEntry.id, source_line_id: sourceEntry.affected_line_id, type: 'through-show', source_version: sourceEntry.version || 1 };
         // Clean history for generated copy
-        clone.history = clone.history || [];
+        clone.history = [];
         // Update timestamps and id/version if creating
         if (existing) {
             // Preserve created_at and id; increment version
@@ -3910,6 +4037,21 @@ function performDeleteServiceStatus(index) {
 }
 
 // エクスポート/インポート
+function downloadJsonBackup(data, filename) {
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function formatValidationErrors(errors) {
+    return errors.slice(0, 20).map(e => `[${e.code}] ${e.path}: ${e.message}`).join('\n');
+}
+
 async function exportData() {
     // Before saving, ensure there are no red-highlighted invalid cells.
     try {
@@ -3921,70 +4063,66 @@ async function exportData() {
     } catch (e) { /* continue anyway */ }
 
     appData.meta.lastUpdated = new Date().toISOString().split('T')[0];
-    
+
     // エクスポート用にデータをクリーンアップ
-    const exportData = cleanDataForExport(appData);
+    const exportPayload = cleanDataForExport(appData);
 
-    const workerSaveResult = await saveToWorkerSource(exportData);
-    if (workerSaveResult.attempted) {
-        if (workerSaveResult.saved) {
-            alert('外部正本（Cloudflare Workers）に保存しました。');
-            updateServerStatus(true, 'worker');
-            try {
-                _lastSavedJson = JSON.stringify(exportData);
-            } catch (e) { _lastSavedJson = null; }
-            checkUnsavedChanges();
-            return;
-        }
-
-        if (workerSaveResult.blockedByAuth) {
-            updateServerStatus(false, 'worker');
-            alert('保存には認証が必要です。ユーザーIDとパスワードを入力して再実行してください。');
-            return;
-        }
-
-        if (workerSaveResult.error) {
-            console.log('Workers保存失敗、従来保存へフォールバック: ' + workerSaveResult.error);
-        }
+    const { validateV1 } = await import('./shared/validate-v1.js');
+    const { errors } = validateV1(exportPayload);
+    if (errors.length > 0) {
+        alert('保存できません。以下のエラーを修正してください。\n\n' + formatValidationErrors(errors));
+        return;
     }
-    
-    // サーバーAPIで保存を試行
-    try {
-        const response = await fetch('/api/data', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(exportData)
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            alert('サーバーに保存しました！\nバックアップも作成されました。');
-            updateServerStatus(true, 'local-server');
-            try {
-                _lastSavedJson = JSON.stringify(exportData);
-            } catch (e) { _lastSavedJson = null; }
-            checkUnsavedChanges();
-            return;
-        }
-    } catch (error) {
-        console.log('サーバー保存失敗、ダウンロードします');
-        updateServerStatus(false, 'offline');
+
+    if (_baseRevision === null) {
+        alert('先に外部正本から読込してください。');
+        return;
     }
-    
-    // サーバーが使えない場合はダウンロード
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'data.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    alert('ファイルをダウンロードしました。\n手動でサーバーにアップロードしてください。');
-    try { _lastSavedJson = JSON.stringify(exportData); } catch (e) { _lastSavedJson = null; }
-    checkUnsavedChanges();
+
+    const result = await saveToWorkerSource(exportPayload);
+
+    if (result.saved) {
+        _baseRevision = result.revision;
+        try {
+            _lastSavedJson = JSON.stringify(exportPayload);
+        } catch (e) { _lastSavedJson = null; }
+        checkUnsavedChanges();
+        updateServerStatus(true, 'worker');
+        alert(`保存しました（版 ${result.revision}）`);
+        return;
+    }
+
+    if (result.status === 409) {
+        const latestRevision = result.body && result.body.latestRevision;
+        const updatedBy = (result.body && result.body.updatedBy) || '不明';
+        const updatedAt = (result.body && result.body.updatedAt) || '不明';
+        alert(`他の人（${updatedBy}・${updatedAt}）が先に保存しました。（最新の版: ${latestRevision}）`);
+        if (confirm('編集内容をファイルに退避しますか？')) {
+            downloadJsonBackup(exportPayload, 'data-backup.json');
+        }
+        if (confirm('最新を読み込み直しますか？（今の編集内容は破棄）')) {
+            await loadFromWorkerSource();
+        }
+        return;
+    }
+
+    if (result.status === 422) {
+        const list = formatValidationErrors((result.body && result.body.errors) || []);
+        alert('保存できません（サーバー側の検証エラー）。\n\n' + list);
+        return;
+    }
+
+    if (result.status === 401) {
+        updateServerStatus(false, 'worker');
+        alert('保存には認証が必要です。ユーザーIDとパスワードを入力して再実行してください。');
+        return;
+    }
+
+    alert('保存できませんでした（本番には反映されていません）');
+    if (confirm('バックアップとしてダウンロードしますか？')) {
+        downloadJsonBackup(exportPayload, 'data-backup.json');
+    }
+    // 保存に失敗しているため _lastSavedJson は変更しない（未保存のまま）
 }
 
 // エクスポート用にデータをクリーンアップ
@@ -4025,46 +4163,70 @@ function togglePreview() {
     }
 }
 
+const COMPARE_COUNT_LABELS = {
+    companies: '会社',
+    lines: '路線',
+    stations: '駅',
+    segments: '区間',
+    throughServiceConfigs: '直通設定',
+    platformTransfers: '乗換',
+    serviceStatuses: '運行情報'
+};
+
+function formatCompareCounts(rows) {
+    return rows
+        .filter(r => r.before !== 0 || r.after !== 0)
+        .map(r => `${COMPARE_COUNT_LABELS[r.key] || r.key} ${r.before} → ${r.after} 件`)
+        .join('\n');
+}
+
 function loadDataFile() {
-    const file = document.getElementById('file-input').files[0];
+    const fileInput = document.getElementById('file-input');
+    const file = fileInput.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
+        let parsed;
         try {
-            appData = JSON.parse(e.target.result);
-            ensureServiceStatusConfig(appData);
-                try {
-                    _lastSavedJson = JSON.stringify(cleanDataForExport(appData));
-                } catch (e) { _lastSavedJson = JSON.stringify(appData); }
-                checkUnsavedChanges();
-            
-            // サーバーに自動保存を試行
-            try {
-                const response = await fetch('/api/data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(appData)
-                });
-                
-                if (response.ok) {
-                    alert('データを読み込み、サーバーに保存しました');
-                    updateServerStatus(true, 'local-server');
-                } else {
-                    alert('データを読み込みました（サーバー保存失敗）');
-                    updateServerStatus(false, 'offline');
-                }
-            } catch (err) {
-                alert('データを読み込みました（ローカルモード）');
-                updateServerStatus(false, 'offline');
-            }
-            
-            renderSection('companies');
-            switchSection('companies');
+            parsed = JSON.parse(e.target.result);
         } catch (error) {
             alert('JSONの読み込みに失敗: ' + error.message);
+            fileInput.value = '';
+            return;
         }
+
+        const { validateV1, compareCounts, LARGE_DROP_RATIO } = await import('./shared/validate-v1.js');
+        const { errors } = validateV1(parsed);
+        if (errors.length > 0) {
+            alert('読み込めません。以下のエラーがあります。\n\n' + formatValidationErrors(errors));
+            fileInput.value = '';
+            return;
+        }
+
+        const rows = compareCounts(appData, parsed);
+        const summary = formatCompareCounts(rows);
+        if (!confirm('現在の編集内容を、読み込んだファイルの内容に置き換えます。\n\n' + summary + '\n\nよろしいですか？')) {
+            fileInput.value = '';
+            return;
+        }
+
+        const hasLargeDrop = rows.some(r => r.dropRatio >= LARGE_DROP_RATIO);
+        if (hasLargeDrop) {
+            if (!confirm('件数が大量に削除される項目があります。本当に置き換えますか？\n\n' + summary)) {
+                fileInput.value = '';
+                return;
+            }
+        }
+
+        appData = parsed;
+        ensureServiceStatusConfig(appData);
+        // _lastSavedJson と _baseRevision は更新しない（未保存の状態として扱う）
+        checkUnsavedChanges();
+
+        renderSection('companies');
+        switchSection('companies');
+        alert('読み込みました。保存するまで本番には反映されません。');
+        fileInput.value = '';
     };
     reader.readAsText(file);
 }
