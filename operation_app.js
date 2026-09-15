@@ -386,7 +386,11 @@ function renderLineListView() {
             if (status.subLines && status.subLines.length > 0) {
                 const sub = document.createElement('div');
                 sub.className = 'line-status-sub';
-                sub.innerHTML = status.subLines.map(s => `<div>${s}</div>`).join('');
+                status.subLines.forEach(s => {
+                    const line = document.createElement('div');
+                    line.textContent = s;
+                    sub.appendChild(line);
+                });
                 textWrap.appendChild(sub);
             }
 

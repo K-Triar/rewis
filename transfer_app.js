@@ -676,10 +676,16 @@ function displaySuggestions(stations, suggestionsDiv, input) {
             linesText = station.lines.map(l => l.lineId).join('・');
         }
         
-        item.innerHTML = `
-            <span class="station-name">${station.stationName}</span>
-            <span class="station-lines">${linesText}</span>
-        `;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'station-name';
+        nameSpan.textContent = station.stationName;
+
+        const linesSpan = document.createElement('span');
+        linesSpan.className = 'station-lines';
+        linesSpan.textContent = linesText;
+
+        item.appendChild(nameSpan);
+        item.appendChild(linesSpan);
         
         item.addEventListener('click', () => {
             input.value = station.stationName;
@@ -2003,11 +2009,12 @@ function createTableStationRow({ arrivalElapsed = null, departureElapsed = null,
         </div>
         <div class="table-station">
             <div style="display:flex;align-items:center;gap:8px;">
-                <span class="station-name">${stationName}</span>
+                <span class="station-name"></span>
                 ${transferHtml}
             </div>
         </div>
     `;
+    row.querySelector('.station-name').textContent = stationName;
     return row;
 }
 

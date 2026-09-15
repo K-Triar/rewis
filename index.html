@@ -383,10 +383,16 @@
                     });
                     const linesText = uniqueNames.join('・');
 
-                    item.innerHTML = `
-                        <span class="station-name">${station.stationName}</span>
-                        <span class="station-lines">${linesText}</span>
-                    `;
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'station-name';
+                    nameSpan.textContent = station.stationName;
+
+                    const linesSpan = document.createElement('span');
+                    linesSpan.className = 'station-lines';
+                    linesSpan.textContent = linesText;
+
+                    item.appendChild(nameSpan);
+                    item.appendChild(linesSpan);
 
                     item.addEventListener('click', () => {
                         input.value = station.stationName;
