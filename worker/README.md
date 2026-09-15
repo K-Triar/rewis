@@ -349,3 +349,13 @@ wrangler deploy
 - 保存履歴は data:history:<timestamp> として KV に蓄積します。
 - 最新データは data:latest に保存されます。
 - 必要なら別途エクスポート用の管理画面を追加できます。
+
+## 10. ローカル確認（localtest 環境）
+
+本番の `.dev.vars` は使いません。架空の値だけを入れた `.dev.vars.localtest` と、`wrangler.toml` の `[env.localtest]` を使います。
+
+1. `cd worker && npx wrangler dev --env localtest` で起動します。`http://127.0.0.1:8787` で動きます。
+   - **`--env localtest` を付けずに `wrangler dev` を実行しないでください**（本番の値の `.dev.vars` が読み込まれます）。
+   - **`wrangler deploy --env localtest` は絶対に実行しないでください。**
+2. エディタ（v1: `editor.html`）の Workers API URL に `http://127.0.0.1:8787` を入れ、ユーザー `dev`・パスワード `dev-password` でログインします。
+3. エディタは VS Code の Live Server（ポート 5502）で開きます。

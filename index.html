@@ -237,23 +237,25 @@
 
             async function fetchPublicDataWithFallback() {
                 const workerBase = getPublicWorkerApiBase();
-                if (workerBase) {
-                    try {
-                        const workerRes = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
-                        if (workerRes.ok) {
-                            const payload = await workerRes.json();
-                            return extractPublicDataPayload(payload);
-                        }
-                    } catch (err) {
-                        console.warn('Workers data fetch failed, fallback to data.json:', err);
-                    }
+                if (!workerBase) {
+                    throw new Error('データ取得元（Workers API）が設定されていません');
                 }
 
-                const res = await fetch('data.json', { cache: 'no-store' });
-                if (!res.ok) {
-                    throw new Error('データの取得に失敗しました');
+                const publicRes = await fetch(workerBase + '/data/public', { cache: 'no-store' });
+                if (publicRes.ok) {
+                    const payload = await publicRes.json();
+                    return extractPublicDataPayload(payload);
                 }
-                return res.json();
+                if (publicRes.status === 404) {
+                    // 移行中のため、/data/public が未初期化のときだけ /data/latest に切り替える
+                    const latestRes = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
+                    if (!latestRes.ok) {
+                        throw new Error('データの取得に失敗しました');
+                    }
+                    const payload = await latestRes.json();
+                    return extractPublicDataPayload(payload);
+                }
+                throw new Error('データの取得に失敗しました');
             }
 
             function formatJaDateTime(value) {
@@ -273,6 +275,7 @@
             function buildLatestStatusIndex(data) {
                 latestStatusByLine = new Map();
                 (data.serviceStatuses || []).forEach(status => {
+                    if (status.published !== true) return;
                     const key = status.affected_line_id;
                     if (!key) return;
                     const existing = latestStatusByLine.get(key);
@@ -383,10 +386,16 @@
                     });
                     const linesText = uniqueNames.join('・');
 
-                    item.innerHTML = `
-                        <span class="station-name">${station.stationName}</span>
-                        <span class="station-lines">${linesText}</span>
-                    `;
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'station-name';
+                    nameSpan.textContent = station.stationName;
+
+                    const linesSpan = document.createElement('span');
+                    linesSpan.className = 'station-lines';
+                    linesSpan.textContent = linesText;
+
+                    item.appendChild(nameSpan);
+                    item.appendChild(linesSpan);
 
                     item.addEventListener('click', () => {
                         input.value = station.stationName;

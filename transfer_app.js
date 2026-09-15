@@ -83,28 +83,29 @@ function getTransferPenalty(mode) {
 async function loadData() {
     try {
         const workerBase = getPublicWorkerApiBase();
-        if (workerBase) {
-            try {
-                const workerResponse = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
-                if (workerResponse.ok) {
-                    const payload = await workerResponse.json();
-                    const data = extractPublicDataPayload(payload);
-                    console.log('Workers からデータ読み込み完了:', data);
-                    return data;
-                }
-                console.warn('Workers data fetch failed with status:', workerResponse.status);
-            } catch (workerError) {
-                console.warn('Workers data fetch failed, fallback to data.json:', workerError);
-            }
+        if (!workerBase) {
+            throw new Error('データ取得元（Workers API）が設定されていません');
         }
 
-        const response = await fetch('data.json', { cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error('データファイルが見つかりません');
+        const publicResponse = await fetch(workerBase + '/data/public', { cache: 'no-store' });
+        if (publicResponse.ok) {
+            const payload = await publicResponse.json();
+            const data = extractPublicDataPayload(payload);
+            console.log('Workers からデータ読み込み完了:', data);
+            return data;
         }
-        const data = await response.json();
-        console.log('データ読み込み完了:', data);
-        return data;
+        if (publicResponse.status === 404) {
+            // 移行中のため、/data/public が未初期化のときだけ /data/latest に切り替える
+            const latestResponse = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
+            if (!latestResponse.ok) {
+                throw new Error('データファイルが見つかりません');
+            }
+            const payload = await latestResponse.json();
+            const data = extractPublicDataPayload(payload);
+            console.log('Workers からデータ読み込み完了:', data);
+            return data;
+        }
+        throw new Error('データファイルが見つかりません');
     } catch (error) {
         console.error('データ読み込みエラー:', error);
         throw error;
@@ -676,10 +677,16 @@ function displaySuggestions(stations, suggestionsDiv, input) {
             linesText = station.lines.map(l => l.lineId).join('・');
         }
         
-        item.innerHTML = `
-            <span class="station-name">${station.stationName}</span>
-            <span class="station-lines">${linesText}</span>
-        `;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'station-name';
+        nameSpan.textContent = station.stationName;
+
+        const linesSpan = document.createElement('span');
+        linesSpan.className = 'station-lines';
+        linesSpan.textContent = linesText;
+
+        item.appendChild(nameSpan);
+        item.appendChild(linesSpan);
         
         item.addEventListener('click', () => {
             input.value = station.stationName;
@@ -2003,11 +2010,12 @@ function createTableStationRow({ arrivalElapsed = null, departureElapsed = null,
         </div>
         <div class="table-station">
             <div style="display:flex;align-items:center;gap:8px;">
-                <span class="station-name">${stationName}</span>
+                <span class="station-name"></span>
                 ${transferHtml}
             </div>
         </div>
     `;
+    row.querySelector('.station-name').textContent = stationName;
     return row;
 }
 

@@ -18,3 +18,15 @@ id = "2fac11df14294dbabe14eeef77abb063"
 [[kv_namespaces]]
 binding = "TOKEN_KV"
 id = "651fb9fdfb8f4d74a9f6f283222c779e"
+
+# ローカル確認専用の環境。本番の KV には触れない（架空のIDを仮宣言するだけ）。
+[env.localtest]
+vars = { ALLOWED_ORIGIN = "http://127.0.0.1:5502", TOKEN_TTL_SECONDS = "1800" }
+
+[[env.localtest.kv_namespaces]]
+binding = "DATA_KV"
+id = "localtest-data"
+
+[[env.localtest.kv_namespaces]]
+binding = "TOKEN_KV"
+id = "localtest-token"

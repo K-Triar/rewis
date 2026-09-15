@@ -1,3 +1,9 @@
+import { validateV1 } from '../../shared/validate-v1.js';
+import { toPublicV1 } from '../../shared/public-v1.js';
+
+const NEW_HISTORY_PREFIX = 'data:hist:';
+const OLD_HISTORY_PREFIX = 'data:history:';
+
 export default {
   async fetch(request, env) {
     try {
@@ -20,6 +26,10 @@ export default {
         return handleLogout(request, env);
       }
 
+      if (request.method === 'GET' && path === '/data/public') {
+        return handleGetPublicData(request, env);
+      }
+
       if (request.method === 'GET' && path === '/data/latest') {
         return handleGetLatestData(request, env);
       }
@@ -28,13 +38,22 @@ export default {
         return handleGetHistory(request, env);
       }
 
+      if (request.method === 'GET' && path === '/data/history/item') {
+        return handleGetHistoryItem(request, env);
+      }
+
       if (request.method === 'POST' && path === '/data/save') {
         return handleSaveData(request, env);
       }
 
+      if (request.method === 'POST' && path === '/data/rollback') {
+        return handleRollback(request, env);
+      }
+
       return json({ error: 'not_found' }, 404, request, env);
     } catch (error) {
-      return json({ error: 'internal_error', detail: String(error.message || error) }, 500, request, env);
+      console.error(error);
+      return json({ error: 'internal_error' }, 500, request, env);
     }
   }
 };
@@ -80,6 +99,39 @@ async function handleLogout(request, env) {
   return json({ ok: true }, 200, request, env);
 }
 
+async function handleGetPublicData(request, env) {
+  const latest = await getLatestRecord(env);
+  if (!latest) {
+    return json({ error: 'not_initialized' }, 404, request, env);
+  }
+
+  const meta = latest.meta || {};
+  return jsonNoCache({
+    data: toPublicV1(latest.data),
+    meta: { revision: meta.revision ?? 0, updatedAt: meta.updatedAt || null }
+  }, 200, request, env);
+}
+
+async function handleGetLatestData(request, env) {
+  if (String(env.LATEST_REQUIRES_AUTH || '') === 'true') {
+    const auth = await requireAuth(request, env);
+    if (!auth.ok) {
+      return json({ error: 'unauthorized' }, 401, request, env);
+    }
+  }
+
+  const latest = await getLatestRecord(env);
+  if (!latest) {
+    return json({ error: 'not_initialized' }, 404, request, env);
+  }
+
+  const meta = latest.meta || {};
+  return jsonNoCache({
+    data: latest.data,
+    meta: { ...meta, revision: meta.revision ?? 0 }
+  }, 200, request, env);
+}
+
 async function handleSaveData(request, env) {
   const auth = await requireAuth(request, env);
   if (!auth.ok) {
@@ -91,30 +143,42 @@ async function handleSaveData(request, env) {
     return json({ error: 'invalid_payload' }, 400, request, env);
   }
 
+  if (!isNonNegativeInteger(body.baseRevision)) {
+    return json({ error: 'revision_required' }, 428, request, env);
+  }
+
+  const { errors } = validateV1(body.data);
+  if (errors.length > 0) {
+    return json({ error: 'validation_failed', errors: errors.slice(0, 50) }, 422, request, env);
+  }
+
+  const latest = await getLatestRecord(env);
+  const currentRev = latest?.meta?.revision ?? 0;
+
+  if (body.baseRevision !== currentRev) {
+    return json({
+      error: 'conflict',
+      latestRevision: currentRev,
+      updatedAt: latest?.meta?.updatedAt || null,
+      updatedBy: latest?.meta?.updatedBy || null
+    }, 409, request, env);
+  }
+
   const now = new Date().toISOString();
+  const newRev = currentRev + 1;
   const record = {
     data: body.data,
     meta: {
+      revision: newRev,
       updatedAt: now,
       updatedBy: auth.userId,
       client: String(body.client || 'unknown')
     }
   };
 
-  await env.DATA_KV.put('data:latest', JSON.stringify(record));
-  await env.DATA_KV.put(`data:history:${Date.now()}`, JSON.stringify(record));
+  await putRecordAsLatestAndHistory(env, record);
 
-  return json({ ok: true, updatedAt: now }, 200, request, env);
-}
-
-async function handleGetLatestData(request, env) {
-  const text = await env.DATA_KV.get('data:latest');
-  if (!text) {
-    return json({ error: 'not_initialized' }, 404, request, env);
-  }
-
-  const payload = JSON.parse(text);
-  return jsonNoCache(payload, 200, request, env);
+  return json({ ok: true, revision: newRev, updatedAt: now }, 200, request, env);
 }
 
 async function handleGetHistory(request, env) {
@@ -126,40 +190,201 @@ async function handleGetHistory(request, env) {
   const url = new URL(request.url);
   const limitRaw = Number(url.searchParams.get('limit') || 50);
   const limit = Math.min(200, Math.max(1, Number.isFinite(limitRaw) ? Math.floor(limitRaw) : 50));
+  const cursorParam = url.searchParams.get('cursor') || null;
 
-  const listed = await env.DATA_KV.list({ prefix: 'data:history:', limit });
-  const keys = (listed.keys || [])
-    .map((k) => String(k.name || ''))
-    .filter((k) => k.startsWith('data:history:'))
-    .sort((a, b) => {
-      const ta = Number(a.slice('data:history:'.length)) || 0;
-      const tb = Number(b.slice('data:history:'.length)) || 0;
-      return tb - ta;
-    });
+  let items = [];
+  let nextCursor = null;
 
-  const rows = await Promise.all(keys.map(async (key) => {
-    try {
-      const text = await env.DATA_KV.get(key);
-      if (!text) return null;
-      const payload = JSON.parse(text);
-      const meta = payload && payload.meta ? payload.meta : {};
-      return {
-        key,
-        savedAt: meta.updatedAt || null,
-        updatedBy: meta.updatedBy || null,
-        client: meta.client || null
-      };
-    } catch {
-      return {
-        key,
-        savedAt: null,
-        updatedBy: null,
-        client: null
-      };
+  if (!cursorParam || cursorParam.startsWith('n:')) {
+    const kvCursor = cursorParam ? cursorParam.slice('n:'.length) : undefined;
+    const listed = await env.DATA_KV.list({ prefix: NEW_HISTORY_PREFIX, limit, cursor: kvCursor || undefined });
+    items = (listed.keys || []).map(newFormatKeyToItem);
+
+    if (!listed.list_complete && listed.cursor) {
+      nextCursor = 'n:' + listed.cursor;
+    } else {
+      const remaining = limit - items.length;
+      if (remaining > 0) {
+        const oldPage = await getOldFormatHistoryPage(env, 0, remaining);
+        items = items.concat(oldPage.items);
+        nextCursor = oldPage.cursor;
+      } else {
+        const oldPage = await getOldFormatHistoryPage(env, 0, 0);
+        nextCursor = oldPage.hasAny ? 'l:0' : null;
+      }
     }
-  }));
+  } else if (cursorParam.startsWith('l:')) {
+    const offset = Math.max(0, Number(cursorParam.slice('l:'.length)) || 0);
+    const oldPage = await getOldFormatHistoryPage(env, offset, limit);
+    items = oldPage.items;
+    nextCursor = oldPage.cursor;
+  }
 
-  return json({ items: rows.filter(Boolean) }, 200, request, env);
+  return json({ items, cursor: nextCursor }, 200, request, env);
+}
+
+async function handleGetHistoryItem(request, env) {
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) {
+    return json({ error: 'unauthorized' }, 401, request, env);
+  }
+
+  const url = new URL(request.url);
+  const key = url.searchParams.get('key') || '';
+  if (!key.startsWith(NEW_HISTORY_PREFIX) && !key.startsWith(OLD_HISTORY_PREFIX)) {
+    return json({ error: 'invalid_key' }, 400, request, env);
+  }
+
+  const text = await env.DATA_KV.get(key);
+  if (!text) {
+    return json({ error: 'not_found' }, 404, request, env);
+  }
+
+  const record = JSON.parse(text);
+  return json(record, 200, request, env);
+}
+
+async function handleRollback(request, env) {
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) {
+    return json({ error: 'unauthorized' }, 401, request, env);
+  }
+
+  const body = await readJsonBody(request);
+  const key = String(body.key || '');
+  if (!key.startsWith(NEW_HISTORY_PREFIX) && !key.startsWith(OLD_HISTORY_PREFIX)) {
+    return json({ error: 'invalid_key' }, 400, request, env);
+  }
+
+  if (!isNonNegativeInteger(body.baseRevision)) {
+    return json({ error: 'revision_required' }, 428, request, env);
+  }
+
+  const latest = await getLatestRecord(env);
+  const currentRev = latest?.meta?.revision ?? 0;
+
+  if (body.baseRevision !== currentRev) {
+    return json({
+      error: 'conflict',
+      latestRevision: currentRev,
+      updatedAt: latest?.meta?.updatedAt || null,
+      updatedBy: latest?.meta?.updatedBy || null
+    }, 409, request, env);
+  }
+
+  const targetText = await env.DATA_KV.get(key);
+  if (!targetText) {
+    return json({ error: 'not_found' }, 404, request, env);
+  }
+  const target = JSON.parse(targetText);
+
+  const { errors } = validateV1(target.data);
+  if (errors.length > 0) {
+    return json({ error: 'validation_failed', errors: errors.slice(0, 50) }, 422, request, env);
+  }
+
+  const now = new Date().toISOString();
+  const newRev = currentRev + 1;
+  const record = {
+    data: target.data,
+    meta: {
+      revision: newRev,
+      updatedAt: now,
+      updatedBy: auth.userId,
+      client: 'rewis-rollback',
+      rollbackFrom: key
+    }
+  };
+
+  await putRecordAsLatestAndHistory(env, record);
+
+  return json({ ok: true, revision: newRev, updatedAt: now }, 200, request, env);
+}
+
+async function getLatestRecord(env) {
+  const text = await env.DATA_KV.get('data:latest');
+  if (!text) return null;
+  return JSON.parse(text);
+}
+
+async function putRecordAsLatestAndHistory(env, record) {
+  await env.DATA_KV.put('data:latest', JSON.stringify(record));
+  // 反転タイムスタンプに乱数を添えて、同一ミリ秒内の連続保存でもキーが衝突しないようにする。
+  const histKey = NEW_HISTORY_PREFIX + invertedTimestamp(Date.now()) + '-' + randomHex(4);
+  await env.DATA_KV.put(histKey, JSON.stringify(record), { metadata: record.meta });
+}
+
+function invertedTimestamp(ts) {
+  return String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0');
+}
+
+function randomHex(bytesLength) {
+  const bytes = crypto.getRandomValues(new Uint8Array(bytesLength));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function newFormatKeyToItem(k) {
+  const meta = k.metadata || {};
+  return {
+    key: k.name,
+    revision: meta.revision ?? null,
+    savedAt: meta.updatedAt || null,
+    updatedBy: meta.updatedBy || null,
+    client: meta.client || null,
+    rollbackFrom: meta.rollbackFrom || null
+  };
+}
+
+async function listAllOldFormatKeys(env) {
+  let keys = [];
+  let cursor;
+  for (;;) {
+    const listed = await env.DATA_KV.list({ prefix: OLD_HISTORY_PREFIX, limit: 1000, cursor });
+    keys = keys.concat(listed.keys || []);
+    if (listed.list_complete || !listed.cursor) break;
+    cursor = listed.cursor;
+  }
+  keys.sort((a, b) => {
+    const ta = Number(a.name.slice(OLD_HISTORY_PREFIX.length)) || 0;
+    const tb = Number(b.name.slice(OLD_HISTORY_PREFIX.length)) || 0;
+    return tb - ta;
+  });
+  return keys;
+}
+
+async function getOldFormatHistoryPage(env, offset, limit) {
+  const allKeys = await listAllOldFormatKeys(env);
+  if (limit === 0) {
+    return { items: [], cursor: null, hasAny: allKeys.length > offset };
+  }
+  const page = allKeys.slice(offset, offset + limit);
+  const items = await Promise.all(page.map(async (k) => {
+    const text = await env.DATA_KV.get(k.name);
+    let meta = {};
+    if (text) {
+      try {
+        const payload = JSON.parse(text);
+        meta = payload.meta || {};
+      } catch {
+        meta = {};
+      }
+    }
+    return {
+      key: k.name,
+      revision: meta.revision ?? null,
+      savedAt: meta.updatedAt || null,
+      updatedBy: meta.updatedBy || null,
+      client: meta.client || null,
+      rollbackFrom: meta.rollbackFrom || null
+    };
+  }));
+  const nextOffset = offset + limit;
+  const cursor = nextOffset < allKeys.length ? `l:${nextOffset}` : null;
+  return { items, cursor, hasAny: allKeys.length > offset };
+}
+
+function isNonNegativeInteger(n) {
+  return typeof n === 'number' && Number.isInteger(n) && n >= 0;
 }
 
 async function requireAuth(request, env) {

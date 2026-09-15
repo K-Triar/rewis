@@ -28,22 +28,23 @@ function extractPublicDataPayload(payload) {
 
 async function fetchPublicDataWithFallback() {
     const workerBase = getPublicWorkerApiBase();
-    if (workerBase) {
-        try {
-            const workerRes = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
-            if (workerRes.ok) {
-                const payload = await workerRes.json();
-                return extractPublicDataPayload(payload);
-            }
-            console.warn('Workers data fetch failed with status:', workerRes.status);
-        } catch (err) {
-            console.warn('Workers data fetch failed, fallback to data.json:', err);
-        }
+    if (!workerBase) {
+        throw new Error('データ取得元（Workers API）が設定されていません');
     }
 
-    const res = await fetch('data.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error('運行情報データの取得に失敗しました');
-    return res.json();
+    const publicRes = await fetch(workerBase + '/data/public', { cache: 'no-store' });
+    if (publicRes.ok) {
+        const payload = await publicRes.json();
+        return extractPublicDataPayload(payload);
+    }
+    if (publicRes.status === 404) {
+        // 移行中のため、/data/public が未初期化のときだけ /data/latest に切り替える
+        const latestRes = await fetch(workerBase + '/data/latest', { cache: 'no-store' });
+        if (!latestRes.ok) throw new Error('運行情報データの取得に失敗しました');
+        const payload = await latestRes.json();
+        return extractPublicDataPayload(payload);
+    }
+    throw new Error('運行情報データの取得に失敗しました');
 }
 
 function applyLineTypeIcon(el, line) {
@@ -243,6 +244,7 @@ function buildOperationIndexes() {
     opStatusByLine = new Map();
     if (Array.isArray(opData.serviceStatuses)) {
         opData.serviceStatuses.forEach(st => {
+            if (st.published !== true) return;
             const key = st.affected_line_id;
             if (!key) return;
             const existing = opStatusByLine.get(key);
@@ -386,7 +388,11 @@ function renderLineListView() {
             if (status.subLines && status.subLines.length > 0) {
                 const sub = document.createElement('div');
                 sub.className = 'line-status-sub';
-                sub.innerHTML = status.subLines.map(s => `<div>${s}</div>`).join('');
+                status.subLines.forEach(s => {
+                    const line = document.createElement('div');
+                    line.textContent = s;
+                    sub.appendChild(line);
+                });
                 textWrap.appendChild(sub);
             }
 
