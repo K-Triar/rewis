@@ -1,6 +1,7 @@
 import { h, clear } from '../dom.js';
 import { alertDialog } from '../components/dialog.js';
 import { createStationPicker } from '../components/station-picker.js';
+import { attachDragReorder } from '../components/drag-reorder.js';
 import { isValidId } from '../../shared/ids.js';
 import { findReferences } from '../refs.js';
 
@@ -12,30 +13,6 @@ function stationLabel(network, stationId) {
 function shapeOf(line) {
   if (!line.loop) return 'normal';
   return line.loop.startIndex === 0 ? 'circular' : 'racket';
-}
-
-function attachDragReorder(row, index, array, onReordered) {
-  row.draggable = true;
-  row.classList.add('ed2-drag-row');
-  row.addEventListener('dragstart', (e) => {
-    e.dataTransfer.setData('text/plain', String(index));
-  });
-  row.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    row.classList.add('ed2-drag-over');
-  });
-  row.addEventListener('dragleave', () => {
-    row.classList.remove('ed2-drag-over');
-  });
-  row.addEventListener('drop', (e) => {
-    e.preventDefault();
-    row.classList.remove('ed2-drag-over');
-    const fromIndex = Number(e.dataTransfer.getData('text/plain'));
-    if (Number.isNaN(fromIndex) || fromIndex === index) return;
-    const [moved] = array.splice(fromIndex, 1);
-    array.splice(index, 0, moved);
-    onReordered();
-  });
 }
 
 export function renderLinesView(container, ctx) {
