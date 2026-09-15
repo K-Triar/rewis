@@ -2,6 +2,9 @@ import { createStore } from './store.js';
 import { renderIssuesPanel } from './components/issues-panel.js';
 import { renderIoView } from './views/io.js';
 import { renderHistoryView } from './views/history.js';
+import { renderCompaniesView } from './views/companies.js';
+import { renderVehicleTypesView } from './views/vehicle-types.js';
+import { renderStationsView } from './views/stations.js';
 import { getSavedApiBase } from './api.js';
 
 function renderPlaceholder(container) {
@@ -13,9 +16,9 @@ function renderPlaceholder(container) {
 }
 
 const TABS = [
-  { id: 'companies', label: '鉄道会社', render: renderPlaceholder },
-  { id: 'vehicle-types', label: '車両種別', render: renderPlaceholder },
-  { id: 'stations', label: '駅', render: renderPlaceholder },
+  { id: 'companies', label: '鉄道会社', render: renderCompaniesView },
+  { id: 'vehicle-types', label: '車両種別', render: renderVehicleTypesView },
+  { id: 'stations', label: '駅', render: renderStationsView },
   { id: 'lines', label: '路線', render: renderPlaceholder },
   { id: 'services', label: '運行系統', render: renderPlaceholder },
   { id: 'transfers', label: '乗換・駅グループ', render: renderPlaceholder },
@@ -50,12 +53,13 @@ function renderActiveTab() {
   tab.render(main, { store, refreshAll, getApiBase });
 }
 
+// 各タブは、自分の中身を変えたときは自分でDOMを更新する（store.mutateDoc等の呼び出し後に
+// 自前のrender/renderList相当を呼ぶ）。refreshAllはグローバルなissues-panelの更新だけを担う
+// （store.subscribeでも同じことが起きるが、呼び出し側で明示したい場合のために残す）。
+// タブ全体を毎回作り直すと、駅タブの展開状態などローカルなUI状態が失われるため、ここでは
+// アクティブなタブの再マウントは行わない。
 function refreshAll() {
   renderIssues();
-  const tab = TABS.find((t) => t.id === activeTabId);
-  if (tab && tab.id !== 'export' && tab.id !== 'history') {
-    tab.render(main, { store, refreshAll, getApiBase });
-  }
 }
 
 function renderNav() {

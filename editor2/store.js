@@ -51,6 +51,14 @@ export function createStore() {
       notify();
     },
 
+    // 編集タブから、読み込み済みのdocを直接書き換える。baseRevisionは変えないので未保存の状態になる
+    mutateDoc(kind, mutator) {
+      if (!state.docs[kind]) return;
+      mutator(state.docs[kind]);
+      revalidate();
+      notify();
+    },
+
     markSaved(kind, revision, updatedAt, updatedBy) {
       state.baseRevision[kind] = revision;
       state.meta[kind] = { ...(state.meta[kind] || {}), revision, updatedAt, updatedBy };
