@@ -1,0 +1,34 @@
+{
+  "meta": { "ownCompanyId": "C1" },
+  "companies": [ { "companyId": "C1", "companyName": "C鉄道", "isOwnCompany": true } ],
+  "trainTypes": [ { "trainTypeId": "V1", "trainTypeName": "V1", "trainTypeNameShort": "V1", "priority": 1, "color": "#123456" } ],
+  "lines": [
+    { "lineId": "L1", "lineName": "L1線", "companyId": "C1", "lineColor": "#e67e22", "trainType": "V1",
+      "serviceCategories": [ [ "Lo", "普通" ] ], "stationOrder": [ "A", "X", "B" ] },
+    { "lineId": "L2", "lineName": "L2線", "companyId": "C1", "lineColor": "#3498db", "trainType": "V1",
+      "serviceCategories": [ [ "Lo", "普通" ] ], "stationOrder": [ "X", "C" ] }
+  ],
+  "stations": [
+    { "stationId": "A", "stationName": "A駅", "stationNameKana": "えー", "latitude": 0, "longitude": 0 },
+    { "stationId": "X", "stationName": "X駅", "stationNameKana": "えっくす", "latitude": 0, "longitude": 0 },
+    { "stationId": "B", "stationName": "B駅", "stationNameKana": "びー", "latitude": 0, "longitude": 0 },
+    { "stationId": "C", "stationName": "C駅", "stationNameKana": "しー", "latitude": 0, "longitude": 0 }
+  ],
+  "segments": [
+    { "segmentId": "SEG-1", "platforms": { "A": "1", "X": "1" }, "lineId": "L1", "companyId": "C1",
+      "fromStationId": "A", "toStationId": "X", "duration": 10, "distance": 1, "isBidirectional": false, "isAlightOnly": false, "guidance": "普通" },
+    { "segmentId": "SEG-2", "platforms": { "X": "1", "B": "2" }, "lineId": "L1", "companyId": "C1",
+      "fromStationId": "X", "toStationId": "B", "duration": 10, "distance": 1, "isBidirectional": false, "isAlightOnly": false, "guidance": "普通" },
+    { "segmentId": "SEG-3", "platforms": { "X": "1", "C": "1" }, "lineId": "L2", "companyId": "C1",
+      "fromStationId": "X", "toStationId": "C", "duration": 10, "distance": 1, "isBidirectional": false, "isAlightOnly": false, "guidance": "普通" }
+  ],
+  "throughServiceConfigs": [
+    { "configId": "T1", "fromLineId": "L1", "toLineId": "L2", "isBidirectional": false, "description": "", "fromGuidance": "普通", "toGuidance": "普通" }
+  ],
+  "platformTransfers": [],
+  "statusTemplates": [],
+  "noticeTypes": [],
+  "serviceStatusCauses": [],
+  "serviceStatusMeta": {},
+  "serviceStatuses": []
+}

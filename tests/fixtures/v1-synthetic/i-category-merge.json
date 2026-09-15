@@ -1,0 +1,24 @@
+{
+  "meta": { "ownCompanyId": "C1" },
+  "companies": [ { "companyId": "C1", "companyName": "C鉄道", "isOwnCompany": true } ],
+  "trainTypes": [ { "trainTypeId": "V1", "trainTypeName": "V1", "trainTypeNameShort": "V1", "priority": 1, "color": "#123456" } ],
+  "lines": [
+    { "lineId": "L1", "lineName": "L1線", "companyId": "C1", "lineColor": "#e67e22", "trainType": "V1",
+      "serviceCategories": [ [ "Lo-KB", "普通(直通)" ], [ "Lo", "普通" ] ], "stationOrder": [ "A", "B" ] }
+  ],
+  "stations": [
+    { "stationId": "A", "stationName": "A駅", "stationNameKana": "えー", "latitude": 0, "longitude": 0 },
+    { "stationId": "B", "stationName": "B駅", "stationNameKana": "びー", "latitude": 0, "longitude": 0 }
+  ],
+  "segments": [
+    { "segmentId": "SEG-1", "platforms": { "A": "1", "B": "1" }, "lineId": "L1", "companyId": "C1",
+      "fromStationId": "A", "toStationId": "B", "duration": 60, "distance": 1, "isBidirectional": false, "isAlightOnly": false, "guidance": "普通(直通)" }
+  ],
+  "throughServiceConfigs": [],
+  "platformTransfers": [],
+  "statusTemplates": [],
+  "noticeTypes": [],
+  "serviceStatusCauses": [],
+  "serviceStatusMeta": {},
+  "serviceStatuses": []
+}

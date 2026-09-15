@@ -1,0 +1,29 @@
+{
+  "meta": { "ownCompanyId": "C1" },
+  "companies": [ { "companyId": "C1", "companyName": "C鉄道", "isOwnCompany": true } ],
+  "trainTypes": [ { "trainTypeId": "V1", "trainTypeName": "V1", "trainTypeNameShort": "V1", "priority": 1, "color": "#123456" } ],
+  "lines": [
+    { "lineId": "LB", "lineName": "B線", "companyId": "C1", "lineColor": "#3498db", "trainType": "V1",
+      "serviceCategories": [ [ "Lo", "普通" ] ], "stationOrder": [ "S2", "S3", "S4" ] }
+  ],
+  "stations": [
+    { "stationId": "S2", "stationName": "S2駅", "stationNameKana": "えすに", "latitude": 0, "longitude": 0 },
+    { "stationId": "S3", "stationName": "S3駅", "stationNameKana": "えすさん", "latitude": 0, "longitude": 0 },
+    { "stationId": "S4", "stationName": "S4駅", "stationNameKana": "えすよん", "latitude": 0, "longitude": 0 }
+  ],
+  "segments": [
+    { "segmentId": "SEG-1", "platforms": { "S2": "1", "S3": "1" }, "lineId": "LB", "companyId": "C1",
+      "fromStationId": "S2", "toStationId": "S3", "duration": 50, "distance": 1, "isBidirectional": false, "isAlightOnly": false, "guidance": "普通" },
+    { "segmentId": "SEG-2", "platforms": { "S3": "1", "S4": "1" }, "lineId": "LB", "companyId": "C1",
+      "fromStationId": "S3", "toStationId": "S4", "duration": 40, "distance": 1, "isBidirectional": false, "isAlightOnly": false, "guidance": "普通" },
+    { "segmentId": "SEG-3", "platforms": { "S4": "1", "S2": "1" }, "lineId": "LB", "companyId": "C1",
+      "fromStationId": "S4", "toStationId": "S2", "duration": 70, "distance": 1, "isBidirectional": false, "isAlightOnly": false, "guidance": "普通" }
+  ],
+  "throughServiceConfigs": [],
+  "platformTransfers": [],
+  "statusTemplates": [],
+  "noticeTypes": [],
+  "serviceStatusCauses": [],
+  "serviceStatusMeta": {},
+  "serviceStatuses": []
+}
