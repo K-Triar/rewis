@@ -1,5 +1,7 @@
 import { validateV1 } from '../../shared/validate-v1.js';
 import { toPublicV1 } from '../../shared/public-v1.js';
+import { validateNetwork, validateOperations } from '../../shared/schema-v2.js';
+import { compilePublic } from '../../shared/compile-public.js';
 
 const NEW_HISTORY_PREFIX = 'data:hist:';
 const OLD_HISTORY_PREFIX = 'data:history:';
@@ -48,6 +50,39 @@ export default {
 
       if (request.method === 'POST' && path === '/data/rollback') {
         return handleRollback(request, env);
+      }
+
+      const v2DocMatch = path.match(/^\/v2\/doc\/([^/]+)$/);
+      if (request.method === 'GET' && v2DocMatch) {
+        return handleV2GetDoc(v2DocMatch[1], request, env);
+      }
+
+      const v2SaveMatch = path.match(/^\/v2\/doc\/([^/]+)\/save$/);
+      if (request.method === 'POST' && v2SaveMatch) {
+        return handleV2Save(v2SaveMatch[1], request, env);
+      }
+
+      const v2HistMatch = path.match(/^\/v2\/history\/([^/]+)$/);
+      if (request.method === 'GET' && v2HistMatch) {
+        return handleV2History(v2HistMatch[1], request, env);
+      }
+
+      const v2HistItemMatch = path.match(/^\/v2\/history\/([^/]+)\/item$/);
+      if (request.method === 'GET' && v2HistItemMatch) {
+        return handleV2HistoryItem(v2HistItemMatch[1], request, env);
+      }
+
+      const v2RollbackMatch = path.match(/^\/v2\/rollback\/([^/]+)$/);
+      if (request.method === 'POST' && v2RollbackMatch) {
+        return handleV2Rollback(v2RollbackMatch[1], request, env);
+      }
+
+      if (request.method === 'GET' && path === '/v2/public') {
+        return handleV2GetPublic(request, env);
+      }
+
+      if (request.method === 'POST' && path === '/v2/admin/import') {
+        return handleV2AdminImport(request, env);
       }
 
       return json({ error: 'not_found' }, 404, request, env);
@@ -299,6 +334,308 @@ async function handleRollback(request, env) {
   await putRecordAsLatestAndHistory(env, record);
 
   return json({ ok: true, revision: newRev, updatedAt: now }, 200, request, env);
+}
+
+function isValidV2Kind(kind) {
+  return kind === 'network' || kind === 'operations';
+}
+
+function isPlainObjectLike(v) {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+async function getV2Record(env, kind) {
+  const text = await env.DATA_KV.get(`v2:${kind}:latest`);
+  if (!text) return null;
+  return JSON.parse(text);
+}
+
+let _histSeqV2 = 0;
+
+async function putV2RecordAsLatestAndHistory(env, kind, record) {
+  await env.DATA_KV.put(`v2:${kind}:latest`, JSON.stringify(record));
+  _histSeqV2 += 1;
+  const histKey = `v2:hist:${kind}:` + invertedTimestamp(Date.now()) + '-' + invertedSeq(_histSeqV2);
+  await env.DATA_KV.put(histKey, JSON.stringify(record), { metadata: record.meta });
+}
+
+async function recompilePublicV2(env) {
+  const networkRecord = await getV2Record(env, 'network');
+  const operationsRecord = await getV2Record(env, 'operations');
+  if (!networkRecord || !operationsRecord) return;
+  const pub = compilePublic(networkRecord, operationsRecord);
+  await env.DATA_KV.put('v2:public:latest', JSON.stringify(pub));
+}
+
+function affectedNoticeIds(errors, operationsDoc) {
+  const notices = (operationsDoc && Array.isArray(operationsDoc.notices)) ? operationsDoc.notices : [];
+  const ids = new Set();
+  errors.forEach((e) => {
+    const m = /^notices\[(\d+)\]/.exec(e.path || '');
+    if (m) {
+      const notice = notices[Number(m[1])];
+      if (notice && notice.id) ids.add(notice.id);
+    }
+  });
+  return Array.from(ids);
+}
+
+function isAdmin(userId, env) {
+  const raw = String(env.ADMIN_USERS || '').trim();
+  if (!raw) return false;
+  return raw.split(',').map((s) => s.trim()).filter(Boolean).includes(userId);
+}
+
+async function handleV2GetDoc(kind, request, env) {
+  if (!isValidV2Kind(kind)) return json({ error: 'not_found' }, 404, request, env);
+
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+
+  const record = await getV2Record(env, kind);
+  if (!record) return json({ error: 'not_initialized' }, 404, request, env);
+
+  return jsonNoCache({ doc: record.doc, meta: record.meta }, 200, request, env);
+}
+
+async function handleV2Save(kind, request, env) {
+  if (!isValidV2Kind(kind)) return json({ error: 'not_found' }, 404, request, env);
+
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+
+  const body = await readJsonBody(request);
+  if (!body || typeof body !== 'object' || !isPlainObjectLike(body.doc)) {
+    return json({ error: 'invalid_payload' }, 400, request, env);
+  }
+  if (!isNonNegativeInteger(body.baseRevision)) {
+    return json({ error: 'revision_required' }, 428, request, env);
+  }
+
+  const current = await getV2Record(env, kind);
+  const currentRev = current?.meta?.revision ?? 0;
+  if (body.baseRevision !== currentRev) {
+    return json({
+      error: 'conflict',
+      latestRevision: currentRev,
+      updatedAt: current?.meta?.updatedAt || null,
+      updatedBy: current?.meta?.updatedBy || null
+    }, 409, request, env);
+  }
+
+  const otherKind = kind === 'network' ? 'operations' : 'network';
+  const otherRecord = await getV2Record(env, otherKind);
+  const otherDoc = otherRecord ? otherRecord.doc : null;
+
+  if (kind === 'network') {
+    const netCheck = validateNetwork(body.doc);
+    if (!netCheck.ok) {
+      return json({ error: 'validation_failed', errors: netCheck.errors.slice(0, 50) }, 422, request, env);
+    }
+    if (otherDoc) {
+      const opsCheck = validateOperations(otherDoc, body.doc);
+      if (!opsCheck.ok) {
+        return json({
+          error: 'validation_failed',
+          errors: opsCheck.errors.slice(0, 50),
+          affectedNoticeIds: affectedNoticeIds(opsCheck.errors, otherDoc)
+        }, 422, request, env);
+      }
+    }
+  } else {
+    const opsCheck = validateOperations(body.doc, otherDoc);
+    if (!opsCheck.ok) {
+      return json({ error: 'validation_failed', errors: opsCheck.errors.slice(0, 50) }, 422, request, env);
+    }
+  }
+
+  const now = new Date().toISOString();
+  const newRev = currentRev + 1;
+  const record = {
+    doc: body.doc,
+    meta: {
+      revision: newRev,
+      updatedAt: now,
+      updatedBy: auth.userId,
+      client: String(body.client || 'unknown')
+    }
+  };
+
+  await putV2RecordAsLatestAndHistory(env, kind, record);
+  await recompilePublicV2(env);
+
+  return json({ ok: true, revision: newRev, updatedAt: now }, 200, request, env);
+}
+
+async function handleV2History(kind, request, env) {
+  if (!isValidV2Kind(kind)) return json({ error: 'not_found' }, 404, request, env);
+
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+
+  const url = new URL(request.url);
+  const limitRaw = Number(url.searchParams.get('limit') || 50);
+  const limit = Math.min(200, Math.max(1, Number.isFinite(limitRaw) ? Math.floor(limitRaw) : 50));
+  const cursor = url.searchParams.get('cursor') || undefined;
+
+  const listed = await env.DATA_KV.list({ prefix: `v2:hist:${kind}:`, limit, cursor });
+  const items = (listed.keys || []).map(newFormatKeyToItem);
+  const nextCursor = listed.list_complete ? null : listed.cursor;
+
+  return json({ items, cursor: nextCursor }, 200, request, env);
+}
+
+async function handleV2HistoryItem(kind, request, env) {
+  if (!isValidV2Kind(kind)) return json({ error: 'not_found' }, 404, request, env);
+
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+
+  const url = new URL(request.url);
+  const key = url.searchParams.get('key') || '';
+  const prefix = `v2:hist:${kind}:`;
+  if (!key.startsWith(prefix)) {
+    return json({ error: 'invalid_key' }, 400, request, env);
+  }
+
+  const text = await env.DATA_KV.get(key);
+  if (!text) return json({ error: 'not_found' }, 404, request, env);
+
+  return json(JSON.parse(text), 200, request, env);
+}
+
+async function handleV2Rollback(kind, request, env) {
+  if (!isValidV2Kind(kind)) return json({ error: 'not_found' }, 404, request, env);
+
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+
+  const body = await readJsonBody(request);
+  const key = String(body.key || '');
+  const prefix = `v2:hist:${kind}:`;
+  if (!key.startsWith(prefix)) {
+    return json({ error: 'invalid_key' }, 400, request, env);
+  }
+  if (!isNonNegativeInteger(body.baseRevision)) {
+    return json({ error: 'revision_required' }, 428, request, env);
+  }
+
+  const current = await getV2Record(env, kind);
+  const currentRev = current?.meta?.revision ?? 0;
+  if (body.baseRevision !== currentRev) {
+    return json({
+      error: 'conflict',
+      latestRevision: currentRev,
+      updatedAt: current?.meta?.updatedAt || null,
+      updatedBy: current?.meta?.updatedBy || null
+    }, 409, request, env);
+  }
+
+  const targetText = await env.DATA_KV.get(key);
+  if (!targetText) return json({ error: 'not_found' }, 404, request, env);
+  const target = JSON.parse(targetText);
+
+  const otherKind = kind === 'network' ? 'operations' : 'network';
+  const otherRecord = await getV2Record(env, otherKind);
+  const otherDoc = otherRecord ? otherRecord.doc : null;
+
+  if (kind === 'network') {
+    const netCheck = validateNetwork(target.doc);
+    if (!netCheck.ok) {
+      return json({ error: 'validation_failed', errors: netCheck.errors.slice(0, 50) }, 422, request, env);
+    }
+    if (otherDoc) {
+      const opsCheck = validateOperations(otherDoc, target.doc);
+      if (!opsCheck.ok) {
+        return json({
+          error: 'validation_failed',
+          errors: opsCheck.errors.slice(0, 50),
+          affectedNoticeIds: affectedNoticeIds(opsCheck.errors, otherDoc)
+        }, 422, request, env);
+      }
+    }
+  } else {
+    const opsCheck = validateOperations(target.doc, otherDoc);
+    if (!opsCheck.ok) {
+      return json({ error: 'validation_failed', errors: opsCheck.errors.slice(0, 50) }, 422, request, env);
+    }
+  }
+
+  const now = new Date().toISOString();
+  const newRev = currentRev + 1;
+  const record = {
+    doc: target.doc,
+    meta: {
+      revision: newRev,
+      updatedAt: now,
+      updatedBy: auth.userId,
+      client: 'rewis-rollback',
+      rollbackFrom: key
+    }
+  };
+
+  await putV2RecordAsLatestAndHistory(env, kind, record);
+  await recompilePublicV2(env);
+
+  return json({ ok: true, revision: newRev, updatedAt: now }, 200, request, env);
+}
+
+async function handleV2GetPublic(request, env) {
+  const text = await env.DATA_KV.get('v2:public:latest');
+  if (!text) return json({ error: 'not_initialized' }, 404, request, env);
+  return jsonNoCache(JSON.parse(text), 200, request, env);
+}
+
+async function handleV2AdminImport(request, env) {
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+  if (!isAdmin(auth.userId, env)) return json({ error: 'forbidden' }, 403, request, env);
+
+  const body = await readJsonBody(request);
+  if (!body || typeof body !== 'object' || !isPlainObjectLike(body.network) || !isPlainObjectLike(body.operations)) {
+    return json({ error: 'invalid_payload' }, 400, request, env);
+  }
+
+  const netCheck = validateNetwork(body.network);
+  const opsCheck = validateOperations(body.operations, body.network);
+  if (!netCheck.ok || !opsCheck.ok) {
+    return json({
+      error: 'validation_failed',
+      networkErrors: netCheck.errors.slice(0, 50),
+      operationsErrors: opsCheck.errors.slice(0, 50)
+    }, 422, request, env);
+  }
+
+  const existingNetwork = await getV2Record(env, 'network');
+  if (existingNetwork && !body.force) {
+    return json({ error: 'conflict', message: 'v2 はすでに初期化されています' }, 409, request, env);
+  }
+  const existingOperations = await getV2Record(env, 'operations');
+
+  const now = new Date().toISOString();
+
+  const networkRev = (existingNetwork?.meta?.revision ?? 0) + 1;
+  const networkRecord = {
+    doc: body.network,
+    meta: { revision: networkRev, updatedAt: now, updatedBy: auth.userId, client: 'rewis-migration' }
+  };
+  await putV2RecordAsLatestAndHistory(env, 'network', networkRecord);
+
+  const operationsRev = (existingOperations?.meta?.revision ?? 0) + 1;
+  const operationsRecord = {
+    doc: body.operations,
+    meta: { revision: operationsRev, updatedAt: now, updatedBy: auth.userId, client: 'rewis-migration' }
+  };
+  await putV2RecordAsLatestAndHistory(env, 'operations', operationsRecord);
+
+  await recompilePublicV2(env);
+
+  return json({
+    ok: true,
+    network: { revision: networkRev },
+    operations: { revision: operationsRev },
+    updatedAt: now
+  }, 200, request, env);
 }
 
 async function getLatestRecord(env) {
