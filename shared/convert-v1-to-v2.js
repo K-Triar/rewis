@@ -397,7 +397,7 @@ function joinChains(chains, v1data, lineCategoryNameToId, overrides, report) {
   return { chainNextOf, chainPrevOf, throughJoined };
 }
 
-function assembleServices(chains, chainNextOf, chainPrevOf, overrides, report) {
+function assembleServices(chains, chainNextOf, chainPrevOf, overrides, report, stationNameById) {
   const chainByKey = new Map(chains.map(c => [chainKeyOf(c), c]));
   const services = [];
   const usedServiceIds = new Set();
@@ -431,13 +431,13 @@ function assembleServices(chains, chainNextOf, chainPrevOf, overrides, report) {
       cur = nextKey;
     }
     const chainSeq = seqKeys.map(k => chainByKey.get(k));
-    services.push(buildServiceFromChainSeq(chainSeq, overrides, nextServiceId));
+    services.push(buildServiceFromChainSeq(chainSeq, overrides, nextServiceId, stationNameById));
   });
 
   return services;
 }
 
-function buildServiceFromChainSeq(chainSeq, overrides, nextServiceId) {
+function buildServiceFromChainSeq(chainSeq, overrides, nextServiceId, stationNameById) {
   const merge = overrides.categoryMerge || {};
   const isCircular = chainSeq.length === 1 && chainSeq[0].circular;
   const allHops = chainSeq.flatMap(c => c.hops);
@@ -476,7 +476,7 @@ function buildServiceFromChainSeq(chainSeq, overrides, nextServiceId) {
   return {
     id,
     name: '',
-    headsign: isCircular ? null : lastStop.stationId,
+    headsign: isCircular ? null : (stationNameById.get(lastStop.stationId) || lastStop.stationId),
     active: true,
     circular: isCircular,
     stops,
@@ -513,7 +513,8 @@ export function convertV1ToV2(v1data, overrides = {}) {
   const circularChains = chains.filter(c => c.circular).length;
 
   const { chainNextOf, chainPrevOf, throughJoined } = joinChains(chains, v1data, lineCategoryNameToId, ov, report);
-  network.services = assembleServices(chains, chainNextOf, chainPrevOf, ov, report);
+  const stationNameById = new Map((v1data.stations || []).map(s => [s.stationId, s.stationName]));
+  network.services = assembleServices(chains, chainNextOf, chainPrevOf, ov, report, stationNameById);
 
   let categoryMergedCount = 0;
   Object.values(ov.categoryMerge).forEach(m => { categoryMergedCount += Object.keys(m).length; });

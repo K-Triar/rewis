@@ -58,7 +58,7 @@ test('f: isBidirectional の区間 → 逆向きの運行系統ができる', ()
   const { network } = convertV1ToV2(loadSynthetic('f-bidirectional.json'));
   assert.equal(network.services.length, 2);
   const headsigns = network.services.map(s => s.headsign).sort();
-  assert.deepEqual(headsigns, ['A', 'B']);
+  assert.deepEqual(headsigns, ['A駅', 'B駅']);
 });
 
 test('g: isAlightOnly の区間 → board:false になる', () => {
