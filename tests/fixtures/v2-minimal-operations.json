@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2.0.0",
+  "kind": "operations",
+  "masters": {
+    "statusTemplates": [
+      { "code": "OfS_SUSPEND", "statusId": "OfS", "label": "運転見合わせ", "heading": "運転見合わせ", "body": "運転を見合わせています", "description": "運転見合わせ：{影響駅間}で運転を見合わせています" }
+    ],
+    "causes": [
+      { "code": "signal_check", "label": "信号の確認", "heading": "信号の確認", "body": "信号の確認をしているため", "defaultLineOption": "affected" }
+    ]
+  },
+  "notices": [
+    {
+      "id": "nt_x1", "state": "published",
+      "createdAt": "2026-04-06T15:00:00.000Z", "updatedAt": "2026-04-06T15:00:00.000Z", "updatedBy": "ktriar",
+      "occurrence": { "year": 2026, "month": 4, "day": 6, "hour": 0, "minute": 0, "timezone": "Asia/Tokyo" },
+      "lineId": "LA",
+      "range": null,
+      "directions": { "forward": true, "backward": true },
+      "categoryIds": null,
+      "status": { "code": "OfS_SUSPEND", "heading": "運転見合わせ", "body": "運転を見合わせています" },
+      "cause": { "code": "signal_check", "heading": null, "body": null, "lineOption": "affected", "lineId": null, "range": null },
+      "turnback": { "start": false, "end": false },
+      "throughServices": [],
+      "text": { "mode": "auto", "custom": null }
+    }
+  ]
+}
