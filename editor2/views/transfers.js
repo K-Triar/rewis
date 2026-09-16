@@ -244,11 +244,12 @@ export function renderTransfersView(container, ctx) {
           await alertDialog('秒数は0以上の整数で入力してください。');
           return;
         }
-        if (mode === 'same' && (fromPlatformId == null || toPlatformId == null)) {
+        const sameStation = fromStationId === toStationId;
+        if (sameStation && (fromPlatformId == null || toPlatformId == null)) {
           await alertDialog('同じ駅の中の乗換では、両方ののりばを指定してください。');
           return;
         }
-        if (mode === 'same' && fromPlatformId === toPlatformId) {
+        if (sameStation && fromPlatformId === toPlatformId) {
           await alertDialog('同じのりば同士の乗換は登録できません。');
           return;
         }

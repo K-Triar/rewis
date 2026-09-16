@@ -158,9 +158,24 @@ export function renderLinesView(container, ctx) {
 
     // --- 種別 ---
     const categoriesTbody = h('tbody', {});
+    let blockedCategoryId = null; // 参照があって削除できなかった種別のID
     function renderCategories() {
       clear(categoriesTbody);
       categories.forEach((category, index) => {
+        if (blockedCategoryId === category.id) {
+          const refs = findReferences(network, store.state.docs.operations, { type: 'category', lineId: line.id, id: category.id });
+          categoriesTbody.appendChild(h('tr', {},
+            h('td', {}, category.id),
+            h('td', { colspan: '2' },
+              h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+              renderRefList(refs, requestNavigate),
+              ' ',
+              h('button', { class: 'preview-btn', type: 'button', onClick: () => { blockedCategoryId = null; renderCategories(); } }, '閉じる')
+            )
+          ));
+          return;
+        }
+
         const idInputC = h('input', { type: 'text', value: category.id, style: 'width:80px', disabled: !isNew && !category.__new });
         const nameInputC = h('input', { type: 'text', value: category.name, style: 'width:120px' });
         idInputC.addEventListener('change', () => { category.id = idInputC.value.trim(); });
@@ -176,11 +191,12 @@ export function renderLinesView(container, ctx) {
         }, '▼');
         const deleteBtn = h('button', {
           class: 'preview-btn', type: 'button',
-          onClick: async () => {
+          onClick: () => {
             if (!isNew) {
               const refs = findReferences(network, store.state.docs.operations, { type: 'category', lineId: line.id, id: category.id });
               if (refs.length > 0) {
-                await alertDialog(`この種別は削除できません。参照箇所: ${refs.map((r) => r.label).join(' / ')}`);
+                blockedCategoryId = category.id;
+                renderCategories();
                 return;
               }
             }

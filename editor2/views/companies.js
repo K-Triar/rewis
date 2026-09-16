@@ -2,10 +2,11 @@ import { h, clear } from '../dom.js';
 import { alertDialog } from '../components/dialog.js';
 import { isValidId } from '../../shared/ids.js';
 import { findReferences } from '../refs.js';
+import { renderRefList } from '../components/ref-list.js';
 
 export function renderCompaniesView(container, ctx) {
   clear(container);
-  const { store, refreshAll } = ctx;
+  const { store, refreshAll, requestNavigate } = ctx;
   const network = store.state.docs.network;
 
   if (!network) {
@@ -109,7 +110,8 @@ export function renderCompaniesView(container, ctx) {
         return h('tr', {},
           h('td', {}, company.id),
           h('td', { colspan: '2' },
-            h('span', { class: 'ed2-issue-error' }, `削除できません。参照箇所: ${refs.map((r) => r.label).join(' / ')}`),
+            h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+            renderRefList(refs, requestNavigate),
             ' ',
             h('button', { class: 'preview-btn', type: 'button', onClick: () => { mode = null; render(); } }, '閉じる')
           )

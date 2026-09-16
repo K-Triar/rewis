@@ -139,6 +139,7 @@ export function renderStationsView(container, ctx) {
       let platforms = isNew ? [] : station.platforms.map((p) => ({ ...p }));
 
       const platformsTbody = h('tbody', {});
+      let blockedPlatformId = null; // 参照があって削除できなかったのりばのID
       function renderPlatforms() {
         clear(platformsTbody);
         platforms.forEach((platform, index) => {
@@ -147,6 +148,19 @@ export function renderStationsView(container, ctx) {
       }
 
       function renderPlatformRow(platform, index) {
+        if (blockedPlatformId === platform.id) {
+          const refs = findReferences(network, store.state.docs.operations, { type: 'platform', stationId: station.id, id: platform.id });
+          return h('tr', {},
+            h('td', {}, platform.id),
+            h('td', { colspan: '2' },
+              h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+              renderRefList(refs, requestNavigate),
+              ' ',
+              h('button', { class: 'preview-btn', type: 'button', onClick: () => { blockedPlatformId = null; renderPlatforms(); } }, '閉じる')
+            )
+          );
+        }
+
         const idInputP = h('input', { type: 'text', value: platform.id, style: 'width:80px' });
         const labelInputP = h('input', { type: 'text', value: platform.label, style: 'width:80px' });
         idInputP.addEventListener('change', () => { platform.id = idInputP.value.trim(); });
@@ -173,11 +187,12 @@ export function renderStationsView(container, ctx) {
         const deleteBtn = h('button', {
           class: 'preview-btn',
           type: 'button',
-          onClick: async () => {
+          onClick: () => {
             if (!isNew) {
               const refs = findReferences(network, store.state.docs.operations, { type: 'platform', stationId: station.id, id: platform.id });
               if (refs.length > 0) {
-                await alertDialog(`このりばは削除できません。参照箇所: ${refs.map((r) => r.label).join(' / ')}`);
+                blockedPlatformId = platform.id;
+                renderPlatforms();
                 return;
               }
             }
