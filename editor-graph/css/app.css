@@ -14,6 +14,13 @@ body {
   overflow: hidden;
 }
 
+#g-app {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .g-header {
   flex: none;
   display: flex;
@@ -165,3 +172,159 @@ body {
   margin-top: var(--space-xxs);
 }
 .g-issues-drawer__empty { color: var(--fgColor-muted); font: var(--text-body-shorthand-medium); }
+
+/* 10章 キャンバスの共通部品 */
+
+.g-workspace {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  height: 100%;
+}
+@media (max-width: 1099px) {
+  .g-workspace { grid-template-columns: 200px 1fr 260px; }
+}
+
+.g-ws-left,
+.g-ws-right {
+  background: var(--bgColor-default);
+  overflow-y: auto;
+  padding: var(--stack-padding-normal);
+  box-sizing: border-box;
+}
+.g-ws-left { border-right: var(--borderWidth-thin) solid var(--borderColor-default); }
+.g-ws-right { border-left: var(--borderWidth-thin) solid var(--borderColor-default); }
+
+.g-ws-canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bgColor-muted);
+}
+
+.g-ws-toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--stack-gap-condensed);
+  padding: var(--space-sm) var(--stack-padding-normal);
+  background: var(--bgColor-default);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+}
+
+.g-ws-canvas-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.g-ws-ribbon {
+  flex: none;
+  overflow-x: auto;
+  border-top: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-default);
+}
+
+.g-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.g-canvas-bg { fill: var(--bgColor-muted); cursor: grab; }
+
+.g-node__body {
+  fill: var(--bgColor-default);
+  stroke: var(--borderColor-emphasis);
+  stroke-width: 1;
+  cursor: grab;
+}
+.g-node.is-selected .g-node__body { stroke: var(--borderColor-accent-emphasis); stroke-width: 2; }
+.g-node.is-dimmed { opacity: 0.45; }
+.g-node__name {
+  font: var(--text-body-shorthand-medium);
+  font-weight: var(--base-text-weight-semibold);
+  fill: var(--fgColor-default);
+}
+.g-node__no-platform {
+  font: var(--text-caption-shorthand);
+  fill: var(--fgColor-muted);
+}
+
+.g-port { fill: var(--bgColor-default); stroke: var(--fgColor-default); stroke-width: 1; }
+.g-port.is-highlight { stroke: var(--borderColor-accent-emphasis); stroke-width: 2; }
+.g-port__label {
+  font: var(--text-caption-shorthand);
+  fill: var(--fgColor-default);
+  pointer-events: none;
+}
+.g-port__hit { fill: transparent; cursor: pointer; }
+
+/* 10.6 リボン */
+.g-rb-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  overflow-x: auto;
+}
+.g-rb-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xxs);
+  min-width: 120px;
+  padding: var(--space-sm);
+  padding-top: calc(var(--space-sm) + 4px);
+  background: var(--bgColor-default);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  cursor: pointer;
+  text-align: left;
+  font: var(--text-body-shorthand-small);
+}
+.g-rb-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--rb-color, transparent);
+  border-radius: var(--borderRadius-medium) var(--borderRadius-medium) 0 0;
+}
+.g-rb-item.is-selected { background: var(--bgColor-accent-muted); border-color: var(--borderColor-accent-emphasis); }
+.g-rb-item__grabber { color: var(--fgColor-muted); cursor: grab; }
+.g-rb-item__row1 { display: flex; align-items: center; gap: var(--space-xs); }
+.g-rb-item__row2 { color: var(--fgColor-muted); }
+.g-rb-item__badges { display: flex; gap: var(--space-xxs); flex-wrap: wrap; }
+
+.g-rb-conn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xxs);
+  min-width: 56px;
+  padding: var(--space-xs);
+  background: transparent;
+  border: var(--borderWidth-thin) solid transparent;
+  border-radius: var(--borderRadius-medium);
+  cursor: pointer;
+  font: var(--text-caption-shorthand);
+}
+.g-rb-conn.is-selected { background: var(--bgColor-accent-muted); border-color: var(--borderColor-accent-emphasis); }
+.g-rb-conn__line { display: block; width: 100%; border-top: 2px solid currentColor; }
+.g-rb-conn__line.is-dashed { border-top-style: dashed; }
+.g-rb-closed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  color: var(--fgColor-muted);
+  font: var(--text-caption-shorthand);
+  padding: var(--space-sm);
+}
+
+.g-ws-left__title { font: var(--text-body-shorthand-medium); font-weight: var(--base-text-weight-semibold); margin: 0 0 var(--space-sm); }
+.g-ws-left__note,
+.g-ws-right__note { color: var(--fgColor-muted); font: var(--text-body-shorthand-small); margin: 0; }
+.g-ws-toolbar__sep { width: var(--borderWidth-thin); align-self: stretch; background: var(--borderColor-muted); }

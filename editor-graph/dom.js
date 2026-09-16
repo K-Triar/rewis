@@ -1,6 +1,6 @@
 import { ICONS } from './icons.js';
 
-const PROP_KEYS = new Set(['value', 'checked', 'disabled', 'hidden', 'selected']);
+const PROP_KEYS = new Set(['value', 'checked', 'disabled', 'hidden', 'selected', 'draggable']);
 
 export function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);

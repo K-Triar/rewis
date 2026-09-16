@@ -4,6 +4,10 @@ import { saveChangedDocs } from '../editor-core/save-actions.js';
 import { resolveIssueTarget } from '../editor-core/issue-location.js';
 import { renderStartView } from './views/start.js';
 import { renderDataView } from './views/data.js';
+import { renderStationsView } from './views/stations.js';
+import { renderLinesView } from './views/lines.js';
+import { renderServicesView } from './views/services.js';
+import { renderTransfersView } from './views/transfers.js';
 import { renderStatusRow } from './components/status-row.js';
 import { openIssuesDrawer } from './components/issues-drawer.js';
 import { alertDialog, confirmDialog } from './components/dialog.js';
@@ -18,10 +22,10 @@ function placeholderView(container) {
 }
 
 const TABS = [
-  { id: 'stations', label: '駅', render: placeholderView },
-  { id: 'lines', label: '路線', render: placeholderView },
-  { id: 'services', label: '運行系統', render: placeholderView },
-  { id: 'transfers', label: '乗換・駅グループ', render: placeholderView },
+  { id: 'stations', label: '駅', render: renderStationsView },
+  { id: 'lines', label: '路線', render: renderLinesView },
+  { id: 'services', label: '運行系統', render: renderServicesView },
+  { id: 'transfers', label: '乗換・駅グループ', render: renderTransfersView },
   { id: 'companies', label: '鉄道会社', render: placeholderView },
   { id: 'vehicle-types', label: '車両種別', render: placeholderView },
   { id: 'history', label: '履歴', render: placeholderView },
