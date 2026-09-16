@@ -127,7 +127,7 @@ export function renderDataView(container, ctx) {
         setStatus('先にログインしてください。', 'attention');
         return;
       }
-      if (store.state.docs[kind]) {
+      if (store.hasUnsavedChanges(kind)) {
         const ok = await confirmDialog('未保存の変更は失われます。', { confirmLabel: '読み込む', danger: true });
         if (!ok) return;
       }

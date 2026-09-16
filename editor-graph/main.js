@@ -1,7 +1,12 @@
 import { h, clear, icon } from './dom.js';
 import { createStore } from '../editor-core/store.js';
+import { saveChangedDocs } from '../editor-core/save-actions.js';
+import { resolveIssueTarget } from '../editor-core/issue-location.js';
 import { renderStartView } from './views/start.js';
 import { renderDataView } from './views/data.js';
+import { renderStatusRow } from './components/status-row.js';
+import { openIssuesDrawer } from './components/issues-drawer.js';
+import { alertDialog, confirmDialog } from './components/dialog.js';
 import * as api from '../editor2/api.js';
 
 const TAB_STORAGE_KEY = 'rewis_graph_tab';
@@ -33,16 +38,20 @@ function getSavedTab() {
 let activeTabId = getSavedTab();
 let activeTabHandle = null;
 let pendingFocus = null;
+let forceStartView = false;
+let saveBannerTimer = null;
 
 const root = document.getElementById('g-app');
 
 const header = h('header', { class: 'g-header' });
 const pageHeader = h('div', { class: 'g-page-header' });
-const statusRow = h('div', { class: 'g-status-row' }); // 状態の行の枠。4.5-2 で作る
+const statusRow = h('div', { class: 'g-status-row' });
+const saveBanner = h('div', { class: 'g-banner g-banner--success', hidden: true });
 const nav = h('nav', { class: 'g-underline-nav' });
 const main = h('div', { class: 'g-main' });
 
 pageHeader.appendChild(statusRow);
+pageHeader.appendChild(saveBanner);
 pageHeader.appendChild(nav);
 root.appendChild(header);
 root.appendChild(pageHeader);
@@ -89,6 +98,7 @@ function renderNav() {
         activeTabId = tab.id;
         sessionStorage.setItem(TAB_STORAGE_KEY, activeTabId);
         renderNav();
+        renderStatus();
         renderMain();
       }
     }, tab.label);
@@ -102,11 +112,99 @@ function requestNavigate(target) {
   sessionStorage.setItem(TAB_STORAGE_KEY, activeTabId);
   pendingFocus = { id: target.id, sub: target.sub };
   renderNav();
+  renderStatus();
   renderMain();
+}
+
+function handleIssueNavigate(kind, issue) {
+  const target = resolveIssueTarget(kind, issue, store.state.docs);
+  if (target) requestNavigate(target);
+}
+
+function openIssues(filter) {
+  openIssuesDrawer(filter, { store, onNavigate: handleIssueNavigate });
 }
 
 function refreshStatus() {
   renderHeader();
+  renderStatus();
+}
+
+function renderStatus() {
+  renderStatusRow(statusRow, {
+    store,
+    activeTabId,
+    onOpenIssues: openIssues,
+    onUndo: () => { store.undo(); renderMain(); },
+    onRedo: () => { store.redo(); renderMain(); },
+    onSave: handleSave,
+    onSwitchToTable: handleSwitchToTable,
+    onOpenGuide: () => {}
+  });
+}
+
+function showSaveBanner(text) {
+  saveBanner.textContent = text;
+  saveBanner.hidden = false;
+  if (saveBannerTimer) clearTimeout(saveBannerTimer);
+  saveBannerTimer = setTimeout(() => { saveBanner.hidden = true; }, 4000);
+}
+
+function exportDocToFile(kind) {
+  const doc = store.state.docs[kind];
+  if (!doc) return;
+  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = h('a', { href: url, download: `${kind}.json` });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function handleSave() {
+  const base = api.getSavedApiBase();
+  const session = api.getSavedSession();
+  const { results } = await saveChangedDocs(store, {
+    base,
+    token: session ? session.token : null,
+    saveDoc: api.saveDoc
+  });
+  renderStatus();
+
+  if (results.length === 0) return;
+  if (results.every((r) => r.status === 'saved')) {
+    showSaveBanner('保存しました。');
+    return;
+  }
+
+  const last = results[results.length - 1];
+  if (last.status === 'conflict') {
+    const ok = await confirmDialog(last.message, { confirmLabel: 'ファイルに書き出す' });
+    if (ok) exportDocToFile(last.kind);
+    return;
+  }
+
+  await alertDialog(last.message);
+  if (last.status === 'invalid') {
+    openIssues('errors');
+  } else if (/ログイン/.test(last.message)) {
+    api.clearSession();
+    forceStartView = true;
+    refreshStatus();
+    renderMain();
+  }
+}
+
+async function handleSwitchToTable() {
+  if (store.hasAnyUnsavedChanges()) {
+    const ok = await confirmDialog(
+      '未保存の変更は表形式のエディタに引き継がれません。先にサーバーに保存してください。',
+      { confirmLabel: '保存せずに移動', danger: true }
+    );
+    if (!ok) return;
+  }
+  window.location.href = 'editor-v2.html';
 }
 
 const ctx = {
@@ -114,6 +212,8 @@ const ctx = {
   requestNavigate,
   refreshStatus,
   onLoaded() {
+    forceStartView = false;
+    refreshStatus();
     renderMain();
   }
 };
@@ -125,7 +225,7 @@ function renderMain() {
   clear(main);
 
   const networkLoaded = !!store.state.docs.network;
-  if (!networkLoaded && activeTabId !== 'data') {
+  if ((!networkLoaded || forceStartView) && activeTabId !== 'data') {
     activeTabHandle = renderStartView(main, ctx);
     return;
   }
@@ -137,8 +237,46 @@ function renderMain() {
   activeTabHandle = tab.render(main, { ...ctx, focus });
 }
 
-// beforeunload での離脱警告は、未保存の変更を検出できるようになる 4.5-2 で追加する
+function isDialogOpen() {
+  return !!document.querySelector('.g-dialog-backdrop');
+}
+
+window.addEventListener('keydown', (event) => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (isDialogOpen()) return;
+
+  const mod = event.ctrlKey || event.metaKey;
+  if (!mod) return;
+
+  const key = event.key.toLowerCase();
+  if (key === 'z' && event.shiftKey) {
+    event.preventDefault();
+    store.redo();
+    renderMain();
+  } else if (key === 'z') {
+    event.preventDefault();
+    store.undo();
+    renderMain();
+  } else if (key === 'y') {
+    event.preventDefault();
+    store.redo();
+    renderMain();
+  }
+});
+
+window.addEventListener('beforeunload', (event) => {
+  if (store.hasAnyUnsavedChanges()) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
+
+store.subscribe(() => {
+  renderStatus();
+});
 
 renderHeader();
 renderNav();
+renderStatus();
 renderMain();
