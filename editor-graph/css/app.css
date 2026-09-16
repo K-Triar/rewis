@@ -328,3 +328,55 @@ body {
 .g-ws-left__note,
 .g-ws-right__note { color: var(--fgColor-muted); font: var(--text-body-shorthand-small); margin: 0; }
 .g-ws-toolbar__sep { width: var(--borderWidth-thin); align-self: stretch; background: var(--borderColor-muted); }
+
+/* 11章 駅タブ */
+.g-search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+.g-search-field svg {
+  position: absolute;
+  left: var(--space-sm);
+  color: var(--fgColor-muted);
+  pointer-events: none;
+}
+.g-search-field .g-input { padding-left: calc(var(--space-sm) * 2 + 14px); }
+
+.g-ws-left__list { margin-top: var(--space-sm); }
+
+.g-list__item--row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.g-list__item-id { color: var(--fgColor-muted); font: var(--text-body-shorthand-small); }
+.g-list__item--row .g-list__item-id { margin-left: auto; }
+
+.g-list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+.g-list__row:last-child { border-bottom: none; }
+
+.g-platform-row { cursor: grab; }
+.g-platform-row .g-input { flex: 1 1 auto; }
+
+.g-add-platform-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed);
+  margin-top: var(--space-sm);
+}
+
+.g-popover-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-normal);
+  width: 260px;
+}
+.g-popover-actions { display: flex; justify-content: flex-end; gap: var(--stack-gap-condensed); }
