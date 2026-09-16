@@ -2,6 +2,8 @@ import { h, clear } from '../dom.js';
 import * as api from '../api.js';
 import { alertDialog, confirmDialog } from '../components/dialog.js';
 import { validateNetwork, validateOperations } from '../../shared/schema-v2.js';
+import { convertV1ToV2 } from '../../shared/convert-v1-to-v2.js';
+import v1Overrides from '../../shared/v1-overrides.js';
 
 const KIND_LABEL = { network: '路線網 (network)', operations: '運行情報 (operations)' };
 
@@ -84,6 +86,7 @@ export function renderIoView(container, ctx) {
   );
 
   container.appendChild(authCard);
+  container.appendChild(renderMigrationCard(ctx, apiBaseInput));
   container.appendChild(renderKindCard('network', ctx, apiBaseInput));
   container.appendChild(renderKindCard('operations', ctx, apiBaseInput));
   container.appendChild(renderPreviewCard(store));
@@ -231,6 +234,105 @@ function renderKindCard(kind, ctx, apiBaseInput) {
       h('button', { class: 'preview-btn', type: 'button', onClick: doExportFile }, 'ファイルに書き出す')
     ),
     status
+  );
+}
+
+function buildReportSummary(report) {
+  const lines = [];
+  Object.entries(report.stats || {}).forEach(([key, value]) => {
+    lines.push(`${key}: ${value}`);
+  });
+  if ((report.issues || []).length > 0) {
+    lines.push('');
+    lines.push(`issues ${report.issues.length}件:`);
+    report.issues.forEach((i) => lines.push(`- [${i.code}] ${i.message}`));
+  } else {
+    lines.push('');
+    lines.push('issues: なし');
+  }
+  return lines.join('\n');
+}
+
+function renderMigrationCard(ctx, apiBaseInput) {
+  const { store, refreshAll } = ctx;
+  const status = h('div', { class: 'worker-auth-status' }, '');
+  const reportPre = h('pre', { class: 'ed2-json-preview', hidden: true });
+
+  async function doMigrate() {
+    const base = apiBaseInput.value.trim();
+    if (!base) {
+      await alertDialog('Workers API URL を設定してください。');
+      return;
+    }
+    const token = currentToken();
+    if (!token) {
+      await alertDialog('先にログインしてください。');
+      return;
+    }
+
+    status.textContent = 'v1データを読み込んでいます…';
+    reportPre.hidden = true;
+    const v1Res = await api.getV1Latest(base, token);
+    if (v1Res.status === 404) {
+      status.textContent = 'v1データが未初期化です。';
+      return;
+    }
+    if (!v1Res.ok) {
+      status.textContent = `v1データの読込に失敗しました: ${v1Res.body.error || v1Res.status}`;
+      return;
+    }
+
+    const { network, operations, report } = convertV1ToV2(v1Res.body.data, v1Overrides);
+    reportPre.textContent = buildReportSummary(report);
+    reportPre.hidden = false;
+
+    const networkCheck = validateNetwork(network);
+    const operationsCheck = validateOperations(operations, network);
+    if (!networkCheck.ok || !operationsCheck.ok) {
+      status.textContent = `変換したデータに errors があります（network: ${networkCheck.errors.length}件 / operations: ${operationsCheck.errors.length}件）。移行できません。`;
+      return;
+    }
+
+    const ok = await confirmDialog(
+      `v1データを変換してステージング（v2）に取り込みます。\n\n${buildReportSummary(report)}\n\nよろしいですか？`
+    );
+    if (!ok) {
+      status.textContent = 'キャンセルしました。';
+      return;
+    }
+
+    let res = await api.adminImport(base, token, { network, operations, force: false });
+    if (res.status === 409) {
+      const forceOk = await confirmDialog(
+        '既に v2 のステージングデータがあります。上書きすると、ステージングで編集した内容は失われます。上書きしますか？'
+      );
+      if (!forceOk) {
+        status.textContent = 'キャンセルしました（既存のステージングデータはそのままです）。';
+        return;
+      }
+      res = await api.adminImport(base, token, { network, operations, force: true });
+    }
+    if (res.status === 403) {
+      status.textContent = '管理者ではないため実行できません。';
+      return;
+    }
+    if (!res.ok) {
+      status.textContent = `移行に失敗しました: ${res.body.error || res.status}`;
+      return;
+    }
+
+    status.textContent = `移行しました（network 版 ${res.body.network.revision} / operations 版 ${res.body.operations.revision}）。「読込」ボタンで読み込み直してください。`;
+    refreshAll();
+  }
+
+  return h('div', { class: 'export-card' },
+    h('h3', {}, 'v1 から移行（管理者）'),
+    h('p', {}, 'v1 の /data/latest を読み込み、v2 形式に変換してステージングに取り込みます（管理者のみ）。'),
+    h('div', { class: 'worker-config-actions' },
+      h('button', { class: 'preview-btn', type: 'button', onClick: doMigrate }, 'v1 から移行')
+    ),
+    status,
+    reportPre
   );
 }
 
