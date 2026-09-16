@@ -344,19 +344,26 @@ export function renderServicesView(container, ctx) {
           segments[index] = segments[index - 1] ? { ...segments[index - 1] } : defaultLineCategory(network);
         }
         const seg = segments[index];
-        const lineSelect = h('select', {}, ...network.lines.map((l) => h('option', { value: l.id }, l.name)));
+        const availableLines = network.lines.filter((l) => (l.stations || []).includes(stop.stationId));
+        const lineChoices = availableLines.length > 0 ? availableLines : network.lines;
+        if (!lineChoices.some((l) => l.id === seg.lineId)) {
+          const fallback = lineChoices[0];
+          seg.lineId = fallback ? fallback.id : '';
+          seg.categoryId = fallback && fallback.categories[0] ? fallback.categories[0].id : '';
+        }
+        const lineSelect = h('select', {}, ...lineChoices.map((l) => h('option', { value: l.id }, l.name)));
         lineSelect.value = seg.lineId;
         const categorySelect = h('select', {});
         function fillCategories() {
           clear(categorySelect);
-          const line = network.lines.find((l) => l.id === lineSelect.value);
+          const line = lineChoices.find((l) => l.id === lineSelect.value);
           (line ? line.categories : []).forEach((c) => categorySelect.appendChild(h('option', { value: c.id }, c.name)));
           categorySelect.value = seg.categoryId;
           if (!categorySelect.value && line && line.categories[0]) categorySelect.value = line.categories[0].id;
         }
         fillCategories();
         lineSelect.addEventListener('change', () => {
-          const line = network.lines.find((l) => l.id === lineSelect.value);
+          const line = lineChoices.find((l) => l.id === lineSelect.value);
           seg.lineId = lineSelect.value;
           seg.categoryId = line && line.categories[0] ? line.categories[0].id : '';
           fillCategories();
