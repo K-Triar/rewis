@@ -4,6 +4,7 @@ import { createStationPicker } from '../components/station-picker.js';
 import { attachDragReorder } from '../components/drag-reorder.js';
 import { isValidId } from '../../shared/ids.js';
 import { findReferences } from '../refs.js';
+import { renderRefList } from '../components/ref-list.js';
 
 function stationLabel(network, stationId) {
   const station = network.stations.find((s) => s.id === stationId);
@@ -17,7 +18,7 @@ function shapeOf(line) {
 
 export function renderLinesView(container, ctx) {
   clear(container);
-  const { store, refreshAll } = ctx;
+  const { store, refreshAll, requestNavigate, focus } = ctx;
   const network = store.state.docs.network;
 
   if (!network) {
@@ -25,8 +26,10 @@ export function renderLinesView(container, ctx) {
     return;
   }
 
-  let expandedId = null; // null | '__new__' | 路線ID
+  const focusLineId = focus && focus.tab === 'lines' ? focus.id : null;
+  let expandedId = focusLineId; // null | '__new__' | 路線ID
   let deletingId = null;
+  let scrolledToFocus = false;
 
   function render() {
     clear(container);
@@ -57,6 +60,10 @@ export function renderLinesView(container, ctx) {
       const line = network.lines.find((l) => l.id === expandedId);
       if (line) detailContainer.appendChild(renderLineForm(line));
     }
+    if (focusLineId && !scrolledToFocus && expandedId === focusLineId && detailContainer.firstChild) {
+      detailContainer.scrollIntoView({ block: 'center' });
+      scrolledToFocus = true;
+    }
   }
 
   function shapeLabel(line) {
@@ -73,7 +80,8 @@ export function renderLinesView(container, ctx) {
         return h('tr', {},
           h('td', {}, line.id),
           h('td', { colspan: '8' },
-            h('span', { class: 'ed2-issue-error' }, `削除できません。参照箇所: ${refs.map((r) => r.label).join(' / ')}`),
+            h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+            renderRefList(refs, requestNavigate),
             ' ',
             h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = null; render(); } }, '閉じる')
           )

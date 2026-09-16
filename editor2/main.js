@@ -9,6 +9,7 @@ import { renderLinesView } from './views/lines.js';
 import { renderServicesView } from './views/services.js';
 import { renderTransfersView } from './views/transfers.js';
 import { getSavedApiBase } from './api.js';
+import { resolveIssueFocus } from './navigate.js';
 
 const TABS = [
   { id: 'companies', label: '鉄道会社', render: renderCompaniesView },
@@ -36,16 +37,30 @@ function getApiBase() {
 function renderIssues() {
   renderIssuesPanel(issuesPanel, store.state.validation, {
     onNavigate(kind, issue) {
-      // 行の位置に飛ぶ仕組みは、各タブ（4-4以降）を作るときに追加する
-      console.log('[REWIS editor2] issue clicked', kind, issue);
+      const focus = resolveIssueFocus(kind, issue, store.state.docs);
+      if (focus) {
+        requestNavigate(focus);
+      } else {
+        // notices（運行情報）など、まだタブがない対象は飛び先がない
+        console.log('[REWIS editor2] issue clicked (飛び先なし)', kind, issue);
+      }
     }
   });
 }
 
-function renderActiveTab() {
+function renderActiveTab(focus) {
   const tab = TABS.find((t) => t.id === activeTabId);
   if (!tab) return;
-  tab.render(main, { store, refreshAll, getApiBase });
+  tab.render(main, { store, refreshAll, getApiBase, requestNavigate, focus });
+}
+
+// issues-panel のクリックや、各タブの「参照箇所」一覧のクリックから呼ばれる。
+// 対象のタブに切り替えて、そのタブに focus を渡す（該当行を開いてスクロールするのは各タブの役目）
+function requestNavigate(focus) {
+  if (!focus) return;
+  activeTabId = focus.tab;
+  renderNav();
+  renderActiveTab(focus);
 }
 
 // 各タブは、自分の中身を変えたときは自分でDOMを更新する（store.mutateDoc等の呼び出し後に

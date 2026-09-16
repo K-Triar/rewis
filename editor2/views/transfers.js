@@ -21,7 +21,7 @@ function endpointLabel(network, endpoint) {
 
 export function renderTransfersView(container, ctx) {
   clear(container);
-  const { store, refreshAll } = ctx;
+  const { store, refreshAll, focus } = ctx;
   const network = store.state.docs.network;
 
   if (!network) {
@@ -29,10 +29,12 @@ export function renderTransfersView(container, ctx) {
     return;
   }
 
+  const focusTransferId = focus && focus.tab === 'transfers' && focus.type === 'transfer' ? focus.id : null;
+  const focusGroupId = focus && focus.tab === 'transfers' && focus.type === 'stationGroup' ? focus.id : null;
   let searchText = '';
-  let expandedTransferId = null; // null | '__new__' | 乗換ID
+  let expandedTransferId = focusTransferId; // null | '__new__' | 乗換ID
   let deletingTransferId = null;
-  let expandedGroupId = null; // null | '__new__' | グループID
+  let expandedGroupId = focusGroupId; // null | '__new__' | グループID
   let deletingGroupId = null;
 
   const transfersSection = h('div', {});
@@ -299,6 +301,9 @@ export function renderTransfersView(container, ctx) {
 
     renderTransferList();
     renderTransferDetail();
+    if (focusTransferId && detailContainer.firstChild) {
+      detailContainer.scrollIntoView({ block: 'center' });
+    }
   }
 
   function renderDefaults() {
@@ -485,6 +490,9 @@ export function renderTransfersView(container, ctx) {
 
     renderGroupList();
     renderGroupDetail();
+    if (focusGroupId && detailContainer.firstChild) {
+      detailContainer.scrollIntoView({ block: 'center' });
+    }
   }
 
   renderTransfers();

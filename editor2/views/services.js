@@ -110,7 +110,7 @@ export function reverseService(network, service) {
 
 export function renderServicesView(container, ctx) {
   clear(container);
-  const { store, refreshAll } = ctx;
+  const { store, refreshAll, focus } = ctx;
   const network = store.state.docs.network;
 
   if (!network) {
@@ -118,10 +118,12 @@ export function renderServicesView(container, ctx) {
     return;
   }
 
+  const focusServiceId = focus && focus.tab === 'services' ? focus.id : null;
   let filterLineId = '';
   let filterCategoryId = '';
-  let expandedId = null; // null | '__new__' | 運行系統ID
+  let expandedId = focusServiceId; // null | '__new__' | 運行系統ID
   let deletingId = null;
+  let scrolledToFocus = false;
 
   function serviceWarningCount(index) {
     const warnings = store.state.validation.network.warnings || [];
@@ -192,6 +194,10 @@ export function renderServicesView(container, ctx) {
     } else if (expandedId) {
       const service = network.services.find((sv) => sv.id === expandedId);
       if (service) detailContainer.appendChild(renderServiceForm(service));
+    }
+    if (focusServiceId && !scrolledToFocus && expandedId === focusServiceId && detailContainer.firstChild) {
+      detailContainer.scrollIntoView({ block: 'center' });
+      scrolledToFocus = true;
     }
   }
 

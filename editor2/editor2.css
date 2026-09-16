@@ -52,6 +52,20 @@
 .ed2-issue-error { color: #c00; }
 .ed2-issue-warning { color: #a60; }
 
+.ed2-ref-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #06c;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.ed2-ref-link:hover {
+  color: #048;
+}
+
 .ed2-placeholder {
   padding: 20px;
   color: #666;
