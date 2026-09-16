@@ -39,9 +39,12 @@ export function renderLinesView(container, ctx) {
       h('button', { class: 'add-btn', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
     ));
 
+    const detailContainer = h('div', {});
+    container.appendChild(detailContainer);
+
     const tbody = h('tbody', {});
     network.lines.forEach((line) => tbody.appendChild(renderLineRow(line)));
-    container.appendChild(h('div', { class: 'table-container' },
+    container.appendChild(h('div', { class: 'ed2-list-scroll' },
       h('table', { class: 'data-table' },
         h('thead', {}, h('tr', {},
           h('th', {}, '路線ID'), h('th', {}, '路線名'), h('th', {}, '会社'),
@@ -52,8 +55,6 @@ export function renderLinesView(container, ctx) {
       )
     ));
 
-    const detailContainer = h('div', {});
-    container.appendChild(detailContainer);
     if (expandedId === '__new__') {
       detailContainer.appendChild(renderLineForm(null));
     } else if (expandedId) {
@@ -112,7 +113,7 @@ export function renderLinesView(container, ctx) {
     const company = network.companies.find((c) => c.id === line.companyId);
     const vehicleType = network.vehicleTypes.find((v) => v.id === line.vehicleTypeId);
 
-    return h('tr', {},
+    return h('tr', { class: expandedId === line.id ? 'ed2-row-active' : null },
       h('td', {}, line.id),
       h('td', {}, line.name),
       h('td', {}, company ? company.name : line.companyId),
@@ -357,7 +358,7 @@ export function renderLinesView(container, ctx) {
       ),
 
       h('h4', {}, '種別'),
-      h('div', { class: 'table-container' },
+      h('div', { class: 'table-container ed2-subtable' },
         h('table', { class: 'data-table' },
           h('thead', {}, h('tr', {}, h('th', {}, 'ID'), h('th', {}, '名前'), h('th', {}, '操作'))),
           categoriesTbody
@@ -366,7 +367,7 @@ export function renderLinesView(container, ctx) {
       h('div', { class: 'worker-config-actions' }, newCategoryId, newCategoryName, addCategoryBtn),
 
       h('h4', {}, '駅順'),
-      h('div', { class: 'table-container' },
+      h('div', { class: 'table-container ed2-subtable' },
         h('table', { class: 'data-table' },
           h('thead', {}, h('tr', {}, h('th', {}, '#'), h('th', {}, '駅'), h('th', {}, '操作'))),
           stationsTbody

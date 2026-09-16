@@ -28,7 +28,7 @@ export function renderCompaniesView(container, ctx) {
     network.companies.forEach((company) => tbody.appendChild(renderRow(company)));
     if (mode === '__new__') tbody.appendChild(renderNewRow());
 
-    container.appendChild(h('div', { class: 'table-container' },
+    container.appendChild(h('div', { class: 'ed2-list-scroll' },
       h('table', { class: 'data-table' },
         h('thead', {}, h('tr', {},
           h('th', { style: 'width:160px' }, '会社ID'),

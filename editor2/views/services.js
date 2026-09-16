@@ -171,13 +171,16 @@ export function renderServicesView(container, ctx) {
       h('label', {}, '種別で絞込: ', categoryFilterSelect)
     ));
 
+    const detailContainer = h('div', {});
+    container.appendChild(detailContainer);
+
     const tbody = h('tbody', {});
     network.services.forEach((service) => {
       if (!matchesFilter(service)) return;
       tbody.appendChild(renderServiceRow(service));
     });
 
-    container.appendChild(h('div', { class: 'table-container' },
+    container.appendChild(h('div', { class: 'ed2-list-scroll' },
       h('table', { class: 'data-table' },
         h('thead', {}, h('tr', {},
           h('th', {}, '行先'), h('th', {}, '区間'), h('th', {}, '停車数'),
@@ -187,8 +190,6 @@ export function renderServicesView(container, ctx) {
       )
     ));
 
-    const detailContainer = h('div', {});
-    container.appendChild(detailContainer);
     if (expandedId === '__new__') {
       detailContainer.appendChild(renderServiceForm(null));
     } else if (expandedId) {
@@ -223,7 +224,7 @@ export function renderServicesView(container, ctx) {
       );
     }
 
-    return h('tr', {},
+    return h('tr', { class: expandedId === service.id ? 'ed2-row-active' : null },
       h('td', {}, service.circular ? '（環状）' : (service.headsign || '')),
       h('td', {}, summarizeSections(network, service.sections || [])),
       h('td', {}, String((service.stops || []).length)),
@@ -279,7 +280,7 @@ export function renderServicesView(container, ctx) {
       : (service.circular && service.sections[0] ? { lineId: service.sections[0].lineId, categoryId: service.sections[0].categoryId } : defaultLineCategory(network));
 
     const stopsTbody = h('tbody', {});
-    const previewContainer = h('div', { class: 'table-container' });
+    const previewContainer = h('div', { class: 'table-container ed2-subtable' });
 
     function isCircular() {
       return circularInput.checked;
@@ -534,7 +535,7 @@ export function renderServicesView(container, ctx) {
       circularCategoryContainer,
 
       h('h4', {}, '停車駅'),
-      h('div', { class: 'table-container' },
+      h('div', { class: 'table-container ed2-subtable' },
         h('table', { class: 'data-table' },
           h('thead', {}, h('tr', {},
             h('th', {}, '#'), h('th', {}, '駅'), h('th', {}, 'のりば'), h('th', {}, '乗車可'), h('th', {}, '降車可'),

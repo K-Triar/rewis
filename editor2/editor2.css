@@ -1,7 +1,73 @@
 @import url('../editor.css');
 
+/* ページ全体はスクロールさせず、各タブの一覧表だけを内部スクロールにする。
+   （駅・運行系統など行数が多いタブで、編集フォームが表の下に来て
+   ページスクロールと表スクロールが二重になっていた問題への対応） */
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.container {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+header,
+.main-nav {
+  flex-shrink: 0;
+}
+
+#ed2-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* 編集フォームが極端に長くなった場合の保険。通常は下の一覧表の内部スクロールだけで収まる */
+  overflow-y: auto;
+}
+
+/* 一覧表：編集メニュー（詳細/追加フォーム）はこの表より前に配置し、
+   表はここで残り高さいっぱいに広がって内部スクロールする */
+.ed2-list-scroll {
+  flex: 1 1 auto;
+  min-height: 160px;
+  max-height: none;
+  overflow-y: auto;
+}
+
+/* 編集フォーム内の長くなりがちな表（のりば・種別・駅順・停車駅など） */
+.ed2-subtable {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* 乗換タブのように、1つのタブの中に複数の一覧＋詳細のペアがある場合、
+   残り高さを均等に分け合う */
+.ed2-flex-pane {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 編集中・削除確認中の行を見失わないようにハイライトする */
+.ed2-row-active {
+  background: #eef4ff;
+}
+
 .ed2-issues-panel {
   margin: 10px 20px 0;
+  flex-shrink: 0;
 }
 
 .ed2-issues-summary {

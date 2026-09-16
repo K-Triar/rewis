@@ -37,9 +37,9 @@ export function renderTransfersView(container, ctx) {
   let expandedGroupId = focusGroupId; // null | '__new__' | グループID
   let deletingGroupId = null;
 
-  const transfersSection = h('div', {});
+  const transfersSection = h('div', { class: 'ed2-flex-pane' });
   const defaultsSection = h('div', {});
-  const groupsSection = h('div', {});
+  const groupsSection = h('div', { class: 'ed2-flex-pane' });
   container.appendChild(transfersSection);
   container.appendChild(defaultsSection);
   container.appendChild(groupsSection);
@@ -72,10 +72,10 @@ export function renderTransfersView(container, ctx) {
     });
     transfersSection.appendChild(h('div', { class: 'search-box' }, searchInput));
 
-    const listContainer = h('div', {});
-    transfersSection.appendChild(listContainer);
     const detailContainer = h('div', {});
     transfersSection.appendChild(detailContainer);
+    const listContainer = h('div', { class: 'ed2-list-scroll' });
+    transfersSection.appendChild(listContainer);
 
     function renderTransferList() {
       clear(listContainer);
@@ -83,14 +83,12 @@ export function renderTransfersView(container, ctx) {
       network.transfers.filter(matchesSearch).forEach((transfer) => {
         tbody.appendChild(renderTransferRow(transfer));
       });
-      listContainer.appendChild(h('div', { class: 'table-container' },
-        h('table', { class: 'data-table' },
-          h('thead', {}, h('tr', {},
-            h('th', {}, 'から'), h('th', {}, 'へ'), h('th', { style: 'width:80px' }, '秒数'),
-            h('th', { style: 'width:60px' }, '双方向'), h('th', {}, 'メモ'), h('th', { style: 'width:180px' }, '操作')
-          )),
-          tbody
-        )
+      listContainer.appendChild(h('table', { class: 'data-table' },
+        h('thead', {}, h('tr', {},
+          h('th', {}, 'から'), h('th', {}, 'へ'), h('th', { style: 'width:80px' }, '秒数'),
+          h('th', { style: 'width:60px' }, '双方向'), h('th', {}, 'メモ'), h('th', { style: 'width:180px' }, '操作')
+        )),
+        tbody
       ));
     }
 
@@ -117,7 +115,7 @@ export function renderTransfersView(container, ctx) {
         );
       }
 
-      return h('tr', {},
+      return h('tr', { class: expandedTransferId === transfer.id ? 'ed2-row-active' : null },
         h('td', {}, endpointLabel(network, transfer.from)),
         h('td', {}, endpointLabel(network, transfer.to)),
         h('td', {}, String(transfer.seconds)),
@@ -348,20 +346,18 @@ export function renderTransfersView(container, ctx) {
       }, '+ 追加')
     ));
 
-    const listContainer = h('div', {});
-    groupsSection.appendChild(listContainer);
     const detailContainer = h('div', {});
     groupsSection.appendChild(detailContainer);
+    const listContainer = h('div', { class: 'ed2-list-scroll' });
+    groupsSection.appendChild(listContainer);
 
     function renderGroupList() {
       clear(listContainer);
       const tbody = h('tbody', {});
       (network.stationGroups || []).forEach((group) => tbody.appendChild(renderGroupRow(group)));
-      listContainer.appendChild(h('div', { class: 'table-container' },
-        h('table', { class: 'data-table' },
-          h('thead', {}, h('tr', {}, h('th', {}, 'グループ名'), h('th', {}, '駅'), h('th', { style: 'width:180px' }, '操作'))),
-          tbody
-        )
+      listContainer.appendChild(h('table', { class: 'data-table' },
+        h('thead', {}, h('tr', {}, h('th', {}, 'グループ名'), h('th', {}, '駅'), h('th', { style: 'width:180px' }, '操作'))),
+        tbody
       ));
     }
 
@@ -388,7 +384,7 @@ export function renderTransfersView(container, ctx) {
         );
       }
 
-      return h('tr', {},
+      return h('tr', { class: expandedGroupId === group.id ? 'ed2-row-active' : null },
         h('td', {}, group.name),
         h('td', {}, group.stationIds.map((id) => stationLabel(network, id)).join('、')),
         h('td', {},

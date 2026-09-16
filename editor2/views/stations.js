@@ -41,11 +41,11 @@ export function renderStationsView(container, ctx) {
     });
     container.appendChild(h('div', { class: 'search-box' }, searchInput));
 
-    const listContainer = h('div', {});
-    container.appendChild(listContainer);
-
     const detailContainer = h('div', {});
     container.appendChild(detailContainer);
+
+    const listContainer = h('div', { class: 'ed2-list-scroll' });
+    container.appendChild(listContainer);
 
     function renderList() {
       clear(listContainer);
@@ -53,17 +53,15 @@ export function renderStationsView(container, ctx) {
       network.stations.filter(matchesSearch).forEach((station) => {
         tbody.appendChild(renderStationRow(station));
       });
-      listContainer.appendChild(h('div', { class: 'table-container' },
-        h('table', { class: 'data-table' },
-          h('thead', {}, h('tr', {},
-            h('th', { style: 'width:120px' }, '駅ID'),
-            h('th', {}, '駅名'),
-            h('th', {}, 'かな'),
-            h('th', { style: 'width:80px' }, 'のりば数'),
-            h('th', { style: 'width:180px' }, '操作')
-          )),
-          tbody
-        )
+      listContainer.appendChild(h('table', { class: 'data-table' },
+        h('thead', {}, h('tr', {},
+          h('th', { style: 'width:120px' }, '駅ID'),
+          h('th', {}, '駅名'),
+          h('th', {}, 'かな'),
+          h('th', { style: 'width:80px' }, 'のりば数'),
+          h('th', { style: 'width:180px' }, '操作')
+        )),
+        tbody
       ));
     }
 
@@ -104,7 +102,7 @@ export function renderStationsView(container, ctx) {
         );
       }
 
-      return h('tr', {},
+      return h('tr', { class: expandedId === station.id ? 'ed2-row-active' : null },
         h('td', {}, station.id),
         h('td', {}, station.name),
         h('td', {}, station.kana || ''),
@@ -296,7 +294,7 @@ export function renderStationsView(container, ctx) {
           h('label', {}, 'かな'), kanaInput
         ),
         h('h4', {}, 'のりば'),
-        h('div', { class: 'table-container' },
+        h('div', { class: 'table-container ed2-subtable' },
           h('table', { class: 'data-table' },
             h('thead', {}, h('tr', {}, h('th', {}, 'のりばID'), h('th', {}, '表示名'), h('th', {}, '操作'))),
             platformsTbody
