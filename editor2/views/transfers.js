@@ -1,0 +1,508 @@
+import { h, clear } from '../dom.js';
+import { alertDialog } from '../components/dialog.js';
+import { createStationPicker } from '../components/station-picker.js';
+import { newId } from '../../shared/ids.js';
+
+function stationLabel(network, stationId) {
+  const station = network.stations.find((s) => s.id === stationId);
+  return station ? `${station.name}（${stationId}）` : stationId;
+}
+
+function platformLabel(network, stationId, platformId) {
+  if (platformId == null) return '（指定なし）';
+  const station = network.stations.find((s) => s.id === stationId);
+  const platform = station ? (station.platforms || []).find((p) => p.id === platformId) : null;
+  return platform ? platform.label : platformId;
+}
+
+function endpointLabel(network, endpoint) {
+  return `${stationLabel(network, endpoint.stationId)} ${platformLabel(network, endpoint.stationId, endpoint.platformId)}`;
+}
+
+export function renderTransfersView(container, ctx) {
+  clear(container);
+  const { store, refreshAll, focus } = ctx;
+  const network = store.state.docs.network;
+
+  if (!network) {
+    container.appendChild(emptyNotice());
+    return;
+  }
+
+  const focusTransferId = focus && focus.tab === 'transfers' && focus.type === 'transfer' ? focus.id : null;
+  const focusGroupId = focus && focus.tab === 'transfers' && focus.type === 'stationGroup' ? focus.id : null;
+  let searchText = '';
+  let expandedTransferId = focusTransferId; // null | '__new__' | 乗換ID
+  let deletingTransferId = null;
+  let expandedGroupId = focusGroupId; // null | '__new__' | グループID
+  let deletingGroupId = null;
+
+  const transfersSection = h('div', {});
+  const defaultsSection = h('div', {});
+  const groupsSection = h('div', {});
+  container.appendChild(transfersSection);
+  container.appendChild(defaultsSection);
+  container.appendChild(groupsSection);
+
+  function matchesSearch(transfer) {
+    if (!searchText.trim()) return true;
+    const needle = searchText.trim();
+    const fromStation = network.stations.find((s) => s.id === transfer.from.stationId);
+    const toStation = network.stations.find((s) => s.id === transfer.to.stationId);
+    return [fromStation, toStation].some(
+      (s) => s && (s.name.includes(needle) || (s.kana || '').includes(needle))
+    );
+  }
+
+  function renderTransfers() {
+    clear(transfersSection);
+
+    transfersSection.appendChild(h('div', { class: 'section-header' },
+      h('h2', {}, '乗換'),
+      h('button', {
+        class: 'add-btn', type: 'button',
+        onClick: () => { expandedTransferId = '__new__'; renderTransfers(); }
+      }, '+ 追加')
+    ));
+
+    const searchInput = h('input', { type: 'text', placeholder: '駅名・かなで絞り込み', value: searchText });
+    searchInput.addEventListener('input', () => {
+      searchText = searchInput.value;
+      renderTransferList();
+    });
+    transfersSection.appendChild(h('div', { class: 'search-box' }, searchInput));
+
+    const listContainer = h('div', {});
+    transfersSection.appendChild(listContainer);
+    const detailContainer = h('div', {});
+    transfersSection.appendChild(detailContainer);
+
+    function renderTransferList() {
+      clear(listContainer);
+      const tbody = h('tbody', {});
+      network.transfers.filter(matchesSearch).forEach((transfer) => {
+        tbody.appendChild(renderTransferRow(transfer));
+      });
+      listContainer.appendChild(h('div', { class: 'table-container' },
+        h('table', { class: 'data-table' },
+          h('thead', {}, h('tr', {},
+            h('th', {}, 'から'), h('th', {}, 'へ'), h('th', { style: 'width:80px' }, '秒数'),
+            h('th', { style: 'width:60px' }, '双方向'), h('th', {}, 'メモ'), h('th', { style: 'width:180px' }, '操作')
+          )),
+          tbody
+        )
+      ));
+    }
+
+    function renderTransferRow(transfer) {
+      if (deletingTransferId === transfer.id) {
+        return h('tr', {},
+          h('td', { colspan: '5' }, `乗換「${endpointLabel(network, transfer.from)} → ${endpointLabel(network, transfer.to)}」を削除しますか？`),
+          h('td', {},
+            h('button', {
+              class: 'export-btn', type: 'button',
+              onClick: () => {
+                store.mutateDoc('network', (doc) => {
+                  doc.transfers = doc.transfers.filter((t) => t.id !== transfer.id);
+                });
+                deletingTransferId = null;
+                if (expandedTransferId === transfer.id) expandedTransferId = null;
+                renderTransferList();
+                renderTransferDetail();
+                refreshAll();
+              }
+            }, '削除する'),
+            h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingTransferId = null; renderTransferList(); } }, 'キャンセル')
+          )
+        );
+      }
+
+      return h('tr', {},
+        h('td', {}, endpointLabel(network, transfer.from)),
+        h('td', {}, endpointLabel(network, transfer.to)),
+        h('td', {}, String(transfer.seconds)),
+        h('td', {}, transfer.bidirectional ? '○' : ''),
+        h('td', {}, transfer.note || ''),
+        h('td', {},
+          h('button', {
+            class: 'preview-btn', type: 'button',
+            onClick: () => { expandedTransferId = expandedTransferId === transfer.id ? null : transfer.id; renderTransferList(); renderTransferDetail(); }
+          }, expandedTransferId === transfer.id ? '閉じる' : '詳細'),
+          h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingTransferId = transfer.id; renderTransferList(); } }, '削除')
+        )
+      );
+    }
+
+    function renderTransferDetail() {
+      clear(detailContainer);
+      if (expandedTransferId === '__new__') {
+        detailContainer.appendChild(renderTransferForm(null));
+      } else if (expandedTransferId) {
+        const transfer = network.transfers.find((t) => t.id === expandedTransferId);
+        if (transfer) detailContainer.appendChild(renderTransferForm(transfer));
+      }
+    }
+
+    function renderTransferForm(transfer) {
+      const isNew = !transfer;
+      let mode = isNew ? 'same' : (transfer.from.stationId === transfer.to.stationId ? 'same' : 'walk');
+      let fromStationId = isNew ? (network.stations[0] ? network.stations[0].id : null) : transfer.from.stationId;
+      let fromPlatformId = isNew ? null : transfer.from.platformId;
+      let toStationId = isNew ? fromStationId : transfer.to.stationId;
+      let toPlatformId = isNew ? null : transfer.to.platformId;
+
+      const secondsInput = h('input', { type: 'number', min: '0', step: '1', value: String(isNew ? 60 : transfer.seconds) });
+      const bidirectionalInput = h('input', { type: 'checkbox' });
+      bidirectionalInput.checked = isNew ? false : !!transfer.bidirectional;
+      const noteInput = h('input', { type: 'text', value: isNew ? '' : (transfer.note || '') });
+
+      const fromLabel = h('span', {}, stationLabel(network, fromStationId));
+      const toLabel = h('span', {}, mode === 'same' ? '（同じ駅）' : stationLabel(network, toStationId));
+      const fromPlatformSelectContainer = h('div', {});
+      const toPlatformSelectContainer = h('div', {});
+      const toPickerContainer = h('div', {});
+
+      function renderFromPlatformSelect() {
+        clear(fromPlatformSelectContainer);
+        const station = network.stations.find((s) => s.id === fromStationId);
+        const platforms = station ? station.platforms : [];
+        const options = mode === 'same'
+          ? platforms.map((p) => h('option', { value: p.id }, p.label))
+          : [h('option', { value: '' }, '（指定なし）'), ...platforms.map((p) => h('option', { value: p.id }, p.label))];
+        const select = h('select', {}, ...options);
+        select.value = fromPlatformId || (mode === 'same' && platforms[0] ? platforms[0].id : '');
+        select.addEventListener('change', () => { fromPlatformId = select.value || null; });
+        if (mode === 'same' && !fromPlatformId && platforms[0]) fromPlatformId = platforms[0].id;
+        fromPlatformSelectContainer.appendChild(select);
+      }
+
+      function renderToPlatformSelect() {
+        clear(toPlatformSelectContainer);
+        const station = network.stations.find((s) => s.id === toStationId);
+        const platforms = station ? station.platforms : [];
+        const options = mode === 'same'
+          ? platforms.map((p) => h('option', { value: p.id }, p.label))
+          : [h('option', { value: '' }, '（指定なし）'), ...platforms.map((p) => h('option', { value: p.id }, p.label))];
+        const select = h('select', {}, ...options);
+        select.value = toPlatformId || (mode === 'same' && platforms[0] ? platforms[0].id : '');
+        select.addEventListener('change', () => { toPlatformId = select.value || null; });
+        if (mode === 'same' && !toPlatformId && platforms[0]) toPlatformId = platforms[0].id;
+        toPlatformSelectContainer.appendChild(select);
+      }
+
+      function renderToPicker() {
+        clear(toPickerContainer);
+        if (mode !== 'walk') return;
+        toPickerContainer.appendChild(createStationPicker(network.stations, (stationId) => {
+          toStationId = stationId;
+          toPlatformId = null;
+          toLabel.textContent = stationLabel(network, toStationId);
+          renderToPlatformSelect();
+        }));
+      }
+
+      const fromPickerContainer = h('div', {}, createStationPicker(network.stations, (stationId) => {
+        fromStationId = stationId;
+        fromPlatformId = null;
+        fromLabel.textContent = stationLabel(network, fromStationId);
+        renderFromPlatformSelect();
+        if (mode === 'same') {
+          toStationId = fromStationId;
+          toPlatformId = null;
+          toLabel.textContent = '（同じ駅）';
+          renderToPlatformSelect();
+        }
+      }));
+
+      const modeRadios = {};
+      ['same', 'walk'].forEach((value) => {
+        const radio = h('input', { type: 'radio', name: 'ed2-transfer-mode', value });
+        radio.checked = mode === value;
+        radio.addEventListener('change', () => {
+          mode = value;
+          if (mode === 'same') {
+            toStationId = fromStationId;
+            toPlatformId = null;
+            toLabel.textContent = '（同じ駅）';
+          } else {
+            toLabel.textContent = stationLabel(network, toStationId);
+          }
+          renderFromPlatformSelect();
+          renderToPlatformSelect();
+          renderToPicker();
+        });
+        modeRadios[value] = radio;
+      });
+
+      renderFromPlatformSelect();
+      renderToPlatformSelect();
+      renderToPicker();
+
+      async function save() {
+        const seconds = Number(secondsInput.value);
+        if (!Number.isInteger(seconds) || seconds < 0) {
+          await alertDialog('秒数は0以上の整数で入力してください。');
+          return;
+        }
+        if (mode === 'same' && (fromPlatformId == null || toPlatformId == null)) {
+          await alertDialog('同じ駅の中の乗換では、両方ののりばを指定してください。');
+          return;
+        }
+        if (mode === 'same' && fromPlatformId === toPlatformId) {
+          await alertDialog('同じのりば同士の乗換は登録できません。');
+          return;
+        }
+        const record = {
+          id: isNew ? newId('tr') : transfer.id,
+          from: { stationId: fromStationId, platformId: fromPlatformId },
+          to: { stationId: toStationId, platformId: toPlatformId },
+          seconds,
+          bidirectional: bidirectionalInput.checked,
+          note: noteInput.value.trim()
+        };
+
+        if (isNew) {
+          store.mutateDoc('network', (doc) => doc.transfers.push(record));
+          expandedTransferId = null;
+        } else {
+          store.mutateDoc('network', (doc) => {
+            const idx = doc.transfers.findIndex((t) => t.id === transfer.id);
+            if (idx !== -1) doc.transfers[idx] = record;
+          });
+        }
+        renderTransferList();
+        renderTransferDetail();
+        refreshAll();
+      }
+
+      return h('div', { class: 'export-card' },
+        h('h3', {}, isNew ? '乗換を追加' : `乗換を編集: ${transfer.id}`),
+        h('div', { class: 'worker-config-actions' },
+          h('label', {}, modeRadios.same, ' 同じ駅の中'),
+          h('label', {}, modeRadios.walk, ' 徒歩連絡（別の駅へ）')
+        ),
+        h('h4', {}, '乗換元'),
+        h('div', { class: 'worker-config-actions' }, fromPickerContainer, '現在: ', fromLabel),
+        h('div', { class: 'worker-config-actions' }, 'のりば: ', fromPlatformSelectContainer),
+        h('h4', {}, '乗換先'),
+        h('div', { class: 'worker-config-actions' }, toPickerContainer, '現在: ', toLabel),
+        h('div', { class: 'worker-config-actions' }, 'のりば: ', toPlatformSelectContainer),
+        h('div', { class: 'worker-config-grid' },
+          h('label', {}, '秒数'), secondsInput,
+          h('label', {}, '双方向'), bidirectionalInput,
+          h('label', {}, 'メモ'), noteInput
+        ),
+        h('div', { class: 'worker-config-actions' },
+          h('button', { class: 'export-btn', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
+          h('button', { class: 'preview-btn', type: 'button', onClick: () => { expandedTransferId = null; renderTransferDetail(); } }, 'キャンセル')
+        )
+      );
+    }
+
+    renderTransferList();
+    renderTransferDetail();
+    if (focusTransferId && detailContainer.firstChild) {
+      detailContainer.scrollIntoView({ block: 'center' });
+    }
+  }
+
+  function renderDefaults() {
+    clear(defaultsSection);
+    const defaults = network.transferDefaults || { samePlatform: 5, unknown: 10 };
+
+    const samePlatformInput = h('input', { type: 'number', min: '0', step: '1', value: String(defaults.samePlatform) });
+    const unknownInput = h('input', { type: 'number', min: '0', step: '1', value: String(defaults.unknown) });
+
+    async function applyChange(key, input) {
+      const value = Number(input.value);
+      if (!Number.isInteger(value) || value < 0) {
+        await alertDialog('乗換秒数は0以上の整数で入力してください。');
+        input.value = String(network.transferDefaults[key]);
+        return;
+      }
+      store.mutateDoc('network', (doc) => { doc.transferDefaults[key] = value; });
+      refreshAll();
+    }
+
+    samePlatformInput.addEventListener('change', () => applyChange('samePlatform', samePlatformInput));
+    unknownInput.addEventListener('change', () => applyChange('unknown', unknownInput));
+
+    defaultsSection.appendChild(h('div', { class: 'export-card' },
+      h('h3', {}, '乗換の既定値'),
+      h('div', { class: 'worker-config-grid' },
+        h('label', {}, '同じのりばでの乗換秒数'), samePlatformInput,
+        h('label', {}, '不明な場合の乗換秒数'), unknownInput
+      )
+    ));
+  }
+
+  function renderGroups() {
+    clear(groupsSection);
+
+    groupsSection.appendChild(h('div', { class: 'section-header' },
+      h('h2', {}, '駅グループ'),
+      h('button', {
+        class: 'add-btn', type: 'button',
+        onClick: () => { expandedGroupId = '__new__'; renderGroups(); }
+      }, '+ 追加')
+    ));
+
+    const listContainer = h('div', {});
+    groupsSection.appendChild(listContainer);
+    const detailContainer = h('div', {});
+    groupsSection.appendChild(detailContainer);
+
+    function renderGroupList() {
+      clear(listContainer);
+      const tbody = h('tbody', {});
+      (network.stationGroups || []).forEach((group) => tbody.appendChild(renderGroupRow(group)));
+      listContainer.appendChild(h('div', { class: 'table-container' },
+        h('table', { class: 'data-table' },
+          h('thead', {}, h('tr', {}, h('th', {}, 'グループ名'), h('th', {}, '駅'), h('th', { style: 'width:180px' }, '操作'))),
+          tbody
+        )
+      ));
+    }
+
+    function renderGroupRow(group) {
+      if (deletingGroupId === group.id) {
+        return h('tr', {},
+          h('td', { colspan: '2' }, `駅グループ「${group.name}」を削除しますか？`),
+          h('td', {},
+            h('button', {
+              class: 'export-btn', type: 'button',
+              onClick: () => {
+                store.mutateDoc('network', (doc) => {
+                  doc.stationGroups = doc.stationGroups.filter((g) => g.id !== group.id);
+                });
+                deletingGroupId = null;
+                if (expandedGroupId === group.id) expandedGroupId = null;
+                renderGroupList();
+                renderGroupDetail();
+                refreshAll();
+              }
+            }, '削除する'),
+            h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingGroupId = null; renderGroupList(); } }, 'キャンセル')
+          )
+        );
+      }
+
+      return h('tr', {},
+        h('td', {}, group.name),
+        h('td', {}, group.stationIds.map((id) => stationLabel(network, id)).join('、')),
+        h('td', {},
+          h('button', {
+            class: 'preview-btn', type: 'button',
+            onClick: () => { expandedGroupId = expandedGroupId === group.id ? null : group.id; renderGroupList(); renderGroupDetail(); }
+          }, expandedGroupId === group.id ? '閉じる' : '詳細'),
+          h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingGroupId = group.id; renderGroupList(); } }, '削除')
+        )
+      );
+    }
+
+    function renderGroupDetail() {
+      clear(detailContainer);
+      if (expandedGroupId === '__new__') {
+        detailContainer.appendChild(renderGroupForm(null));
+      } else if (expandedGroupId) {
+        const group = (network.stationGroups || []).find((g) => g.id === expandedGroupId);
+        if (group) detailContainer.appendChild(renderGroupForm(group));
+      }
+    }
+
+    function renderGroupForm(group) {
+      const isNew = !group;
+      const nameInput = h('input', { type: 'text', value: isNew ? '' : group.name, placeholder: '例: 大阪・梅田' });
+      let stationIds = isNew ? [] : group.stationIds.slice();
+
+      const stationsTbody = h('tbody', {});
+      function renderStations() {
+        clear(stationsTbody);
+        stationIds.forEach((stationId, index) => {
+          const deleteBtn = h('button', {
+            class: 'preview-btn', type: 'button',
+            onClick: () => { stationIds = stationIds.filter((_, i) => i !== index); renderStations(); }
+          }, '削除');
+          stationsTbody.appendChild(h('tr', {}, h('td', {}, stationLabel(network, stationId)), h('td', {}, deleteBtn)));
+        });
+      }
+      renderStations();
+
+      const picker = createStationPicker(network.stations, (stationId) => {
+        if (stationIds.includes(stationId)) {
+          alertDialog('同じ駅が既にこのグループに含まれています。');
+          return;
+        }
+        stationIds.push(stationId);
+        renderStations();
+      });
+
+      async function save() {
+        const name = nameInput.value.trim();
+        if (!name) {
+          await alertDialog('グループ名を入力してください。');
+          return;
+        }
+        if (stationIds.length < 2) {
+          await alertDialog('駅を2つ以上選んでください。');
+          return;
+        }
+        for (const otherGroup of network.stationGroups || []) {
+          if (!isNew && otherGroup.id === group.id) continue;
+          if (otherGroup.stationIds.some((id) => stationIds.includes(id))) {
+            await alertDialog(`駅「${stationLabel(network, otherGroup.stationIds.find((id) => stationIds.includes(id)))}」は既に別のグループ「${otherGroup.name}」に入っています。`);
+            return;
+          }
+        }
+
+        const record = { id: isNew ? newId('grp') : group.id, name, stationIds: stationIds.slice() };
+        if (isNew) {
+          store.mutateDoc('network', (doc) => doc.stationGroups.push(record));
+          expandedGroupId = null;
+        } else {
+          store.mutateDoc('network', (doc) => {
+            const idx = doc.stationGroups.findIndex((g) => g.id === group.id);
+            if (idx !== -1) doc.stationGroups[idx] = record;
+          });
+        }
+        renderGroupList();
+        renderGroupDetail();
+        refreshAll();
+      }
+
+      return h('div', { class: 'export-card' },
+        h('h3', {}, isNew ? '駅グループを追加' : `駅グループを編集: ${group.id}`),
+        h('div', { class: 'worker-config-grid' }, h('label', {}, 'グループ名'), nameInput),
+        h('h4', {}, '駅'),
+        h('div', { class: 'table-container' },
+          h('table', { class: 'data-table' },
+            h('thead', {}, h('tr', {}, h('th', {}, '駅'), h('th', {}, '操作'))),
+            stationsTbody
+          )
+        ),
+        h('div', { class: 'worker-config-actions' }, picker),
+        h('div', { class: 'worker-config-actions' },
+          h('button', { class: 'export-btn', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
+          h('button', { class: 'preview-btn', type: 'button', onClick: () => { expandedGroupId = null; renderGroupDetail(); } }, 'キャンセル')
+        )
+      );
+    }
+
+    renderGroupList();
+    renderGroupDetail();
+    if (focusGroupId && detailContainer.firstChild) {
+      detailContainer.scrollIntoView({ block: 'center' });
+    }
+  }
+
+  renderTransfers();
+  renderDefaults();
+  renderGroups();
+}
+
+function emptyNotice() {
+  const p = document.createElement('p');
+  p.className = 'ed2-placeholder';
+  p.textContent = '先に「保存/読込」タブで路線網 (network) を読み込んでください。';
+  return p;
+}

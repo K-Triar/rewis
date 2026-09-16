@@ -1,0 +1,165 @@
+@import url('../editor.css');
+
+.ed2-issues-panel {
+  margin: 10px 20px 0;
+}
+
+.ed2-issues-summary {
+  display: flex;
+  gap: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.ed2-issues-ok { color: #080; }
+.ed2-issues-error-count { color: #c00; }
+.ed2-issues-warning-count { color: #a60; }
+
+.ed2-issues-group {
+  margin-bottom: 8px;
+}
+
+.ed2-issues-group h4 {
+  margin: 6px 0 2px;
+  font-size: 13px;
+}
+
+.ed2-issues-list {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+  max-height: 160px;
+  overflow: auto;
+  border: 1px solid #eee;
+}
+
+.ed2-issue-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #eee;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.ed2-issue-row:hover {
+  background: #f5f5f5;
+}
+
+.ed2-issue-error { color: #c00; }
+.ed2-issue-warning { color: #a60; }
+
+.ed2-ref-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #06c;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.ed2-ref-link:hover {
+  color: #048;
+}
+
+.ed2-placeholder {
+  padding: 20px;
+  color: #666;
+}
+
+.ed2-json-preview {
+  max-height: 400px;
+  overflow: auto;
+  background: #f7f7f7;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.ed2-dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.ed2-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.ed2-dialog-box {
+  position: relative;
+  max-width: 480px;
+  margin: 10vh auto 0;
+  background: #fff;
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  white-space: pre-wrap;
+}
+
+.ed2-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.ed2-dialog-btn {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ed2-dialog-btn-primary {
+  background: #2266cc;
+  color: #fff;
+  border-color: #2266cc;
+}
+
+.ed2-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.ed2-picker-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 220px;
+  max-height: 220px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ed2-picker-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.ed2-picker-item:hover {
+  background: #eef4ff;
+}
+
+.ed2-drag-row {
+  cursor: grab;
+}
+
+.ed2-drag-row.ed2-drag-over {
+  outline: 2px dashed #2266cc;
+}
