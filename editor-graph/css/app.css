@@ -1,0 +1,84 @@
+/* 図形式エディタのページの骨組み。02-editor-ui-spec.md 2章 */
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bgColor-default);
+  color: var(--fgColor-default);
+  font: var(--text-body-shorthand-medium);
+  overflow: hidden;
+}
+
+.g-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding-inline: var(--stack-padding-normal);
+  background: var(--rewis-blue);
+  color: #fff;
+}
+.g-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.g-header__logo { height: 28px; }
+.g-header__title {
+  font: var(--text-title-shorthand-small);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.g-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: #fff;
+}
+.g-header .g-btn--invisible {
+  color: #fff;
+}
+.g-header .g-btn--invisible:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); }
+.g-header .g-btn--invisible:active:not(:disabled) { background: rgba(255, 255, 255, 0.24); }
+
+.g-page-header {
+  flex: none;
+  background: var(--bgColor-muted);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  padding-inline: var(--stack-padding-normal);
+}
+
+.g-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.g-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--stack-padding-normal);
+}
+
+.g-view--centered {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: var(--stack-padding-spacious);
+}
+
+.g-start-card {
+  max-width: 480px;
+  width: 100%;
+}

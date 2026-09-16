@@ -1,0 +1,20 @@
+/* Size, space, control and layout tokens. Controls use --control-*; layout uses --stack-* and --space-*. */
+:root{
+--base-size-2:2px;--base-size-4:4px;--base-size-6:6px;--base-size-8:8px;--base-size-12:12px;--base-size-16:16px;--base-size-20:20px;--base-size-24:24px;--base-size-28:28px;--base-size-32:32px;--base-size-36:36px;--base-size-40:40px;--base-size-44:44px;--base-size-48:48px;--base-size-64:64px;--base-size-80:80px;--base-size-96:96px;--base-size-112:112px;--base-size-128:128px;
+--space-xxs:2px;--space-xs:4px;--space-sm:8px;--space-md:12px;--space-lg:16px;--space-xl:24px;
+--control-minTarget-fine:16px;--control-minTarget-coarse:44px;
+--control-xsmall-size:24px;--control-xsmall-paddingBlock:2px;--control-xsmall-paddingInline-condensed:4px;--control-xsmall-paddingInline-normal:8px;--control-xsmall-paddingInline-spacious:12px;--control-xsmall-gap:4px;
+--control-small-size:28px;--control-small-paddingBlock:4px;--control-small-paddingInline-condensed:8px;--control-small-paddingInline-normal:12px;--control-small-paddingInline-spacious:16px;--control-small-gap:4px;
+--control-medium-size:32px;--control-medium-paddingBlock:6px;--control-medium-paddingInline-condensed:8px;--control-medium-paddingInline-normal:12px;--control-medium-paddingInline-spacious:16px;--control-medium-gap:8px;
+--control-large-size:40px;--control-large-paddingBlock:10px;--control-large-paddingInline-condensed:8px;--control-large-paddingInline-normal:12px;--control-large-paddingInline-spacious:16px;--control-large-gap:8px;
+--control-xlarge-size:48px;--control-xlarge-paddingBlock:14px;--control-xlarge-paddingInline-condensed:8px;--control-xlarge-paddingInline-normal:12px;--control-xlarge-paddingInline-spacious:16px;--control-xlarge-gap:8px;
+--controlStack-small-gap-auto:8px;--controlStack-small-gap-condensed:8px;--controlStack-small-gap-spacious:16px;
+--controlStack-medium-gap-auto:8px;--controlStack-medium-gap-condensed:8px;--controlStack-medium-gap-spacious:12px;
+--controlStack-large-gap-auto:8px;--controlStack-large-gap-condensed:8px;--controlStack-large-gap-spacious:12px;
+--stack-padding-condensed:8px;--stack-padding-normal:16px;--stack-padding-spacious:24px;
+--stack-gap-condensed:8px;--stack-gap-normal:16px;--stack-gap-spacious:24px;
+--spinner-strokeWidth-default:2px;--spinner-size-small:16px;--spinner-size-medium:32px;--spinner-size-large:64px;
+--overlay-width-xsmall:192px;--overlay-width-small:320px;--overlay-width-medium:480px;--overlay-width-large:640px;--overlay-width-xlarge:960px;
+--overlay-height-small:256px;--overlay-height-medium:320px;--overlay-height-large:432px;--overlay-height-xlarge:600px;
+--overlay-padding-condensed:8px;--overlay-padding-normal:16px;--overlay-paddingBlock-condensed:4px;--overlay-paddingBlock-normal:12px;--overlay-offset:4px;
+}

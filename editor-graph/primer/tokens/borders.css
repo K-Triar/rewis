@@ -1,0 +1,28 @@
+/* Radii, border widths and the elevation (shadow) system.
+   Shadows are theme-aware: dark mode trades soft grey diffusion for near-black depth plus a 1px ring. */
+:root{
+--borderWidth-thin:1px;--borderWidth-thick:2px;--borderWidth-thicker:4px;--borderWidth-default:var(--borderWidth-thin);
+--borderRadius-small:3px;--borderRadius-medium:6px;--borderRadius-large:12px;--borderRadius-full:9999px;--borderRadius-default:var(--borderRadius-medium);
+--overlay-borderRadius:var(--borderRadius-medium);
+--boxShadow-thin:inset 0 0 0 1px; /* @kind shadow */
+--boxShadow-thick:inset 0 0 0 2px; /* @kind shadow */
+--boxShadow-thicker:inset 0 0 0 4px; /* @kind shadow */
+--shadow-inset:inset 0 1px 0 0 rgba(31,35,40,0.04);
+--shadow-resting-xsmall:0 1px 1px 0 rgba(31,35,40,0.05);
+--shadow-resting-small:0 1px 1px 0 rgba(31,35,40,0.04),0 1px 2px 0 rgba(31,35,40,0.03);
+--shadow-resting-medium:0 1px 1px 0 rgba(37,41,46,0.1),0 3px 6px 0 rgba(37,41,46,0.12);
+--shadow-floating-small:0 0 0 1px rgba(209,217,224,0.25),0 6px 12px -3px rgba(37,41,46,0.04),0 6px 18px 0 rgba(37,41,46,0.12);
+--shadow-floating-medium:0 0 0 1px rgba(209,217,224,0),0 8px 16px -4px rgba(37,41,46,0.08),0 4px 32px -4px rgba(37,41,46,0.08),0 24px 48px -12px rgba(37,41,46,0.08),0 48px 96px -24px rgba(37,41,46,0.08);
+--shadow-floating-large:0 0 0 1px rgba(209,217,224,0),0 40px 80px 0 rgba(37,41,46,0.24);
+--shadow-floating-xlarge:0 0 0 1px rgba(209,217,224,0),0 56px 112px 0 rgba(37,41,46,0.32);
+}
+[data-theme="dark"]{
+--shadow-inset:inset 0 1px 0 0 rgba(1,4,9,0.24);
+--shadow-resting-xsmall:0 1px 1px 0 rgba(1,4,9,0.8);
+--shadow-resting-small:0 1px 1px 0 rgba(1,4,9,0.6),0 1px 3px 0 rgba(1,4,9,0.6);
+--shadow-resting-medium:0 1px 1px 0 rgba(1,4,9,0.4),0 3px 6px 0 rgba(1,4,9,0.8);
+--shadow-floating-small:0 0 0 1px #3d444d,0 6px 12px -3px rgba(1,4,9,0.4),0 6px 18px 0 rgba(1,4,9,0.4);
+--shadow-floating-medium:0 0 0 1px #3d444d,0 8px 16px -4px rgba(1,4,9,0.4),0 4px 32px -4px rgba(1,4,9,0.4),0 24px 48px -12px rgba(1,4,9,0.4),0 48px 96px -24px rgba(1,4,9,0.4);
+--shadow-floating-large:0 0 0 1px #3d444d,0 24px 48px 0 rgba(1,4,9,1);
+--shadow-floating-xlarge:0 0 0 1px #3d444d,0 32px 64px 0 rgba(1,4,9,1);
+}

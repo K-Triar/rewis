@@ -1,0 +1,36 @@
+/* Motion. Keep UI interactions at or under 300ms; always honour prefers-reduced-motion. */
+:root{
+--base-duration-0:0s; /* @kind other */
+--base-duration-100:100ms; /* @kind other */
+--base-duration-200:200ms; /* @kind other */
+--base-duration-300:300ms; /* @kind other */
+--base-duration-500:500ms; /* @kind other */
+--base-easing-linear:linear; /* @kind other */
+--base-easing-ease:ease; /* @kind other */
+--base-easing-easeIn:ease-in; /* @kind other */
+--base-easing-easeOut:ease-out; /* @kind other */
+--base-easing-easeInOut:ease-in-out; /* @kind other */
+--motion-duration-micro:100ms; /* @kind other */
+--motion-duration-short:200ms; /* @kind other */
+--motion-duration-medium:300ms; /* @kind other */
+--motion-duration-long:500ms; /* @kind other */
+--motion-easing-hover:ease; /* @kind other */
+--motion-easing-enter:ease-out; /* @kind other */
+--motion-easing-exit:ease-in; /* @kind other */
+--motion-easing-move:ease-in-out; /* @kind other */
+--motion-easing-linear:linear; /* @kind other */
+--motion-transition-hover:100ms ease; /* @kind other */
+--motion-transition-stateChange:200ms ease-in-out; /* @kind other */
+--motion-transition-enter:300ms ease-out; /* @kind other */
+--motion-transition-exit:200ms ease-in; /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){:root{
+--motion-duration-micro:0s; /* @kind other */
+--motion-duration-short:0s; /* @kind other */
+--motion-duration-medium:0s; /* @kind other */
+--motion-duration-long:0s; /* @kind other */
+--motion-transition-hover:0s linear; /* @kind other */
+--motion-transition-stateChange:0s linear; /* @kind other */
+--motion-transition-enter:0s linear; /* @kind other */
+--motion-transition-exit:0s linear; /* @kind other */
+}}

@@ -1,0 +1,62 @@
+/* Semantic (functional) color tokens. These are the ONLY color tokens product UI should use.
+   Pairings: --bgColor-*-emphasis MUST pair with --fgColor-onEmphasis;
+   --bgColor-*-muted pairs with the matching --fgColor-{semantic}; never --fgColor-muted on --bgColor-muted. */
+:root{
+--fgColor-default:var(--base-color-neutral-13);--fgColor-muted:var(--base-color-neutral-9);--fgColor-neutral:var(--base-color-neutral-9);--fgColor-onEmphasis:var(--base-color-neutral-0);--fgColor-onInverse:var(--base-color-neutral-0);--fgColor-disabled:var(--base-color-neutral-8);--fgColor-white:var(--base-color-neutral-0);--fgColor-black:var(--base-color-neutral-13);
+--fgColor-accent:var(--base-color-blue-5);--fgColor-link:var(--fgColor-accent);--fgColor-success:var(--base-color-green-5);--fgColor-open:var(--fgColor-success);--fgColor-attention:var(--base-color-yellow-5);--fgColor-severe:var(--base-color-orange-5);--fgColor-danger:#d1242f;--fgColor-closed:var(--fgColor-danger);--fgColor-draft:var(--fgColor-neutral);--fgColor-done:var(--base-color-purple-5);--fgColor-upsell:var(--fgColor-done);--fgColor-sponsors:var(--base-color-pink-5);
+--bgColor-default:var(--base-color-neutral-0);--bgColor-muted:var(--base-color-neutral-1);--bgColor-inset:var(--bgColor-muted);--bgColor-emphasis:var(--base-color-neutral-12);--bgColor-inverse:var(--base-color-neutral-12);--bgColor-disabled:var(--base-color-neutral-2);--bgColor-transparent:var(--base-color-transparent);--bgColor-white:var(--base-color-neutral-0);--bgColor-black:var(--base-color-neutral-13);
+--bgColor-neutral-muted:rgba(129,139,152,0.12);--bgColor-neutral-emphasis:var(--base-color-neutral-9);
+--bgColor-accent-muted:var(--base-color-blue-0);--bgColor-accent-emphasis:var(--base-color-blue-5);
+--bgColor-success-muted:var(--base-color-green-0);--bgColor-success-emphasis:#1f883d;
+--bgColor-open-muted:var(--bgColor-success-muted);--bgColor-open-emphasis:var(--bgColor-success-emphasis);
+--bgColor-attention-muted:var(--base-color-yellow-0);--bgColor-attention-emphasis:var(--base-color-yellow-5);
+--bgColor-severe-muted:var(--base-color-orange-0);--bgColor-severe-emphasis:var(--base-color-orange-5);
+--bgColor-danger-muted:var(--base-color-red-0);--bgColor-danger-emphasis:var(--base-color-red-5);
+--bgColor-closed-muted:var(--bgColor-danger-muted);--bgColor-closed-emphasis:var(--bgColor-danger-emphasis);
+--bgColor-draft-muted:var(--bgColor-neutral-muted);--bgColor-draft-emphasis:var(--bgColor-neutral-emphasis);
+--bgColor-done-muted:var(--base-color-purple-0);--bgColor-done-emphasis:var(--base-color-purple-5);
+--bgColor-upsell-muted:var(--bgColor-done-muted);--bgColor-upsell-emphasis:var(--bgColor-done-emphasis);
+--bgColor-sponsors-muted:var(--base-color-pink-0);--bgColor-sponsors-emphasis:var(--base-color-pink-5);
+--borderColor-default:var(--base-color-neutral-6);--borderColor-muted:rgba(209,217,224,0.7);--borderColor-emphasis:var(--base-color-neutral-8);--borderColor-disabled:rgba(129,139,152,0.1);--borderColor-transparent:var(--base-color-transparent);--borderColor-translucent:rgba(31,35,40,0.15);
+--borderColor-neutral-muted:var(--borderColor-muted);--borderColor-neutral-emphasis:var(--base-color-neutral-9);
+--borderColor-accent-muted:rgba(84,174,255,0.4);--borderColor-accent-emphasis:var(--base-color-blue-5);
+--borderColor-success-muted:rgba(74,194,107,0.4);--borderColor-success-emphasis:var(--base-color-green-5);
+--borderColor-open-muted:var(--borderColor-success-muted);--borderColor-open-emphasis:var(--borderColor-success-emphasis);
+--borderColor-attention-muted:rgba(212,167,44,0.4);--borderColor-attention-emphasis:var(--base-color-yellow-5);
+--borderColor-severe-muted:rgba(251,143,68,0.4);--borderColor-severe-emphasis:var(--base-color-orange-5);
+--borderColor-danger-muted:rgba(255,129,130,0.4);--borderColor-danger-emphasis:var(--base-color-red-5);
+--borderColor-closed-muted:var(--borderColor-danger-muted);--borderColor-closed-emphasis:var(--borderColor-danger-emphasis);
+--borderColor-draft-muted:var(--borderColor-neutral-muted);--borderColor-draft-emphasis:var(--borderColor-neutral-emphasis);
+--borderColor-done-muted:rgba(194,151,255,0.4);--borderColor-done-emphasis:var(--base-color-purple-5);
+--borderColor-upsell-muted:var(--borderColor-done-muted);--borderColor-upsell-emphasis:var(--borderColor-done-emphasis);
+--borderColor-sponsors-muted:rgba(255,128,200,0.4);--borderColor-sponsors-emphasis:var(--base-color-pink-5);
+--control-bgColor-rest:var(--base-color-neutral-1);--control-bgColor-hover:var(--base-color-neutral-2);--control-bgColor-active:var(--base-color-neutral-3);--control-bgColor-selected:var(--control-bgColor-rest);--control-bgColor-disabled:var(--bgColor-disabled);
+--control-fgColor-rest:var(--base-color-neutral-12);--control-fgColor-placeholder:var(--fgColor-muted);--control-fgColor-disabled:var(--fgColor-disabled);
+--control-borderColor-rest:var(--borderColor-default);--control-borderColor-emphasis:var(--borderColor-emphasis);--control-borderColor-disabled:var(--borderColor-disabled);--control-borderColor-selected:var(--control-bgColor-selected);--control-borderColor-success:var(--borderColor-success-emphasis);--control-borderColor-danger:var(--borderColor-danger-emphasis);--control-borderColor-warning:var(--borderColor-attention-emphasis);
+--control-iconColor-rest:var(--fgColor-muted);
+--control-transparent-bgColor-rest:transparent;--control-transparent-bgColor-hover:rgba(129,139,152,0.1);--control-transparent-bgColor-active:rgba(129,139,152,0.15);--control-transparent-bgColor-selected:rgba(129,139,152,0.15);--control-transparent-borderColor-rest:transparent;--control-transparent-borderColor-hover:transparent;
+--button-default-fgColor-rest:var(--control-fgColor-rest);--button-default-bgColor-rest:var(--control-bgColor-rest);--button-default-bgColor-hover:var(--control-bgColor-hover);--button-default-bgColor-active:var(--control-bgColor-active);--button-default-bgColor-disabled:var(--control-bgColor-disabled);--button-default-borderColor-rest:var(--control-borderColor-rest);--button-default-borderColor-hover:var(--control-borderColor-rest);--button-default-borderColor-disabled:var(--control-borderColor-disabled);--button-default-shadow-resting:0 1px 0 0 rgba(31,35,40,0.04);
+--button-primary-fgColor-rest:#ffffff;--button-primary-iconColor-rest:rgba(255,255,255,0.8);--button-primary-bgColor-rest:var(--bgColor-success-emphasis);--button-primary-bgColor-hover:#1c8139;--button-primary-bgColor-active:#197935;--button-primary-bgColor-disabled:#95d8a6;--button-primary-fgColor-disabled:rgba(255,255,255,0.8);--button-primary-borderColor-rest:var(--borderColor-translucent);--button-primary-borderColor-disabled:var(--button-primary-bgColor-disabled);
+--button-invisible-fgColor-rest:var(--control-fgColor-rest);--button-invisible-iconColor-rest:var(--fgColor-muted);--button-invisible-bgColor-rest:transparent;--button-invisible-bgColor-hover:var(--control-transparent-bgColor-hover);--button-invisible-bgColor-active:var(--control-transparent-bgColor-active);--button-invisible-fgColor-disabled:var(--control-fgColor-disabled);
+--button-outline-fgColor-rest:var(--fgColor-accent);--button-outline-fgColor-hover:var(--base-color-neutral-0);--button-outline-fgColor-active:var(--base-color-neutral-0);--button-outline-bgColor-rest:var(--control-bgColor-rest);--button-outline-bgColor-hover:var(--bgColor-accent-emphasis);--button-outline-bgColor-active:#0757ba;
+--button-danger-fgColor-rest:var(--fgColor-danger);--button-danger-fgColor-hover:var(--base-color-neutral-0);--button-danger-fgColor-active:var(--base-color-neutral-0);--button-danger-iconColor-rest:var(--fgColor-danger);--button-danger-bgColor-rest:var(--control-bgColor-rest);--button-danger-bgColor-hover:var(--bgColor-danger-emphasis);--button-danger-bgColor-active:var(--base-color-red-6);--button-danger-borderColor-rest:var(--control-borderColor-rest);
+--overlay-bgColor:var(--base-color-neutral-0);--overlay-borderColor:var(--borderColor-default);--overlay-backdrop-bgColor:rgba(1,4,9,0.5);
+--focus-outlineColor:var(--fgColor-accent);--focus-outline:2px solid var(--focus-outlineColor);--outline-focus-offset:-2px;
+}
+[data-theme="dark"]{
+--fgColor-default:var(--base-color-neutral-12);--fgColor-onEmphasis:var(--base-color-neutral-13);--fgColor-white:var(--base-color-neutral-13);--fgColor-black:var(--base-color-neutral-0);
+--fgColor-accent:#4493f8;--fgColor-success:var(--base-color-green-3);--fgColor-attention:var(--base-color-yellow-3);--fgColor-severe:var(--base-color-orange-4);--fgColor-danger:var(--base-color-red-4);--fgColor-done:var(--base-color-purple-4);--fgColor-sponsors:var(--base-color-pink-4);
+--bgColor-default:var(--base-color-neutral-1);--bgColor-muted:var(--base-color-neutral-2);--bgColor-inset:var(--base-color-neutral-0);--bgColor-emphasis:var(--base-color-neutral-7);--bgColor-inverse:var(--base-color-neutral-13);--bgColor-disabled:var(--base-color-neutral-3);--bgColor-black:var(--base-color-neutral-0);
+--bgColor-neutral-muted:rgba(101,108,118,0.2);--bgColor-neutral-emphasis:var(--base-color-neutral-8);
+--bgColor-accent-muted:rgba(56,139,253,0.1);--bgColor-success-muted:rgba(46,160,67,0.15);--bgColor-success-emphasis:var(--base-color-green-5);--bgColor-attention-muted:rgba(187,128,9,0.15);--bgColor-severe-muted:rgba(219,109,40,0.1);--bgColor-danger-muted:rgba(248,81,73,0.1);--bgColor-done-muted:rgba(171,125,248,0.15);--bgColor-sponsors-muted:rgba(219,97,162,0.1);
+--borderColor-default:var(--base-color-neutral-7);--borderColor-muted:rgba(61,68,77,0.7);--borderColor-emphasis:var(--base-color-neutral-8);--borderColor-disabled:rgba(101,108,118,0.1);--borderColor-translucent:rgba(255,255,255,0.15);
+--borderColor-neutral-emphasis:var(--borderColor-emphasis);
+--borderColor-accent-muted:rgba(56,139,253,0.4);--borderColor-success-muted:rgba(46,160,67,0.4);--borderColor-attention-muted:rgba(210,153,34,0.4);--borderColor-severe-muted:rgba(219,109,40,0.4);--borderColor-danger-muted:rgba(248,81,73,0.4);--borderColor-done-muted:rgba(171,125,248,0.4);--borderColor-sponsors-muted:rgba(219,97,162,0.4);
+--control-bgColor-rest:var(--base-color-neutral-3);--control-bgColor-hover:var(--base-color-neutral-4);--control-bgColor-active:var(--base-color-neutral-5);
+--control-transparent-bgColor-hover:rgba(101,108,118,0.2);--control-transparent-bgColor-active:rgba(101,108,118,0.25);--control-transparent-bgColor-selected:rgba(101,108,118,0.25);
+--button-default-shadow-resting:0 0 transparent;
+--button-primary-bgColor-hover:#29903b;--button-primary-bgColor-active:#2e9a40;--button-primary-bgColor-disabled:#105823;--button-primary-fgColor-disabled:rgba(255,255,255,0.4);--button-primary-iconColor-rest:#ffffff;
+--button-outline-fgColor-rest:var(--base-color-blue-4);--button-outline-fgColor-hover:var(--base-color-blue-3);--button-outline-bgColor-hover:var(--control-bgColor-hover);--button-outline-bgColor-active:var(--base-color-blue-7);
+--button-danger-fgColor-rest:#fa5e55;--button-danger-fgColor-hover:var(--base-color-neutral-13);
+--overlay-bgColor:var(--base-color-neutral-2);
+}

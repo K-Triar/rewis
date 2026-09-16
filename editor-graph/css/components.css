@@ -1,0 +1,271 @@
+/* 図形式エディタの共通部品。02-editor-ui-spec.md 1.3。クラス名はすべて .g- で始める */
+
+/* ボタン */
+.g-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--control-medium-gap);
+  height: var(--control-medium-size);
+  padding-inline: var(--control-medium-paddingInline-normal);
+  border-radius: var(--borderRadius-medium);
+  border: var(--borderWidth-thin) solid var(--button-default-borderColor-rest);
+  background: var(--button-default-bgColor-rest);
+  color: var(--button-default-fgColor-rest);
+  font: var(--text-body-shorthand-medium);
+  cursor: pointer;
+  transition: background-color var(--motion-transition-hover), border-color var(--motion-transition-hover);
+}
+.g-btn:hover:not(:disabled) { background: var(--button-default-bgColor-hover); }
+.g-btn:active:not(:disabled) { background: var(--button-default-bgColor-active); }
+.g-btn:focus-visible { outline: var(--focus-outline); outline-offset: var(--outline-focus-offset); }
+.g-btn:disabled { background: var(--button-default-bgColor-disabled); border-color: var(--button-default-borderColor-disabled); color: var(--fgColor-disabled); cursor: not-allowed; }
+
+.g-btn--primary {
+  background: var(--button-primary-bgColor-rest);
+  border-color: transparent;
+  color: var(--button-primary-fgColor-rest);
+}
+.g-btn--primary:hover:not(:disabled) { background: var(--button-primary-bgColor-hover); }
+.g-btn--primary:active:not(:disabled) { background: var(--button-primary-bgColor-active); }
+.g-btn--primary:disabled { background: var(--button-primary-bgColor-disabled); color: var(--button-primary-fgColor-disabled); border-color: transparent; }
+
+.g-btn--danger {
+  background: var(--button-danger-bgColor-rest);
+  border-color: var(--button-danger-borderColor-rest);
+  color: var(--button-danger-fgColor-rest);
+}
+.g-btn--danger:hover:not(:disabled) { background: var(--button-danger-bgColor-hover); color: var(--button-danger-fgColor-hover); }
+.g-btn--danger:active:not(:disabled) { background: var(--button-danger-bgColor-active); color: var(--button-danger-fgColor-hover); }
+.g-btn--danger:disabled { background: var(--button-default-bgColor-disabled); color: var(--fgColor-disabled); border-color: var(--button-default-borderColor-disabled); }
+
+.g-btn--invisible {
+  background: var(--button-invisible-bgColor-rest);
+  border-color: transparent;
+  color: var(--button-invisible-fgColor-rest);
+}
+.g-btn--invisible:hover:not(:disabled) { background: var(--button-invisible-bgColor-hover); }
+.g-btn--invisible:active:not(:disabled) { background: var(--button-invisible-bgColor-active); }
+.g-btn--invisible:disabled { background: transparent; color: var(--button-invisible-fgColor-disabled); }
+
+.g-btn--small { height: var(--control-small-size); padding-inline: var(--control-small-paddingInline-normal); gap: var(--control-small-gap); }
+
+.g-icon-btn {
+  width: var(--control-medium-size);
+  height: var(--control-medium-size);
+  padding: 0;
+}
+.g-icon-btn.g-btn--small { width: var(--control-small-size); height: var(--control-small-size); }
+
+/* 入力欄 */
+.g-input,
+.g-select,
+.g-textarea {
+  height: var(--control-medium-size);
+  padding-inline: var(--control-medium-paddingInline-normal);
+  border: var(--borderWidth-thin) solid var(--control-borderColor-rest);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+  box-shadow: var(--shadow-inset);
+  color: var(--fgColor-default);
+  font: var(--text-body-shorthand-medium);
+  width: 100%;
+  box-sizing: border-box;
+}
+.g-textarea { height: auto; padding-block: var(--control-medium-paddingBlock); resize: vertical; }
+.g-input:hover:not(:disabled),
+.g-select:hover:not(:disabled),
+.g-textarea:hover:not(:disabled) { border-color: var(--control-borderColor-emphasis); }
+.g-input:focus-visible,
+.g-select:focus-visible,
+.g-textarea:focus-visible { outline: var(--focus-outline); outline-offset: var(--outline-focus-offset); }
+.g-input:disabled,
+.g-select:disabled,
+.g-textarea:disabled { background: var(--control-bgColor-disabled); color: var(--control-fgColor-disabled); border-color: var(--control-borderColor-disabled); cursor: not-allowed; }
+.g-input.is-invalid,
+.g-select.is-invalid,
+.g-textarea.is-invalid { border-color: var(--control-borderColor-danger); }
+
+/* フィールド（ラベル→入力→補足→エラー） */
+.g-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed);
+}
+.g-field__label {
+  font: var(--text-body-shorthand-medium);
+  font-weight: var(--base-text-weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xxs);
+}
+.g-field__hint { font: var(--text-body-shorthand-small); color: var(--fgColor-muted); }
+.g-field__error { font: var(--text-body-shorthand-small); color: var(--fgColor-danger); }
+
+/* チェックボックス */
+.g-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--control-medium-gap);
+}
+.g-checkbox input[type="checkbox"] { accent-color: var(--rewis-blue); }
+
+/* カード */
+.g-card {
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+}
+.g-card__header {
+  background: var(--bgColor-muted);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  padding: var(--stack-padding-condensed) var(--stack-padding-normal);
+  font: var(--text-title-shorthand-small);
+}
+.g-card__body { padding: var(--stack-padding-normal); }
+
+/* 札（label） */
+.g-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  padding-inline: var(--control-small-paddingInline-normal);
+  height: var(--control-xsmall-size);
+  border-radius: var(--borderRadius-full);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  font: var(--text-body-shorthand-small);
+  color: var(--fgColor-default);
+}
+.g-label--accent { color: var(--fgColor-accent); border-color: var(--borderColor-accent-emphasis); }
+.g-label--success { color: var(--fgColor-success); border-color: var(--borderColor-success-emphasis); }
+.g-label--attention { color: var(--fgColor-attention); border-color: var(--borderColor-attention-emphasis); }
+.g-label--danger { color: var(--fgColor-danger); border-color: var(--borderColor-danger-emphasis); }
+.g-label--done { color: var(--fgColor-done); border-color: var(--borderColor-done-emphasis); }
+
+/* 数字の丸い札 */
+.g-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--base-size-20);
+  height: var(--base-size-20);
+  padding-inline: var(--space-xs);
+  border-radius: var(--borderRadius-full);
+  background: var(--bgColor-neutral-muted);
+  font: var(--text-caption-shorthand);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+/* タブ（UnderlineNav） */
+.g-underline-nav {
+  display: flex;
+  gap: var(--stack-gap-normal);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  overflow-x: auto;
+}
+.g-underline-nav__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-xs);
+  border-bottom: var(--borderWidth-thicker) solid transparent;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  color: var(--fgColor-muted);
+  font: var(--text-body-shorthand-medium);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.g-underline-nav__item:hover { color: var(--fgColor-default); }
+.g-underline-nav__item:focus-visible { outline: var(--focus-outline); outline-offset: var(--outline-focus-offset); }
+.g-underline-nav__item.is-selected {
+  color: var(--fgColor-default);
+  font-weight: var(--base-text-weight-semibold);
+  border-bottom-color: var(--underlineNav-borderColor-active);
+}
+
+/* バナー */
+.g-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--stack-padding-condensed) var(--stack-padding-normal);
+  border-radius: var(--borderRadius-medium);
+  border: var(--borderWidth-thin) solid var(--borderColor-accent-muted);
+  background: var(--bgColor-accent-muted);
+  font: var(--text-body-shorthand-medium);
+}
+.g-banner--attention { border-color: var(--borderColor-attention-muted); background: var(--bgColor-attention-muted); }
+.g-banner--danger { border-color: var(--borderColor-danger-muted); background: var(--bgColor-danger-muted); }
+.g-banner--success { border-color: var(--borderColor-success-muted); background: var(--bgColor-success-muted); }
+
+/* 吹き出し・メニュー */
+.g-overlay {
+  background: var(--overlay-bgColor);
+  border: var(--borderWidth-thin) solid var(--overlay-borderColor);
+  border-radius: var(--borderRadius-medium);
+  box-shadow: var(--shadow-floating-small);
+  padding: var(--overlay-padding-normal);
+}
+
+/* ダイアログ */
+.g-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-backdrop-bgColor);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.g-dialog {
+  width: var(--overlay-width-medium);
+  max-width: calc(100vw - var(--stack-padding-normal) * 2);
+  border-radius: var(--borderRadius-large);
+  box-shadow: var(--shadow-floating-large);
+  background: var(--bgColor-default);
+  padding: var(--stack-padding-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-normal);
+}
+.g-dialog__title { font: var(--text-title-shorthand-small); }
+.g-dialog__message { font: var(--text-body-shorthand-medium); white-space: pre-wrap; }
+.g-dialog__actions { display: flex; justify-content: flex-end; gap: var(--stack-gap-condensed); }
+
+/* 一覧 */
+.g-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  overflow: hidden;
+}
+.g-list__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+  background: var(--bgColor-default);
+  cursor: pointer;
+  font: var(--text-body-shorthand-medium);
+}
+.g-list__item:last-child { border-bottom: none; }
+.g-list__item:hover { background: var(--bgColor-muted); }
+.g-list__item:focus-visible { outline: var(--focus-outline); outline-offset: var(--outline-focus-offset); }
+.g-list__item.is-selected {
+  background: var(--bgColor-accent-muted);
+  border-left: var(--borderWidth-thick) solid var(--borderColor-accent-emphasis);
+  padding-left: calc(var(--space-md) - var(--borderWidth-thick));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-btn, .g-input, .g-select, .g-textarea, .g-underline-nav__item {
+    transition: none;
+  }
+}
