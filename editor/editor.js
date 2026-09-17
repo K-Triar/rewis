@@ -40,6 +40,26 @@ function _beforeUnloadHandler(event) {
     event.returnValue = '';
 }
 
+// 段階5-4：window.REWIS_EDITOR_V1_READONLY が true のとき、保存系の操作を止める（閲覧専用モード）
+function isV1Readonly() {
+    return typeof window !== 'undefined' && window.REWIS_EDITOR_V1_READONLY === true;
+}
+
+function applyV1ReadonlyMode() {
+    if (!isV1Readonly()) return;
+
+    const banner = document.getElementById('v1-readonly-banner');
+    if (banner) banner.hidden = false;
+
+    const saveBtn = document.querySelector('#export .export-btn[onclick="exportData()"]');
+    if (saveBtn) saveBtn.disabled = true;
+
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) fileInput.disabled = true;
+}
+
+const V1_READONLY_MESSAGE = 'このエディタは閲覧のみです。新しいエディタ（editor.html）をご利用ください。';
+
 function computeCurrentExportJson() {
     try {
         const exportData = cleanDataForExport(appData);
@@ -63,6 +83,7 @@ function checkUnsavedChanges() {
 
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
+    applyV1ReadonlyMode();
     initializeNavigation();
     initializeWorkerControls();
     tryLoadExistingData();
@@ -601,6 +622,7 @@ function renderWorkerHistorySection() {
             const rollbackBtn = document.createElement('button');
             rollbackBtn.className = 'export-btn';
             rollbackBtn.textContent = 'この版に戻す';
+            rollbackBtn.disabled = isV1Readonly();
             rollbackBtn.addEventListener('click', () => rollbackToHistoryItem(item.key));
 
             actionTd.appendChild(compareBtn);
@@ -762,6 +784,10 @@ async function loadHistoryItemIntoEditor(key) {
 }
 
 async function rollbackToHistoryItem(key) {
+    if (isV1Readonly()) {
+        alert(V1_READONLY_MESSAGE);
+        return;
+    }
     if (!confirm('この版に戻しますか？新しい版として保存されます。')) return;
     const base = getWorkerBaseUrl();
     if (!base) {
@@ -4053,6 +4079,10 @@ function formatValidationErrors(errors) {
 }
 
 async function exportData() {
+    if (isV1Readonly()) {
+        alert(V1_READONLY_MESSAGE);
+        return;
+    }
     // Before saving, ensure there are no red-highlighted invalid cells.
     try {
         updateSaveWarningVisibility();
@@ -4182,6 +4212,11 @@ function formatCompareCounts(rows) {
 
 function loadDataFile() {
     const fileInput = document.getElementById('file-input');
+    if (isV1Readonly()) {
+        alert(V1_READONLY_MESSAGE);
+        if (fileInput) fileInput.value = '';
+        return;
+    }
     const file = fileInput.files[0];
     if (!file) return;
     const reader = new FileReader();

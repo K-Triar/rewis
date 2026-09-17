@@ -168,6 +168,10 @@ async function handleGetLatestData(request, env) {
 }
 
 async function handleSaveData(request, env) {
+  if (String(env.V1_SAVE_DISABLED || '') === 'true') {
+    return json({ error: 'v1_save_disabled' }, 410, request, env);
+  }
+
   const auth = await requireAuth(request, env);
   if (!auth.ok) {
     return json({ error: 'unauthorized' }, 401, request, env);
@@ -280,6 +284,10 @@ async function handleGetHistoryItem(request, env) {
 }
 
 async function handleRollback(request, env) {
+  if (String(env.V1_SAVE_DISABLED || '') === 'true') {
+    return json({ error: 'v1_save_disabled' }, 410, request, env);
+  }
+
   const auth = await requireAuth(request, env);
   if (!auth.ok) {
     return json({ error: 'unauthorized' }, 401, request, env);
