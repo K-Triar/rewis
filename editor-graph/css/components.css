@@ -50,6 +50,13 @@
 
 .g-btn--small { height: var(--control-small-size); padding-inline: var(--control-small-paddingInline-normal); gap: var(--control-small-gap); }
 
+.g-toggle-btn[aria-pressed="true"] {
+  background: var(--button-primary-bgColor-rest);
+  border-color: transparent;
+  color: var(--button-primary-fgColor-rest);
+}
+.g-toggle-btn[aria-pressed="true"]:hover:not(:disabled) { background: var(--button-primary-bgColor-hover); }
+
 .g-icon-btn {
   width: var(--control-medium-size);
   height: var(--control-medium-size);

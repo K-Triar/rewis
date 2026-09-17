@@ -431,6 +431,17 @@ body {
 .g-stop-badge.is-selected text { fill: var(--fgColor-onEmphasis); }
 .g-stop-flag { font: var(--text-caption-shorthand); fill: var(--fgColor-muted); pointer-events: none; }
 
+/* 13章 路線タブ */
+.g-line-path { stroke-width: 8; fill: none; opacity: 0.35; cursor: pointer; }
+.g-line-path.is-selected { opacity: 1; }
+.g-line-hit { stroke: transparent; stroke-width: 16; cursor: pointer; }
+.g-line-num-badge { pointer-events: none; font: var(--text-caption-shorthand); font-weight: var(--base-text-weight-semibold); }
+.g-line-num-badge circle { fill: var(--bgColor-default); stroke: var(--fgColor-default); stroke-width: 1; }
+.g-line-num-badge text { fill: var(--fgColor-default); }
+.g-line-dir-label { font: var(--text-caption-shorthand); fill: var(--fgColor-muted); pointer-events: none; }
+.g-shape-toggle { display: flex; gap: var(--stack-gap-condensed); flex-wrap: wrap; margin-top: var(--space-xs); }
+.g-shape-icon { display: block; }
+
 .g-popover-form {
   display: flex;
   flex-direction: column;
