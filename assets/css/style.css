@@ -151,23 +151,23 @@ main {
 }
 
 .icon-home {
-    -webkit-mask-image: url('src/home.svg');
-    mask-image: url('src/home.svg');
+    -webkit-mask-image: url('../icons/home.svg');
+    mask-image: url('../icons/home.svg');
 }
 
 .icon-walking {
-    -webkit-mask-image: url('src/walking.svg');
-    mask-image: url('src/walking.svg');
+    -webkit-mask-image: url('../icons/walking.svg');
+    mask-image: url('../icons/walking.svg');
 }
 
 .icon-train {
-    -webkit-mask-image: url('src/train.svg');
-    mask-image: url('src/train.svg');
+    -webkit-mask-image: url('../icons/train.svg');
+    mask-image: url('../icons/train.svg');
 }
 
 .icon-menu {
-    -webkit-mask-image: url('src/menu.svg');
-    mask-image: url('src/menu.svg');
+    -webkit-mask-image: url('../icons/menu.svg');
+    mask-image: url('../icons/menu.svg');
 }
 
 .icon-info,
@@ -1390,23 +1390,23 @@ main {
 }
 
 .icon-home {
-    -webkit-mask-image: url('src/home.svg');
-    mask-image: url('src/home.svg');
+    -webkit-mask-image: url('../icons/home.svg');
+    mask-image: url('../icons/home.svg');
 }
 
 .icon-walking {
-    -webkit-mask-image: url('src/walking.svg');
-    mask-image: url('src/walking.svg');
+    -webkit-mask-image: url('../icons/walking.svg');
+    mask-image: url('../icons/walking.svg');
 }
 
 .icon-train {
-    -webkit-mask-image: url('src/train.svg');
-    mask-image: url('src/train.svg');
+    -webkit-mask-image: url('../icons/train.svg');
+    mask-image: url('../icons/train.svg');
 }
 
 .icon-menu {
-    -webkit-mask-image: url('src/menu.svg');
-    mask-image: url('src/menu.svg');
+    -webkit-mask-image: url('../icons/menu.svg');
+    mask-image: url('../icons/menu.svg');
 }
 
 .icon-info,
@@ -1890,23 +1890,23 @@ main {
 }
 
 .icon-home {
-    -webkit-mask-image: url('src/home.svg');
-    mask-image: url('src/home.svg');
+    -webkit-mask-image: url('../icons/home.svg');
+    mask-image: url('../icons/home.svg');
 }
 
 .icon-walking {
-    -webkit-mask-image: url('src/walking.svg');
-    mask-image: url('src/walking.svg');
+    -webkit-mask-image: url('../icons/walking.svg');
+    mask-image: url('../icons/walking.svg');
 }
 
 .icon-train {
-    -webkit-mask-image: url('src/train.svg');
-    mask-image: url('src/train.svg');
+    -webkit-mask-image: url('../icons/train.svg');
+    mask-image: url('../icons/train.svg');
 }
 
 .icon-menu {
-    -webkit-mask-image: url('src/menu.svg');
-    mask-image: url('src/menu.svg');
+    -webkit-mask-image: url('../icons/menu.svg');
+    mask-image: url('../icons/menu.svg');
 }
 
 .icon-info,
@@ -2406,10 +2406,10 @@ main { order: 1; }
 .nav-item.active .icon { background-color: white; }
 
 /* Per-icon masks */
-.icon-home { -webkit-mask-image: url('src/home.svg'); mask-image: url('src/home.svg'); }
-.icon-walking { -webkit-mask-image: url('src/walking.svg'); mask-image: url('src/walking.svg'); }
-.icon-train { -webkit-mask-image: url('src/train.svg'); mask-image: url('src/train.svg'); }
-.icon-menu { -webkit-mask-image: url('src/menu.svg'); mask-image: url('src/menu.svg'); }
+.icon-home { -webkit-mask-image: url('../icons/home.svg'); mask-image: url('../icons/home.svg'); }
+.icon-walking { -webkit-mask-image: url('../icons/walking.svg'); mask-image: url('../icons/walking.svg'); }
+.icon-train { -webkit-mask-image: url('../icons/train.svg'); mask-image: url('../icons/train.svg'); }
+.icon-menu { -webkit-mask-image: url('../icons/menu.svg'); mask-image: url('../icons/menu.svg'); }
 .icon-info, .icon-business, .icon-news { /* no icon next to bottom items per request */ display: none; }
 
 /* Mobile bottom navigation (hidden on desktop) */
@@ -3576,8 +3576,8 @@ main {
 
 /* per-icon mask images (use local src/ paths) */
 .filter-icon-kt {
-    -webkit-mask-image: url('src/kt_icon.svg');
-    mask-image: url('src/kt_icon.svg');
+    -webkit-mask-image: url('../icons/kt_icon.svg');
+    mask-image: url('../icons/kt_icon.svg');
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
@@ -3586,8 +3586,8 @@ main {
     mask-position: center;
 }
 .filter-icon-tc {
-    -webkit-mask-image: url('src/TC.svg');
-    mask-image: url('src/TC.svg');
+    -webkit-mask-image: url('../icons/TC.svg');
+    mask-image: url('../icons/TC.svg');
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
@@ -3596,8 +3596,8 @@ main {
     mask-position: center;
 }
 .filter-icon-sx {
-    -webkit-mask-image: url('src/SX.svg');
-    mask-image: url('src/SX.svg');
+    -webkit-mask-image: url('../icons/SX.svg');
+    mask-image: url('../icons/SX.svg');
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
@@ -3606,8 +3606,8 @@ main {
     mask-position: center;
 }
 .filter-icon-mc {
-    -webkit-mask-image: url('src/mc.svg');
-    mask-image: url('src/mc.svg');
+    -webkit-mask-image: url('../icons/mc.svg');
+    mask-image: url('../icons/mc.svg');
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;

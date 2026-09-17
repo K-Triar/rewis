@@ -9,12 +9,12 @@
   "background_color": "#ffffff",
   "icons": [
 {
-      "src": "kt_luli_logo_192.png",
+      "src": "assets/img/kt_luli_logo_192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "kt_luli_logo_512.png",
+      "src": "assets/img/kt_luli_logo_512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

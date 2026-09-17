@@ -1,8 +1,8 @@
 // ========================================
 // 路線・運行情報ページ用スクリプト
 // ========================================
-import { loadPublicModel } from './shared/data-source.js';
-import { computeAffectedIndices } from './shared/model.js';
+import { loadPublicModel } from '../shared/data-source.js';
+import { computeAffectedIndices } from '../shared/model.js';
 import {
     showShareDialog,
     setupBottomSheet,
@@ -12,7 +12,7 @@ import {
     hideLoading,
     showError,
     hideError,
-} from './shared/ui-dom.js';
+} from '../shared/ui-dom.js';
 
 let model = null;
 let opCurrentLineId = null;
@@ -22,9 +22,9 @@ function applyLineTypeIcon(el, line) {
 
     const vehicleTypeId = (line.vehicleTypeId || 'TC').toUpperCase();
     const iconPathMap = {
-        TC: 'src/TC.svg',
-        SX: 'src/SX.svg',
-        MC: 'src/mc.svg'
+        TC: '../assets/icons/TC.svg',
+        SX: '../assets/icons/SX.svg',
+        MC: '../assets/icons/mc.svg'
     };
     const iconPath = iconPathMap[vehicleTypeId] || iconPathMap.TC;
 

@@ -1,8 +1,8 @@
 // ========================================
 // グローバル変数
 // ========================================
-import { loadPublicModel } from './shared/data-source.js';
-import { buildSearchGraph, searchRoutes } from './shared/route-search.js';
+import { loadPublicModel } from '../shared/data-source.js';
+import { buildSearchGraph, searchRoutes } from '../shared/route-search.js';
 import {
     showShareDialog,
     setupBottomSheet,
@@ -12,7 +12,7 @@ import {
     hideLoading,
     showError,
     hideError,
-} from './shared/ui-dom.js';
+} from '../shared/ui-dom.js';
 
 let model = null;
 let groupMatesByStation = new Map();
@@ -1101,7 +1101,7 @@ function createTableStationRow({ stationId, marker, arrivalElapsed = null, depar
     if (transferLabel === '直通') {
         transferHtml = `<span class="transfer-time">乗換不要(直通)</span>`;
     } else if (transferSeconds != null) {
-        transferHtml = `<span class="transfer-wrapper"><img src="src/walking.svg" class="walking-icon" alt="walk">${formatSeconds(transferSeconds)}</span>`;
+        transferHtml = `<span class="transfer-wrapper"><img src="../assets/icons/walking.svg" class="walking-icon" alt="walk">${formatSeconds(transferSeconds)}</span>`;
     }
 
     // マーカー本体
@@ -1154,7 +1154,7 @@ function createWalkInfoRow(item, model) {
     const wrapper = document.createElement('span');
     wrapper.className = 'transfer-wrapper';
     const icon = document.createElement('img');
-    icon.src = 'src/walking.svg';
+    icon.src = '../assets/icons/walking.svg';
     icon.className = 'walking-icon';
     icon.alt = 'walk';
     wrapper.appendChild(icon);
@@ -1273,8 +1273,8 @@ function createTableSegmentRow(item, model) {
     iconSpan.className = 'line-symbol';
     iconSpan.style.setProperty('--icon-color', item.lineColor);
     const iconType = item.vehicleTypeId || 'TC';
-    iconSpan.style.webkitMaskImage = `url(src/${iconType}.svg)`;
-    iconSpan.style.maskImage = `url(src/${iconType}.svg)`;
+    iconSpan.style.webkitMaskImage = `url(../assets/icons/${iconType}.svg)`;
+    iconSpan.style.maskImage = `url(../assets/icons/${iconType}.svg)`;
 
     const lineName = document.createElement('span');
     lineName.className = 'line-name';

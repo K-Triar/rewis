@@ -176,14 +176,14 @@ function buildRouteUrl(departureStation, arrivalStation) {
     if (departureStation?.id) params.set('from', departureStation.id);
     if (arrivalStation?.id) params.set('to', arrivalStation.id);
     const query = params.toString();
-    return query ? `transfer.html?${query}` : 'transfer.html';
+    return query ? `transfer/?${query}` : 'transfer/';
 }
 
 function buildOperationLineUrl(lineId) {
-    if (!lineId) return 'operation.html';
+    if (!lineId) return 'operation/';
     const params = new URLSearchParams();
     params.set('line', lineId);
-    return `operation.html?${params.toString()}`;
+    return `operation/?${params.toString()}`;
 }
 
 function showSearchError(message) {

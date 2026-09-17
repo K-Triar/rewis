@@ -21,7 +21,7 @@ REWISのデータ編集ページでは、皆さんがアプリなどで見かけ
 
 **▼ データ編集ページのURL**
 
-[https://k-triar.github.io/rewis/editor.html](https://k-triar.github.io/rewis/editor.html)
+[https://k-triar.github.io/rewis/editor/](https://k-triar.github.io/rewis/editor/)
 
 ---
 
