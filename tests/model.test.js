@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { buildModel, computeAffectedIndices } from '../shared/model.js';
+import { buildModel, computeAffectedIndices, throughTargetsFor, primaryNotice } from '../shared/model.js';
 import { convertV1ToV2 } from '../shared/convert-v1-to-v2.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -74,6 +74,24 @@ test('noticesByLine は路線ごとにまとめ、updatedAt の新しい順に�
   assert.deepEqual(list.map(n => n.id), ['nt_x2', 'nt_x1']);
 });
 
+test('primaryNotice: 状態の重さが大きいものを優先する（updatedAtが古くても）', () => {
+  const lower = { ...publicNotices[0], id: 'nt_low', updatedAt: '2026-06-01T00:00:00.000Z', status: { code: 'other', heading: 'お知らせ', body: '' } };
+  const model = buildModel(network, [publicNotices[0], lower], operationsDoc.masters);
+  assert.equal(primaryNotice(model, 'LA').id, 'nt_x1');
+  assert.equal(model.primaryNotice('LA').id, 'nt_x1');
+});
+
+test('primaryNotice: 重さが同じなら updatedAt の新しい方', () => {
+  const newer = { ...publicNotices[0], id: 'nt_newer', updatedAt: '2026-06-01T00:00:00.000Z' };
+  const model = buildModel(network, [publicNotices[0], newer], operationsDoc.masters);
+  assert.equal(primaryNotice(model, 'LA').id, 'nt_newer');
+});
+
+test('primaryNotice: notice がなければ null', () => {
+  const model = buildModel(network, [], operationsDoc.masters);
+  assert.equal(primaryNotice(model, 'LA'), null);
+});
+
 test('補助関数 stationName / lineName / categoryName', () => {
   const model = buildModel(network, [], operationsDoc.masters);
   assert.equal(model.stationName('S1'), 'S1駅');
@@ -105,6 +123,34 @@ test('computeAffectedIndices: 環状線でdirectionがbackwardなら逆向きに
 test('computeAffectedIndices: 該当駅が路線にない場合は空配列', () => {
   const line = network.lines.find(l => l.id === 'LA');
   assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S4', toStationId: 'S1', direction: null }), []);
+});
+
+test('throughTargetsFor: 片方向しかない場合はその向きだけ', () => {
+  assert.deepEqual(throughTargetsFor(network, 'LA'), [{ lineId: 'LB', allowedTargets: ['affected_to_through'] }]);
+  assert.deepEqual(throughTargetsFor(network, 'LB'), [{ lineId: 'LA', allowedTargets: ['through_to_affected'] }]);
+});
+
+test('throughTargetsFor: 両方向あれば mutual も選べる', () => {
+  const net = JSON.parse(JSON.stringify(network));
+  net.services.push({
+    id: 'sv_extra', name: '', headsign: null, active: true, circular: false,
+    stops: [
+      { stationId: 'S3', platformId: '1', run: 70 },
+      { stationId: 'S2', platformId: '1', run: 60, board: true, alight: true },
+      { stationId: 'S1', platformId: '1' },
+    ],
+    sections: [
+      { lineId: 'LB', categoryId: 'Lo', from: 0, to: 1 },
+      { lineId: 'LA', categoryId: 'Lo', from: 1, to: 2 },
+    ],
+  });
+  assert.deepEqual(throughTargetsFor(net, 'LA'), [
+    { lineId: 'LB', allowedTargets: ['affected_to_through', 'through_to_affected', 'mutual'] },
+  ]);
+});
+
+test('throughTargetsFor: lineId が指定されていなければ空配列', () => {
+  assert.deepEqual(throughTargetsFor(network, ''), []);
 });
 
 test('本番フィクスチャを変換したものでも例外が出ない', () => {

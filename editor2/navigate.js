@@ -6,7 +6,7 @@ const TAB_BY_REF_KIND = {
   service: 'services',
   transfer: 'transfers',
   stationGroup: 'transfers',
-  notice: null // 運行情報タブは段階5で追加するので、今は飛び先がない
+  notice: 'operations'
 };
 
 // findReferences() が返す { kind, id, label } から、飛び先を求める。
@@ -24,7 +24,8 @@ const TAB_BY_ARRAY_NAME = {
   lines: 'lines',
   services: 'services',
   transfers: 'transfers',
-  stationGroups: 'transfers'
+  stationGroups: 'transfers',
+  notices: 'operations'
 };
 
 const TYPE_BY_ARRAY_NAME = {
@@ -33,7 +34,8 @@ const TYPE_BY_ARRAY_NAME = {
   lines: 'line',
   services: 'service',
   transfers: 'transfer',
-  stationGroups: 'stationGroup'
+  stationGroups: 'stationGroup',
+  notices: 'notice'
 };
 
 // issues-panel の issue（{ code, path, message }）から、飛び先を求める。

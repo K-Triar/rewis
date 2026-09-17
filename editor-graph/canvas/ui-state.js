@@ -3,7 +3,8 @@ export const graphUi = {
   stations: { selectedId: null, search: '' },
   lines: { selectedId: null, selectedIndex: null, mode: 'idle', insertIndex: null },
   services: { selectedId: null, sel: null, mode: 'idle', insertIndex: null, draft: null, filterLineId: '', filterCategoryId: '' },
-  transfers: { selectedId: null, selectedStationId: null, search: '', pane: 'graph' }
+  transfers: { selectedId: null, selectedStationId: null, search: '', pane: 'graph' },
+  operations: { selectedId: null, mode: 'idle', pickStage: null, lineFilter: '', stateFilter: 'active' }
 };
 
 export function dropStaleSelection(existingIds) {

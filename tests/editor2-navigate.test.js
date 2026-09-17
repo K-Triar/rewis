@@ -26,8 +26,8 @@ test('refToFocus: line/service/transfer/stationGroup は飛び先を返す', () 
   assert.deepEqual(refToFocus({ kind: 'stationGroup', id: 'grp_1', label: '駅グループ' }), { tab: 'transfers', type: 'stationGroup', id: 'grp_1' });
 });
 
-test('refToFocus: notice は飛び先がない（運行情報タブが段階5まで無いため）', () => {
-  assert.equal(refToFocus({ kind: 'notice', id: 'n1', label: '運行情報' }), null);
+test('refToFocus: notice は運行情報タブの飛び先を返す', () => {
+  assert.deepEqual(refToFocus({ kind: 'notice', id: 'n1', label: '運行情報' }), { tab: 'operations', type: 'notice', id: 'n1' });
 });
 
 test('refToFocus: 不明な種類やnullはnull', () => {
@@ -67,10 +67,10 @@ test('resolveIssueFocus: transfers[n] / stationGroups[n] は乗換・駅グル�
   );
 });
 
-test('resolveIssueFocus: notices[n]（運行情報）はまだタブが無いのでnull', () => {
+test('resolveIssueFocus: notices[n] は運行情報タブのその運行情報IDを返す', () => {
   const docs = fixtures();
   const focus = resolveIssueFocus('operations', { code: 'E_NOTICE_STATE', path: 'notices[0].state', message: '' }, docs);
-  assert.equal(focus, null);
+  assert.deepEqual(focus, { tab: 'operations', type: 'notice', id: 'nt_x1' });
 });
 
 test('resolveIssueFocus: 配列添字のないpath（meta.ownCompanyIdなど）はnull', () => {

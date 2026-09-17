@@ -1,4 +1,4 @@
-@import url('../editor.css');
+@import url('../editor-v1/editor.css');
 
 /* ページ全体はスクロールさせず、各タブの一覧表だけを内部スクロールにする。
    （駅・運行系統など行数が多いタブで、編集フォームが表の下に来て
@@ -135,6 +135,23 @@ header,
 .ed2-placeholder {
   padding: 20px;
   color: #666;
+}
+
+.ed2-empty {
+  color: #666;
+  font-size: 13px;
+}
+
+.ed2-preview {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px 12px;
+  background: #fafafa;
+}
+
+.ed2-preview p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
 }
 
 .ed2-json-preview {

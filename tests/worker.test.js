@@ -227,3 +227,51 @@ test('LATEST_REQUIRES_AUTH="true"のとき、未認証の/data/latestは401', as
   }), env);
   assert.equal(authedRes.status, 200);
 });
+
+test('V1_SAVE_DISABLED="true"のとき、/data/saveは410', async () => {
+  const env = makeEnv({ V1_SAVE_DISABLED: 'true' });
+  const token = await login(env);
+
+  const res = await saveOnce(env, token, 0);
+  assert.equal(res.status, 410);
+  const body = await res.json();
+  assert.equal(body.error, 'v1_save_disabled');
+});
+
+test('V1_SAVE_DISABLED="true"のとき、/data/rollbackは410', async () => {
+  const env = makeEnv();
+  const token = await login(env);
+  await saveOnce(env, token, 0);
+
+  const historyRes = await worker.fetch(req('/data/history?limit=50', {
+    headers: { Authorization: `Bearer ${token}` }
+  }), env);
+  const historyBody = await historyRes.json();
+  const key = historyBody.items[0].key;
+
+  env.V1_SAVE_DISABLED = 'true';
+  const res = await worker.fetch(req('/data/rollback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ key, baseRevision: 1 })
+  }), env);
+  assert.equal(res.status, 410);
+  const body = await res.json();
+  assert.equal(body.error, 'v1_save_disabled');
+});
+
+test('V1_SAVE_DISABLED="true"でも、/data/public と /data/latest は読める', async () => {
+  const env = makeEnv();
+  const token = await login(env);
+  await saveOnce(env, token, 0);
+
+  env.V1_SAVE_DISABLED = 'true';
+
+  const publicRes = await worker.fetch(req('/data/public'), env);
+  assert.equal(publicRes.status, 200);
+
+  const latestRes = await worker.fetch(req('/data/latest', {
+    headers: { Authorization: `Bearer ${token}` }
+  }), env);
+  assert.equal(latestRes.status, 200);
+});

@@ -1,5 +1,5 @@
-import { loadPublicModel } from './shared/data-source.js';
-import { setupBottomSheet, setupNoopLinks } from './shared/ui-dom.js';
+import { loadPublicModel } from '../../shared/data-source.js';
+import { setupBottomSheet, setupNoopLinks } from '../../shared/ui-dom.js';
 
 const targetLineNames = ['瑠璃線', '貿易港線', '地下鉄中央線'];
 const statusRank = { normal: 0, warning: 1, suspend: 2 };
@@ -196,7 +196,7 @@ function clearSearchError() {
     errorEl.hidden = true;
 }
 
-function renderStatusCard(lineName, notice, extraText = '', lineId = null, forceLink = false) {
+function renderStatusCard(lineName, notice, extraText = '', lineId = null, forceLink = false, moreCount = 0) {
     const summary = classifyStatus(notice);
     const card = document.createElement('article');
     card.className = `home-status-card home-status-card--${summary.tone}`;
@@ -211,7 +211,11 @@ function renderStatusCard(lineName, notice, extraText = '', lineId = null, force
 
     const body = document.createElement('div');
     body.className = 'home-status-card-body';
-    body.textContent = extraText || shorten(summary.body) || '案内はありません。';
+    let bodyText = extraText || shorten(summary.body) || '案内はありません。';
+    if (!extraText && moreCount > 0) {
+        bodyText = `${bodyText}（ほか${moreCount}件）`;
+    }
+    body.textContent = bodyText;
 
     card.appendChild(title);
     card.appendChild(heading);
@@ -248,15 +252,16 @@ function renderStatusGrid() {
     const cards = [];
     targetLineNames.forEach(name => {
         const line = lineMap.get(name) || null;
-        const notice = line ? (model.noticesByLine.get(line.id) || [])[0] : null;
-        cards.push(renderStatusCard(name, notice, '', line ? line.id : null));
+        const list = line ? (model.noticesByLine.get(line.id) || []) : [];
+        const notice = line ? model.primaryNotice(line.id) : null;
+        cards.push(renderStatusCard(name, notice, '', line ? line.id : null, false, Math.max(0, list.length - 1)));
     });
 
     let otherNotice = null;
     let otherSeverity = -1;
     let latestUpdatedAt = null;
     otherLines.forEach(line => {
-        const notice = (model.noticesByLine.get(line.id) || [])[0] || null;
+        const notice = model.primaryNotice(line.id);
         const severity = getStatusSeverity(notice);
         if (severity > otherSeverity) {
             otherSeverity = severity;

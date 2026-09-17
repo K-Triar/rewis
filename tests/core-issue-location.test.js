@@ -135,8 +135,8 @@ test('resolveIssueTarget: 添字が範囲外なら null', () => {
   assert.equal(resolveIssueTarget('network', issue('stations[99].name'), docs), null);
 });
 
-test('resolveIssueTarget: notices（飛び先なし）や全体は null', () => {
-  assert.equal(resolveIssueTarget('operations', issue('notices[0].status'), docs), null);
+test('resolveIssueTarget: notices は tab:operations を返す。全体は null', () => {
+  assert.deepEqual(resolveIssueTarget('operations', issue('notices[0].status'), docs), { tab: 'operations', id: 'nt_x1', sub: null });
   assert.equal(resolveIssueTarget('network', issue('meta.appName'), docs), null);
   assert.equal(resolveIssueTarget('network', issue(''), docs), null);
 });
