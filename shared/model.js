@@ -95,6 +95,34 @@ function buildNoticesByLine(publicNotices) {
   return map;
 }
 
+export function throughTargetsFor(network, lineId) {
+  if (!lineId) return [];
+  const map = new Map();
+  const activeServices = buildActiveServices(network);
+  activeServices.forEach(service => {
+    const sections = service.sections || [];
+    for (let i = 0; i < sections.length - 1; i++) {
+      const cur = sections[i];
+      const next = sections[i + 1];
+      if (cur.lineId === lineId && next.lineId !== lineId) {
+        if (!map.has(next.lineId)) map.set(next.lineId, new Set());
+        map.get(next.lineId).add('affected_to_through');
+      }
+      if (next.lineId === lineId && cur.lineId !== lineId) {
+        if (!map.has(cur.lineId)) map.set(cur.lineId, new Set());
+        map.get(cur.lineId).add('through_to_affected');
+      }
+    }
+  });
+  return Array.from(map.entries()).map(([targetLineId, dirs]) => {
+    const allowedTargets = [];
+    if (dirs.has('affected_to_through')) allowedTargets.push('affected_to_through');
+    if (dirs.has('through_to_affected')) allowedTargets.push('through_to_affected');
+    if (dirs.has('affected_to_through') && dirs.has('through_to_affected')) allowedTargets.push('mutual');
+    return { lineId: targetLineId, allowedTargets };
+  });
+}
+
 export function computeAffectedIndices(line, range) {
   const stations = (line && line.stations) || [];
   if (range == null) {

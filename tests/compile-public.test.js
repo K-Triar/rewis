@@ -53,3 +53,22 @@ test('rendered が付き、network・operations の revision が入る', () => {
   assert.deepEqual(pub.masters, operations.masters);
   assert.deepEqual(pub.network, network);
 });
+
+test('直通先に表示する notice を末尾に加える', () => {
+  const network = loadFixture('v2-minimal-network.json');
+  const operations = loadFixture('v2-minimal-operations.json');
+  operations.notices[0].throughServices = [
+    { lineId: 'LB', state: 'suspended', target: 'affected_to_through', showOnThroughLine: true },
+  ];
+
+  const pub = compilePublic(
+    { doc: network, meta: { revision: 3 } },
+    { doc: operations, meta: { revision: 7 } }
+  );
+
+  assert.equal(pub.notices.length, 2);
+  assert.equal(pub.notices[1].id, 'nt_x1__through__LB');
+  assert.equal(pub.notices[1].lineId, 'LB');
+  assert.deepEqual(pub.notices[1].derived, { sourceId: 'nt_x1' });
+  assert.ok(pub.notices[1].rendered.heading);
+});
