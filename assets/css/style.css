@@ -4585,6 +4585,7 @@ body.no-scroll, html.no-scroll {
     display: none;
     position: relative;
     width: 100%;
+    align-self: flex-start; /* size to content; vertical position set via margin-top at toggle time */
 }
 
 .stops-marker-list.active {
@@ -4611,14 +4612,13 @@ body.no-scroll, html.no-scroll {
     z-index: 2;
     margin: 0 6px 0 0; /* no top offset; right spacing to sit over the segment-line */
     align-self: center;
-     
-     transform: translate(10px, 140px);
-    
+
+    transform: translateX(10px); /* nudge right to sit over the segment-line */
 }
 
 @media (max-width: 768px) {
     .stop-marker {
-        transform: translate(3px, 140px); 
+        transform: translateX(3px);
     }
 }
 

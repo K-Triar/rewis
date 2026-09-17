@@ -1395,6 +1395,19 @@ function createStopsButton(item, model) {
         infoList.classList.toggle('active', active);
         markerList.classList.toggle('active', active);
         button.textContent = active ? '▲ 途中駅を非表示' : '▼ 途中駅を表示';
+
+        if (active) {
+            // マーカー列（table-marker側）と情報列（table-content側）は別カラムのため、
+            // 情報側の1行目の実際の描画位置を測ってマーカー列の開始位置を合わせる
+            const firstInfoRow = infoList.querySelector('.stop-row');
+            const markerContainer = markerList.parentElement;
+            if (firstInfoRow && markerContainer) {
+                const offset = firstInfoRow.getBoundingClientRect().top - markerContainer.getBoundingClientRect().top;
+                markerList.style.marginTop = `${offset}px`;
+            }
+        } else {
+            markerList.style.marginTop = '';
+        }
     });
 
     return { button, infoList, markerList };
