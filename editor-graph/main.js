@@ -211,7 +211,7 @@ async function handleSwitchToTable() {
     );
     if (!ok) return;
   }
-  window.location.href = 'editor.html';
+  window.location.href = '../editor.html';
 }
 
 const ctx = {
