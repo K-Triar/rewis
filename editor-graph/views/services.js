@@ -11,8 +11,9 @@ import { boundsOf, portPoint } from '../../editor-core/graph-geometry.js';
 import * as serviceOps from '../../editor-core/service-ops.js';
 import { matchesServiceFilter } from '../../editor-core/service-filter.js';
 import { serviceTitle, describeIssueLocation, issueTargetsForService } from '../../editor-core/issue-location.js';
-import { summarizeSections, totalRun } from '../../editor2/views/services.js';
+import { summarizeSections, totalRun, reverseService, stationName } from '../../editor2/views/services.js';
 import { h, s, clear, icon } from '../dom.js';
+import { alertDialog, confirmDialog } from '../components/dialog.js';
 
 const MUTED_COLOR = '#999999';
 
@@ -104,14 +105,26 @@ export function renderServicesView(container, ctx) {
   resyncPositions();
 
   let bannerTimer = null;
-  function flashBanner(text) {
-    workspace.setBanner(text);
+  function flashBanner(text, variant, duration = 3000) {
+    workspace.setBanner(text, variant);
     if (bannerTimer) clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(() => workspace.setBanner(null), 3000);
+    if (duration > 0) bannerTimer = setTimeout(() => workspace.setBanner(null), duration);
   }
 
   function selectedService() {
     return network.services.find((sv) => sv.id === ui.selectedId) || null;
+  }
+
+  // 選択中の運行系統を1回の mutateDoc で書き換える。fn(doc, service) は新しい service を返す。
+  function mutateSelectedService(fn) {
+    const id = ui.selectedId;
+    if (!id) return;
+    store.mutateDoc('network', (doc) => {
+      const idx = doc.services.findIndex((sv) => sv.id === id);
+      if (idx === -1) return;
+      doc.services[idx] = fn(doc, doc.services[idx], idx);
+    });
+    refreshView();
   }
 
   function selectService(id) {
@@ -141,12 +154,8 @@ export function renderServicesView(container, ctx) {
     if (service && ui.sel && ui.sel.type === 'stop') {
       const stop = service.stops[ui.sel.index];
       if (stop && stop.stationId === station.id) {
-        store.mutateDoc('network', (doc) => {
-          const idx = doc.services.findIndex((sv) => sv.id === service.id);
-          if (idx === -1) return;
-          doc.services[idx] = serviceOps.setStopPlatform(doc.services[idx], ui.sel.index, platformId);
-        });
-        refreshView();
+        const index = ui.sel.index;
+        mutateSelectedService((doc, sv) => serviceOps.setStopPlatform(sv, index, platformId));
         return;
       }
     }
@@ -491,8 +500,16 @@ export function renderServicesView(container, ctx) {
         } else {
           setSel({ type: 'edge', index });
         }
-      }
+      },
+      onMove: (from, to) => moveStop(from, to)
     });
+  }
+
+  function moveStop(from, to) {
+    if (ui.sel && ui.sel.type === 'stop' && ui.sel.index === from) {
+      ui.sel = { type: 'stop', index: to };
+    }
+    mutateSelectedService((doc, sv) => serviceOps.moveStop(doc, sv, from, to));
   }
 
   // 右パネル
@@ -515,25 +532,94 @@ export function renderServicesView(container, ctx) {
   }
 
   function renderServicePanel(service) {
+    const headsignInput = h('input', { type: 'text', class: 'g-input', value: service.headsign || '', disabled: !!service.circular });
+    headsignInput.addEventListener('change', () => {
+      mutateSelectedService((doc, sv) => serviceOps.updateServiceFields(sv, { headsign: headsignInput.value }));
+    });
+    const terminusBtn = h('button', {
+      type: 'button',
+      class: 'g-btn g-btn--small',
+      disabled: !!service.circular,
+      onClick: () => {
+        const terminus = stationName(network, service.stops[service.stops.length - 1].stationId);
+        mutateSelectedService((doc, sv) => serviceOps.updateServiceFields(sv, { headsign: terminus }));
+      }
+    }, '終点の駅名にする');
     workspace.right.appendChild(h('div', { class: 'g-field' },
       h('label', { class: 'g-field__label' }, '行先'),
-      h('input', { type: 'text', class: 'g-input', value: service.headsign || '', disabled: true }),
+      h('div', { class: 'g-svc-headsign-row' }, headsignInput, terminusBtn),
       service.circular ? h('div', { class: 'g-field__hint' }, '環状運転では行先を表示しません。') : null
     ));
+
+    const nameInput = h('input', { type: 'text', class: 'g-input', value: service.name || '' });
+    nameInput.addEventListener('change', () => {
+      mutateSelectedService((doc, sv) => serviceOps.updateServiceFields(sv, { name: nameInput.value }));
+    });
     workspace.right.appendChild(h('div', { class: 'g-field' },
       h('label', { class: 'g-field__label' }, 'メモ（任意）'),
-      h('input', { type: 'text', class: 'g-input', value: service.name || '', disabled: true })
+      nameInput
     ));
-    workspace.right.appendChild(h('div', { class: 'g-checkbox' },
-      h('input', { type: 'checkbox', checked: service.active !== false, disabled: true }),
-      h('span', {}, '運行中')
-    ));
-    workspace.right.appendChild(h('div', { class: 'g-checkbox' },
-      h('input', { type: 'checkbox', checked: !!service.circular, disabled: true }),
-      h('span', {}, '環状運転')
-    ));
+
+    const activeInput = h('input', { type: 'checkbox', checked: service.active !== false });
+    activeInput.addEventListener('change', () => {
+      mutateSelectedService((doc, sv) => serviceOps.updateServiceFields(sv, { active: activeInput.checked }));
+    });
+    workspace.right.appendChild(h('div', { class: 'g-checkbox' }, activeInput, h('span', {}, '運行中')));
+
+    const circularInput = h('input', { type: 'checkbox', checked: !!service.circular });
+    circularInput.addEventListener('change', async () => {
+      if (circularInput.checked) {
+        const ok = await confirmDialog('すべての駅間が、1つ目の駅間と同じ路線・種別になります。', { confirmLabel: '環状運転にする' });
+        if (!ok) { circularInput.checked = false; return; }
+        mutateSelectedService((doc, sv) => serviceOps.setCircular(doc, sv, true));
+      } else {
+        mutateSelectedService((doc, sv) => serviceOps.setCircular(doc, sv, false));
+      }
+    });
+    workspace.right.appendChild(h('div', { class: 'g-checkbox' }, circularInput, h('span', {}, '環状運転')));
+
     workspace.right.appendChild(h('p', {}, `${service.stops.length} 駅・${formatSeconds(totalRun(service))}`));
     workspace.right.appendChild(h('p', { class: 'g-ws-right__note' }, summarizeSections(network, service.sections || [])));
+
+    workspace.right.appendChild(h('div', { class: 'g-svc-actions' },
+      h('button', {
+        type: 'button',
+        class: 'g-btn',
+        onClick: () => {
+          const copy = serviceOps.duplicateService(service);
+          store.mutateDoc('network', (doc) => { doc.services.push(copy); });
+          ui.selectedId = copy.id;
+          ui.sel = null;
+          refreshView();
+        }
+      }, icon('copy'), '複製'),
+      h('button', {
+        type: 'button',
+        class: 'g-btn',
+        onClick: () => {
+          const reversed = reverseService(network, service);
+          store.mutateDoc('network', (doc) => { doc.services.push(reversed); });
+          ui.selectedId = reversed.id;
+          ui.sel = null;
+          refreshView();
+          flashBanner('逆方向の運行系統を作りました。のりばを確認してください。', 'attention', 6000);
+        }
+      }, icon('arrow-both'), '逆方向を作成'),
+      h('button', {
+        type: 'button',
+        class: 'g-btn g-btn--danger',
+        onClick: async () => {
+          const ok = await confirmDialog(`運行系統「${serviceTitle(network, service)}」を削除します。`, { confirmLabel: '運行系統を削除', danger: true });
+          if (!ok) return;
+          store.mutateDoc('network', (doc) => {
+            doc.services = doc.services.filter((sv) => sv.id !== service.id);
+          });
+          ui.selectedId = null;
+          ui.sel = null;
+          refreshView();
+        }
+      }, icon('trash'), '運行系統を削除')
+    ));
 
     const validation = store.state.validation.network;
     const idx = network.services.indexOf(service);
@@ -560,6 +646,28 @@ export function renderServicesView(container, ctx) {
     }
   }
 
+  function renderRunField(labelText, currentRun, onApply) {
+    const errorEl = h('div', { class: 'g-field__error' });
+    const input = h('input', { type: 'number', class: 'g-input', value: Number.isFinite(currentRun) ? currentRun : '' });
+    input.addEventListener('change', () => {
+      const value = input.value.trim();
+      const num = Number(value);
+      if (value === '' || !Number.isInteger(num) || num < 0) {
+        input.classList.add('is-invalid');
+        errorEl.textContent = '0以上の整数を入力してください。';
+        return;
+      }
+      input.classList.remove('is-invalid');
+      errorEl.textContent = '';
+      onApply(num);
+    });
+    return h('div', { class: 'g-field' },
+      h('label', { class: 'g-field__label' }, labelText),
+      input,
+      errorEl
+    );
+  }
+
   function renderStopPanel(service, index) {
     const stop = service.stops[index];
     const station = stationOf(network, stop.stationId);
@@ -569,31 +677,64 @@ export function renderServicesView(container, ctx) {
     workspace.right.appendChild(h('div', { class: 'g-field__label' }, `${index + 1} 番目の停車駅`));
     workspace.right.appendChild(h('p', {}, station ? station.name : stop.stationId));
 
-    const platformSelect = h('select', { class: 'g-select', disabled: true },
+    const platformSelect = h('select', { class: 'g-select' },
       h('option', { value: '', selected: stop.platformId == null }, 'のりば指定なし'),
       (station ? station.platforms || [] : []).map((p) => h('option', { value: p.id, selected: stop.platformId === p.id }, p.label))
     );
+    platformSelect.addEventListener('change', () => {
+      const platformId = platformSelect.value || null;
+      mutateSelectedService((doc, sv) => serviceOps.setStopPlatform(sv, index, platformId));
+    });
     workspace.right.appendChild(h('div', { class: 'g-field' },
       h('label', { class: 'g-field__label' }, 'のりば'),
       platformSelect,
       h('div', { class: 'g-field__hint' }, '図の中で、同じ駅の別ののりばをクリックしても変えられます。')
     ));
 
-    workspace.right.appendChild(h('div', { class: 'g-checkbox' },
-      h('input', { type: 'checkbox', checked: stop.board !== false, disabled: true }),
-      h('span', {}, 'この駅から乗れる')
-    ));
-    workspace.right.appendChild(h('div', { class: 'g-checkbox' },
-      h('input', { type: 'checkbox', checked: stop.alight !== false, disabled: true }),
-      h('span', {}, 'この駅で降りられる')
-    ));
+    const boardInput = h('input', { type: 'checkbox', checked: stop.board !== false });
+    boardInput.addEventListener('change', () => {
+      mutateSelectedService((doc, sv) => serviceOps.setStopFlags(sv, index, { board: boardInput.checked }));
+    });
+    workspace.right.appendChild(h('div', { class: 'g-checkbox' }, boardInput, h('span', {}, 'この駅から乗れる')));
+
+    const alightInput = h('input', { type: 'checkbox', checked: stop.alight !== false });
+    alightInput.addEventListener('change', () => {
+      mutateSelectedService((doc, sv) => serviceOps.setStopFlags(sv, index, { alight: alightInput.checked }));
+    });
+    workspace.right.appendChild(h('div', { class: 'g-checkbox' }, alightInput, h('span', {}, 'この駅で降りられる')));
 
     if (needsRun) {
-      workspace.right.appendChild(h('div', { class: 'g-field' },
-        h('label', { class: 'g-field__label' }, '次の駅まで（秒）'),
-        h('input', { type: 'number', class: 'g-input', value: Number.isFinite(stop.run) ? stop.run : '', disabled: true })
-      ));
+      workspace.right.appendChild(renderRunField('次の駅まで（秒）', stop.run, (num) => {
+        mutateSelectedService((doc, sv) => serviceOps.setRun(sv, index, num));
+      }));
     }
+
+    workspace.right.appendChild(h('div', { class: 'g-svc-actions' },
+      h('button', {
+        type: 'button',
+        class: 'g-btn',
+        disabled: index === 0,
+        onClick: () => moveStop(index, index - 1)
+      }, icon('arrow-left'), '前へ'),
+      h('button', {
+        type: 'button',
+        class: 'g-btn',
+        disabled: index === service.stops.length - 1,
+        onClick: () => moveStop(index, index + 1)
+      }, icon('arrow-right'), '後ろへ'),
+      h('button', {
+        type: 'button',
+        class: 'g-btn g-btn--danger',
+        onClick: async () => {
+          if (service.stops.length <= 2) {
+            await alertDialog('停車駅は2つ以上必要です。運行系統ごと消すときは［運行系統を削除］を使ってください。');
+            return;
+          }
+          ui.sel = null;
+          mutateSelectedService((doc, sv) => serviceOps.removeStop(doc, sv, index));
+        }
+      }, icon('trash'), '停車駅を削除')
+    ));
   }
 
   function renderEdgePanel(service, index, rangeEnd) {
@@ -610,18 +751,31 @@ export function renderServicesView(container, ctx) {
     workspace.right.appendChild(h('div', { class: 'g-field__label' }, heading));
 
     if (rangeEnd == null) {
-      workspace.right.appendChild(h('div', { class: 'g-field' },
-        h('label', { class: 'g-field__label' }, '次の駅まで（秒）'),
-        h('input', { type: 'number', class: 'g-input', value: Number.isFinite(fromStop.run) ? fromStop.run : '', disabled: true })
-      ));
+      workspace.right.appendChild(renderRunField('次の駅まで（秒）', fromStop.run, (num) => {
+        mutateSelectedService((doc, sv) => serviceOps.setRun(sv, index, num));
+      }));
     }
 
     const segments = serviceOps.segmentsOf(service);
     const seg = segments[index] || { lineId: null, categoryId: null };
-    const lineSelectEdge = h('select', { class: 'g-select' + (seg.lineId ? '' : ' is-invalid'), disabled: true },
+
+    function applySegment(fromEdge, toEdge, patch) {
+      mutateSelectedService((doc, sv) => serviceOps.setSegmentRange(doc, sv, fromEdge, toEdge, patch));
+    }
+
+    const lineSelectEdge = h('select', { class: 'g-select' + (seg.lineId ? '' : ' is-invalid') },
       seg.lineId ? null : h('option', { value: '', selected: true }, '選んでください'),
       network.lines.map((line) => h('option', { value: line.id, selected: seg.lineId === line.id }, line.name))
     );
+    lineSelectEdge.addEventListener('change', () => {
+      const lineId = lineSelectEdge.value || null;
+      const newLine = lineOf(network, lineId);
+      const categories = newLine ? newLine.categories || [] : [];
+      const currentCategoryName = seg.lineId != null ? categoryNameOf(network, seg.lineId, seg.categoryId) : null;
+      const matched = currentCategoryName ? categories.find((c) => c.name === currentCategoryName) : null;
+      const categoryId = matched ? matched.id : (categories[0] ? categories[0].id : null);
+      applySegment(index, rangeEnd ?? index, { lineId, categoryId });
+    });
     workspace.right.appendChild(h('div', { class: 'g-field' },
       h('label', { class: 'g-field__label' }, '路線'),
       lineSelectEdge,
@@ -629,13 +783,32 @@ export function renderServicesView(container, ctx) {
     ));
 
     const line = lineOf(network, seg.lineId);
-    const categorySelectEdge = h('select', { class: 'g-select', disabled: true },
+    const categorySelectEdge = h('select', { class: 'g-select' },
       (line ? line.categories || [] : []).map((cat) => h('option', { value: cat.id, selected: seg.categoryId === cat.id }, cat.name))
     );
+    categorySelectEdge.addEventListener('change', () => {
+      applySegment(index, rangeEnd ?? index, { lineId: seg.lineId, categoryId: categorySelectEdge.value });
+    });
     workspace.right.appendChild(h('div', { class: 'g-field' },
       h('label', { class: 'g-field__label' }, '種別'),
       categorySelectEdge
     ));
+
+    if (!service.circular) {
+      const lastEdge = stops.length - 2;
+      workspace.right.appendChild(h('div', { class: 'g-svc-actions' },
+        h('button', {
+          type: 'button',
+          class: 'g-btn g-btn--small',
+          onClick: () => applySegment(index, lastEdge, { lineId: seg.lineId, categoryId: seg.categoryId })
+        }, 'ここから終点まで同じにする'),
+        h('button', {
+          type: 'button',
+          class: 'g-btn g-btn--small',
+          onClick: () => applySegment(0, rangeEnd ?? index, { lineId: seg.lineId, categoryId: seg.categoryId })
+        }, '始発からここまで同じにする')
+      ));
+    }
   }
 
   function refreshView() {
@@ -645,15 +818,31 @@ export function renderServicesView(container, ctx) {
     renderRightPanel();
   }
 
-  function onKeyDown(event) {
-    if (event.key !== 'Escape') return;
+  async function onKeyDown(event) {
     const tag = document.activeElement && document.activeElement.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
     if (document.querySelector('.g-dialog-backdrop')) return;
-    if (ui.sel) {
-      setSel(null);
-    } else if (ui.selectedId) {
-      selectService(null);
+
+    if (event.key === 'Escape') {
+      if (ui.sel) {
+        setSel(null);
+      } else if (ui.selectedId) {
+        selectService(null);
+      }
+      return;
+    }
+
+    if ((event.key === 'Delete' || event.key === 'Backspace') && ui.sel && ui.sel.type === 'stop') {
+      const service = selectedService();
+      if (!service) return;
+      event.preventDefault();
+      if (service.stops.length <= 2) {
+        await alertDialog('停車駅は2つ以上必要です。運行系統ごと消すときは［運行系統を削除］を使ってください。');
+        return;
+      }
+      const index = ui.sel.index;
+      ui.sel = null;
+      mutateSelectedService((doc, sv) => serviceOps.removeStop(doc, sv, index));
     }
   }
   window.addEventListener('keydown', onKeyDown);

@@ -384,6 +384,9 @@ body {
 .g-svc-row__line2 { color: var(--fgColor-muted); font: var(--text-body-shorthand-small); }
 .g-svc-row__badges { display: flex; gap: var(--space-xxs); flex-wrap: wrap; margin-top: var(--space-xxs); }
 .g-svc-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.g-svc-headsign-row { display: flex; align-items: center; gap: var(--space-sm); }
+.g-svc-headsign-row .g-input { flex: 1 1 auto; }
+.g-svc-actions { display: flex; flex-wrap: wrap; gap: var(--stack-gap-condensed); margin-top: var(--space-sm); }
 
 .g-route-line { stroke-width: 3; opacity: 0.22; pointer-events: none; }
 .g-route-hit { stroke: transparent; stroke-width: 12; cursor: pointer; }

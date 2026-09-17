@@ -14,9 +14,10 @@ export function createWorkspace(container, { ribbon = false } = {}) {
 
   container.appendChild(h('div', { class: 'g-workspace' }, left, canvasCol, right));
 
-  function setBanner(text) {
+  function setBanner(text, variant) {
     if (text) {
       banner.textContent = text;
+      banner.className = 'g-banner' + (variant ? ` g-banner--${variant}` : '');
       banner.hidden = false;
     } else {
       banner.hidden = true;
