@@ -485,8 +485,8 @@ body {
   height: 12px;
   flex: none;
   background-color: var(--fgColor-muted);
-  -webkit-mask-image: url('../../src/walking.svg');
-  mask-image: url('../../src/walking.svg');
+  -webkit-mask-image: url('../../assets/icons/walking.svg');
+  mask-image: url('../../assets/icons/walking.svg');
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
