@@ -128,3 +128,17 @@ test('11. 出発駅と到着駅が同じ・経路がない場合は空の配列'
   assert.deepEqual(search('s1a', 's1a'), []);
   assert.deepEqual(search('s11a', 's11b'), []);
 });
+
+test('12. 出発駅の別のりばから無関係な列車に乗る候補は、乗ってすぐ降りて乗り換えるだけの経路にならない', () => {
+  const routes = search('s12a', 's12b');
+  assert.equal(routes.length, 1);
+  assert.equal(routes[0].legs.length, 1);
+  assert.equal(routes[0].legs[0].type, 'ride');
+  assert.equal(routes[0].legs[0].serviceId, 'sv_s12direct');
+  routes.forEach(route => {
+    const firstLeg = route.legs[0];
+    if (firstLeg.type === 'ride') {
+      assert.ok(firstLeg.stops.length >= 2, '1駅も進まない乗車が経路の先頭に来てはいけない');
+    }
+  });
+});

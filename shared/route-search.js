@@ -558,7 +558,15 @@ export function searchRoutes(model, graph, {
     });
   });
 
-  const routes = results.map(r => buildRoute(model, graph, r.path, r.score, fromStationId, toStationId));
+  // 「特定の列車に乗ることを強制する」候補探索では、その列車に乗ってもすぐ降りて
+  // 別ののりばへ乗り換えるだけ（1駅も進まない）の経路が最短になることがある。
+  // これは実質「その列車には乗らない」のと同じで、案内としては無意味なので除外する。
+  const routes = results
+    .map(r => buildRoute(model, graph, r.path, r.score, fromStationId, toStationId))
+    .filter(route => {
+      const firstLeg = route.legs[0];
+      return !(firstLeg && firstLeg.type === 'ride' && firstLeg.stops.length < 2);
+    });
   const unique = dedupeRoutes(routes);
 
   unique.sort((a, b) => {

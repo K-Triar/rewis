@@ -511,6 +511,46 @@
         }
       ],
       "location": null
+    },
+    {
+      "id": "s12a",
+      "name": "s12a",
+      "kana": "s12a",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        },
+        {
+          "id": "2",
+          "label": "2"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s12b",
+      "name": "s12b",
+      "kana": "s12b",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s12x",
+      "name": "s12x",
+      "kana": "s12x",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
     }
   ],
   "stationGroups": [],
@@ -929,6 +969,50 @@
       "vehicleTypeId": "TC",
       "stations": [
         "s11b"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L18",
+      "name": "L18",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s12a",
+        "s12b"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L19",
+      "name": "L19",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s12a",
+        "s12x"
       ],
       "loop": null,
       "directions": {
@@ -1446,6 +1530,56 @@
       "sections": [
         {
           "lineId": "L16",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s12direct",
+      "headsign": "s12b行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s12a",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s12b",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L18",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s12other",
+      "headsign": "s12x行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s12a",
+          "platformId": "2",
+          "run": 100
+        },
+        {
+          "stationId": "s12x",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L19",
           "categoryId": "Lo",
           "from": 0,
           "to": 1
