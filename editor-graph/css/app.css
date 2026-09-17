@@ -373,6 +373,54 @@ body {
   margin-top: var(--space-sm);
 }
 
+/* 12章 運行系統タブ */
+.g-svc-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed);
+  margin-bottom: var(--space-sm);
+}
+.g-svc-row__line1 { display: flex; align-items: center; gap: var(--space-xs); }
+.g-svc-row__line2 { color: var(--fgColor-muted); font: var(--text-body-shorthand-small); }
+.g-svc-row__badges { display: flex; gap: var(--space-xxs); flex-wrap: wrap; margin-top: var(--space-xxs); }
+.g-svc-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+.g-route-line { stroke-width: 3; opacity: 0.22; pointer-events: none; }
+.g-route-hit { stroke: transparent; stroke-width: 12; cursor: pointer; }
+
+.g-edge { stroke-width: 6; fill: none; }
+.g-edge--unresolved { stroke: var(--fgColor-muted); stroke-dasharray: 6 4; }
+.g-edge.is-error { stroke: var(--fgColor-danger); }
+.g-edge.is-warning { stroke: var(--fgColor-attention); }
+.g-edge-hit { stroke: transparent; stroke-width: 14; cursor: pointer; }
+.g-edge-underlay { stroke: var(--borderColor-accent-emphasis); stroke-width: 10; opacity: 0.6; }
+.g-edge-arrow { pointer-events: none; }
+.g-edge-arrow--unresolved { fill: var(--fgColor-muted); }
+
+.g-edge-label {
+  cursor: pointer;
+  font: var(--text-caption-shorthand);
+}
+.g-edge-label rect {
+  fill: var(--bgColor-default);
+  stroke: var(--borderColor-default);
+  stroke-width: 1;
+}
+.g-edge-label text { fill: var(--fgColor-default); }
+
+.g-boundary-badge { pointer-events: none; font: var(--text-caption-shorthand); }
+.g-boundary-badge rect { fill: var(--bgColor-accent-muted); stroke: var(--borderColor-accent-muted); }
+.g-boundary-badge text { fill: var(--fgColor-accent); }
+
+.g-stop-badge { cursor: pointer; font: var(--text-caption-shorthand); font-weight: var(--base-text-weight-semibold); }
+.g-stop-badge circle { fill: var(--bgColor-default); stroke: var(--fgColor-default); stroke-width: 1; }
+.g-stop-badge text { fill: var(--fgColor-default); pointer-events: none; }
+.g-stop-badge.is-error circle { stroke: var(--fgColor-danger); stroke-width: 3; }
+.g-stop-badge.is-warning circle { stroke: var(--fgColor-attention); stroke-width: 3; }
+.g-stop-badge.is-selected circle { fill: var(--bgColor-accent-emphasis); stroke: var(--bgColor-accent-emphasis); }
+.g-stop-badge.is-selected text { fill: var(--fgColor-onEmphasis); }
+.g-stop-flag { font: var(--text-caption-shorthand); fill: var(--fgColor-muted); pointer-events: none; }
+
 .g-popover-form {
   display: flex;
   flex-direction: column;

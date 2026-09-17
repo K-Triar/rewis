@@ -130,6 +130,57 @@ const TAB_BY_ARRAY = {
   companies: 'companies'
 };
 
+function mergeLevel(current, next) {
+  if (current === 'error' || next === 'error') return 'error';
+  return current || next;
+}
+
+// 運行系統タブ（12.6）：この運行系統に関わる errors/warnings を、停車駅・駅間ごとの level に振り分ける。
+export function issueTargetsForService(validation, serviceIndex, service) {
+  const result = { service: null, stops: {}, edges: {} };
+  const sections = (service && service.sections) || [];
+  const prefix = `services[${serviceIndex}]`;
+
+  function apply(list, level) {
+    (list || []).forEach((issueObj) => {
+      const path = issueObj && issueObj.path;
+      if (!path || (path !== prefix && !path.startsWith(prefix + '.'))) return;
+      const parts = parsePath(path);
+      const second = parts[1];
+      if (!second) {
+        result.service = mergeLevel(result.service, level);
+        return;
+      }
+      if (second.key === 'stops') {
+        if (second.idx === null) {
+          result.service = mergeLevel(result.service, level);
+        } else {
+          result.stops[second.idx] = mergeLevel(result.stops[second.idx], level);
+        }
+        return;
+      }
+      if (second.key === 'sections') {
+        if (second.idx === null) {
+          result.service = mergeLevel(result.service, level);
+          return;
+        }
+        const section = sections[second.idx];
+        if (section) {
+          for (let i = section.from; i < section.to; i++) {
+            result.edges[i] = mergeLevel(result.edges[i], level);
+          }
+        }
+        return;
+      }
+      result.service = mergeLevel(result.service, level);
+    });
+  }
+
+  apply(validation && validation.errors, 'error');
+  apply(validation && validation.warnings, 'warning');
+  return result;
+}
+
 export function resolveIssueTarget(kind, issueObj, docs) {
   const doc = kind === 'operations' ? docs && docs.operations : docs && docs.network;
   const parts = parsePath(issueObj && issueObj.path);

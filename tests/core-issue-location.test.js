@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { describeIssueLocation, resolveIssueTarget, serviceTitle } from '../editor-core/issue-location.js';
+import { describeIssueLocation, resolveIssueTarget, serviceTitle, issueTargetsForService } from '../editor-core/issue-location.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -139,4 +139,52 @@ test('resolveIssueTarget: notices（飛び先なし）や全体は null', () => 
   assert.equal(resolveIssueTarget('operations', issue('notices[0].status'), docs), null);
   assert.equal(resolveIssueTarget('network', issue('meta.appName'), docs), null);
   assert.equal(resolveIssueTarget('network', issue(''), docs), null);
+});
+
+test('issueTargetsForService: stops[j] の path は stops[j] に、添字なしは service に振り分ける', () => {
+  const service = network.services[0]; // sv_through: stops 4件、sections [0,1)LA / [1,3)LB
+  const validation = {
+    errors: [issue('services[0].stops[1].platformId'), issue('services[0].stops')],
+    warnings: [issue('services[0].stops[1].run')]
+  };
+  const result = issueTargetsForService(validation, 0, service);
+  assert.deepEqual(result, {
+    service: 'error',
+    stops: { 1: 'error' },
+    edges: {}
+  });
+});
+
+test('issueTargetsForService: sections[j] の path は from〜to-1 の edges に展開する', () => {
+  const service = network.services[0];
+  const validation = {
+    errors: [],
+    warnings: [issue('services[0].sections[1].categoryId')]
+  };
+  const result = issueTargetsForService(validation, 0, service);
+  assert.deepEqual(result, {
+    service: null,
+    stops: {},
+    edges: { 1: 'warning', 2: 'warning' }
+  });
+});
+
+test('issueTargetsForService: services[i] 自体・他の運行系統の issue は無視する', () => {
+  const service = network.services[0];
+  const validation = {
+    errors: [issue('services[1].stops[0].run'), issue('services[0]')],
+    warnings: []
+  };
+  const result = issueTargetsForService(validation, 0, service);
+  assert.deepEqual(result, { service: 'error', stops: {}, edges: {} });
+});
+
+test('issueTargetsForService: error と warning が両方あれば error を優先する', () => {
+  const service = network.services[0];
+  const validation = {
+    errors: [issue('services[0].stops[2].run')],
+    warnings: [issue('services[0].stops[2].platformId')]
+  };
+  const result = issueTargetsForService(validation, 0, service);
+  assert.deepEqual(result, { service: null, stops: { 2: 'error' }, edges: {} });
 });
