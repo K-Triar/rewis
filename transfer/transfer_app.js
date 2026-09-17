@@ -104,12 +104,12 @@ function initializeUI() {
     if (swapBtnEl) {
         swapBtnEl.addEventListener('click', swapStations);
         swapBtnEl.addEventListener('click', () => {
-            swapBtnEl.classList.remove('spinning');
+            swapBtnEl.classList.remove('is-spinning');
             void swapBtnEl.offsetWidth; // force reflow to restart animation
-            swapBtnEl.classList.add('spinning');
+            swapBtnEl.classList.add('is-spinning');
         });
         swapBtnEl.addEventListener('animationend', () => {
-            swapBtnEl.classList.remove('spinning');
+            swapBtnEl.classList.remove('is-spinning');
         });
     }
     document.getElementById('add-via').addEventListener('click', addViaStation);
@@ -133,7 +133,7 @@ function initializeUI() {
 function setupSearchModeToggle() {
     const container = document.getElementById('search-mode-toggle');
     if (!container) return;
-    const buttons = Array.from(container.querySelectorAll('.search-mode-btn'));
+    const buttons = Array.from(container.querySelectorAll('.segmented-btn'));
 
     function setMode(mode) {
         searchMode = mode;
@@ -143,7 +143,7 @@ function setupSearchModeToggle() {
         buttons.forEach((btn, index) => {
             const m = btn.dataset.mode;
             const selected = m === mode;
-            btn.classList.toggle('selected', selected);
+            btn.classList.toggle('is-selected', selected);
             btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
             if (selected) selectedBtn = btn;
         });
@@ -154,8 +154,8 @@ function setupSearchModeToggle() {
             const containerRect = container.getBoundingClientRect();
             const leftOffset = btnRect.left - containerRect.left;
 
-            container.style.setProperty('--bg-width', `${btnRect.width}px`);
-            container.style.setProperty('--bg-left', `${leftOffset}px`);
+            container.style.setProperty('--seg-width', `${btnRect.width}px`);
+            container.style.setProperty('--seg-left', `${leftOffset}px`);
         }
     }
 
@@ -193,7 +193,7 @@ function setupStationInput(inputId) {
         const query = input.value.trim();
 
         if (query.length === 0) {
-            suggestionsDiv.classList.remove('active');
+            suggestionsDiv.classList.remove('is-open');
             return;
         }
 
@@ -203,7 +203,7 @@ function setupStationInput(inputId) {
 
     input.addEventListener('blur', () => {
         setTimeout(() => {
-            suggestionsDiv.classList.remove('active');
+            suggestionsDiv.classList.remove('is-open');
         }, 200);
     });
 }
@@ -242,7 +242,7 @@ function normalizeLineDisplayName(name) {
 
 function displaySuggestions(stations, suggestionsDiv, input) {
     if (stations.length === 0) {
-        suggestionsDiv.classList.remove('active');
+        suggestionsDiv.classList.remove('is-open');
         return;
     }
 
@@ -250,7 +250,7 @@ function displaySuggestions(stations, suggestionsDiv, input) {
 
     stations.forEach(station => {
         const item = document.createElement('div');
-        item.className = 'suggestion-item';
+        item.className = 'field-suggestion';
 
         // 路線名を取得して表示用に整形
         // 1) 元の路線名を取得
@@ -276,11 +276,11 @@ function displaySuggestions(stations, suggestionsDiv, input) {
         }
 
         const nameSpan = document.createElement('span');
-        nameSpan.className = 'station-name';
+        nameSpan.className = 'field-suggestion__name';
         nameSpan.textContent = station.name;
 
         const linesSpan = document.createElement('span');
-        linesSpan.className = 'station-lines';
+        linesSpan.className = 'field-suggestion__lines';
         linesSpan.textContent = linesText;
 
         item.appendChild(nameSpan);
@@ -288,13 +288,13 @@ function displaySuggestions(stations, suggestionsDiv, input) {
 
         item.addEventListener('click', () => {
             input.value = station.name;
-            suggestionsDiv.classList.remove('active');
+            suggestionsDiv.classList.remove('is-open');
         });
 
         suggestionsDiv.appendChild(item);
     });
 
-    suggestionsDiv.classList.add('active');
+    suggestionsDiv.classList.add('is-open');
 }
 
 function convertToHiragana(text) {
@@ -354,18 +354,18 @@ function addViaStation() {
     const suggestionsId = `${viaId}-suggestions`;
 
     viaItem.innerHTML = `
-        <div class="station-badge">経${displayIndex}</div>
-        <div class="input-wrapper">
+        <div class="badge badge-square badge-square--compact">経${displayIndex}</div>
+        <div class="field input-wrapper">
             <input
                 type="text"
                 id="${viaId}"
-                class="station-input"
+                class="field-input"
                 placeholder="経由駅"
                 autocomplete="off"
             >
-            <div class="suggestions" id="${suggestionsId}"></div>
+            <div class="field-suggestions" id="${suggestionsId}"></div>
         </div>
-        <button type="button" class="remove-via-button">
+        <button type="button" class="btn btn-icon-circle btn-icon-circle--ghost">
             ✕
         </button>
     `;
@@ -373,7 +373,7 @@ function addViaStation() {
     viaStationsDiv.appendChild(viaItem);
 
     // Attach remove listener using the stable unique id
-    const removeBtn = viaItem.querySelector('.remove-via-button');
+    const removeBtn = viaItem.querySelector('.btn-icon-circle--ghost');
     if (removeBtn) {
         removeBtn.addEventListener('click', () => removeViaStation(uniqueId));
     }
@@ -400,7 +400,7 @@ function reindexViaStations() {
     if (!viaStationsDiv) return;
     const items = viaStationsDiv.querySelectorAll('.via-station-item');
     items.forEach((item, idx) => {
-        const badge = item.querySelector('.station-badge');
+        const badge = item.querySelector('.badge');
         if (badge) badge.textContent = `経${idx + 1}`;
     });
 }
@@ -448,7 +448,7 @@ function performSearch() {
     const viaStations = [];
     const viaItems = document.querySelectorAll('.via-station-item');
     for (let item of viaItems) {
-        const viaId = item.querySelector('.station-input').id;
+        const viaId = item.querySelector('.field-input').id;
         const viaValue = document.getElementById(viaId).value.trim();
         if (viaValue) {
             const viaStation = findStationByName(viaValue);
@@ -609,7 +609,7 @@ function loadFromUrlParams() {
         }
         const container = document.getElementById('search-mode-toggle');
         if (container) {
-            const btn = container.querySelector(`.search-mode-btn[data-mode="${searchMode}"]`);
+            const btn = container.querySelector(`.segmented-btn[data-mode="${searchMode}"]`);
             if (btn) btn.click();
         }
     } catch (e) {
@@ -657,7 +657,7 @@ function loadFromUrlParams() {
             // 最後に追加された経由駅の入力欄を取得
             const viaItems = document.querySelectorAll('.via-station-item');
             const lastViaItem = viaItems[viaItems.length - 1];
-            const viaInput = lastViaItem.querySelector('.station-input');
+            const viaInput = lastViaItem.querySelector('.field-input');
             if (viaInput) {
                 viaInput.value = viaStation.name;
                 console.log(`経由駅${viaIndex}設定:`, viaStation.name);
@@ -735,7 +735,7 @@ function displayResults(routes) {
 
     // 「検索画面に戻る」ボタンを作成（既存のボタン・ラッパーを再利用または削除して重複を防止）
     const backButton = document.createElement('button');
-    backButton.className = 'back-to-search-btn';
+    backButton.className = 'btn btn-outline-pill';
     backButton.textContent = '検索画面に戻る';
     backButton.addEventListener('click', () => {
         // URLパラメータをクリア
@@ -751,12 +751,12 @@ function displayResults(routes) {
     resultsInfo.innerHTML = ''; // 既存の内容をクリア
 
     // Try to reuse an existing header wrapper if present to avoid creating duplicates
-    const existingHeaderWrapper = resultsSection.querySelector('.route-header-wrapper');
+    const existingHeaderWrapper = resultsSection.querySelector('.route-results-header');
     const heading = resultsSection.querySelector('h2');
 
     if (existingHeaderWrapper) {
         // Remove any previous back button inside the existing wrapper
-        const prevBtn = existingHeaderWrapper.querySelector('.back-to-search-btn');
+        const prevBtn = existingHeaderWrapper.querySelector('.btn-outline-pill');
         if (prevBtn) prevBtn.remove();
 
         // Ensure the heading is inside the wrapper
@@ -769,12 +769,7 @@ function displayResults(routes) {
     } else if (heading && heading.parentNode) {
         // Create a new wrapper and insert the heading and back button
         const headerWrapper = document.createElement('div');
-        headerWrapper.className = 'route-header-wrapper';
-        headerWrapper.style.display = 'flex';
-        headerWrapper.style.justifyContent = 'space-between';
-        headerWrapper.style.alignItems = 'center';
-        headerWrapper.style.gap = '16px';
-        headerWrapper.style.marginBottom = '12px';
+        headerWrapper.className = 'route-results-header';
 
         // Insert wrapper before the heading, then move heading into it
         heading.parentNode.insertBefore(headerWrapper, heading);
@@ -783,7 +778,7 @@ function displayResults(routes) {
     } else {
         // Fallback: append back button to resultsInfo if heading not found
         // Also ensure no duplicate button exists there
-        const prevBtn = resultsInfo.querySelector('.back-to-search-btn');
+        const prevBtn = resultsInfo.querySelector('.btn-outline-pill');
         if (prevBtn) prevBtn.remove();
         resultsInfo.appendChild(backButton);
     }
@@ -808,7 +803,7 @@ function displayResults(routes) {
         tab.addEventListener('click', () => {
             // activate tab
             const allTabs = tabs.querySelectorAll('.route-tab');
-            allTabs.forEach(t => t.classList.toggle('active', t === tab));
+            allTabs.forEach(t => t.classList.toggle('is-active', t === tab));
 
             // show/hide cards and their share buttons
             const cards = resultsContainer.querySelectorAll('.route-card');
@@ -850,21 +845,21 @@ function displayResults(routes) {
         } catch (e) {
             console.error('createRouteCard error', e);
             card = document.createElement('div');
-            card.className = 'route-card';
+            card.className = 'card route-card';
             card.textContent = `ルート ${idx + 1}`;
         }
 
-        card.classList.add('route-card');
+        card.classList.add('card', 'route-card');
         card.dataset.index = idx;
         card.style.display = (idx === 0) ? 'block' : 'none';
 
         resultsContainer.appendChild(card);
 
-        // 共有ボタン（back-to-search-btn と同様のデザイン）
+        // 共有ボタン（戻るボタンと同様のデザイン）
         try {
             const shareBtn = document.createElement('button');
             shareBtn.type = 'button';
-            shareBtn.className = 'back-to-search-btn share-result-btn';
+            shareBtn.className = 'btn btn-outline-pill';
             shareBtn.textContent = '検索結果を共有する';
 
             shareBtn.addEventListener('click', (e) => {
@@ -922,7 +917,7 @@ function displayResults(routes) {
 
     // Activate the initial tab
     const allTabs = tabs.querySelectorAll('.route-tab');
-    allTabs.forEach((t, i) => t.classList.toggle('active', i === initialIndex));
+    allTabs.forEach((t, i) => t.classList.toggle('is-active', i === initialIndex));
 
     // show/hide cards according to initialIndex and ensure share button visibility
     const cards = resultsContainer.querySelectorAll('.route-card');
@@ -1037,7 +1032,7 @@ function buildTimelineItems(model, route) {
 // ========================================
 function createRouteCard(model, route, routeNumber) {
     const card = document.createElement('div');
-    card.className = 'route-card';
+    card.className = 'card route-card';
 
     // ヘッダー
     const header = document.createElement('div');
@@ -1072,12 +1067,10 @@ function createRouteCard(model, route, routeNumber) {
 // 駅行
 function createTableStationRow({ stationId, marker, arrivalElapsed = null, departureElapsed = null, transferSeconds = null, transferLabel = '' }, model) {
     const row = document.createElement('div');
-    row.className = 'table-row station-row';
+    row.className = 'timeline-row timeline-row--station';
 
     // マーカー色
-    let markerColor = '#1976d2';
-    if (marker === 'start') markerColor = '#4CAF50';
-    if (marker === 'end') markerColor = '#E60012';
+    let markerColor = 'var(--color-primary)';
 
     // 時刻表示: 縦に並べる（上: 到着 着, 下: 出発 発）
     // 直通(乗換不要)の場合は departure を表示せず、arrival のみ表示する
@@ -1085,77 +1078,73 @@ function createTableStationRow({ stationId, marker, arrivalElapsed = null, depar
     let timeHtmlBottom = '';
     if (transferLabel === '直通') {
         if (arrivalElapsed != null) {
-            timeHtmlTop = `<div class="time-arrival">${formatSeconds(arrivalElapsed)} 着</div>`;
+            timeHtmlTop = `<div class="timeline-time-arrival">${formatSeconds(arrivalElapsed)} 着</div>`;
         }
     } else {
         if (arrivalElapsed != null) {
-            timeHtmlTop = `<div class="time-arrival">${formatSeconds(arrivalElapsed)} 着</div>`;
+            timeHtmlTop = `<div class="timeline-time-arrival">${formatSeconds(arrivalElapsed)} 着</div>`;
         }
         if (departureElapsed != null) {
-            timeHtmlBottom = `<div class="time-departure">${formatSeconds(departureElapsed)} 発</div>`;
+            timeHtmlBottom = `<div class="timeline-time-departure">${formatSeconds(departureElapsed)} 発</div>`;
         }
     }
 
     // 乗換情報（駅名の右側に表示）
     let transferHtml = '';
     if (transferLabel === '直通') {
-        transferHtml = `<span class="transfer-time">乗換不要(直通)</span>`;
+        transferHtml = `<span class="timeline-transfer-time">乗換不要(直通)</span>`;
     } else if (transferSeconds != null) {
-        transferHtml = `<span class="transfer-wrapper"><img src="../assets/icons/walking.svg" class="walking-icon" alt="walk">${formatSeconds(transferSeconds)}</span>`;
+        transferHtml = `<span class="timeline-walk"><img src="../assets/icons/walking.svg" class="timeline-walk-icon" alt="walk">${formatSeconds(transferSeconds)}</span>`;
     }
 
     // マーカー本体
     let markerHtml = '';
-    if (marker === 'start') {
-        markerHtml = `<span class="station-marker-badge station-marker-start">発</span>`;
-    } else if (marker === 'end') {
-        markerHtml = `<span class="station-marker-badge station-marker-end">着</span>`;
+    if (marker === 'start' || marker === 'end') {
+        markerHtml = `<span class="badge badge-square badge-square--sm">${marker === 'start' ? '発' : '着'}</span>`;
     } else if (transferSeconds != null) {
-        markerHtml = `<span class="station-marker transfer"></span>`;
+        markerHtml = `<span class="timeline-dot timeline-dot--transfer"></span>`;
     } else {
-        markerHtml = `<span class="station-marker" style="background:${markerColor};"></span>`;
+        markerHtml = `<span class="timeline-dot" style="background:${markerColor};"></span>`;
     }
 
     row.innerHTML = `
-        <div class="table-time">
+        <div class="timeline-time">
             ${timeHtmlTop}
             ${timeHtmlBottom}
         </div>
-        <div class="table-marker">
+        <div class="timeline-marker-col">
             ${markerHtml}
         </div>
-        <div class="table-station">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <span class="station-name"></span>
-                ${transferHtml}
-            </div>
+        <div class="timeline-station-row">
+            <span class="timeline-station-name"></span>
+            ${transferHtml}
         </div>
     `;
-    row.querySelector('.station-name').textContent = model.stationName(stationId) || stationId;
+    row.querySelector('.timeline-station-name').textContent = model.stationName(stationId) || stationId;
     return row;
 }
 
 // 徒歩連絡行（別の駅への乗換）
 function createWalkInfoRow(item, model) {
     const row = document.createElement('div');
-    row.className = 'table-row transfer-row';
+    row.className = 'timeline-row';
 
     const timeDiv = document.createElement('div');
-    timeDiv.className = 'table-time';
+    timeDiv.className = 'timeline-time';
     row.appendChild(timeDiv);
 
     const markerDiv = document.createElement('div');
-    markerDiv.className = 'table-marker';
-    markerDiv.innerHTML = `<span class="station-marker transfer"></span>`;
+    markerDiv.className = 'timeline-marker-col';
+    markerDiv.innerHTML = `<span class="timeline-dot timeline-dot--transfer"></span>`;
     row.appendChild(markerDiv);
 
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'table-content';
+    contentDiv.className = 'timeline-content';
     const wrapper = document.createElement('span');
-    wrapper.className = 'transfer-wrapper';
+    wrapper.className = 'timeline-walk';
     const icon = document.createElement('img');
     icon.src = '../assets/icons/walking.svg';
-    icon.className = 'walking-icon';
+    icon.className = 'timeline-walk-icon';
     icon.alt = 'walk';
     wrapper.appendChild(icon);
     const label = document.createElement('span');
@@ -1205,50 +1194,50 @@ function createTableSegmentRow(item, model) {
 
     // 1つの行として作成
     const segmentRow = document.createElement('div');
-    segmentRow.className = 'table-row segment-row';
+    segmentRow.className = 'timeline-row timeline-row--segment';
 
-    // table-time（空）
+    // timeline-time（空）
     const segTimeDiv = document.createElement('div');
-    segTimeDiv.className = 'table-time';
+    segTimeDiv.className = 'timeline-time';
     segmentRow.appendChild(segTimeDiv);
 
-    // table-marker（のりば・乗車時間 + 縦線）
+    // timeline-marker-col（のりば・乗車時間 + 縦線）
     const segMarkerDiv = document.createElement('div');
-    segMarkerDiv.className = 'table-marker segment-marker-container';
+    segMarkerDiv.className = 'timeline-marker-col timeline-segment';
 
     // 左側：のりば・乗車時間のコンテナ
     const markerInner = document.createElement('div');
-    markerInner.className = 'marker-inner-wrapper';
+    markerInner.className = 'timeline-segment-inner';
 
     // 乗車駅のりば（上部）
     if (item.departurePlatform) {
         const depPlatform = document.createElement('div');
-        depPlatform.className = 'station-platform-inline platform-top';
+        depPlatform.className = 'badge badge-platform--solid';
         depPlatform.textContent = `${item.departurePlatform}番のりば`;
         markerInner.appendChild(depPlatform);
     } else {
         // 空のスペーサー
         const spacer = document.createElement('div');
-        spacer.className = 'platform-spacer';
+        spacer.className = 'timeline-platform-spacer';
         markerInner.appendChild(spacer);
     }
 
     // 乗車時間（中央）
     const durationSpan = document.createElement('div');
-    durationSpan.className = 'boarding-duration';
+    durationSpan.className = 'timeline-boarding-duration';
     durationSpan.textContent = `${formatSeconds(item.duration)} 乗車`;
     markerInner.appendChild(durationSpan);
 
     // 降車駅のりば（下部）
     if (item.arrivalPlatform) {
         const arrPlatform = document.createElement('div');
-        arrPlatform.className = 'station-platform-inline platform-bottom';
+        arrPlatform.className = 'badge badge-platform--solid';
         arrPlatform.textContent = `${item.arrivalPlatform}番のりば`;
         markerInner.appendChild(arrPlatform);
     } else {
         // 空のスペーサー
         const spacer = document.createElement('div');
-        spacer.className = 'platform-spacer';
+        spacer.className = 'timeline-platform-spacer';
         markerInner.appendChild(spacer);
     }
 
@@ -1256,28 +1245,28 @@ function createTableSegmentRow(item, model) {
 
     // 右側：縦線（セグメントライン）
     const segmentLine = document.createElement('div');
-    segmentLine.className = 'segment-line';
+    segmentLine.className = 'timeline-line';
     segmentLine.style.background = item.lineColor;
     segMarkerDiv.appendChild(segmentLine);
 
     segmentRow.appendChild(segMarkerDiv);
 
-    // table-content（路線情報）
+    // timeline-content（路線情報）
     const segContentDiv = document.createElement('div');
-    segContentDiv.className = 'table-content segment-block';
+    segContentDiv.className = 'timeline-content';
 
     // 路線名・種別（直通で続く区間には「（□□線直通）」を付ける）
     const lineRow = document.createElement('div');
-    lineRow.className = 'segment-line-row';
+    lineRow.className = 'timeline-line-row';
     const iconSpan = document.createElement('span');
-    iconSpan.className = 'line-symbol';
+    iconSpan.className = 'timeline-line-symbol';
     iconSpan.style.setProperty('--icon-color', item.lineColor);
     const iconType = item.vehicleTypeId || 'TC';
     iconSpan.style.webkitMaskImage = `url(../assets/icons/${iconType}.svg)`;
     iconSpan.style.maskImage = `url(../assets/icons/${iconType}.svg)`;
 
     const lineName = document.createElement('span');
-    lineName.className = 'line-name';
+    lineName.className = 'timeline-line-name';
     const categoryText = item.categoryName ? ` ${item.categoryName}` : '';
     const throughText = item.throughFromLineName ? `（${item.throughFromLineName}直通）` : '';
     lineName.textContent = `${item.lineName}${categoryText}${throughText}`;
@@ -1289,9 +1278,9 @@ function createTableSegmentRow(item, model) {
     // 行先（区間の1つ目にのみ表示）
     if (item.headsign) {
         const headsignRow = document.createElement('div');
-        headsignRow.className = 'segment-meta-row';
+        headsignRow.className = 'timeline-meta-row';
         const headsignSpan = document.createElement('span');
-        headsignSpan.className = 'segment-detail';
+        headsignSpan.className = 'timeline-detail';
         const headsignText = [item.headsign, ...item.alternativeHeadsigns].map(h => `${h}行`).join('・');
         headsignSpan.textContent = headsignText;
         headsignRow.appendChild(headsignSpan);
@@ -1300,9 +1289,9 @@ function createTableSegmentRow(item, model) {
 
     // 停車駅数
     const metaRow = document.createElement('div');
-    metaRow.className = 'segment-meta-row';
+    metaRow.className = 'timeline-meta-row';
     const stopsDetail = document.createElement('span');
-    stopsDetail.className = 'segment-detail';
+    stopsDetail.className = 'timeline-detail';
     stopsDetail.textContent = `${stopsCount}駅目で降車`;
     metaRow.appendChild(stopsDetail);
     segContentDiv.appendChild(metaRow);
@@ -1310,7 +1299,7 @@ function createTableSegmentRow(item, model) {
     // 途中駅表示ボタン（途中駅がある場合のみ）
     if (item.midStops.length > 0) {
         const stopsRow = document.createElement('div');
-        stopsRow.className = 'segment-stops-row';
+        stopsRow.className = 'timeline-meta-row';
         const stopsObj = createStopsButton(item, model);
         if (stopsObj) {
             // ボタンは内容側に表示
@@ -1342,30 +1331,30 @@ function createStopsButton(item, model) {
 
     // ボタン（内容側に表示）
     const button = document.createElement('button');
-    button.className = 'toggle-stops-btn';
+    button.className = 'btn btn-outline-pill';
     button.id = btnId;
     button.textContent = '▼ 途中駅を表示';
 
     // 情報側の停車駅リスト（駅名＋時間）
     const infoList = document.createElement('div');
-    infoList.className = 'stops-list';
+    infoList.className = 'timeline-stops';
     infoList.id = stopsId;
 
     // マーカー側のリスト（マーカーのみ、縦に並べる）
     const markerList = document.createElement('div');
-    markerList.className = 'stops-marker-list';
+    markerList.className = 'timeline-stop-markers';
     markerList.id = `${stopsId}-markers`;
 
     item.midStops.forEach(stop => {
         const infoRow = document.createElement('div');
-        infoRow.className = 'stop-row';
+        infoRow.className = 'timeline-stop';
 
         const stopName = document.createElement('div');
-        stopName.className = 'stop-name';
+        stopName.className = 'timeline-stop-name';
         stopName.textContent = model.stationName(stop.stationId) || stop.stationId;
 
         const stopElapsed = document.createElement('div');
-        stopElapsed.className = 'stop-elapsed';
+        stopElapsed.className = 'timeline-stop-elapsed';
         stopElapsed.textContent = formatSeconds(stop.elapsedFromSectionStart);
 
         infoRow.appendChild(stopName);
@@ -1374,9 +1363,9 @@ function createStopsButton(item, model) {
 
         // マーカー側の行（高さをinfoRowに合わせるスタイルで揃える）
         const markerRow = document.createElement('div');
-        markerRow.className = 'stop-marker-row';
+        markerRow.className = 'timeline-stop-marker-row';
         const marker = document.createElement('div');
-        marker.className = 'stop-marker';
+        marker.className = 'timeline-stop-marker';
         // 色を路線に合わせる（線色を境界線に反映）
         try {
             if (item.lineColor) {
@@ -1391,15 +1380,15 @@ function createStopsButton(item, model) {
 
     // ボタン動作：情報側とマーカー側の両方をトグル
     button.addEventListener('click', () => {
-        const active = !infoList.classList.contains('active');
-        infoList.classList.toggle('active', active);
-        markerList.classList.toggle('active', active);
+        const active = !infoList.classList.contains('is-expanded');
+        infoList.classList.toggle('is-expanded', active);
+        markerList.classList.toggle('is-expanded', active);
         button.textContent = active ? '▲ 途中駅を非表示' : '▼ 途中駅を表示';
 
         if (active) {
-            // マーカー列（table-marker側）と情報列（table-content側）は別カラムのため、
+            // マーカー列（timeline-marker-col側）と情報列（timeline-content側）は別カラムのため、
             // 情報側の1行目の実際の描画位置を測ってマーカー列の開始位置を合わせる
-            const firstInfoRow = infoList.querySelector('.stop-row');
+            const firstInfoRow = infoList.querySelector('.timeline-stop');
             const markerContainer = markerList.parentElement;
             if (firstInfoRow && markerContainer) {
                 const offset = firstInfoRow.getBoundingClientRect().top - markerContainer.getBoundingClientRect().top;

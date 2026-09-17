@@ -1,0 +1,220 @@
+/*
+ * transfer.html ページ固有のレイアウト・グルーCSS
+ *
+ * design-system/（tokens.css, layout.css, components.css）は
+ * どのページでも使える汎用部品。このファイルは「乗換案内フォーム」
+ * という具体的な画面構成にだけ関わる、ページ固有の配置調整を担う。
+ * 値はすべて design-system/tokens.css のトークンを参照する。
+ *
+ * 他ページを作る際も、このファイルのように「design-system 3ファイル
+ * + そのページ専用の薄いCSS」という構成にするのが想定パターン。
+ */
+
+/* ===== main を検索フォームのカードとして見せる ===== */
+main.page-main {
+    overflow: hidden;
+}
+@media (min-width: 769px) {
+    main.page-main {
+        min-height: 0;
+    }
+}
+@media (max-width: 768px) {
+    main.page-main {
+        min-height: calc(100svh - 160px);
+    }
+}
+
+/* ===== 検索モード切替の配置 ===== */
+/* .page-mode-toggle / .page-mode-toggle-label は design-system/components.css 側の共通クラス（旧 .search-mode-wrapper / .search-mode-label） */
+
+/* ===== 駅入力行（バッジ＋入力欄＋サフィックス） ===== */
+.station-input-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-7);
+    width: 100%;
+    padding: 0 16px;
+}
+.input-wrapper {
+    flex: 1;
+    position: relative;
+    max-width: 400px;
+}
+.station-suffix {
+    font-size: 16px;
+    color: var(--color-text);
+    flex-shrink: 0;
+    font-weight: var(--font-weight-semibold);
+}
+@media (min-width: 769px) {
+    .station-input-row {
+        margin: 0 auto var(--space-7);
+        box-sizing: border-box;
+        padding: 0 var(--space-3);
+    }
+    .input-wrapper {
+        flex: 0 1 400px;
+        width: 100%;
+    }
+    .via-stations {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    .via-station-item {
+        margin: 0 auto var(--space-7);
+        justify-content: center;
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        padding: 0 var(--space-3);
+    }
+    .via-station-item .btn-icon-circle--ghost {
+        margin-left: var(--space-2);
+        align-self: center;
+    }
+    .station-suffix {
+        margin-left: var(--space-2);
+    }
+    .via-station-item .btn-icon-circle--ghost,
+    .station-suffix {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        max-width: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+}
+
+.via-station-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-7);
+}
+.via-station-item .input-wrapper {
+    flex: 0 1 400px;
+    max-width: 400px;
+}
+
+/* ===== 経由追加 / 入替行 ===== */
+.via-swap-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    margin: 0 auto var(--space-7) auto;
+    max-width: 520px;
+    box-sizing: border-box;
+    padding: 0 var(--space-3);
+    min-height: 40px;
+}
+.via-swap-row .btn-neutral-pill {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 220px;
+    width: auto;
+    font-size: var(--font-size-md);
+}
+.swap-button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-4);
+    position: static;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* ===== 検索ボタン ===== */
+.search-button-row {
+    margin: var(--space-7) auto var(--space-8) auto;
+    display: flex;
+    justify-content: center;
+}
+
+/* ===== 検索結果セクション ===== */
+.results-section {
+    animation: fadeIn 0.5s;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin-top: 0;
+    z-index: 400;
+}
+@media (min-width: 769px) {
+    .results-section {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        z-index: auto;
+        margin-top: 0;
+    }
+}
+@media (max-width: 768px) {
+    /* モバイルは通常のドキュメントフローに乗せ、footerが押し下げられるようにする。
+       左右のpaddingはここでは持たせず、タブ・カードを画面幅いっぱいに広げる。
+       見出し等のテキスト要素にだけ個別に左右paddingを付ける。 */
+    .results-section {
+        position: static;
+        padding: var(--space-5) 0 0;
+    }
+    .results-info,
+    .route-results-header {
+        padding-left: var(--space-4);
+        padding-right: var(--space-4);
+    }
+    .results-container {
+        gap: 0;
+    }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.results-section h2 {
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+    font-size: var(--font-size-2xl);
+}
+.results-info {
+    margin-bottom: var(--space-5);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+}
+.results-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+.route-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-3);
+}
+/* .share-result-wrapper / .notice-section / .loading-section / @keyframes fadeIn は design-system/components.css 側の共通クラス */
+
+@media (max-width: 768px) {
+    .results-container {
+        gap: 0;
+    }
+    .timeline {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}

@@ -29,15 +29,9 @@ function applyLineTypeIcon(el, line) {
     const iconPath = iconPathMap[vehicleTypeId] || iconPathMap.TC;
 
     el.textContent = '';
-    el.style.backgroundColor = line.color || 'var(--primary-color)';
+    el.style.backgroundColor = line.color || 'var(--color-primary)';
     el.style.webkitMaskImage = `url(${iconPath})`;
     el.style.maskImage = `url(${iconPath})`;
-}
-
-function formatVerticalServiceLabel(label) {
-    return String(label || '')
-        .replace(/\(/g, '（')
-        .replace(/\)/g, '）');
 }
 
 function formatSeconds(seconds) {
@@ -97,7 +91,7 @@ async function loadOperationData() {
 function setOperationUrlLineParam(lineId, useReplace) {
     try {
         const urlObj = new URL(window.location.href);
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(urlObj.search);
 
         if (lineId) {
             params.set('line', lineId);
@@ -146,7 +140,7 @@ function scrollOperationTopOnMobile() {
 
     // Wait for layout to settle after view switching, then force top position.
     requestAnimationFrame(() => {
-        const container = document.querySelector('.container');
+        const container = document.querySelector('.page-container');
         if (container) {
             container.scrollTop = 0;
             try {
@@ -167,50 +161,128 @@ function scrollOperationTopOnMobile() {
     });
 }
 
-// ステータス判定
-function getLineStatusSummary(lineId) {
-    const list = model.noticesByLine.get(lineId) || [];
-    const st = model.primaryNotice(lineId);
-    if (!st) {
-        return {
-            level: 'normal',
-            icon: 'circle',
-            heading: '遅れの情報はありません',
-            subLines: []
-        };
-    }
-
-    const heading = st.status?.heading || 'お知らせあり';
-    const isSuspend = isSuspendNotice(st);
-
-    const level = isSuspend ? 'suspend' : 'warning';
-    const icon = isSuspend ? 'cross' : 'warning';
-
-    const subLines = [];
-    if (st.range != null) {
-        const sName = model.stationName(st.range.fromStationId) || '一部区間';
-        const eName = model.stationName(st.range.toStationId) || '';
+// ========================================
+// 運行情報行（区間・原因）の構築
+// ========================================
+function getNoticeFields(notice) {
+    const fields = [];
+    if (notice.range != null) {
+        const sName = model.stationName(notice.range.fromStationId) || '一部区間';
+        const eName = model.stationName(notice.range.toStationId) || '';
         if (sName && eName) {
-            subLines.push(`区間：${sName} から ${eName} まで`);
+            fields.push({ label: '区間', value: `${sName} ～ ${eName}` });
         }
     }
-    const causeHeading = getCauseHeading(st);
+    const causeHeading = getCauseHeading(notice);
     if (causeHeading) {
-        subLines.push(`事由：${causeHeading}`);
+        fields.push({ label: '原因', value: causeHeading });
     }
-    if (list.length > 1) {
-        subLines.push(`ほか${list.length - 1}件`);
-    }
-
-    return {
-        level,
-        icon,
-        heading,
-        subLines
-    };
+    return fields;
 }
 
+function buildLineNoticeAction(lineId) {
+    const action = document.createElement('div');
+    action.className = 'line-notice-action';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-outline-pill line-notice-detail-btn';
+    btn.textContent = '詳細';
+    btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        showLineDetail(lineId, { syncUrl: true });
+    });
+
+    action.appendChild(btn);
+    return action;
+}
+
+function buildLineNoticeRow(notice, lineId) {
+    const isSuspend = isSuspendNotice(notice);
+
+    const row = document.createElement('div');
+    row.className = `line-notice-row${isSuspend ? ' line-notice-row--suspend' : ' line-notice-row--warning'}`;
+
+    const iconCol = document.createElement('div');
+    iconCol.className = 'line-notice-icon-col';
+    const icon = document.createElement('span');
+    icon.className = 'line-notice-icon';
+    icon.textContent = isSuspend ? '×' : '△';
+    icon.setAttribute('aria-hidden', 'true');
+    iconCol.appendChild(icon);
+
+    const main = document.createElement('div');
+    main.className = 'line-notice-main';
+
+    const title = document.createElement('div');
+    title.className = 'line-notice-title';
+    title.textContent = notice.status?.heading || '運行情報';
+    main.appendChild(title);
+
+    const fields = getNoticeFields(notice);
+    if (fields.length > 0) {
+        const fieldsWrap = document.createElement('div');
+        fieldsWrap.className = 'line-notice-fields';
+        fields.forEach(f => {
+            const fieldEl = document.createElement('div');
+            fieldEl.className = 'line-notice-field';
+
+            const label = document.createElement('span');
+            label.className = 'line-notice-label';
+            label.textContent = f.label;
+
+            const value = document.createElement('span');
+            value.className = 'line-notice-value';
+            value.textContent = f.value;
+
+            fieldEl.appendChild(label);
+            fieldEl.appendChild(value);
+            fieldsWrap.appendChild(fieldEl);
+        });
+        main.appendChild(fieldsWrap);
+    }
+
+    if (notice.updatedAt) {
+        const updated = document.createElement('div');
+        updated.className = 'line-notice-updated';
+        updated.textContent = `${formatJaDateTime(notice.updatedAt)} 更新`;
+        main.appendChild(updated);
+    }
+
+    row.appendChild(iconCol);
+    row.appendChild(main);
+    row.appendChild(buildLineNoticeAction(lineId));
+    return row;
+}
+
+function buildLineNoticeNormalRow(lineId) {
+    const row = document.createElement('div');
+    row.className = 'line-notice-row line-notice-row--normal';
+
+    const iconCol = document.createElement('div');
+    iconCol.className = 'line-notice-icon-col';
+    const icon = document.createElement('span');
+    icon.className = 'line-notice-icon';
+    icon.textContent = '○';
+    icon.setAttribute('aria-hidden', 'true');
+    iconCol.appendChild(icon);
+
+    const main = document.createElement('div');
+    main.className = 'line-notice-main';
+    const title = document.createElement('div');
+    title.className = 'line-notice-title';
+    title.textContent = '遅れの情報はありません';
+    main.appendChild(title);
+
+    row.appendChild(iconCol);
+    row.appendChild(main);
+    row.appendChild(buildLineNoticeAction(lineId));
+    return row;
+}
+
+// ========================================
 // 路線一覧ビュー描画（会社から探す）
+// ========================================
 function renderLineListView() {
     const container = document.getElementById('line-list-view');
     if (!container || !model) return;
@@ -241,79 +313,51 @@ function renderLineListView() {
         cardsWrap.className = 'line-cards';
 
         lines.forEach(line => {
-            const status = getLineStatusSummary(line.id);
+            const notices = model.noticesByLine.get(line.id) || [];
+
             const card = document.createElement('article');
             card.className = 'line-card';
             card.dataset.lineId = line.id;
 
-            if (status.level === 'suspend') card.classList.add('line-card--suspend');
-            if (status.level === 'warning') card.classList.add('line-card--warning');
+            const header = document.createElement('div');
+            header.className = 'line-card-header';
+            header.tabIndex = 0;
+            header.setAttribute('role', 'button');
+            header.setAttribute('aria-label', `${line.name}の運行情報を開く`);
 
-            // アイコン：種別アイコンを路線色で表示
             const iconContent = document.createElement('div');
             iconContent.className = 'line-icon';
             applyLineTypeIcon(iconContent, line);
-
-            const textWrap = document.createElement('div');
-            textWrap.className = 'line-text';
 
             const nameEl = document.createElement('div');
             nameEl.className = 'line-name';
             nameEl.textContent = line.name;
 
-            const statusRow = document.createElement('div');
-            statusRow.className = 'line-status-row';
+            header.appendChild(iconContent);
+            header.appendChild(nameEl);
 
-            let iconEl;
-            if (status.icon === 'circle') {
-                iconEl = document.createElement('span');
-                iconEl.className = 'status-icon-circle';
-            } else if (status.icon === 'cross') {
-                iconEl = document.createElement('span');
-                iconEl.className = 'status-icon-cross';
-                iconEl.textContent = '×';
-            } else {
-                iconEl = document.createElement('span');
-                iconEl.className = 'status-icon-warning';
-            }
-
-            const statusText = document.createElement('span');
-            statusText.className = 'line-status-text';
-            statusText.textContent = status.heading;
-
-            statusRow.appendChild(iconEl);
-            statusRow.appendChild(statusText);
-
-            textWrap.appendChild(nameEl);
-            textWrap.appendChild(statusRow);
-
-            if (status.subLines && status.subLines.length > 0) {
-                const sub = document.createElement('div');
-                sub.className = 'line-status-sub';
-                status.subLines.forEach(s => {
-                    const line = document.createElement('div');
-                    line.textContent = s;
-                    sub.appendChild(line);
-                });
-                textWrap.appendChild(sub);
-            }
-
-            const main = document.createElement('div');
-            main.className = 'line-card-main';
-            main.appendChild(iconContent);
-            main.appendChild(textWrap);
-
-            const chevron = document.createElement('div');
-            chevron.className = 'line-card-chevron';
-            chevron.textContent = '＞';
-
-            card.appendChild(main);
-            card.appendChild(chevron);
-
-            card.addEventListener('click', () => {
-                showLineDetail(line.id, { syncUrl: true });
+            const openDetail = () => showLineDetail(line.id, { syncUrl: true });
+            header.addEventListener('click', openDetail);
+            header.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                    ev.preventDefault();
+                    openDetail();
+                }
             });
 
+            const list = document.createElement('div');
+            list.className = 'line-notice-list';
+
+            if (notices.length === 0) {
+                list.appendChild(buildLineNoticeNormalRow(line.id));
+            } else {
+                const rep = model.primaryNotice(line.id);
+                const ordered = rep ? [rep, ...notices.filter(n => n !== rep)] : notices;
+                ordered.forEach(n => list.appendChild(buildLineNoticeRow(n, line.id)));
+            }
+
+            card.appendChild(header);
+            card.appendChild(list);
             cardsWrap.appendChild(card);
         });
 
@@ -322,7 +366,9 @@ function renderLineListView() {
     });
 }
 
+// ========================================
 // 詳細ビュー表示
+// ========================================
 function showLineDetail(lineId, options) {
     const opts = options || {};
     const syncUrl = opts.syncUrl !== false;
@@ -382,7 +428,7 @@ function ensureLineShareButton() {
 
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'back-to-search-btn share-result-btn';
+        btn.className = 'btn btn-outline-pill';
         btn.id = 'share-line-btn';
         btn.textContent = '路線を共有する';
 
@@ -405,7 +451,9 @@ function ensureLineShareButton() {
     }
 }
 
-// アラート枠（1路線に複数件あれば、代表の1件を先頭にすべて積み重ねる）
+// ========================================
+// 運行情報ボックス（1路線に複数件あれば、代表の1件を先頭にすべて積み重ねる）
+// ========================================
 function renderLineAlertBox(lineId) {
     const box = document.getElementById('line-alert-box');
     box.innerHTML = '';
@@ -413,7 +461,7 @@ function renderLineAlertBox(lineId) {
     const list = model.noticesByLine.get(lineId) || [];
     if (list.length === 0) {
         const item = document.createElement('div');
-        item.className = 'alert-item alert-normal';
+        item.className = 'alert-item alert-item--normal';
 
         const inner = document.createElement('div');
         inner.className = 'alert-body';
@@ -433,8 +481,10 @@ function renderLineAlertBox(lineId) {
 }
 
 function buildAlertItem(notice) {
+    const isSuspend = isSuspendNotice(notice);
+
     const item = document.createElement('div');
-    item.className = 'alert-item';
+    item.className = `alert-item${isSuspend ? ' alert-item--suspend' : ''}`;
 
     const header = document.createElement('div');
     header.className = 'alert-header';
@@ -442,10 +492,10 @@ function buildAlertItem(notice) {
     const main = document.createElement('div');
     main.className = 'alert-main';
 
-    const isSuspend = isSuspendNotice(notice);
     const icon = document.createElement('span');
-    icon.className = isSuspend ? 'alert-icon-cross' : 'alert-icon-warning';
-    icon.textContent = isSuspend ? '×' : '！';
+    icon.className = 'alert-icon';
+    icon.textContent = isSuspend ? '×' : '△';
+    icon.setAttribute('aria-hidden', 'true');
 
     const title = document.createElement('span');
     title.className = 'alert-title';
@@ -470,33 +520,30 @@ function buildAlertItem(notice) {
     return item;
 }
 
+// ========================================
 // 路線図＋駅リスト
+// ========================================
 function renderLineDiagram(lineId) {
     const line = model.lineById.get(lineId);
     if (!line) return;
 
     const lineLayoutEl = document.getElementById('line-layout');
-
-    // 古い行をクリア
     lineLayoutEl.innerHTML = '';
 
     const cats = line.categories || [];
 
-    // 1. 各種別の停車駅IDのSetを作成（有効な運行系統の区間から）
     const stopsByCategory = model.stopsByLineCategory.get(lineId) || new Map();
     const stopsByCat = {};
     cats.forEach(c => stopsByCat[c.id] = new Set(stopsByCategory.get(c.id) || []));
 
     const order = line.stations || [];
 
-    // もし運行系統から全く抽出できなかった場合のフォールバック（全停車扱い）
     cats.forEach(c => {
         if (stopsByCat[c.id].size === 0) {
             order.forEach(stId => stopsByCat[c.id].add(stId));
         }
     });
 
-    // 2. 各種別の最初と最後のインデックスを計算
     const boundsByCat = {};
     cats.forEach(c => {
         let minIdx = Infinity;
@@ -510,7 +557,6 @@ function renderLineDiagram(lineId) {
         boundsByCat[c.id] = { min: minIdx, max: maxIdx };
     });
 
-    // この路線の区間で影響を受けている範囲（5-3：1路線の複数のnoticeを合わせて、種別ごとに塗る）
     const noticeList = model.noticesByLine.get(lineId) || [];
     const noticeAffected = noticeList.map(notice => ({
         notice,
@@ -523,6 +569,20 @@ function renderLineDiagram(lineId) {
         ));
     }
 
+    function getCategorySeverityAt(idx, categoryId) {
+        let severity = null;
+        noticeAffected.forEach(({ notice, indices }) => {
+            if (!indices.has(idx)) return;
+            if (notice.categoryIds != null && !notice.categoryIds.includes(categoryId)) return;
+            if (isSuspendNotice(notice)) {
+                severity = 'suspend';
+            } else if (!severity) {
+                severity = 'warning';
+            }
+        });
+        return severity;
+    }
+
     const catAffectedIndices = {};
     cats.forEach(c => {
         catAffectedIndices[c.id] = order
@@ -530,9 +590,7 @@ function renderLineDiagram(lineId) {
             .filter(idx => isCategoryAffectedAt(idx, c.id));
     });
 
-    // --- DOM生成 ---
-
-    // ヘッダー行 (種別名)
+    // ヘッダー行（種別名）
     const headerRow = document.createElement('div');
     headerRow.className = 'op-header-row';
     const headerDiagram = document.createElement('div');
@@ -541,7 +599,7 @@ function renderLineDiagram(lineId) {
     cats.forEach(c => {
         const lbl = document.createElement('div');
         lbl.className = 'service-label';
-        lbl.textContent = formatVerticalServiceLabel(c.name);
+        lbl.textContent = String(c.name || '').replace(/\(/g, '（').replace(/\)/g, '）');
         headerDiagram.appendChild(lbl);
     });
 
@@ -551,7 +609,7 @@ function renderLineDiagram(lineId) {
     headerRow.appendChild(headerSpacer);
     lineLayoutEl.appendChild(headerRow);
 
-    // データ行 (駅ごと)
+    // データ行（駅ごと）
     order.forEach((stId, idx) => {
         const station = model.stationById.get(stId);
 
@@ -561,7 +619,6 @@ function renderLineDiagram(lineId) {
         const rowDiagram = document.createElement('div');
         rowDiagram.className = 'op-diagram-cells';
 
-        // 判定: 路線の全種別がここで止まるか（種別が複数ある場合のみ）
         let isAllStop = false;
         if (cats.length > 1) {
             isAllStop = cats.every(c => stopsByCat[c.id].has(stId));
@@ -582,19 +639,34 @@ function renderLineDiagram(lineId) {
             const isCatAffected = isCategoryAffectedAt(idx, c.id);
 
             if (idx >= bounds.min && idx <= bounds.max) {
-                const lineBar = document.createElement('div');
-                lineBar.className = 'diagram-line';
-                lineBar.style.backgroundColor = line.color || 'var(--primary-color)';
+                const isLineStart = idx === bounds.min;
+                const isLineEnd = idx === bounds.max && !line.loop;
 
+                // affectedのぼかし効果は diagram-line とは別レイヤー（別要素）にする。
+                // diagram-line 側の疑似要素にすると、各区間ごとに独立したスタッキング
+                // コンテキストが作られてしまい、区間の境目で隣のセルの diagram-line に
+                // よってぼかしが不自然に途切れて見えるため、必ず diagram-line 本体より
+                // 下に表示されるよう z-index で全体を通して制御する。
                 if (isCatAffected) {
-                    lineBar.classList.add('affected');
+                    const glow = document.createElement('div');
+                    glow.className = `diagram-line-glow affected--${getCategorySeverityAt(idx, c.id) || 'warning'}`;
                     const catIndices = catAffectedIndices[c.id];
-                    if (catIndices.length && idx === catIndices[0]) lineBar.classList.add('affected-start');
-                    if (catIndices.length && idx === catIndices[catIndices.length - 1]) lineBar.classList.add('affected-end');
+                    // diagram-line 本体が line-start/line-end で半分だけ表示される区間は、
+                    // glow も同じ範囲に収まるよう揃える（そうしないと駅の始点・終点の外側に
+                    // 線のない部分までぼかしだけが残ってしまう）。
+                    if (isLineStart) glow.classList.add('affected-start');
+                    if (isLineEnd) glow.classList.add('affected-end');
+                    if (catIndices.length && idx === catIndices[0]) glow.classList.add('affected-start');
+                    if (catIndices.length && idx === catIndices[catIndices.length - 1]) glow.classList.add('affected-end');
+                    cell.appendChild(glow);
                 }
 
-                if (idx === bounds.min) lineBar.classList.add('line-start');
-                if (idx === bounds.max && !line.loop) lineBar.classList.add('line-end');
+                const lineBar = document.createElement('div');
+                lineBar.className = 'diagram-line';
+                lineBar.style.backgroundColor = line.color || 'var(--color-primary)';
+
+                if (isLineStart) lineBar.classList.add('line-start');
+                if (isLineEnd) lineBar.classList.add('line-end');
                 if (idx === bounds.min && idx === bounds.max) lineBar.style.display = 'none';
 
                 cell.appendChild(lineBar);
@@ -603,8 +675,7 @@ function renderLineDiagram(lineId) {
             if (stopsByCat[c.id].has(stId)) {
                 const node = document.createElement('div');
                 node.className = 'diagram-node';
-                node.style.borderColor = line.color || 'var(--primary-color)';
-                // 種別に応じた色などの調整が必要な場合はここに。今回は共通デザイン。
+                node.style.borderColor = line.color || 'var(--color-primary)';
                 if (isAllStop) node.classList.add('is-all-stop');
                 if (isCatAffected) node.classList.add('affected');
                 cell.appendChild(node);
@@ -613,7 +684,6 @@ function renderLineDiagram(lineId) {
             rowDiagram.appendChild(cell);
         });
 
-        // 右：駅名
         const stationCell = document.createElement('div');
         stationCell.className = 'op-station-cell';
 
@@ -623,7 +693,6 @@ function renderLineDiagram(lineId) {
 
         stationCell.appendChild(nameMain);
 
-        // 乗換情報
         const lineIds = model.linesByStation.get(stId) || [];
         if (lineIds.length > 1) {
             const others = lineIds
@@ -638,7 +707,6 @@ function renderLineDiagram(lineId) {
             }
         }
 
-        // 徒歩連絡（要望5）
         const walks = model.walkTransfersByStation.get(stId) || [];
         if (walks.length > 0) {
             const walkText = walks
@@ -655,7 +723,7 @@ function renderLineDiagram(lineId) {
         lineLayoutEl.appendChild(row);
     });
 
-    // 環状線：最後に「戻る」行を追加する（要望4）
+    // 環状線：最後に「戻る」行を追加する
     if (line.loop) {
         const row = document.createElement('div');
         row.className = 'op-body-row';
@@ -698,18 +766,20 @@ function formatJaDateTime(isoString) {
     }
 }
 
+// ========================================
 // 検索モード（会社 / 方面）トグル
+// ========================================
 function setupOperationModeToggle() {
     const container = document.getElementById('operation-mode-toggle');
     if (!container) return;
-    const buttons = Array.from(container.querySelectorAll('.mode-toggle-btn'));
+    const buttons = Array.from(container.querySelectorAll('.segmented-btn'));
 
     function setMode(mode) {
         let selectedBtn = null;
         buttons.forEach(btn => {
             const m = btn.dataset.mode;
             const selected = m === mode;
-            btn.classList.toggle('selected', selected);
+            btn.classList.toggle('is-selected', selected);
             btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
             if (selected) selectedBtn = btn;
         });
@@ -719,8 +789,8 @@ function setupOperationModeToggle() {
             const containerRect = container.getBoundingClientRect();
             const leftOffset = btnRect.left - containerRect.left;
 
-            container.style.setProperty('--bg-width', `${btnRect.width}px`);
-            container.style.setProperty('--bg-left', `${leftOffset}px`);
+            container.style.setProperty('--seg-width', `${btnRect.width}px`);
+            container.style.setProperty('--seg-left', `${leftOffset}px`);
         }
 
         const listView = document.getElementById('line-list-view');
@@ -757,10 +827,6 @@ function initializeOperationUI() {
 
     const backBtn = document.getElementById('back-to-list-btn');
     if (backBtn) backBtn.addEventListener('click', () => hideLineDetail({ syncUrl: true }));
-
-    // Error popup close button
-    const errorCloseBtn = document.getElementById('error-close');
-    if (errorCloseBtn) errorCloseBtn.addEventListener('click', hideError);
 
     window.addEventListener('popstate', handleOperationPopState);
 }

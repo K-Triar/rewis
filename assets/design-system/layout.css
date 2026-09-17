@@ -1,0 +1,222 @@
+/*
+ * REWIS Design System - Layout
+ *
+ * ページ全体の骨格（リセット、ヘッダー／フッター、コンテナ、
+ * メイン＋サイドバーの2カラム構成、ブレークポイント）を定義する。
+ * 個々の部品（ボタン・バッジ・カード等）は components.css を参照。
+ *
+ * 依存: tokens.css（先に読み込むこと）。
+ * ブレークポイントは単一（mobile: max-width 768px / desktop: min-width 769px）で統一する。
+ */
+
+/* ===== Reset ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family-base);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
+    background: var(--color-bg-page);
+    min-height: 100svh;
+    padding: var(--space-5);
+}
+
+body.no-scroll,
+html.no-scroll {
+    overflow: hidden;
+}
+
+/* ===== ページヘッダー ===== */
+.page-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+    color: #fff;
+    padding: 10px 0;
+    z-index: 1000;
+    box-shadow: var(--shadow-sm);
+}
+
+.page-header__content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-7);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    justify-content: space-between;
+}
+
+.page-header__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.page-header__logo {
+    height: 3rem;
+    width: auto;
+    display: block;
+}
+
+.page-header__title {
+    font-size: var(--font-size-3xl);
+    margin: 0;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+    .page-header__content {
+        padding: 10px 15px;
+    }
+    .page-header__logo {
+        height: 28px;
+    }
+    .page-header__title {
+        font-size: 1.3rem;
+    }
+}
+
+/* ===== ページフッター =====
+   body の左右/下パディング(--space-5)ぶんだけ負のマージンで打ち消し、
+   画面端まで届く帯として表示する。margin-top は本文との間の余白。 */
+.page-footer {
+    background: var(--color-brand-navy);
+    color: #fff;
+    padding: var(--space-6) 0;
+    font-size: var(--font-size-base);
+    margin: var(--space-5) calc(var(--space-5) * -1) calc(var(--space-5) * -1);
+}
+
+.page-footer__content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-7);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
+}
+
+.page-footer__logo {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .page-footer {
+        margin-top: 0;
+        /* デスクトップの左右negativeマージンは、bodyの左右padding(--space-5)を
+           打ち消すためのもの。モバイルはbody paddingが0になるため、ここで
+           左右マージンも0に戻さないとフッターが画面幅より左右20pxずつ
+           はみ出し、横方向のオーバーフロー（モバイルChromeでの初期ズーム
+           不具合の原因）になる。 */
+        margin-right: 0;
+        margin-bottom: 0;
+        margin-left: 0;
+        /* 固定表示のモバイル下部ナビ(72px)に隠れないよう余分に確保 */
+        padding-bottom: calc(72px + var(--space-6));
+    }
+    .page-footer__content {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: var(--space-4);
+    }
+    .page-footer__logo {
+        height: 48px;
+    }
+}
+
+/* ===== コンテナ／2カラム構成 ===== */
+.page-container {
+    max-width: 1200px;
+    margin: 100px auto 0;
+}
+
+.page-columns {
+    display: flex;
+    gap: var(--space-5);
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.page-main {
+    order: 1;
+    flex: 0 1 900px;
+    max-width: 900px;
+    padding: var(--space-7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    position: relative;
+}
+
+.page-sidebar {
+    order: 0;
+    flex: 0 0 250px;
+    width: 250px;
+}
+
+@media (min-width: 769px) {
+    .page-main {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    /* overflow-x を html/body 両方に指定すると、仕様上 overflow-y が両方とも
+       auto に変換され、body が独自のスクロールコンテナ（＝独自のスクロールバー）
+       になってしまう。その結果 body配下（.page-container等）だけ実際のビュー
+       ポート幅よりスクロールバー分狭くなり、position:fixed のヘッダー（ビュー
+       ポート基準で幅100%）との間に幅のズレが生じ、カード等が右端まで届かなく
+       見える。overflow-x は html だけに指定し、スクロールは html 側に一本化する。 */
+    html {
+        height: 100%;
+        overflow-x: hidden;
+    }
+    body {
+        height: 100%;
+        padding: 0;
+        /* html だけが overflow-x:hidden を持つ場合でも、仕様上 body の overflow-y が
+           auto に伝播しうる（root要素の overflow が visible のときに body の値が
+           ビューポートへ伝わる、という伝播モデルの副作用）。body を明示的に
+           visible にして、実際のスクロールは常に html 側だけで発生させる。 */
+        overflow: visible;
+    }
+
+    /* モバイルは本文エリアを白一色の全画面パネルにする（body の背景グレーは見せない）。
+       column flex にして main が伸び、footer を画面下端に押し出す。 */
+    .page-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100svh;
+        max-width: 100%;
+        margin: 76px 0 0;
+        background: var(--color-bg-surface);
+    }
+    .page-columns {
+        flex-direction: column;
+        flex: 1 0 auto;
+    }
+    .page-main {
+        flex: 1 0 auto;
+        max-width: 100%;
+        width: 100%;
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .page-sidebar {
+        display: none;
+    }
+}

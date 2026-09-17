@@ -1,0 +1,499 @@
+/*
+ * operation.html ページ固有のレイアウト・グルーCSS
+ *
+ * design-system/（tokens.css, layout.css, components.css）は
+ * どのページでも使える汎用部品。このファイルは「路線・運行情報」
+ * という具体的な画面構成にだけ関わる、ページ固有の配置調整を担う。
+ * 値はすべて design-system/tokens.css のトークンを参照する。
+ *
+ * 例外（トークン化しない一回限りの値）:
+ * - 路線図のインク色（#020C38 / #000）: この路線図コンポーネント専用の
+ *   配色で、他に使い回す予定がないため tokens.css には追加しない。
+ */
+
+/* ===== main を1枚のカードとして見せる ===== */
+@media (max-width: 768px) {
+    main.page-main {
+        min-height: calc(100svh - 160px);
+        /* layout.css の .page-main は縦方向中央揃え(justify-content: center)を
+           デフォルトにしているが、これは transfer ページ向けの設定。
+           運行情報ページは中身の高さが路線ごとにまちまちで、短い路線だと
+           中央揃えのせいで上下に不自然な余白ができてしまうため、このページ
+           だけ上揃えに戻す（layout.css 側の値は他ページに影響するため変更しない）。 */
+        justify-content: flex-start;
+    }
+}
+
+/* ===== 検索方法トグル（会社から探す / 方面から探す）の配置 ===== */
+/* .page-mode-toggle / .page-mode-toggle-label は design-system/components.css 側の共通クラス（旧 .mode-toggle-wrapper / .mode-toggle-label） */
+
+/* 路線一覧セクション（モバイルではトグルが絶対配置で上に重なるため、その分の余白を確保する） */
+#operation-section {
+    position: relative;
+}
+@media (max-width: 768px) {
+    #operation-section {
+        padding: 16px;
+        padding-top: 100px;
+    }
+}
+
+/* ===== 路線一覧 ===== */
+.line-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin-top: var(--space-2);
+}
+
+.line-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.line-section-title {
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
+    color: var(--color-heading);
+}
+
+.line-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.line-card {
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.line-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-subtle);
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: filter var(--duration-fast);
+}
+.line-card-header:hover {
+    filter: brightness(0.97);
+}
+.line-card-header:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+.line-icon {
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-primary);
+    flex-shrink: 0;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.line-name {
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
+    color: var(--color-heading);
+}
+
+/* ===== 運行情報行（路線カード内、1notice = 1行） ===== */
+.line-notice-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.line-notice-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--color-bg-surface);
+}
+.line-notice-row + .line-notice-row {
+    border-top: 1px solid var(--color-border);
+}
+.line-notice-row--warning {
+    background: var(--color-status-warning-bg);
+}
+.line-notice-row--suspend {
+    background: var(--color-status-suspend-bg);
+}
+
+.line-notice-icon-col {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding-right: var(--space-3);
+    border-right: 1px dashed var(--color-border);
+}
+
+/* 状態アイコンは home の運行状況カードと同じ文字グリフ（○/△/×）で統一する */
+.line-notice-icon {
+    font-size: 1.4rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+    color: var(--color-status-normal);
+}
+.line-notice-row--warning .line-notice-icon {
+    color: var(--color-status-warning);
+}
+.line-notice-row--suspend .line-notice-icon {
+    color: var(--color-status-suspend);
+}
+
+.line-notice-main {
+    flex: 1 1 200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-2);
+}
+
+.line-notice-title {
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-md);
+    color: var(--color-heading);
+}
+
+.line-notice-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+}
+
+.line-notice-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.line-notice-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-sm);
+    padding: 2px var(--space-2);
+    flex-shrink: 0;
+}
+
+.line-notice-value {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-heading);
+    font-size: var(--font-size-base);
+}
+
+.line-notice-updated {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+.line-notice-action {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding-left: var(--space-3);
+    border-left: 1px dashed var(--color-border);
+}
+
+.line-notice-detail-btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .line-notice-fields {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+    }
+    .line-notice-action {
+        flex-basis: 100%;
+        border-left: none;
+        border-top: 1px dashed var(--color-border);
+        padding-left: 0;
+        padding-top: var(--space-3);
+        justify-content: center;
+    }
+    .line-notice-action .btn {
+        width: 100%;
+    }
+}
+
+.area-view-placeholder {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding: var(--space-6) var(--space-2) var(--space-2);
+}
+
+/* ===== 路線詳細 ===== */
+.line-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.line-detail-title-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.line-detail-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--color-primary);
+    flex-shrink: 0;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.line-detail-name {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+}
+
+@media (max-width: 768px) {
+    .line-detail-view {
+        padding: 16px;
+    }
+}
+
+/* ===== 運行情報ボックス ===== */
+.line-alert-box {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.alert-item {
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-status-warning);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-status-warning-bg);
+    font-size: var(--font-size-base);
+}
+.alert-item--suspend {
+    border-color: var(--color-status-suspend);
+    background: var(--color-status-suspend-bg);
+}
+.alert-item--normal {
+    border-style: dashed;
+    border-color: var(--color-border);
+    background: var(--color-bg-subtle);
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.alert-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.alert-icon {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-status-warning);
+}
+.alert-item--suspend .alert-icon {
+    color: var(--color-status-suspend);
+}
+
+.alert-title {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+}
+
+.alert-updated {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+.alert-body {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    white-space: pre-wrap;
+}
+
+/* ===== 路線図 ===== */
+.line-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+.op-header-row,
+.op-body-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.op-diagram-headers,
+.op-diagram-cells {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-left: var(--space-3);
+    padding-right: var(--space-5);
+}
+
+.service-label {
+    width: 32px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: #020C38;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: var(--space-3);
+}
+
+.op-diagram-cell {
+    width: 32px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-3) 0;
+    min-height: 48px;
+}
+
+.op-station-spacer {
+    flex: 1;
+}
+
+.op-station-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--space-3) 0;
+}
+
+.diagram-line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: #020C38;
+    z-index: 2;
+}
+.diagram-line.line-start {
+    top: 50%;
+}
+.diagram-line.line-end {
+    bottom: 50%;
+}
+
+/*
+ * affectedのぼかし表示は diagram-line とは独立した要素にし、diagram-line より
+ * 低い z-index を明示することで常にその下に表示する。diagram-line の疑似要素に
+ * すると区間（セル）ごとに別々のスタッキングコンテキストができてしまい、隣の
+ * セルの diagram-line にぼかしが不自然に隠されて線が途切れて見えるため、
+ * op-diagram-cell の兄弟要素として配置し z-index だけで前後関係を揃えている。
+ */
+.diagram-line-glow {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    z-index: 1;
+    pointer-events: none;
+    box-shadow: -6px 0 10px 3px var(--color-status-warning), 6px 0 10px 3px var(--color-status-warning);
+}
+.diagram-line-glow.affected--suspend {
+    box-shadow: -6px 0 10px 3px var(--color-status-suspend), 6px 0 10px 3px var(--color-status-suspend);
+    animation: diagram-line-blink 2s step-start infinite;
+}
+.diagram-line-glow.affected-start {
+    top: 50%;
+}
+.diagram-line-glow.affected-end {
+    bottom: 50%;
+}
+
+.diagram-pill {
+    position: absolute;
+    left: 13px;
+    right: 23px;
+    top: 50%;
+    height: 22px;
+    transform: translateY(-50%);
+    background: #000000;
+    border-radius: var(--radius-pill);
+    z-index: 3;
+}
+
+.diagram-node {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-circle);
+    border: 5px solid #020C38;
+    background: var(--color-bg-surface);
+    z-index: 4;
+}
+.diagram-node.is-all-stop {
+    border: none !important;
+    width: 12px;
+    height: 12px;
+    box-shadow: none !important;
+}
+
+@keyframes diagram-line-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .diagram-line-glow.affected--suspend {
+        animation: none;
+    }
+}
+
+.station-name-main {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+}
+
+.station-transfer {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+/* .share-result-wrapper / .notice-section / .loading-section / @keyframes fadeIn は design-system/components.css 側の共通クラス */

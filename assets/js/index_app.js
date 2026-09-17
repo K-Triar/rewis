@@ -3,6 +3,9 @@ import { setupBottomSheet, setupNoopLinks } from '../../shared/ui-dom.js';
 
 const targetLineNames = ['瑠璃線', '貿易港線', '地下鉄中央線'];
 const statusRank = { normal: 0, warning: 1, suspend: 2 };
+const rankToState = ['normal', 'warning', 'suspend'];
+const STATE_SYMBOLS = { normal: '○', warning: '△', suspend: '×' };
+const STATE_LABELS = { normal: '平常運転', warning: '遅延あり', suspend: '運転見合わせ' };
 
 const summaryEl = document.getElementById('home-status-summary');
 const gridEl = document.getElementById('home-status-grid');
@@ -40,38 +43,12 @@ function isSuspendNotice(notice) {
 }
 
 function classifyStatus(notice) {
-    if (!notice) {
-        return {
-            state: 'normal',
-            symbol: '○',
-            tone: 'normal',
-            heading: '遅れの情報はありません',
-            body: '現在、列車の遅れなどの情報はありません。'
-        };
-    }
-
-    const heading = notice.status?.heading || 'お知らせあり';
-    const isSuspend = isSuspendNotice(notice);
-    const state = isSuspend ? 'suspend' : 'warning';
-    const body = (notice.rendered && notice.rendered.body) || notice.status?.body || '';
-
-    return {
-        state,
-        symbol: isSuspend ? '×' : '！',
-        tone: state,
-        heading,
-        body: body || (isSuspend ? '現在、この路線では運転見合わせの案内があります。' : '現在、この路線では案内があります。')
-    };
+    if (!notice) return { state: 'normal' };
+    return { state: isSuspendNotice(notice) ? 'suspend' : 'warning' };
 }
 
 function getStatusSeverity(notice) {
     return statusRank[classifyStatus(notice).state] ?? 0;
-}
-
-function shorten(text, limit = 54) {
-    const normalized = String(text || '').replace(/\s+/g, ' ').trim();
-    if (!normalized) return '';
-    return normalized.length > limit ? `${normalized.slice(0, limit - 1)}…` : normalized;
 }
 
 function convertToHiragana(text) {
@@ -102,14 +79,14 @@ function searchStations(query) {
 
 function displaySuggestions(stations, suggestionsDiv, input) {
     if (stations.length === 0) {
-        suggestionsDiv.classList.remove('active');
+        suggestionsDiv.classList.remove('is-open');
         return;
     }
 
     suggestionsDiv.innerHTML = '';
     stations.forEach(station => {
         const item = document.createElement('div');
-        item.className = 'suggestion-item';
+        item.className = 'field-suggestion';
 
         const lineIds = model.linesByStation.get(station.id) || [];
         const displayNames = lineIds.map(lineId => normalizeLineDisplayName(model.lineName(lineId)));
@@ -124,11 +101,11 @@ function displaySuggestions(stations, suggestionsDiv, input) {
         const linesText = uniqueNames.join('・');
 
         const nameSpan = document.createElement('span');
-        nameSpan.className = 'station-name';
+        nameSpan.className = 'field-suggestion__name';
         nameSpan.textContent = station.name;
 
         const linesSpan = document.createElement('span');
-        linesSpan.className = 'station-lines';
+        linesSpan.className = 'field-suggestion__lines';
         linesSpan.textContent = linesText;
 
         item.appendChild(nameSpan);
@@ -136,13 +113,13 @@ function displaySuggestions(stations, suggestionsDiv, input) {
 
         item.addEventListener('click', () => {
             input.value = station.name;
-            suggestionsDiv.classList.remove('active');
+            suggestionsDiv.classList.remove('is-open');
         });
 
         suggestionsDiv.appendChild(item);
     });
 
-    suggestionsDiv.classList.add('active');
+    suggestionsDiv.classList.add('is-open');
 }
 
 function setupStationInput(inputId) {
@@ -153,7 +130,7 @@ function setupStationInput(inputId) {
     input.addEventListener('input', () => {
         const query = input.value.trim();
         if (!query) {
-            suggestionsDiv.classList.remove('active');
+            suggestionsDiv.classList.remove('is-open');
             return;
         }
 
@@ -162,7 +139,7 @@ function setupStationInput(inputId) {
     });
 
     input.addEventListener('blur', () => {
-        setTimeout(() => suggestionsDiv.classList.remove('active'), 200);
+        setTimeout(() => suggestionsDiv.classList.remove('is-open'), 200);
     });
 }
 
@@ -196,34 +173,30 @@ function clearSearchError() {
     errorEl.hidden = true;
 }
 
-function renderStatusCard(lineName, notice, extraText = '', lineId = null, forceLink = false, moreCount = 0) {
-    const summary = classifyStatus(notice);
+function renderStatusCard(lineName, state, lineId = null, forceLink = false) {
     const card = document.createElement('article');
-    card.className = `home-status-card home-status-card--${summary.tone}`;
+    card.className = `status-card status-card--${state}`;
 
     const title = document.createElement('div');
-    title.className = 'home-status-card-title';
-    title.textContent = `${summary.symbol} ${lineName}`;
+    title.className = 'status-card-title';
+    title.textContent = lineName;
 
-    const heading = document.createElement('div');
-    heading.className = 'home-status-card-heading';
-    heading.textContent = summary.heading;
+    const icon = document.createElement('div');
+    icon.className = 'status-card-icon';
+    icon.textContent = STATE_SYMBOLS[state];
+    icon.setAttribute('aria-hidden', 'true');
 
-    const body = document.createElement('div');
-    body.className = 'home-status-card-body';
-    let bodyText = extraText || shorten(summary.body) || '案内はありません。';
-    if (!extraText && moreCount > 0) {
-        bodyText = `${bodyText}（ほか${moreCount}件）`;
-    }
-    body.textContent = bodyText;
+    const label = document.createElement('div');
+    label.className = 'status-card-text';
+    label.textContent = STATE_LABELS[state];
 
     card.appendChild(title);
-    card.appendChild(heading);
-    card.appendChild(body);
+    card.appendChild(icon);
+    card.appendChild(label);
 
     if (lineId || forceLink) {
         const destination = buildOperationLineUrl(lineId);
-        card.classList.add('home-status-card--link');
+        card.classList.add('status-card--link');
         card.setAttribute('role', 'link');
         card.tabIndex = 0;
         card.setAttribute('aria-label', `${lineName}の運行情報を開く`);
@@ -252,12 +225,10 @@ function renderStatusGrid() {
     const cards = [];
     targetLineNames.forEach(name => {
         const line = lineMap.get(name) || null;
-        const list = line ? (model.noticesByLine.get(line.id) || []) : [];
         const notice = line ? model.primaryNotice(line.id) : null;
-        cards.push(renderStatusCard(name, notice, '', line ? line.id : null, false, Math.max(0, list.length - 1)));
+        cards.push(renderStatusCard(name, classifyStatus(notice).state, line ? line.id : null, false));
     });
 
-    let otherNotice = null;
     let otherSeverity = -1;
     let latestUpdatedAt = null;
     otherLines.forEach(line => {
@@ -265,7 +236,6 @@ function renderStatusGrid() {
         const severity = getStatusSeverity(notice);
         if (severity > otherSeverity) {
             otherSeverity = severity;
-            otherNotice = notice;
         }
     });
 
@@ -275,8 +245,8 @@ function renderStatusGrid() {
         });
     });
 
-    const otherSummary = otherLines.length > 0 ? `すべての路線を表示` : '対象となる路線はありません。';
-    cards.push(renderStatusCard('その他', otherNotice, otherSummary, null, true));
+    const otherState = rankToState[Math.max(0, otherSeverity)];
+    cards.push(renderStatusCard('その他の路線', otherState, null, true));
 
     gridEl.innerHTML = '';
     cards.forEach(card => gridEl.appendChild(card));
@@ -296,12 +266,12 @@ function setLoadingState(isLoading) {
 
 function setupMobileHeaderTransition() {
     const mobileQuery = window.matchMedia('(max-width: 768px)');
-    const container = document.querySelector('.container');
-    const mainEl = document.querySelector('.home-main');
+    const container = document.querySelector('.page-container');
+    const mainEl = document.querySelector('.page-main.home-main');
 
     function updateHeaderState(e) {
         if (!mobileQuery.matches) {
-            document.body.classList.remove('home-header-scrolled');
+            document.body.classList.remove('is-header-scrolled');
             return;
         }
 
@@ -311,13 +281,13 @@ function setupMobileHeaderTransition() {
             if (targetTag !== 'div' && targetTag !== 'main' && targetTag !== 'body' && targetTag !== 'html') {
                 return;
             }
-            if (e.target.classList.contains('suggestions')) {
+            if (e.target.classList.contains('field-suggestions')) {
                 return;
             }
         }
 
         // 各主要スクロールコンテナからscrollTopを取得
-        // style.cssの定義により .container や main など特定要素がスクロール領域になる環境も対応
+        // design-systemの定義により .page-container や main など特定要素がスクロール領域になる環境も対応
         const currentScroll = Math.max(
             window.scrollY || 0,
             document.documentElement.scrollTop || 0,
@@ -327,9 +297,9 @@ function setupMobileHeaderTransition() {
         );
 
         if (currentScroll > 4) {
-            document.body.classList.add('home-header-scrolled');
+            document.body.classList.add('is-header-scrolled');
         } else {
-            document.body.classList.remove('home-header-scrolled');
+            document.body.classList.remove('is-header-scrolled');
         }
     }
 
@@ -362,13 +332,13 @@ async function init() {
         gridEl.innerHTML = '';
 
         const fallbackCard = document.createElement('article');
-        fallbackCard.className = 'home-status-card home-status-card--normal';
-        fallbackCard.innerHTML = '<div class="home-status-card-title">○ 運行情報</div><div class="home-status-card-heading">読み込み失敗</div><div class="home-status-card-body">しばらくしてから再度お試しください。</div>';
+        fallbackCard.className = 'status-card status-card--warning';
+        fallbackCard.innerHTML = '<div class="status-card-title">運行情報</div><div class="status-card-icon" aria-hidden="true">！</div><div class="status-card-text">読み込み失敗</div>';
         gridEl.appendChild(fallbackCard);
 
         const otherCard = document.createElement('article');
-        otherCard.className = 'home-status-card home-status-card--normal';
-        otherCard.innerHTML = '<div class="home-status-card-title">○ その他</div><div class="home-status-card-heading">読み込み失敗</div><div class="home-status-card-body">運行状況の取得に失敗しました。</div>';
+        otherCard.className = 'status-card status-card--warning';
+        otherCard.innerHTML = '<div class="status-card-title">その他の路線</div><div class="status-card-icon" aria-hidden="true">！</div><div class="status-card-text">読み込み失敗</div>';
         gridEl.appendChild(otherCard);
 
         setLoadingState(false);
@@ -404,12 +374,12 @@ swapBtn.addEventListener('click', () => {
     clearSearchError();
 
     // アニメーションをトリガー
-    swapBtn.classList.remove('spinning');
+    swapBtn.classList.remove('is-spinning');
     void swapBtn.offsetWidth; // リフローを強制してアニメーションをリセット
-    swapBtn.classList.add('spinning');
+    swapBtn.classList.add('is-spinning');
 });
 swapBtn.addEventListener('animationend', () => {
-    swapBtn.classList.remove('spinning');
+    swapBtn.classList.remove('is-spinning');
 });
 
 detailBtn.addEventListener('click', () => {

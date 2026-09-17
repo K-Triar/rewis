@@ -20,150 +20,151 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/index_style.css">
+    <link rel="stylesheet" href="assets/design-system/tokens.css">
+    <link rel="stylesheet" href="assets/design-system/layout.css">
+    <link rel="stylesheet" href="assets/design-system/components.css">
+    <link rel="stylesheet" href="assets/css/index-page.css">
 </head>
-<body class="home-page">
-    <header>
-        <div class="header-content">
-            <div class="header-left">
-                <img src="assets/icons/rewis_logo_w.svg" alt="REWIS" class="header-logo">
-                <h1>| ホーム</h1>
+<body>
+    <header class="page-header">
+        <div class="page-header__content">
+            <div class="page-header__brand">
+                <img src="assets/icons/rewis_logo_w.svg" alt="REWIS" class="page-header__logo">
+                <h1 class="page-header__title">| ホーム</h1>
             </div>
         </div>
     </header>
 
-    <div class="container">
-        <div class="content-wrapper">
-            <main class="home-main">
-                <section class="home-hero">
-                    <div class="home-hero-brand">
-                        <img src="assets/icons/rewis_logo_w.svg" alt="REWIS" class="home-hero-logo">
-                        <p class="home-hero-eyebrow">RAILWAYS OF THE ENTIRE WORLD INFORMATION SYSTEM</p>
-                    </div>
-                    <div class="home-hero-copy">
-                        <p class="home-hero-title">情報で、世界がつながる。</p>
-                        <p class="home-hero-lead">Kトライア瑠璃の鉄道情報システム</p>
-                    </div>
-                </section>
+    <div class="page-container">
 
-                <section class="home-section home-search-section" aria-labelledby="quick-search-title">
-                    <div class="section-heading">
-                        <p class="section-kicker">QUICK SEARCH</p>
-                        <h2 id="quick-search-title">乗換案内</h2>
-                    </div>
+        <div class="page-columns">
 
-                    <form class="quick-search-card" id="quick-search-form" novalidate>
-                        <div class="quick-search-fields">
-                            <label class="quick-search-row" for="home-departure">
-                                <span class="quick-search-badge">発</span>
-                                <div class="input-wrapper">
-                                    <input
-                                        type="text"
-                                        id="home-departure"
-                                        class="quick-search-input"
-                                        placeholder="出発駅"
-                                        autocomplete="off"
-                                    >
-                                    <div class="suggestions" id="home-departure-suggestions"></div>
-                                </div>
-                            </label>
+        <main class="page-main home-main">
+            <section class="home-hero surface">
+                <div class="home-hero-brand">
+                    <img src="assets/icons/rewis_logo_w.svg" alt="REWIS" class="home-hero-logo">
+                    <p class="home-hero-eyebrow">RAILWAYS OF THE ENTIRE WORLD INFORMATION SYSTEM</p>
+                </div>
+                <div class="home-hero-copy">
+                    <p class="home-hero-title">情報で、世界がつながる。</p>
+                    <p class="home-hero-lead">Kトライア瑠璃の鉄道情報システム</p>
+                </div>
+            </section>
 
-                            <div class="quick-search-swap-row">
-                                <button type="button" class="quick-search-swap" id="home-swap" aria-label="発着駅を入れ替え" title="発着駅を入れ替え">
-                                    ⇅
-                                </button>
-                            </div>
+            <section class="home-section surface" aria-labelledby="quick-search-title">
+                <div class="section-heading">
+                    <h2 id="quick-search-title">乗換案内</h2>
+                </div>
 
-                            <label class="quick-search-row" for="home-arrival">
-                                <span class="quick-search-badge">着</span>
-                                <div class="input-wrapper">
-                                    <input
-                                        type="text"
-                                        id="home-arrival"
-                                        class="quick-search-input"
-                                        placeholder="到着駅"
-                                        autocomplete="off"
-                                    >
-                                    <div class="suggestions" id="home-arrival-suggestions"></div>
-                                </div>
-                            </label>
+                <form class="quick-search-form" id="quick-search-form" novalidate>
+                    <div class="station-input-row">
+                        <div class="badge badge-square">発</div>
+                        <div class="field input-wrapper">
+                            <input
+                                type="text"
+                                id="home-departure"
+                                class="field-input"
+                                placeholder="出発駅"
+                                autocomplete="off"
+                            >
+                            <div class="field-suggestions" id="home-departure-suggestions"></div>
                         </div>
-
-                        <div class="quick-search-actions">
-                            <button type="submit" class="home-button home-button-primary">GO!</button>
-                            <button type="button" class="home-button home-button-secondary" id="home-detail-search">詳細検索</button>
-                        </div>
-
-                        <p class="home-search-hint">駅名を入れて簡易検索できます。条件指定は詳細検索へ進んでください。</p>
-                        <p class="home-search-error" id="home-search-error" hidden></p>
-                    </form>
-                </section>
-
-                <section class="home-section home-status-section" aria-labelledby="operation-status-title">
-                    <div class="section-heading">
-                        <p class="section-kicker">OPERATION</p>
-                        <h2 id="operation-status-title">運行状況</h2>
                     </div>
 
-                    <p class="home-status-summary" id="home-status-summary">運行情報を読み込み中です。</p>
+                    <div class="quick-search-swap-row">
+                        <button type="button" class="btn btn-icon-circle btn-icon-circle--outline" id="home-swap" aria-label="発着駅を入れ替え" title="発着駅を入れ替え">
+                            ⇅
+                        </button>
+                    </div>
 
-                    <div class="home-status-grid" id="home-status-grid" aria-live="polite"></div>
-                </section>
-            </main>
+                    <div class="station-input-row">
+                        <div class="badge badge-square">着</div>
+                        <div class="field input-wrapper">
+                            <input
+                                type="text"
+                                id="home-arrival"
+                                class="field-input"
+                                placeholder="到着駅"
+                                autocomplete="off"
+                            >
+                            <div class="field-suggestions" id="home-arrival-suggestions"></div>
+                        </div>
+                    </div>
 
-            <aside class="sidebar" id="sidebar" aria-label="メインメニュー">
-                <nav class="sidebar-nav">
-                    <ul class="top-group">
-                        <li class="nav-item active">
-                            <a class="nav-btn is-current-page" href="./" aria-current="page">
-                                <span class="icon icon-home" aria-hidden="true"></span>
-                                <span class="label">ホーム</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-btn" href="transfer/">
-                                <span class="icon icon-walking" aria-hidden="true"></span>
-                                <span class="label">乗換案内</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-btn" href="operation/">
-                                <span class="icon icon-train" aria-hidden="true"></span>
-                                <span class="label">路線・運行情報</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="quick-search-actions">
+                        <button type="submit" class="btn btn-primary quick-search-go">GO!</button>
+                        <button type="button" class="btn btn-outline-pill quick-search-detail" id="home-detail-search">詳細検索</button>
+                    </div>
 
-                    <hr class="sidebar-divider">
+                    <p class="home-search-hint">駅名を入れて簡易検索できます。条件指定は詳細検索へ進んでください。</p>
+                    <p class="home-search-error" id="home-search-error" hidden></p>
+                </form>
+            </section>
 
-                    <ul class="bottom-group">
-                        <li class="nav-item small">
-                            <a class="nav-btn" href="about/">
-                                <span class="icon icon-info" aria-hidden="true"></span>
-                                <span class="label">REWISについて</span>
-                            </a>
-                        </li>
-                        <li class="nav-item small">
-                            <a class="nav-btn" href="editor.html">
-                                <span class="icon icon-business" aria-hidden="true"></span>
-                                <span class="label">事業者向けページ</span>
-                            </a>
-                        </li>
-                        <li class="nav-item small">
-                            <a class="nav-btn" href="information/">
-                                <span class="icon icon-news" aria-hidden="true"></span>
-                                <span class="label">お知らせ</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </aside>
+            <section class="home-section surface" aria-labelledby="operation-status-title">
+                <div class="section-heading">
+                    <h2 id="operation-status-title">運行状況</h2>
+                </div>
+
+                <p class="home-status-summary" id="home-status-summary">運行情報を読み込み中です。</p>
+
+                <div class="home-status-grid" id="home-status-grid" aria-live="polite"></div>
+            </section>
+        </main>
+
+        <aside class="page-sidebar surface" id="sidebar" aria-label="メインメニュー">
+            <nav>
+                <ul class="side-nav-list">
+                    <li class="side-nav-item is-active">
+                        <a class="side-nav-link is-current-page" href="./" aria-current="page">
+                            <span class="icon icon-home" aria-hidden="true"></span>
+                            <span>ホーム</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item">
+                        <a class="side-nav-link" href="transfer/">
+                            <span class="icon icon-walking" aria-hidden="true"></span>
+                            <span>乗換案内</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item">
+                        <a class="side-nav-link" href="operation/">
+                            <span class="icon icon-train" aria-hidden="true"></span>
+                            <span>路線・運行情報</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <hr class="side-nav-divider">
+
+                <ul class="side-nav-list">
+                    <li class="side-nav-item small">
+                        <a class="side-nav-link" href="about/">
+                            <span class="icon icon-info" aria-hidden="true"></span>
+                            <span>REWISについて</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item small">
+                        <a class="side-nav-link" href="editor.html">
+                            <span class="icon icon-business" aria-hidden="true"></span>
+                            <span>事業者向けページ</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item small">
+                        <a class="side-nav-link" href="information/">
+                            <span class="icon icon-news" aria-hidden="true"></span>
+                            <span>お知らせ</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
         </div>
     </div>
 
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="下部ナビゲーション">
-        <a class="mb-item active is-current-page" href="./" aria-current="page">
+        <a class="mb-item is-active is-current-page" href="./" aria-current="page">
             <span class="mb-icon icon-home" aria-hidden="true"></span>
             <span class="mb-label">ホーム</span>
         </a>
@@ -185,16 +186,16 @@
     <div class="bottom-sheet" id="bottom-sheet" role="dialog" aria-hidden="true">
         <div class="bottom-sheet-content">
             <a class="sheet-item" href="about/">REWISについて</a>
-            <a class="sheet-item" href="editor/">事業者向けページ</a>
+            <a class="sheet-item" href="editor.html">事業者向けページ</a>
             <a class="sheet-item" href="information/">お知らせ</a>
             <button class="sheet-close" id="sheet-close">閉じる</button>
         </div>
     </div>
 
-    <footer>
-        <div class="footer-content">
-            <p class="footer-copyright">© 2025- REWIS by K-Triar Luli Transport</p>
-            <img src="assets/icons/kt_luli_logo.svg" alt="K-Triar Luli Transport" class="footer-logo">
+    <footer class="page-footer">
+        <div class="page-footer__content">
+            <p>© 2025- REWIS by K-Triar Luli Transport</p>
+            <img src="assets/icons/kt_luli_logo.svg" alt="K-Triar Luli Transport" class="page-footer__logo">
         </div>
     </footer>
 

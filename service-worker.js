@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rewis-v11';
+const CACHE_NAME = 'rewis-v12';
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 function toScopedPath(path) {
@@ -22,7 +22,12 @@ const APP_SHELL_URLS = [
   toScopedPath('/operation.html'),
   toScopedPath('/editor.html'),
   toScopedPath('/assets/css/style.css'),
-  toScopedPath('/assets/css/index_style.css'),
+  toScopedPath('/assets/css/index-page.css'),
+  toScopedPath('/assets/css/transfer-page.css'),
+  toScopedPath('/assets/css/operation-page.css'),
+  toScopedPath('/assets/design-system/tokens.css'),
+  toScopedPath('/assets/design-system/layout.css'),
+  toScopedPath('/assets/design-system/components.css'),
   toScopedPath('/assets/js/index_app.js'),
   toScopedPath('/assets/js/rewis_public_config.js'),
   toScopedPath('/editor-v1/editor.css'),

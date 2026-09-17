@@ -1,0 +1,131 @@
+/*
+ * REWIS Design System - Tokens
+ *
+ * 色・角丸・影・スペーシング・タイポグラフィ・モーションの基本値。
+ * このファイル単体では見た目は変わらない（変数定義のみ）。
+ * components.css / layout.css がこれらの変数を参照する。
+ *
+ * 依存: なし（他のCSSファイルに依存しない）。
+ * 参照される側なので、他ファイルより先に読み込むこと。
+ */
+
+:root {
+    /* ===== Color / Brand ===== */
+    --color-primary: #0078D7;
+    --color-primary-hover: #005fa3;
+    --color-secondary: #E67E22;
+
+    /* ===== Color / Semantic (状態) ===== */
+    --color-danger: #E60012;
+    --color-route-start: #4CAF50;
+    --color-route-transfer: #FF9800;
+
+    /* 運行状況などの3段階ステータス表示（枠線・文字色を共通トークンで統一） */
+    --color-status-normal: var(--color-route-start);
+    --color-status-warning: var(--color-secondary);
+    --color-status-suspend: var(--color-danger);
+
+    /* 運行状況カード等、状態ごとに背景色まで塗る（枠線+背景色）構成向けの淡色トーン */
+    --color-status-normal-bg: #eef8ef;
+    --color-status-warning-bg: #fdf1e6;
+    --color-status-suspend-bg: #fdecea;
+
+    /* 注意書きバナー */
+    --color-notice-bg: #fff3cd;
+    --color-notice-border: #ffc107;
+    --color-notice-text: #856404;
+
+    /* 乗換バッジ（オレンジ系の別トーン） */
+    --color-transfer-badge-bg: #fff3e0;
+    --color-transfer-badge-text: #e65100;
+
+    /* 列車種別バッジ */
+    --color-train-tc: #00aaff;
+    --color-train-sx: #ff0000;
+    --color-train-mc: #808080;
+
+    /* ===== Color / Neutral & Text ===== */
+    --color-text: #333;
+    --color-text-strong: #000;
+    --color-text-secondary: #666;
+    --color-text-muted: #999;
+    --color-heading: #222;
+    --color-border: #ddd;
+
+    /* ===== Color / Background ===== */
+    --color-bg-page: #f0f0f0;
+    --color-bg-surface: #ffffff;
+    --color-bg-subtle: #f2f2f2;
+
+    /* ===== Color / Icon ===== */
+    --color-icon-inactive: #bdbdbd;
+
+    /* ===== Color / Platform Badge (番線バッジ) ===== */
+    --color-platform-bg: #f3f6fa;
+    --color-platform-border: #bcd;
+    --color-platform-text: var(--color-primary);
+
+    /* ===== Color / Brand (フッター等の固有ブランドカラー) ===== */
+    --color-brand-navy: #012169;
+
+    /* ===== Color / Highlight (選択中タブ・駅行の淡いハイライト) ===== */
+    --color-bg-highlight: #eaf6ff;
+
+    /* ===== Color / Overlay ===== */
+    --color-overlay: rgba(0, 0, 0, 0.45);
+
+    /* ===== Border Radius ===== */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+    --radius-pill: 999px;
+    --radius-circle: 50%;
+
+    /* ===== Shadow ===== */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-sheet: 0 -6px 24px rgba(0, 0, 0, 0.12);
+
+    /* ===== Spacing (4px刻み) ===== */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 32px;
+    --space-8: 40px;
+
+    /* ===== Typography ===== */
+    --font-family-base: "Noto Sans JP", -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.85rem;
+    --font-size-base: 0.95rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+    --font-size-display: 1.6rem;
+
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-height-base: 1.6;
+    --line-height-tight: 1;
+
+    /* ===== Motion ===== */
+    --duration-fast: 0.2s;
+    --duration-base: 0.3s;
+    --duration-slow: 0.5s;
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ===== Breakpoints (参考値。メディアクエリはこの値を直接書く) ===== */
+    /* mobile: max-width 768px / desktop: min-width 769px */
+}

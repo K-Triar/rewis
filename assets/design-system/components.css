@@ -1,0 +1,1297 @@
+/*
+ * REWIS Design System - Components
+ *
+ * ページ固有のクラス名に依存しない、汎用の再利用可能コンポーネント群。
+ * 依存: tokens.css（先に読み込むこと）。layout.css とは独立（順不同）。
+ *
+ * アイコンのパス（url(...)）はこのファイル自身の場所からの相対パス
+ * （assets/design-system/ → ../icons/）で解決される。
+ *
+ * ファイル末尾に「互換レイヤー」がある。shared/ui-dom.js
+ * （transfer/operation/index 共通の本番JS）が生成する要素は
+ * back-to-search-btn 等の旧クラス名を今もハードコードしているため、
+ * このファイルではそれらも同じ見た目になるよう別名として対応させている。
+ * shared/ui-dom.js 側を新クラス名に統合する作業は別タスク（未着手）。
+ */
+
+/* =========================================================
+   Button
+   ========================================================= */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--duration-base);
+    white-space: nowrap;
+}
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    display: block;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    padding: var(--space-3) var(--space-5);
+    width: auto;
+    max-width: 300px;
+    margin: 0 auto;
+}
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+}
+
+.btn-outline-pill {
+    background: var(--color-bg-surface);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-pill);
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+}
+.btn-outline-pill:hover {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.btn-neutral-pill {
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    border-radius: var(--radius-pill);
+    padding: var(--space-2) var(--space-5);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+}
+.btn-neutral-pill:hover {
+    filter: brightness(0.95);
+}
+
+.btn-icon-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: var(--radius-circle);
+    font-size: 1.5rem;
+    background: transparent;
+}
+.btn-icon-circle--outline {
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+}
+.btn-icon-circle--outline:hover {
+    background: var(--color-primary);
+    color: #fff;
+}
+.btn-icon-circle--ghost {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    color: var(--color-text-muted);
+}
+.btn-icon-circle--ghost:hover {
+    background: var(--color-bg-subtle);
+    color: var(--color-text-secondary);
+}
+.btn-icon-circle.is-spinning {
+    animation: btn-icon-spin 0.6s ease-in-out;
+}
+@keyframes btn-icon-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.btn-plain {
+    background: transparent;
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+}
+.btn-plain:focus {
+    outline: none;
+}
+.btn-plain img {
+    width: 36px;
+    height: 36px;
+    display: block;
+}
+@media (max-width: 768px) {
+    .btn-plain img {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* =========================================================
+   Badge
+   ========================================================= */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-bold);
+    flex-shrink: 0;
+}
+
+.badge-square {
+    width: 48px;
+    height: 48px;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    font-size: 24px;
+}
+.badge-square--sm {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    font-size: 20px;
+}
+@media (max-width: 768px) {
+    .badge-square--sm {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+}
+.badge-square--compact {
+    font-size: 14px;
+}
+
+.badge-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: var(--radius-circle);
+    background: var(--color-primary);
+    color: #fff;
+    font-size: var(--font-size-lg);
+}
+
+.badge-pill {
+    background: var(--color-transfer-badge-bg);
+    color: var(--color-transfer-badge-text);
+    border-radius: var(--radius-pill);
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    gap: var(--space-2);
+}
+
+.badge-train {
+    padding: 3px 10px;
+    border-radius: var(--radius-xs);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: #fff;
+}
+.badge-train--tc { background: var(--color-train-tc); }
+.badge-train--sx { background: var(--color-train-sx); }
+.badge-train--mc { background: var(--color-train-mc); }
+
+.badge-platform {
+    background: var(--color-platform-bg);
+    color: var(--color-platform-text);
+    border: 1px solid var(--color-platform-border);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    padding: 2px 10px;
+    white-space: nowrap;
+}
+.badge-platform--solid {
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-sm);
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+
+/* =========================================================
+   Surface / Card / Panel
+   ========================================================= */
+.surface {
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
+}
+
+.card {
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--color-bg-subtle);
+    padding: var(--space-5);
+    transition: transform var(--duration-base), box-shadow var(--duration-base);
+}
+
+.panel {
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+/* =========================================================
+   Field (text input + suggestions)
+   ========================================================= */
+.field {
+    position: relative;
+}
+
+.field-input {
+    width: 100%;
+    height: 48px;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-md);
+    background: var(--color-bg-subtle);
+    transition: border-color var(--duration-base);
+    font-family: inherit;
+}
+.field-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-bg-surface);
+}
+
+.field-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: var(--shadow-sm);
+}
+.field-suggestions.is-open {
+    display: block;
+}
+
+.field-suggestion {
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: background var(--duration-fast);
+    border-bottom: 1px solid var(--color-bg-subtle);
+}
+.field-suggestion:last-child {
+    border-bottom: none;
+}
+.field-suggestion:hover {
+    background: var(--color-bg-subtle);
+}
+.field-suggestion__name {
+    font-weight: var(--font-weight-semibold);
+    display: block;
+}
+.field-suggestion__lines {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: 3px;
+}
+
+/* =========================================================
+   Segmented toggle
+   ========================================================= */
+.segmented {
+    display: flex;
+    position: relative;
+    gap: var(--space-2);
+    align-items: center;
+    background: var(--color-bg-subtle);
+    padding: var(--space-2);
+    border-radius: var(--radius-pill);
+    width: fit-content;
+    box-sizing: border-box;
+}
+.segmented::before {
+    content: '';
+    position: absolute;
+    top: var(--space-2);
+    left: var(--seg-left, 6px);
+    width: var(--seg-width, 0);
+    height: calc(100% - (var(--space-2) * 2));
+    background: var(--color-primary);
+    border-radius: var(--radius-pill);
+    transition: left var(--duration-base) var(--ease-standard),
+                width var(--duration-base) var(--ease-standard);
+    z-index: 0;
+    pointer-events: none;
+}
+.segmented-btn {
+    background: transparent;
+    color: var(--color-heading);
+    border: none;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--font-size-sm);
+    position: relative;
+    z-index: 1;
+    transition: color var(--duration-fast);
+}
+.segmented-btn.is-selected {
+    color: #fff;
+    font-weight: var(--font-weight-semibold);
+}
+.segmented-btn:focus {
+    outline: none;
+}
+.segmented-btn:focus-visible {
+    outline: 2px solid rgba(0, 120, 215, 0.25);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   Page mode toggle wrapper（.segmented をページ上部に配置する共通位置）
+   モバイルでは main の上に絶対配置で重ねる（transfer/operation共通）。
+   ========================================================= */
+.page-mode-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: fit-content;
+    margin: 0 auto var(--space-8);
+}
+@media (max-width: 768px) {
+    .page-mode-toggle {
+        position: absolute;
+        top: var(--space-5);
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        z-index: 600;
+        width: fit-content;
+    }
+}
+.page-mode-toggle-label {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+/* =========================================================
+   Filter toggle (checkbox styled as icon button)
+   ========================================================= */
+.filter-panel {
+    background: var(--color-bg-surface);
+    padding: var(--space-5);
+    border-radius: var(--radius-sm);
+}
+
+.filter-icons-row {
+    --filter-icon-size: 56px;
+    display: grid;
+    grid-template-columns: 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr var(--filter-icon-size) 1fr;
+    align-items: center;
+    padding: var(--space-2) 4px;
+    column-gap: 0;
+    position: relative;
+}
+.filter-icons-row::before {
+    content: "";
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+    justify-self: center;
+    align-self: center;
+    width: 1px;
+    height: calc(var(--filter-icon-size) * 1.5);
+    background: var(--color-border);
+    border-radius: 1px;
+}
+.filter-icons-row > .filter-toggle:nth-child(1) { grid-column: 2 / 3; justify-self: center; align-self: center; }
+.filter-icons-row > .filter-toggle:nth-child(2) { grid-column: 4 / 5; justify-self: center; align-self: center; }
+.filter-icons-row > .filter-toggle:nth-child(3) { grid-column: 6 / 7; justify-self: center; align-self: center; }
+.filter-icons-row > .filter-toggle:nth-child(4) { grid-column: 8 / 9; justify-self: center; align-self: center; }
+
+.filter-toggle input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.filter-toggle-item {
+    width: var(--filter-icon-size);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 6px 4px;
+    position: relative;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.filter-toggle-top-label {
+    position: absolute;
+    left: -8px;
+    top: -20px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-bold);
+    z-index: 6;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.filter-toggle-icon {
+    width: 56px;
+    height: 56px;
+    background-color: var(--color-icon-inactive);
+    transition: background-color 0.18s ease, box-shadow 0.12s ease;
+    box-shadow: none;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.filter-toggle-icon--kt { mask-image: url(../icons/kt_icon.svg); -webkit-mask-image: url(../icons/kt_icon.svg); }
+.filter-toggle-icon--tc { mask-image: url(../icons/TC.svg); -webkit-mask-image: url(../icons/TC.svg); }
+.filter-toggle-icon--sx { mask-image: url(../icons/SX.svg); -webkit-mask-image: url(../icons/SX.svg); }
+.filter-toggle-icon--mc { mask-image: url(../icons/mc.svg); -webkit-mask-image: url(../icons/mc.svg); }
+
+.filter-toggle-caption {
+    font-size: var(--font-size-sm);
+    color: #444;
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    display: inline-block;
+}
+.filter-toggle-caption .status-on { display: none; }
+.filter-toggle-caption .status-off { display: inline; }
+
+.filter-toggle input[type="checkbox"]:checked + .filter-toggle-item .filter-toggle-icon {
+    background-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+.filter-toggle input[type="checkbox"]:checked + .filter-toggle-item .filter-toggle-caption { color: var(--color-primary); }
+.filter-toggle input[type="checkbox"]:checked + .filter-toggle-item .filter-toggle-caption .status-on { display: inline; }
+.filter-toggle input[type="checkbox"]:checked + .filter-toggle-item .filter-toggle-caption .status-off { display: none; }
+
+@media (max-width: 768px) {
+    .filter-icons-row { gap: 8px; }
+    .filter-toggle-icon { width: 48px; height: 48px; }
+    .filter-toggle-top-label { left: -4px; top: -18px; font-size: var(--font-size-xs); }
+}
+
+/* =========================================================
+   Modal / Overlay
+   ========================================================= */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-overlay);
+    z-index: 2000;
+}
+.modal {
+    background: var(--color-bg-surface);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    width: 92%;
+    max-width: 520px;
+    box-shadow: var(--shadow-sm);
+    word-break: break-word;
+}
+.modal h3 { margin: 0 0 var(--space-2) 0; color: var(--color-primary); }
+.modal p { margin: 0 0 var(--space-3) 0; color: var(--color-text-secondary); }
+.modal ul { margin: var(--space-2) 0 var(--space-4) var(--space-5); list-style-position: outside; }
+.modal li { margin-bottom: var(--space-2); line-height: 1.45; }
+.modal-actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+}
+
+/* =========================================================
+   Notice banner
+   ========================================================= */
+.notice {
+    position: relative;
+    pointer-events: auto;
+    background: var(--color-notice-bg);
+    border: 2px solid var(--color-notice-border);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-md);
+    color: var(--color-notice-text);
+    width: 100%;
+    box-sizing: border-box;
+}
+.error-text {
+    display: inline-block;
+    width: 95%;
+    box-sizing: border-box;
+    vertical-align: middle;
+    color: var(--color-notice-text);
+    overflow-wrap: break-word;
+}
+.error-close {
+    position: absolute;
+    top: 50%;
+    right: var(--space-2);
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--color-notice-text);
+    font-size: 20px;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-circle);
+    cursor: pointer;
+}
+.error-close:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--color-text);
+}
+
+/* =========================================================
+   Spinner
+   ========================================================= */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--color-bg-subtle);
+    border-top: 4px solid var(--color-primary);
+    border-radius: var(--radius-circle);
+    animation: spinner-spin 1s linear infinite;
+    margin: 0 auto var(--space-5);
+}
+@keyframes spinner-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* =========================================================
+   Page overlay（.notice / .spinner をページ上に配置する共通の外枠。
+   transfer/operation で完全に同一の実装だったため昇格した）
+   ========================================================= */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.notice-section {
+    position: fixed;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 920px;
+    z-index: 1500;
+    display: none;
+    padding: 0 var(--space-5);
+    pointer-events: none;
+    animation: fadeIn 0.5s;
+}
+.loading-section {
+    text-align: center;
+    padding: var(--space-8);
+    animation: fadeIn 0.5s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.loading-section p {
+    color: var(--color-text-secondary);
+}
+@media (max-width: 768px) {
+    .loading-section {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.85);
+        padding: var(--space-5) 18px;
+        text-align: center;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .loading-section .spinner {
+        width: 64px;
+        height: 64px;
+        border-width: 5px;
+        margin-bottom: var(--space-4);
+    }
+    .loading-section p {
+        color: var(--color-heading);
+        font-size: var(--font-size-md);
+        margin: 0;
+        line-height: 1.3;
+    }
+}
+
+/* =========================================================
+   Share result wrapper（共有ボタン行。JSが動的生成する共有クラス名）
+   ========================================================= */
+.share-result-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-6);
+}
+
+/* =========================================================
+   Icon system（マスク画像。side-nav / mobile-bottom-nav で使用）
+   ========================================================= */
+.icon {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-color: #666;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+.icon-home { mask-image: url(../icons/home.svg); -webkit-mask-image: url(../icons/home.svg); }
+.icon-walking { mask-image: url(../icons/walking.svg); -webkit-mask-image: url(../icons/walking.svg); }
+.icon-train { mask-image: url(../icons/train.svg); -webkit-mask-image: url(../icons/train.svg); }
+.icon-menu { mask-image: url(../icons/menu.svg); -webkit-mask-image: url(../icons/menu.svg); }
+.icon-info, .icon-business, .icon-news { display: none; }
+
+/* =========================================================
+   Side navigation（サイドバー）
+   ========================================================= */
+.side-nav-list {
+    list-style: none;
+}
+.side-nav-item {
+    margin-bottom: var(--space-3);
+}
+.side-nav-item.small .side-nav-link {
+    font-size: var(--font-size-sm);
+}
+.side-nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: var(--font-weight-semibold);
+    font-size: 1.05rem;
+    color: var(--color-heading);
+    text-align: left;
+    text-decoration: none;
+}
+.side-nav-item.is-active .side-nav-link {
+    background: var(--color-primary);
+    color: #fff;
+}
+.side-nav-item.is-active .icon {
+    background-color: #fff;
+}
+.side-nav-link:hover {
+    background: rgba(0, 120, 215, 0.08);
+    color: var(--color-primary);
+}
+.side-nav-item.is-active .side-nav-link:hover {
+    background: var(--color-primary);
+    color: #fff;
+}
+.side-nav-divider {
+    border: none;
+    height: 1px;
+    background: var(--color-border);
+    margin: var(--space-3) 0;
+}
+
+/* =========================================================
+   Mobile bottom navigation + bottom sheet
+   互換注記: .mb-item / .mb-menu / .sheet-item はここでは互換レイヤーではなく
+   本コンポーネント自体の正式なクラス名として扱う
+   （shared/ui-dom.js の setupBottomSheet がこの名前で要素を検索するため）。
+   ========================================================= */
+.mobile-bottom-nav {
+    display: none;
+}
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 72px;
+        background: var(--color-bg-surface);
+        border-top: 1px solid var(--color-border);
+        padding: 6px;
+        gap: 6px;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1400;
+    }
+}
+.mb-item {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: var(--space-2) 6px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    flex: 1 1 0;
+    text-align: center;
+    text-decoration: none;
+}
+.mb-item.is-active,
+.mb-item.active {
+    background: rgba(0, 120, 215, 0.12);
+    color: var(--color-primary);
+}
+.mb-icon {
+    width: 26px;
+    height: 26px;
+    display: block;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+.mb-label {
+    font-size: var(--font-size-xs);
+}
+
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(-100% - 72px);
+    height: 50vh;
+    max-height: 70vh;
+    transition: bottom 0.28s ease;
+    z-index: 1300;
+    pointer-events: none;
+    display: block;
+}
+.bottom-sheet.open {
+    bottom: 72px;
+    pointer-events: auto;
+}
+.bottom-sheet-content {
+    background: var(--color-bg-surface);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    padding: var(--space-4);
+    box-shadow: var(--shadow-sheet);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    overflow-y: auto;
+}
+.sheet-item {
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-weight: var(--font-weight-semibold);
+    display: block;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+.sheet-close {
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-subtle);
+    border: none;
+}
+.sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1200;
+    display: none;
+}
+.sheet-backdrop.open {
+    display: block;
+}
+.is-current-page {
+    pointer-events: none;
+    cursor: default;
+}
+
+/* =========================================================
+   Route results / Timeline（経路検索結果の一覧・タイムライン表示）
+   ========================================================= */
+.route-tabs {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--color-bg-subtle);
+    padding: 0;
+    border: none;
+    margin-bottom: var(--space-3);
+}
+.route-tabs::-webkit-scrollbar { height: 8px; }
+.route-tabs::-webkit-scrollbar-track { background: transparent; }
+.route-tabs::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: var(--radius-sm); }
+.route-tab {
+    appearance: none;
+    background: transparent;
+    border: none;
+    flex: 1 1 auto;
+    min-width: calc(100% / 3);
+    box-sizing: border-box;
+    padding: var(--space-3) var(--space-4);
+    margin: 0;
+    cursor: pointer;
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+    text-align: center;
+    transition: background 0.12s ease, color 0.12s ease;
+    border-top: 4px solid #aaa;
+}
+.route-tab:hover { background: rgba(0, 0, 0, 0.03); }
+.route-tab.is-active {
+    background: var(--color-bg-highlight);
+    font-weight: var(--font-weight-semibold);
+    border-top: 4px solid var(--color-primary);
+}
+@media (min-width: 769px) {
+    .route-tabs { overflow-x: visible; }
+    .route-tab { flex: 1 1 0%; min-width: 0; }
+}
+
+@media (max-width: 768px) {
+    /* モバイルは画面幅いっぱいに広げ、カードの枠取りは行わない */
+    .route-card {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+        padding: var(--space-4);
+    }
+}
+
+.route-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+.route-summary {
+    display: flex;
+    gap: var(--space-5);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    align-items: center;
+}
+.summary-time,
+.summary-transfer {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-strong);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+}
+.summary-number {
+    color: var(--color-primary);
+    font-size: var(--font-size-display);
+    line-height: var(--line-height-tight);
+}
+.summary-unit {
+    color: var(--color-text-strong);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-tight);
+    margin-left: 3px;
+}
+
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-row {
+    display: grid;
+    grid-template-columns: 60px 36px 1fr;
+    gap: var(--space-3);
+    align-items: start;
+    min-height: 46px;
+    border-bottom: 1px solid var(--color-bg-subtle);
+    background: transparent;
+}
+.timeline-row:last-child {
+    border-bottom: none;
+}
+.timeline-row--station {
+    grid-template-columns: 120px 56px 1fr;
+    align-items: center;
+    background: var(--color-bg-highlight);
+}
+.timeline-row--segment {
+    grid-template-columns: 99px 56px 1fr;
+    align-items: stretch;
+    min-height: 120px;
+}
+@media (max-width: 768px) {
+    .timeline-row--station { grid-template-columns: 96px 48px 1fr; }
+    .timeline-row--segment { grid-template-columns: 78px 48px 1fr; }
+}
+.timeline-time {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    color: var(--color-primary);
+    font-weight: var(--font-weight-bold);
+    padding-right: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.timeline-time-arrival,
+.timeline-time-departure {
+    font-size: 0.92rem;
+    line-height: 1;
+    opacity: 0.85;
+}
+.timeline-time-arrival + .timeline-time-departure { margin-top: 6px; }
+
+.timeline-transfer-time {
+    font-size: var(--font-size-base);
+    color: var(--color-transfer-badge-text);
+    font-weight: var(--font-weight-semibold);
+    margin-left: 6px;
+}
+.timeline-walk {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-base);
+    color: var(--color-text-strong);
+    font-weight: var(--font-weight-semibold);
+    margin-left: 6px;
+}
+.timeline-walk-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    opacity: 0.9;
+}
+
+.timeline-marker-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+.timeline-row--station .timeline-marker-col {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    box-sizing: content-box;
+}
+.timeline-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-circle);
+    display: inline-block;
+    flex: 0 0 14px;
+    position: relative;
+    z-index: 3;
+}
+.timeline-dot--transfer {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-circle);
+    background: #fff;
+    border: 7.5px solid var(--color-primary);
+    box-sizing: border-box;
+    flex: 0 0 30px;
+}
+.timeline-marker-col .badge-square {
+    position: relative;
+    z-index: 3;
+}
+
+.timeline-station-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+.timeline-station-name {
+    font-size: 1.13rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+}
+.timeline-content {
+    padding-left: var(--space-3);
+}
+.timeline-row--segment .timeline-content {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+}
+/* .timeline-content の padding-bottom の分だけ、隣接するマーカー列
+   （.timeline-stop-markers, align-self: flex-end）の下端もずれてしまうため、
+   マーカー列側にも同じ padding-bottom を付けて基準の下端を揃える。
+   これは timeline-stop-markers と timeline-stop の行を1対1で揃えるために
+   必須の値なので変更しないこと。 */
+.timeline-row--segment .timeline-marker-col.timeline-segment {
+    padding-bottom: var(--space-4);
+    box-sizing: border-box;
+}
+/* 上記の padding-bottom は timeline-segment-inner（height: 100% で伸縮）にも
+   影響し、到着のりばが行下端から space-4 分浮いてしまう（出発のりばは上端に
+   隙間なく直下に揃うため非対称になる）。timeline-stop-markers の基準位置は
+   変えずに、timeline-segment-inner だけ負のマージンで padding-bottom を
+   打ち消し、行下端との間に space-1 の最小限の余白だけ残す。
+   上端は marker-col に padding-top が無いため出発のりばが駅行に直接くっつく。
+   marker-col 側には触れず（timeline-stop-markers の基準に影響しないよう）
+   timeline-segment-inner の margin-top だけで上端にも space-1 の余白を作る。 */
+.timeline-row--segment .timeline-segment-inner {
+    margin-top: var(--space-2);
+    margin-bottom: calc(-1 * var(--space-4) + var(--space-2));
+}
+
+.timeline-segment {
+    display: flex !important;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0 4px;
+    height: 100%;
+    gap: 6px;
+    min-width: 56px;
+    box-sizing: border-box;
+    position: relative;
+}
+@media (max-width: 768px) {
+    .timeline-segment { min-width: 48px; }
+}
+.timeline-segment-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    min-width: 18px;
+    max-width: 20px;
+    flex: 0 0 auto;
+    height: 100%;
+}
+.timeline-platform-spacer { height: 22px; }
+.timeline-boarding-duration {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    text-align: right;
+    margin: auto 0;
+    align-self: flex-end;
+    padding-right: 5px;
+}
+.timeline-line {
+    position: absolute;
+    right: 3px;
+    left: auto;
+    top: -30px;
+    bottom: -36px;
+    width: 8px;
+    border-radius: 3px;
+    display: block;
+    z-index: 0;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+@media (max-width: 768px) {
+    .timeline-line { right: 3px; left: auto; top: -36px; height: calc(100% + 70px); bottom: auto; width: 6px; }
+}
+
+.timeline-line-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+}
+.timeline-line-symbol {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-color: var(--icon-color, #000);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.timeline-line-name {
+    font-size: 1.02rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-heading);
+}
+.timeline-meta-row {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    margin-left: 0;
+}
+.timeline-detail {
+    color: #888;
+    font-size: 0.93rem;
+    margin-left: var(--space-3);
+}
+
+.timeline-stops {
+    display: none;
+    margin-top: var(--space-3);
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+.timeline-stops.is-expanded {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+.timeline-stop {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 30px;
+}
+.timeline-stop-markers {
+    display: none;
+    position: relative;
+    width: 100%;
+    align-self: flex-end;
+}
+.timeline-stop-markers.is-expanded {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+.timeline-stop-name {
+    font-size: var(--font-size-base);
+    line-height: 20px;
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+.timeline-stop-elapsed {
+    font-size: var(--font-size-sm);
+    line-height: 20px;
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+}
+.timeline-stop-marker-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: 30px;
+}
+.timeline-stop-marker {
+    width: 18px;
+    height: 18px;
+    border-radius: var(--radius-circle);
+    border: 4px solid var(--color-primary);
+    background: #fff;
+    flex-shrink: 0;
+    z-index: 2;
+    margin: 0 6px 0 0;
+    align-self: center;
+    transform: translateX(10px);
+}
+@media (max-width: 768px) {
+    .timeline-stop-marker { transform: translateX(3px); }
+}
+
+/* =========================================================
+   互換レイヤー（shared/ui-dom.js が生成する要素専用）
+   本番共通JS（shared/ui-dom.js）は以下のクラス名をハードコードして
+   要素を生成・検索するため、このデザインシステム側でも同名クラスを
+   定義して見た目を合わせている。shared/ui-dom.js 自体を新クラス名
+   （.modal-overlay / .modal / .modal-actions / .btn-outline-pill 等）
+   に統合する作業は今回未着手（別タスク）。
+   ========================================================= */
+.share-modal { /* = .modal-overlay */
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-overlay);
+    z-index: 2000;
+}
+.share-modal-content { /* = .modal */
+    background: var(--color-bg-surface);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    width: 92%;
+    max-width: 520px;
+    box-shadow: var(--shadow-sm);
+}
+.share-modal-content h3 { margin: 0 0 var(--space-2) 0; color: var(--color-primary); }
+.share-modal-content p { margin: 0 0 var(--space-3) 0; color: var(--color-text-secondary); }
+.share-modal-actions { /* = .modal-actions */
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+}
+.share-modal .back-to-search-btn { /* = .btn-outline-pill */
+    background: var(--color-bg-surface);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-pill);
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all var(--duration-base);
+}
+.share-modal .back-to-search-btn:hover {
+    background: var(--color-primary);
+    color: #fff;
+}
+.share-url-input { /* = .field-input の読み取り専用亜種 */
+    width: 100%;
+    padding: var(--space-3) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-3);
+    background: var(--color-bg-subtle);
+}
