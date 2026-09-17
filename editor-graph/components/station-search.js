@@ -18,23 +18,31 @@ export function createStationSearch(stations, onSelect, { placeholder = '駅名�
   let results = [];
   let activeIndex = -1;
 
+  let items = [];
+
   function renderResults() {
     clear(list);
-    results.forEach((station, index) => {
+    items = results.map((station, index) => {
       const item = h('button', {
         type: 'button',
         class: 'g-list__item' + (index === activeIndex ? ' is-selected' : ''),
         onMouseEnter: () => setActive(index),
+        // input の blur より先に発火させ、blur による close() が click を潰さないようにする
+        onMouseDown: (event) => event.preventDefault(),
         onClick: () => select(station)
       }, station.name, h('span', { style: 'color:var(--fgColor-muted); margin-left:8px;' }, station.kana || ''));
       list.appendChild(item);
+      return item;
     });
     list.hidden = results.length === 0;
   }
 
+  // ホバーのたびに要素を作り直すと、マウス直下の要素が入れ替わり続けて
+  // mousedown がボタンではなく親要素に当たってしまう（クリックが効かなくなる）ため、
+  // 既存のボタン要素はそのままに is-selected クラスだけ付け替える。
   function setActive(index) {
     activeIndex = index;
-    renderResults();
+    items.forEach((item, i) => item.classList.toggle('is-selected', i === index));
   }
 
   function select(station) {

@@ -1,6 +1,6 @@
 import { h } from '../dom.js';
 
-function openDialog(build) {
+export function openDialog(build) {
   return new Promise((resolve) => {
     const backdrop = h('div', { class: 'g-dialog-backdrop' });
 

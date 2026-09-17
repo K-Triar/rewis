@@ -79,7 +79,8 @@ export function renderStationNode(parent, station, pos, {
         class: 'g-port__hit',
         cx: point.x,
         cy: point.y,
-        r: NODE.hitR
+        r: NODE.hitR,
+        'data-platform-id': platform.id
       });
       if (onPortPointerDown) {
         hit.addEventListener('pointerdown', (event) => onPortPointerDown(event, station, platform.id));

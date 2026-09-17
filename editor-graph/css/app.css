@@ -369,6 +369,7 @@ body {
   border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
 .g-list__row:last-child { border-bottom: none; }
+.g-list__row.is-selected { background: var(--bgColor-accent-muted); }
 
 .g-platform-row { cursor: grab; }
 .g-platform-row .g-input { flex: 1 1 auto; }
@@ -449,3 +450,62 @@ body {
   width: 260px;
 }
 .g-popover-actions { display: flex; justify-content: flex-end; gap: var(--stack-gap-condensed); }
+
+/* 14章 乗換・駅グループタブ */
+.g-tr-root { display: flex; flex-direction: column; height: 100%; }
+.g-tr-pane-switch { flex: none; display: flex; gap: var(--stack-gap-condensed); padding: var(--stack-padding-normal) var(--stack-padding-normal) 0; }
+.g-tr-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.g-tr-tables { max-width: 720px; margin: 0 auto; padding: var(--stack-padding-normal); display: flex; flex-direction: column; gap: var(--stack-gap-normal); }
+.g-tr-group-actions { margin-left: auto; display: flex; gap: var(--stack-gap-condensed); flex-wrap: wrap; flex: none; }
+
+.g-transfer-drag { stroke: var(--borderColor-accent-emphasis); stroke-width: 2; stroke-dasharray: 4 4; pointer-events: none; }
+
+.g-walk-line { stroke: var(--fgColor-muted); stroke-width: 2; stroke-dasharray: 2 5; cursor: pointer; }
+.g-walk-line.is-selected { stroke: var(--borderColor-accent-emphasis); stroke-width: 3; }
+.g-walk-hit { stroke: transparent; stroke-width: 14; cursor: pointer; }
+.g-walk-arrow { fill: var(--fgColor-muted); pointer-events: none; }
+.g-walk-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 20px;
+  padding-inline: 6px;
+  border-radius: 10px;
+  background: var(--bgColor-default);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  font: var(--text-caption-shorthand);
+  color: var(--fgColor-default);
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+.g-walk-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex: none;
+  background-color: var(--fgColor-muted);
+  -webkit-mask-image: url('../../src/walking.svg');
+  mask-image: url('../../src/walking.svg');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.g-intra-badge { pointer-events: none; font: var(--text-caption-shorthand); font-weight: var(--base-text-weight-semibold); }
+.g-intra-badge rect { fill: var(--bgColor-accent-muted); stroke: var(--borderColor-accent-muted); }
+.g-intra-badge text { fill: var(--fgColor-accent); }
+
+.g-tr-intra-table { overflow-x: auto; margin: var(--space-sm) 0; }
+.g-tr-intra-table table { border-collapse: collapse; width: 100%; }
+.g-tr-intra-table th, .g-tr-intra-table td {
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+  padding: var(--space-xxs) var(--space-xs);
+  text-align: center;
+  font: var(--text-body-shorthand-small);
+}
+.g-tr-intra-table input { width: 60px; text-align: center; }
+.g-tr-intra-reversed { font-style: italic; }
