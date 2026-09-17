@@ -8,6 +8,7 @@ import { renderStationsView } from './views/stations.js';
 import { renderLinesView } from './views/lines.js';
 import { renderServicesView } from './views/services.js';
 import { renderTransfersView } from './views/transfers.js';
+import { renderOperationsView } from './views/operations.js';
 import { renderCompaniesView } from './views/companies.js';
 import { renderVehicleTypesView } from './views/vehicle-types.js';
 import { renderHistoryView } from './views/history.js';
@@ -25,6 +26,7 @@ const TABS = [
   { id: 'lines', label: '路線', render: renderLinesView },
   { id: 'services', label: '運行系統', render: renderServicesView },
   { id: 'transfers', label: '乗換・駅グループ', render: renderTransfersView },
+  { id: 'operations', label: '運行情報', render: renderOperationsView },
   { id: 'companies', label: '鉄道会社', render: renderCompaniesView },
   { id: 'vehicle-types', label: '車両種別', render: renderVehicleTypesView },
   { id: 'history', label: '履歴', render: renderHistoryView },

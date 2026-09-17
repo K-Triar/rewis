@@ -8,6 +8,7 @@ import { renderStationsView } from './views/stations.js';
 import { renderLinesView } from './views/lines.js';
 import { renderServicesView } from './views/services.js';
 import { renderTransfersView } from './views/transfers.js';
+import { renderOperationsView } from './views/operations.js';
 import { getSavedApiBase } from './api.js';
 import { resolveIssueFocus } from './navigate.js';
 
@@ -18,6 +19,7 @@ const TABS = [
   { id: 'lines', label: '路線', render: renderLinesView },
   { id: 'services', label: '運行系統', render: renderServicesView },
   { id: 'transfers', label: '乗換・駅グループ', render: renderTransfersView },
+  { id: 'operations', label: '運行情報', render: renderOperationsView },
   { id: 'export', label: '保存/読込', render: renderIoView },
   { id: 'history', label: '履歴', render: renderHistoryView }
 ];
@@ -41,7 +43,6 @@ function renderIssues() {
       if (focus) {
         requestNavigate(focus);
       } else {
-        // notices（運行情報）など、まだタブがない対象は飛び先がない
         console.log('[REWIS editor2] issue clicked (飛び先なし)', kind, issue);
       }
     }

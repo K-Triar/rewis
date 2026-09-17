@@ -127,7 +127,8 @@ const TAB_BY_ARRAY = {
   services: 'services',
   transfers: 'transfers',
   stationGroups: 'transfers',
-  companies: 'companies'
+  companies: 'companies',
+  notices: 'operations'
 };
 
 function mergeLevel(current, next) {

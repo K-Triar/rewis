@@ -137,6 +137,23 @@ header,
   color: #666;
 }
 
+.ed2-empty {
+  color: #666;
+  font-size: 13px;
+}
+
+.ed2-preview {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px 12px;
+  background: #fafafa;
+}
+
+.ed2-preview p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+
 .ed2-json-preview {
   max-height: 400px;
   overflow: auto;
