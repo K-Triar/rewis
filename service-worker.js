@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rewis-v9';
+const CACHE_NAME = 'rewis-v10';
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 function toScopedPath(path) {
@@ -13,19 +13,20 @@ const APP_SHELL_URLS = [
   toScopedPath('/information/'),
   toScopedPath('/transfer/'),
   toScopedPath('/operation/'),
-  toScopedPath('/editor/'),
+  toScopedPath('/editor-v1/'),
   // 旧URL（.html直置き）は移動先へリダイレクトするスタブとして残しているため、オフライン時も動くようキャッシュ対象に含める
   toScopedPath('/about.html'),
   toScopedPath('/information.html'),
   toScopedPath('/transfer.html'),
   toScopedPath('/operation.html'),
+  // editor.html は段階5の本番切り替え以降、新エディタ（v2）そのもの（スタブではない）
   toScopedPath('/editor.html'),
   toScopedPath('/assets/css/style.css'),
   toScopedPath('/assets/css/index_style.css'),
   toScopedPath('/assets/js/index_app.js'),
   toScopedPath('/assets/js/rewis_public_config.js'),
-  toScopedPath('/editor/editor.css'),
-  toScopedPath('/editor/editor.js'),
+  toScopedPath('/editor-v1/editor.css'),
+  toScopedPath('/editor-v1/editor.js'),
   toScopedPath('/transfer/transfer_app.js'),
   toScopedPath('/operation/operation_app.js'),
   toScopedPath('/shared/validate-v1.js'),

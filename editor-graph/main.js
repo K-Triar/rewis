@@ -69,8 +69,7 @@ function renderHeader() {
   const left = h('div', { class: 'g-header__left' },
     h('img', { class: 'g-header__logo', src: 'assets/icons/rewis_logo_w.svg', alt: '' }),
     h('div', { class: 'g-header__title' },
-      '| 路線データ編集',
-      h('span', { class: 'g-label' }, '試験用')
+      '| 路線データ編集'
     )
   );
 
@@ -212,7 +211,7 @@ async function handleSwitchToTable() {
     );
     if (!ok) return;
   }
-  window.location.href = 'editor-v2.html';
+  window.location.href = 'editor.html';
 }
 
 const ctx = {

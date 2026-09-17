@@ -71,8 +71,7 @@ export function renderIoView(container, ctx) {
   }
 
   const authCard = h('div', { class: 'export-card' },
-    h('h3', {}, '外部正本 (Cloudflare Workers v2・試験用)'),
-    h('p', {}, 'ここでの保存は段階4のステージング用です。本番の切り替えは段階5でまとめて行います。'),
+    h('h3', {}, '外部正本 (Cloudflare Workers v2)'),
     h('div', { class: 'worker-config-grid' },
       h('label', {}, 'Workers API URL'), apiBaseInput,
       h('label', {}, 'ユーザーID'), userIdInput,

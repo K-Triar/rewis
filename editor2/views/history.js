@@ -142,7 +142,7 @@ export function renderHistoryView(container, ctx) {
   const refreshBtn = h('button', { class: 'preview-btn', type: 'button', onClick: renderList }, '更新');
 
   container.appendChild(h('div', { class: 'export-card' },
-    h('h3', {}, 'Worker 保存履歴（試験用 v2）'),
+    h('h3', {}, 'Worker 保存履歴（v2）'),
     tabsContainer,
     refreshBtn,
     status,
