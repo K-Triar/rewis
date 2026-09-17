@@ -169,7 +169,8 @@ function scrollOperationTopOnMobile() {
 
 // ステータス判定
 function getLineStatusSummary(lineId) {
-    const st = (model.noticesByLine.get(lineId) || [])[0];
+    const list = model.noticesByLine.get(lineId) || [];
+    const st = model.primaryNotice(lineId);
     if (!st) {
         return {
             level: 'normal',
@@ -196,6 +197,9 @@ function getLineStatusSummary(lineId) {
     const causeHeading = getCauseHeading(st);
     if (causeHeading) {
         subLines.push(`事由：${causeHeading}`);
+    }
+    if (list.length > 1) {
+        subLines.push(`ほか${list.length - 1}件`);
     }
 
     return {
@@ -401,14 +405,16 @@ function ensureLineShareButton() {
     }
 }
 
-// アラート枠
+// アラート枠（1路線に複数件あれば、代表の1件を先頭にすべて積み重ねる）
 function renderLineAlertBox(lineId) {
     const box = document.getElementById('line-alert-box');
     box.innerHTML = '';
 
-    const st = (model.noticesByLine.get(lineId) || [])[0];
-    if (!st) {
-        box.classList.add('alert-normal');
+    const list = model.noticesByLine.get(lineId) || [];
+    if (list.length === 0) {
+        const item = document.createElement('div');
+        item.className = 'alert-item alert-normal';
+
         const inner = document.createElement('div');
         inner.className = 'alert-body';
         const metaTime = getLatestNoticeUpdatedAt();
@@ -416,11 +422,19 @@ function renderLineAlertBox(lineId) {
         inner.textContent = timeText
             ? `現在、列車の遅れなどの情報はありません。（${timeText} 時点）`
             : '現在、列車の遅れなどの情報はありません。';
-        box.appendChild(inner);
+        item.appendChild(inner);
+        box.appendChild(item);
         return;
     }
 
-    box.classList.remove('alert-normal');
+    const rep = model.primaryNotice(lineId);
+    const ordered = [rep, ...list.filter(n => n !== rep)];
+    ordered.forEach(notice => box.appendChild(buildAlertItem(notice)));
+}
+
+function buildAlertItem(notice) {
+    const item = document.createElement('div');
+    item.className = 'alert-item';
 
     const header = document.createElement('div');
     header.className = 'alert-header';
@@ -428,30 +442,32 @@ function renderLineAlertBox(lineId) {
     const main = document.createElement('div');
     main.className = 'alert-main';
 
+    const isSuspend = isSuspendNotice(notice);
     const icon = document.createElement('span');
-    icon.className = 'alert-icon-cross';
-    icon.textContent = '×';
+    icon.className = isSuspend ? 'alert-icon-cross' : 'alert-icon-warning';
+    icon.textContent = isSuspend ? '×' : '！';
 
     const title = document.createElement('span');
     title.className = 'alert-title';
-    title.textContent = st.status?.heading || '運行情報';
+    title.textContent = notice.status?.heading || '運行情報';
 
     main.appendChild(icon);
     main.appendChild(title);
 
     const updated = document.createElement('span');
     updated.className = 'alert-updated';
-    updated.textContent = st.updatedAt ? `${formatJaDateTime(st.updatedAt)} 更新` : '';
+    updated.textContent = notice.updatedAt ? `${formatJaDateTime(notice.updatedAt)} 更新` : '';
 
     header.appendChild(main);
     header.appendChild(updated);
 
     const body = document.createElement('div');
     body.className = 'alert-body';
-    body.textContent = (st.rendered && st.rendered.body) || st.status?.body || '';
+    body.textContent = (notice.rendered && notice.rendered.body) || notice.status?.body || '';
 
-    box.appendChild(header);
-    box.appendChild(body);
+    item.appendChild(header);
+    item.appendChild(body);
+    return item;
 }
 
 // 路線図＋駅リスト
@@ -494,12 +510,25 @@ function renderLineDiagram(lineId) {
         boundsByCat[c.id] = { min: minIdx, max: maxIdx };
     });
 
-    // この路線の区間で影響を受けている範囲（要望4：computeAffectedIndicesを使う）
-    const st = (model.noticesByLine.get(lineId) || [])[0];
-    const affectedIndicesArray = st ? computeAffectedIndices(line, st.range) : [];
-    const affectedIndices = new Set(affectedIndicesArray);
-    const minAffectedIdx = affectedIndicesArray.length ? affectedIndicesArray[0] : -1;
-    const maxAffectedIdx = affectedIndicesArray.length ? affectedIndicesArray[affectedIndicesArray.length - 1] : -1;
+    // この路線の区間で影響を受けている範囲（5-3：1路線の複数のnoticeを合わせて、種別ごとに塗る）
+    const noticeList = model.noticesByLine.get(lineId) || [];
+    const noticeAffected = noticeList.map(notice => ({
+        notice,
+        indices: new Set(computeAffectedIndices(line, notice.range)),
+    }));
+
+    function isCategoryAffectedAt(idx, categoryId) {
+        return noticeAffected.some(({ notice, indices }) => (
+            indices.has(idx) && (notice.categoryIds == null || notice.categoryIds.includes(categoryId))
+        ));
+    }
+
+    const catAffectedIndices = {};
+    cats.forEach(c => {
+        catAffectedIndices[c.id] = order
+            .map((_, idx) => idx)
+            .filter(idx => isCategoryAffectedAt(idx, c.id));
+    });
 
     // --- DOM生成 ---
 
@@ -525,7 +554,6 @@ function renderLineDiagram(lineId) {
     // データ行 (駅ごと)
     order.forEach((stId, idx) => {
         const station = model.stationById.get(stId);
-        const isStationAffected = affectedIndices.has(idx);
 
         const row = document.createElement('div');
         row.className = 'op-body-row';
@@ -551,14 +579,7 @@ function renderLineDiagram(lineId) {
             const cell = document.createElement('div');
             cell.className = 'op-diagram-cell';
 
-            let isCatAffected = false;
-            if (isStationAffected && st) {
-                if (st.categoryIds == null) {
-                    isCatAffected = true;
-                } else if (Array.isArray(st.categoryIds) && st.categoryIds.includes(c.id)) {
-                    isCatAffected = true;
-                }
-            }
+            const isCatAffected = isCategoryAffectedAt(idx, c.id);
 
             if (idx >= bounds.min && idx <= bounds.max) {
                 const lineBar = document.createElement('div');
@@ -567,8 +588,9 @@ function renderLineDiagram(lineId) {
 
                 if (isCatAffected) {
                     lineBar.classList.add('affected');
-                    if (idx === minAffectedIdx) lineBar.classList.add('affected-start');
-                    if (idx === maxAffectedIdx) lineBar.classList.add('affected-end');
+                    const catIndices = catAffectedIndices[c.id];
+                    if (catIndices.length && idx === catIndices[0]) lineBar.classList.add('affected-start');
+                    if (catIndices.length && idx === catIndices[catIndices.length - 1]) lineBar.classList.add('affected-end');
                 }
 
                 if (idx === bounds.min) lineBar.classList.add('line-start');

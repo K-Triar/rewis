@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { buildModel, computeAffectedIndices, throughTargetsFor } from '../shared/model.js';
+import { buildModel, computeAffectedIndices, throughTargetsFor, primaryNotice } from '../shared/model.js';
 import { convertV1ToV2 } from '../shared/convert-v1-to-v2.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -72,6 +72,24 @@ test('noticesByLine は路線ごとにまとめ、updatedAt の新しい順に�
   const model = buildModel(network, [publicNotices[0], extra], operationsDoc.masters);
   const list = model.noticesByLine.get('LA');
   assert.deepEqual(list.map(n => n.id), ['nt_x2', 'nt_x1']);
+});
+
+test('primaryNotice: 状態の重さが大きいものを優先する（updatedAtが古くても）', () => {
+  const lower = { ...publicNotices[0], id: 'nt_low', updatedAt: '2026-06-01T00:00:00.000Z', status: { code: 'other', heading: 'お知らせ', body: '' } };
+  const model = buildModel(network, [publicNotices[0], lower], operationsDoc.masters);
+  assert.equal(primaryNotice(model, 'LA').id, 'nt_x1');
+  assert.equal(model.primaryNotice('LA').id, 'nt_x1');
+});
+
+test('primaryNotice: 重さが同じなら updatedAt の新しい方', () => {
+  const newer = { ...publicNotices[0], id: 'nt_newer', updatedAt: '2026-06-01T00:00:00.000Z' };
+  const model = buildModel(network, [publicNotices[0], newer], operationsDoc.masters);
+  assert.equal(primaryNotice(model, 'LA').id, 'nt_newer');
+});
+
+test('primaryNotice: notice がなければ null', () => {
+  const model = buildModel(network, [], operationsDoc.masters);
+  assert.equal(primaryNotice(model, 'LA'), null);
 });
 
 test('補助関数 stationName / lineName / categoryName', () => {

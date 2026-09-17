@@ -123,6 +123,32 @@ export function throughTargetsFor(network, lineId) {
   });
 }
 
+const NOTICE_STATUS_WEIGHT = { OfS: 3, DSS: 2, Aff: 1 };
+
+function noticeStatusWeight(notice, masters) {
+  const code = notice.status && notice.status.code;
+  if (!code || code === 'notice' || code === 'other') return 0;
+  const templates = (masters && masters.statusTemplates) || [];
+  const tpl = templates.find(t => t.code === code);
+  const statusId = tpl ? tpl.statusId : null;
+  return NOTICE_STATUS_WEIGHT[statusId] || 0;
+}
+
+export function primaryNotice(model, lineId) {
+  const list = (model.noticesByLine && model.noticesByLine.get(lineId)) || [];
+  if (list.length === 0) return null;
+  let best = list[0];
+  let bestWeight = noticeStatusWeight(best, model.masters);
+  for (let i = 1; i < list.length; i++) {
+    const weight = noticeStatusWeight(list[i], model.masters);
+    if (weight > bestWeight) {
+      best = list[i];
+      bestWeight = weight;
+    }
+  }
+  return best;
+}
+
 export function computeAffectedIndices(line, range) {
   const stations = (line && line.stations) || [];
   if (range == null) {
@@ -188,6 +214,7 @@ export function buildModel(network, publicNotices = [], masters) {
     const cat = l && Array.isArray(l.categories) ? l.categories.find(c => c.id === categoryId) : null;
     return cat ? (cat.name || cat.id) : categoryId;
   };
+  model.primaryNotice = lineId => primaryNotice(model, lineId);
 
   return model;
 }

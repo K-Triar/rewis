@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rewis-v8';
+const CACHE_NAME = 'rewis-v9';
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 function toScopedPath(path) {
