@@ -509,3 +509,36 @@ body {
 }
 .g-tr-intra-table input { width: 60px; text-align: center; }
 .g-tr-intra-reversed { font-style: italic; }
+
+/* 15章 鉄道会社・車両種別・履歴タブ */
+.g-single-col { max-width: 720px; margin: 0 auto; padding: var(--stack-padding-normal); display: flex; flex-direction: column; gap: var(--stack-gap-normal); }
+.g-single-col--wide { max-width: 1080px; }
+.g-company-detail { display: flex; flex-direction: column; gap: var(--stack-gap-condensed); padding: var(--stack-padding-condensed) 0; }
+.g-history-detail { display: flex; gap: var(--stack-gap-normal); align-items: flex-start; }
+.g-history-detail__list { flex: 1 1 auto; min-width: 0; }
+.g-history-detail__panel { flex: none; width: 360px; }
+.g-diff-table { border-collapse: collapse; width: 100%; }
+.g-diff-table th, .g-diff-table td {
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+  padding: var(--space-xxs) var(--space-xs);
+  text-align: right;
+  font: var(--text-body-shorthand-small);
+}
+.g-diff-table th:first-child, .g-diff-table td:first-child { text-align: left; }
+
+/* 16章 操作ガイド */
+.g-guide-backdrop {
+  position: fixed;
+  z-index: 1500;
+  background: var(--overlay-backdrop-bgColor);
+  pointer-events: none;
+}
+.g-guide-balloon {
+  position: fixed;
+  z-index: 1501;
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed);
+}
+.g-guide-balloon__nav { display: flex; align-items: center; gap: var(--stack-gap-condensed); }
+.g-guide-balloon__spacer { flex: 1 1 auto; }

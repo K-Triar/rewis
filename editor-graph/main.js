@@ -8,27 +8,26 @@ import { renderStationsView } from './views/stations.js';
 import { renderLinesView } from './views/lines.js';
 import { renderServicesView } from './views/services.js';
 import { renderTransfersView } from './views/transfers.js';
+import { renderCompaniesView } from './views/companies.js';
+import { renderVehicleTypesView } from './views/vehicle-types.js';
+import { renderHistoryView } from './views/history.js';
 import { renderStatusRow } from './components/status-row.js';
 import { openIssuesDrawer } from './components/issues-drawer.js';
 import { alertDialog, confirmDialog } from './components/dialog.js';
+import { openGuide } from './components/guide.js';
+import { GUIDE_STEPS } from './guide-steps.js';
 import * as api from '../editor2/api.js';
 
 const TAB_STORAGE_KEY = 'rewis_graph_tab';
-
-function placeholderView(container) {
-  clear(container);
-  container.appendChild(h('div', { class: 'g-view' }, h('p', {}, '準備中です。')));
-  return { destroy() {} };
-}
 
 const TABS = [
   { id: 'stations', label: '駅', render: renderStationsView },
   { id: 'lines', label: '路線', render: renderLinesView },
   { id: 'services', label: '運行系統', render: renderServicesView },
   { id: 'transfers', label: '乗換・駅グループ', render: renderTransfersView },
-  { id: 'companies', label: '鉄道会社', render: placeholderView },
-  { id: 'vehicle-types', label: '車両種別', render: placeholderView },
-  { id: 'history', label: '履歴', render: placeholderView },
+  { id: 'companies', label: '鉄道会社', render: renderCompaniesView },
+  { id: 'vehicle-types', label: '車両種別', render: renderVehicleTypesView },
+  { id: 'history', label: '履歴', render: renderHistoryView },
   { id: 'data', label: 'データの読込と書出', render: renderDataView }
 ];
 
@@ -143,7 +142,10 @@ function renderStatus() {
     onRedo: () => { store.redo(); renderMain(); },
     onSave: handleSave,
     onSwitchToTable: handleSwitchToTable,
-    onOpenGuide: () => {}
+    onOpenGuide: () => {
+      const steps = GUIDE_STEPS[activeTabId];
+      if (steps) openGuide(steps);
+    }
   });
 }
 

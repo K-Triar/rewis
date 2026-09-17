@@ -13,6 +13,8 @@ import { alertDialog, confirmDialog, openDialog } from '../components/dialog.js'
 import { openPopover } from '../components/overlay.js';
 import { helpTip } from '../components/help-tip.js';
 import { createStationSearch } from '../components/station-search.js';
+import { maybeOpenGuideOnce } from '../components/guide.js';
+import { GUIDE_STEPS } from '../guide-steps.js';
 
 const SHIFT_HELP_TEXT = 'このタブでは、駅の移動は Shift を押しながらのドラッグだけです。ドラッグだけで始めると、乗換の登録になります。';
 
@@ -549,6 +551,8 @@ function mountGraphPane(container, ctx) {
   });
   workspace.toolbar.appendChild(helpTip(SHIFT_HELP_TEXT));
   if (!canvas.hasSavedViewport) fitAll();
+
+  maybeOpenGuideOnce(GUIDE_STEPS.transfers, 'rewis_editor_graph_guide_transfers');
 
   return () => {
     window.removeEventListener('keydown', onKeyDown);

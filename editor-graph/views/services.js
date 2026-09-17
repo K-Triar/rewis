@@ -17,6 +17,8 @@ import { summarizeSections, totalRun, reverseService, stationName } from '../../
 import { h, s, clear, icon } from '../dom.js';
 import { alertDialog, confirmDialog } from '../components/dialog.js';
 import { openPopover } from '../components/overlay.js';
+import { maybeOpenGuideOnce } from '../components/guide.js';
+import { GUIDE_STEPS } from '../guide-steps.js';
 
 const MUTED_COLOR = '#999999';
 
@@ -1098,6 +1100,8 @@ export function renderServicesView(container, ctx) {
     ui.sel = focus.sub || null;
     refreshView();
   }
+
+  maybeOpenGuideOnce(GUIDE_STEPS.services, 'rewis_editor_graph_guide_services');
 
   return {
     destroy() {

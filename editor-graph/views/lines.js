@@ -16,6 +16,8 @@ import { isValidId } from '../../shared/ids.js';
 import { h, s, clear, icon } from '../dom.js';
 import { alertDialog, confirmDialog } from '../components/dialog.js';
 import { openPopover } from '../components/overlay.js';
+import { maybeOpenGuideOnce } from '../components/guide.js';
+import { GUIDE_STEPS } from '../guide-steps.js';
 
 const MUTED_COLOR = '#999999';
 const REF_TAB_BY_KIND = { service: 'services' };
@@ -765,6 +767,8 @@ export function renderLinesView(container, ctx) {
     ui.selectedIndex = null;
     refreshView();
   }
+
+  maybeOpenGuideOnce(GUIDE_STEPS.lines, 'rewis_editor_graph_guide_lines');
 
   return {
     destroy() {

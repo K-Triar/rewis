@@ -13,6 +13,8 @@ import { findReferences } from '../../editor2/refs.js';
 import { h, clear, icon } from '../dom.js';
 import { alertDialog, confirmDialog } from '../components/dialog.js';
 import { openPopover } from '../components/overlay.js';
+import { maybeOpenGuideOnce } from '../components/guide.js';
+import { GUIDE_STEPS } from '../guide-steps.js';
 
 const REF_TAB_BY_KIND = { line: 'lines', service: 'services', transfer: 'transfers', stationGroup: 'transfers' };
 
@@ -419,6 +421,8 @@ export function renderStationsView(container, ctx) {
   if (focus && focus.id) {
     selectFromList(focus.id);
   }
+
+  maybeOpenGuideOnce(GUIDE_STEPS.stations, 'rewis_editor_graph_guide_stations');
 
   return {
     destroy() {
