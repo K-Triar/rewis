@@ -67,7 +67,7 @@ function renderHeader() {
   const session = api.getSavedSession();
 
   const left = h('div', { class: 'g-header__left' },
-    h('img', { class: 'g-header__logo', src: 'assets/icons/rewis_logo_w.svg', alt: '' }),
+    h('img', { class: 'g-header__logo', src: '../assets/icons/rewis_logo_w.svg', alt: '' }),
     h('div', { class: 'g-header__title' },
       '| 路線データ編集'
     )
