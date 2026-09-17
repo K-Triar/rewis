@@ -3,6 +3,7 @@ import { trackPointer } from './canvas.js';
 export function createNodeDragHandler(canvas, positions, { requireShift = false, onChange, onCommit, onClick } = {}) {
   return function onBodyPointerDown(event, station) {
     if (requireShift && !event.shiftKey) return;
+    event.preventDefault();
 
     const startWorld = canvas.screenToWorld(event.clientX, event.clientY);
     const startPos = positions.get(station.id) || { x: 0, y: 0 };

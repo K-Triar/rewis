@@ -11,14 +11,11 @@ function clamp(v, min, max) {
 export function trackPointer(event, { onClick, onDragStart, onDragMove, onDragEnd } = {}) {
   const startX = event.clientX;
   const startY = event.clientY;
-  const target = event.currentTarget || event.target;
-  const pointerId = event.pointerId;
   let dragging = false;
 
-  if (target.setPointerCapture) {
-    try { target.setPointerCapture(pointerId); } catch { /* 対応していない環境は無視 */ }
-  }
-
+  // move/up は window で受ける。ドラッグ中に対象の要素が再描画で作り直される
+  // （キャンバスの render は毎フレーム world を作り直す）ため、要素へ setPointerCapture
+  // したり要素自身にリスナーを付けたりすると、作り直された瞬間に移動が止まってしまう。
   function onMove(e) {
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
@@ -31,9 +28,9 @@ export function trackPointer(event, { onClick, onDragStart, onDragMove, onDragEn
   }
 
   function onUp(e) {
-    target.removeEventListener('pointermove', onMove);
-    target.removeEventListener('pointerup', onUp);
-    target.removeEventListener('pointercancel', onUp);
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
     if (dragging) {
       if (onDragEnd) onDragEnd(e);
     } else if (onClick) {
@@ -41,9 +38,9 @@ export function trackPointer(event, { onClick, onDragStart, onDragMove, onDragEn
     }
   }
 
-  target.addEventListener('pointermove', onMove);
-  target.addEventListener('pointerup', onUp);
-  target.addEventListener('pointercancel', onUp);
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
 }
 
 export function createCanvas(host, { onBackgroundClick, onBackgroundDoubleClick, viewportKey } = {}) {

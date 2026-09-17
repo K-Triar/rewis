@@ -14,10 +14,12 @@ export function createWorkspace(container, { ribbon = false } = {}) {
 
   container.appendChild(h('div', { class: 'g-workspace' }, left, canvasCol, right));
 
-  function setBanner(text, variant) {
-    if (text) {
-      banner.textContent = text;
+  // content は文字列、または DOM ノード（ボタンなどを含む案内を出すとき）
+  function setBanner(content, variant) {
+    if (content) {
+      clear(banner);
       banner.className = 'g-banner' + (variant ? ` g-banner--${variant}` : '');
+      banner.appendChild(typeof content === 'string' ? document.createTextNode(content) : content);
       banner.hidden = false;
     } else {
       banner.hidden = true;

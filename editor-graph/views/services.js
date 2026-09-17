@@ -9,11 +9,14 @@ import { graphUi } from '../canvas/ui-state.js';
 import { resolvePositions } from '../../editor-core/auto-layout.js';
 import { boundsOf, portPoint } from '../../editor-core/graph-geometry.js';
 import * as serviceOps from '../../editor-core/service-ops.js';
+import * as stationOps from '../../editor-core/station-ops.js';
 import { matchesServiceFilter } from '../../editor-core/service-filter.js';
+import { suggestPlatformId } from '../../editor-core/id-suggest.js';
 import { serviceTitle, describeIssueLocation, issueTargetsForService } from '../../editor-core/issue-location.js';
 import { summarizeSections, totalRun, reverseService, stationName } from '../../editor2/views/services.js';
 import { h, s, clear, icon } from '../dom.js';
 import { alertDialog, confirmDialog } from '../components/dialog.js';
+import { openPopover } from '../components/overlay.js';
 
 const MUTED_COLOR = '#999999';
 
@@ -115,6 +118,11 @@ export function renderServicesView(container, ctx) {
     return network.services.find((sv) => sv.id === ui.selectedId) || null;
   }
 
+  // キャンバスに描く対象。新しい系統を作成中（1停車駅だけの draft）のときは draft を描く。
+  function canvasService() {
+    return ui.draft || selectedService();
+  }
+
   // 選択中の運行系統を1回の mutateDoc で書き換える。fn(doc, service) は新しい service を返す。
   function mutateSelectedService(fn) {
     const id = ui.selectedId;
@@ -146,8 +154,24 @@ export function renderServicesView(container, ctx) {
   const dragHandler = createNodeDragHandler(canvas, positions, {
     onChange: () => drawCanvas(),
     onCommit: (id, pos) => layoutStore.savePosition(id, pos),
-    onClick: (station) => handleNodeClick(station, null)
+    onClick: (station, event) => handleNodeBodyClick(station, event)
   });
+
+  function handleNodeBodyClick(station, event) {
+    if (ui.mode !== 'idle') {
+      openPlatformChoicePopover(station, event.clientX, event.clientY);
+      return;
+    }
+    handleNodeClick(station, null);
+  }
+
+  function handlePortClick(station, platformId) {
+    if (ui.mode !== 'idle') {
+      addStopAtPlatform(station, platformId);
+      return;
+    }
+    handleNodeClick(station, platformId);
+  }
 
   function handleNodeClick(station, platformId) {
     const service = selectedService();
@@ -164,7 +188,7 @@ export function renderServicesView(container, ctx) {
 
   function drawCanvas() {
     canvas.render((world) => {
-      const service = selectedService();
+      const service = canvasService();
       const relevant = service ? relevantStationIds(network, service) : null;
 
       // 1. 選択していない運行系統の路線
@@ -187,7 +211,7 @@ export function renderServicesView(container, ctx) {
           dimmed,
           highlightPorts,
           onBodyPointerDown: dragHandler,
-          onPortPointerDown: (event, st, platformId) => handleNodeClick(st, platformId)
+          onPortPointerDown: (event, st, platformId) => handlePortClick(st, platformId)
         });
       });
 
@@ -233,7 +257,7 @@ export function renderServicesView(container, ctx) {
       class: 'g-route-hit',
       x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y
     });
-    hit.addEventListener('pointerdown', () => selectService(service.id));
+    hit.addEventListener('pointerdown', () => { if (ui.mode === 'idle') selectService(service.id); });
     world.appendChild(hit);
   }
 
@@ -405,10 +429,16 @@ export function renderServicesView(container, ctx) {
   );
 
   const listEl = h('div', { class: 'g-list g-ws-left__list' });
+  const addServiceBtn = h('button', {
+    type: 'button',
+    class: 'g-btn',
+    onClick: () => startNewServiceMode()
+  }, icon('plus'), '運行系統を追加');
 
   workspace.left.appendChild(leftTitle);
   workspace.left.appendChild(filterRow);
   workspace.left.appendChild(listEl);
+  workspace.left.appendChild(addServiceBtn);
 
   function renderLeftList() {
     clear(listEl);
@@ -443,6 +473,7 @@ export function renderServicesView(container, ctx) {
         );
         listEl.appendChild(row);
       });
+    addServiceBtn.disabled = ui.mode !== 'idle';
   }
 
   // リボン
@@ -510,6 +541,193 @@ export function renderServicesView(container, ctx) {
       ui.sel = { type: 'stop', index: to };
     }
     mutateSelectedService((doc, sv) => serviceOps.moveStop(doc, sv, from, to));
+  }
+
+  // 12.4 停車駅の追加・新しい系統の作成
+
+  function startAppendMode() {
+    ui.mode = 'append';
+    ui.sel = null;
+    refreshView();
+  }
+
+  function startNewServiceMode() {
+    ui.mode = 'append';
+    ui.draft = serviceOps.createEmptyService();
+    ui.selectedId = null;
+    ui.sel = null;
+    refreshView();
+  }
+
+  function startInsertMode(edgeIndex) {
+    ui.mode = 'insert';
+    ui.insertIndex = edgeIndex + 1;
+    ui.sel = null;
+    refreshView();
+  }
+
+  function finishMode() {
+    if (ui.draft && ui.draft.stops.length < 2) {
+      ui.draft = null;
+    }
+    ui.mode = 'idle';
+    ui.insertIndex = null;
+    workspace.setBanner(null);
+    refreshView();
+  }
+
+  function updateModeBanner() {
+    if (ui.mode === 'idle') return;
+
+    let text;
+    if (ui.draft) {
+      text = '始発駅ののりばをクリックしてください。';
+    } else if (ui.mode === 'insert') {
+      const service = selectedService();
+      const stops = service ? service.stops : [];
+      const a = stops[ui.insertIndex - 1];
+      const b = stops[ui.insertIndex];
+      const nameA = a ? stationName(network, a.stationId) : '';
+      const nameB = b ? stationName(network, b.stationId) : '';
+      text = `${nameA}と${nameB}の間に停まる駅ののりばをクリックしてください。`;
+    } else {
+      text = '次に停まる駅ののりばをクリックしてください。終わったら［完了］を押すか Esc を押します。';
+    }
+
+    const content = h('div', { class: 'g-banner__row' }, h('span', {}, text));
+    if (ui.mode === 'append') {
+      content.appendChild(h('button', { type: 'button', class: 'g-btn g-btn--small', onClick: () => finishMode() }, '完了'));
+    }
+    workspace.setBanner(content);
+  }
+
+  // 停車駅を追加する（駅間のクリック・のりば選択ポップオーバーの共通処理）
+  async function addStopAtPlatform(station, platformId) {
+    const stop = { stationId: station.id, platformId };
+    if (ui.mode === 'insert') {
+      const index = ui.insertIndex;
+      mutateSelectedService((doc, sv) => serviceOps.insertStop(doc, sv, index, stop));
+      ui.mode = 'idle';
+      ui.insertIndex = null;
+      workspace.setBanner(null);
+      setSel({ type: 'stop', index });
+      return;
+    }
+    if (ui.mode !== 'append') return;
+    if (ui.draft) {
+      addStopToDraft(stop);
+      return;
+    }
+    const service = selectedService();
+    if (!service) return;
+    await appendStopWithCircularCheck(service, stop);
+  }
+
+  async function appendStopWithCircularCheck(service, stop) {
+    const stops = service.stops;
+    if (!service.circular && stops.length >= 3) {
+      const first = stops[0];
+      if (first.stationId === stop.stationId && (first.platformId ?? null) === (stop.platformId ?? null)) {
+        const ok = await confirmDialog(
+          '始発駅に戻る環状運転にしますか。環状運転では、すべての駅間が同じ路線・種別になり、行先は表示されません。',
+          { confirmLabel: '環状運転にする' }
+        );
+        if (ok) {
+          mutateSelectedService((doc, sv) => serviceOps.setCircular(doc, sv, true));
+          finishMode();
+          return;
+        }
+      }
+    }
+    mutateSelectedService((doc, sv) => serviceOps.appendStop(doc, sv, stop));
+  }
+
+  function addStopToDraft(stop) {
+    ui.draft = serviceOps.appendStop(network, ui.draft, stop);
+    if (ui.draft.stops.length >= 2) {
+      const created = ui.draft;
+      store.mutateDoc('network', (doc) => { doc.services.push(created); });
+      ui.selectedId = created.id;
+      ui.draft = null;
+    }
+    refreshView();
+  }
+
+  function openPlatformChoicePopover(station, clientX, clientY) {
+    const content = h('div', { class: 'g-popover-form' });
+
+    if ((station.platforms || []).length > 0) {
+      station.platforms.forEach((platform) => {
+        content.appendChild(h('button', {
+          type: 'button',
+          class: 'g-btn',
+          onClick: () => { close(); addStopAtPlatform(station, platform.id); }
+        }, `${platform.label} 番のりば`));
+      });
+      content.appendChild(h('button', {
+        type: 'button',
+        class: 'g-btn',
+        onClick: () => { close(); addStopAtPlatform(station, null); }
+      }, 'のりば指定なし'));
+    } else {
+      content.appendChild(h('p', {}, 'この駅にはのりばが登録されていません。'));
+      const labelInput = h('input', { type: 'text', class: 'g-input', placeholder: 'のりばの名前' });
+      content.appendChild(labelInput);
+      content.appendChild(h('div', { class: 'g-popover-actions' },
+        h('button', {
+          type: 'button',
+          class: 'g-btn',
+          onClick: () => { close(); addPlatformAndStop(station, labelInput.value.trim()); }
+        }, 'のりばを追加して停車'),
+        h('button', {
+          type: 'button',
+          class: 'g-btn',
+          onClick: () => { close(); addStopAtPlatform(station, null); }
+        }, 'のりば指定なしで停車')
+      ));
+    }
+
+    const close = openPopover(clientX, clientY, content);
+  }
+
+  function addPlatformAndStop(station, label) {
+    const existingIds = station.platforms.map((p) => p.id);
+    const platformId = suggestPlatformId(label, existingIds);
+    const platform = { id: platformId, label: label || platformId };
+
+    if (ui.draft) {
+      store.mutateDoc('network', (doc) => {
+        const idx = doc.stations.findIndex((st) => st.id === station.id);
+        if (idx === -1) return;
+        doc.stations[idx] = stationOps.addPlatform(doc.stations[idx], platform);
+      });
+      addStopToDraft({ stationId: station.id, platformId: platform.id });
+      return;
+    }
+
+    const isInsert = ui.mode === 'insert';
+    const insertIndex = ui.insertIndex;
+    const serviceId = ui.selectedId;
+    store.mutateDoc('network', (doc) => {
+      const stIdx = doc.stations.findIndex((st) => st.id === station.id);
+      if (stIdx === -1) return;
+      doc.stations[stIdx] = stationOps.addPlatform(doc.stations[stIdx], platform);
+      const svIdx = doc.services.findIndex((sv) => sv.id === serviceId);
+      if (svIdx === -1) return;
+      const stopArg = { stationId: station.id, platformId: platform.id };
+      doc.services[svIdx] = isInsert
+        ? serviceOps.insertStop(doc, doc.services[svIdx], insertIndex, stopArg)
+        : serviceOps.appendStop(doc, doc.services[svIdx], stopArg);
+    });
+
+    if (isInsert) {
+      ui.mode = 'idle';
+      ui.insertIndex = null;
+      workspace.setBanner(null);
+      setSel({ type: 'stop', index: insertIndex });
+    } else {
+      refreshView();
+    }
   }
 
   // 右パネル
@@ -582,6 +800,12 @@ export function renderServicesView(container, ctx) {
     workspace.right.appendChild(h('p', { class: 'g-ws-right__note' }, summarizeSections(network, service.sections || [])));
 
     workspace.right.appendChild(h('div', { class: 'g-svc-actions' },
+      h('button', {
+        type: 'button',
+        class: 'g-btn g-btn--primary',
+        disabled: ui.mode !== 'idle',
+        onClick: () => startAppendMode()
+      }, icon('plus'), '駅を末尾に追加'),
       h('button', {
         type: 'button',
         class: 'g-btn',
@@ -809,6 +1033,17 @@ export function renderServicesView(container, ctx) {
         }, '始発からここまで同じにする')
       ));
     }
+
+    if (rangeEnd == null) {
+      workspace.right.appendChild(h('div', { class: 'g-svc-actions' },
+        h('button', {
+          type: 'button',
+          class: 'g-btn g-btn--small',
+          disabled: ui.mode !== 'idle',
+          onClick: () => startInsertMode(index)
+        }, icon('plus'), 'この駅間に駅を追加')
+      ));
+    }
   }
 
   function refreshView() {
@@ -816,6 +1051,7 @@ export function renderServicesView(container, ctx) {
     renderLeftList();
     renderRibbonPanel();
     renderRightPanel();
+    updateModeBanner();
   }
 
   async function onKeyDown(event) {
@@ -824,7 +1060,9 @@ export function renderServicesView(container, ctx) {
     if (document.querySelector('.g-dialog-backdrop')) return;
 
     if (event.key === 'Escape') {
-      if (ui.sel) {
+      if (ui.mode !== 'idle') {
+        finishMode();
+      } else if (ui.sel) {
         setSel(null);
       } else if (ui.selectedId) {
         selectService(null);

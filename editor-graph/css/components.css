@@ -198,6 +198,7 @@
   font: var(--text-body-shorthand-medium);
 }
 .g-banner--attention { border-color: var(--borderColor-attention-muted); background: var(--bgColor-attention-muted); }
+.g-banner__row { display: flex; align-items: center; justify-content: space-between; gap: var(--stack-gap-normal); width: 100%; }
 .g-banner--danger { border-color: var(--borderColor-danger-muted); background: var(--bgColor-danger-muted); }
 .g-banner--success { border-color: var(--borderColor-success-muted); background: var(--bgColor-success-muted); }
 
