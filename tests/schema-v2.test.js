@@ -109,7 +109,7 @@ for (const [code, mutate] of Object.entries(networkWarningCases)) {
 const operationsErrorCases = {
   E_NOTICE_STATE: (ops) => { ops.notices[0].state = 'invalid'; },
   E_REF: (ops) => { ops.notices[0].lineId = 'NOPE'; },
-  E_NOTICE_RANGE: (ops) => { ops.notices[0].lineId = 'LB'; },
+  E_NOTICE_RANGE: (ops) => { ops.notices[0].range = { fromStationId: 'NOPE', toStationId: 'NOPE', direction: null }; },
   E_NOTICE_CATEGORY: (ops) => { ops.notices[0].categoryIds = ['NOPE']; },
   E_STATUS_CODE: (ops) => { ops.notices[0].status.code = 'NOPE'; },
   E_CAUSE_CODE: (ops) => { ops.notices[0].cause.code = 'NOPE'; },

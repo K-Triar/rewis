@@ -115,6 +115,11 @@ test('computeAffectedIndices: 環状線でdirectionがforwardなら折り返さ�
   assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S4', toStationId: 'S3', direction: 'forward' }), [2, 0, 1]);
 });
 
+test('computeAffectedIndices: 環状線でdirectionがnullでもforward扱いで進む', () => {
+  const line = network.lines.find(l => l.id === 'LB');
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S4', toStationId: 'S3', direction: null }), [2, 0, 1]);
+});
+
 test('computeAffectedIndices: 環状線でdirectionがbackwardなら逆向きに進む', () => {
   const line = network.lines.find(l => l.id === 'LB');
   assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S2', toStationId: 'S4', direction: 'backward' }), [0, 2]);

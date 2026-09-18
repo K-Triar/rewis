@@ -401,12 +401,7 @@ export function validateOperations(doc, network) {
   checkDup(notices, 'id', 'notices', '運行情報 ID', errors);
 
   function checkRange(range, path, line, noticeId) {
-    if (range == null) {
-      if (line && line.loop != null) {
-        errors.push(issue('E_NOTICE_RANGE', path, `運行情報 "${noticeId}" は環状線・ラケット型の路線なので direction が必要ですが range がありません`));
-      }
-      return;
-    }
+    if (range == null) return; // 全線（環状線・ラケット型でも可）
     if (!isPlainObject(range)) {
       errors.push(issue('E_TYPE', path, `運行情報 "${noticeId}" の range がオブジェクトではありません`));
       return;
@@ -417,9 +412,6 @@ export function validateOperations(doc, network) {
     }
     if (range.toStationId != null && !lineStations.includes(range.toStationId)) {
       errors.push(issue('E_NOTICE_RANGE', `${path}.toStationId`, `運行情報 "${noticeId}" の toStationId "${range.toStationId}" が路線の stations にありません`));
-    }
-    if (line && line.loop != null && range.direction == null) {
-      errors.push(issue('E_NOTICE_RANGE', `${path}.direction`, `運行情報 "${noticeId}" は環状線・ラケット型の路線なので direction が必要です`));
     }
   }
 

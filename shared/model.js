@@ -159,15 +159,17 @@ export function computeAffectedIndices(line, range) {
   const toIdx = stations.indexOf(range.toStationId);
   if (fromIdx === -1 || toIdx === -1) return [];
 
-  if (line && line.loop && range.direction) {
+  // 環状線・ラケット型: 始点から終点へ forward（下り）方向に進んだ側を対象とする。
+  // direction === 'backward' は旧データ互換（逆向きに進んだ側）。
+  if (line && line.loop) {
     const indices = [];
     let i = fromIdx;
     for (let guard = 0; guard <= stations.length; guard++) {
       indices.push(i);
       if (i === toIdx) break;
-      i = range.direction === 'forward'
-        ? (i + 1) % stations.length
-        : (i - 1 + stations.length) % stations.length;
+      i = range.direction === 'backward'
+        ? (i - 1 + stations.length) % stations.length
+        : (i + 1) % stations.length;
     }
     return indices;
   }

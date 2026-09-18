@@ -5,6 +5,7 @@ import {
   createEmptyNotice,
   updateNoticeFields,
   setNoticeRange,
+  normalizeRange,
   setNoticeDirections,
   setNoticeCategories,
   setNoticeStatus,
@@ -229,6 +230,7 @@ export function renderOperationsView(container, ctx) {
       [yearInput, monthInput, dayInput, hourInput, minuteInput].forEach((el) => el.addEventListener('change', commitOccurrence));
 
       // --- 影響区間 ---
+      if (draft.range && draft.range.direction === 'backward') draft = setNoticeRange(draft, normalizeRange(draft.range));
       const isFullLine = draft.range == null;
       const fullLineCheckbox = h('input', { type: 'checkbox' });
       fullLineCheckbox.checked = isFullLine;
@@ -244,7 +246,7 @@ export function renderOperationsView(container, ctx) {
         const endSelect = h('select', {}, ...stations.map((s) => h('option', { value: s.id }, s.name)));
         endSelect.value = draft.range.toStationId || '';
         function commitRange() {
-          draft = setNoticeRange(draft, { fromStationId: startSelect.value, toStationId: endSelect.value, direction: draft.range.direction });
+          draft = setNoticeRange(draft, { fromStationId: startSelect.value, toStationId: endSelect.value, direction: null });
         }
         startSelect.addEventListener('change', commitRange);
         endSelect.addEventListener('change', commitRange);
@@ -252,16 +254,7 @@ export function renderOperationsView(container, ctx) {
         rangeControls.appendChild(h('label', {}, ' 終点 ', endSelect));
 
         if (line && line.loop) {
-          const dirSelect = h('select', {},
-            h('option', { value: '' }, '（未選択）'),
-            h('option', { value: 'forward' }, line.directions.forward),
-            h('option', { value: 'backward' }, line.directions.backward)
-          );
-          dirSelect.value = draft.range.direction || '';
-          dirSelect.addEventListener('change', () => {
-            draft = setNoticeRange(draft, { ...draft.range, direction: dirSelect.value || null });
-          });
-          rangeControls.appendChild(h('label', {}, ' 方向 ', dirSelect));
+          rangeControls.appendChild(h('p', { class: 'ed2-empty' },`環状線・ラケット型の路線では、始点から終点へ「${line.directions.forward}」方向に進んだ側の区間が対象です。反対側にしたい場合は始点と終点を入れ替えてください。`));
         }
       }
 

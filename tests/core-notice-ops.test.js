@@ -7,6 +7,7 @@ import {
   createEmptyNotice,
   updateNoticeFields,
   setNoticeRange,
+  normalizeRange,
   setNoticeDirections,
   setNoticeCategories,
   setNoticeStatus,
@@ -172,10 +173,17 @@ test('validateNoticeDraft: 影響区間の始点・終点が必要', () => {
   assert.equal(validateNoticeDraft(network, masters, notice), '影響区間の始点・終点を選択してください。');
 });
 
-test('validateNoticeDraft: 環状線・ラケット型では区間の方向が必要', () => {
-  const notice = { ...validNotice(), lineId: 'LB', range: { fromStationId: 'S2', toStationId: 'S3', direction: null } };
-  assert.equal(validateNoticeDraft(network, masters, notice), '影響区間の方向を選択してください。');
-  assert.equal(validateNoticeDraft(network, masters, { ...notice, range: { ...notice.range, direction: 'forward' } }), null);
+test('validateNoticeDraft: 環状線・ラケット型でも全線・区間指定とも方向指定なしで通る', () => {
+  const notice = { ...validNotice(), lineId: 'LB', range: null };
+  assert.equal(validateNoticeDraft(network, masters, notice), null);
+  assert.equal(validateNoticeDraft(network, masters, { ...notice, range: { fromStationId: 'S2', toStationId: 'S3', direction: null } }), null);
+});
+
+test('normalizeRange: 旧データの backward は始点・終点を入れ替えた forward 相当にする', () => {
+  assert.deepEqual(normalizeRange({ fromStationId: 'S2', toStationId: 'S4', direction: 'backward' }), { fromStationId: 'S4', toStationId: 'S2', direction: null });
+  const forward = { fromStationId: 'S2', toStationId: 'S4', direction: null };
+  assert.equal(normalizeRange(forward), forward);
+  assert.equal(normalizeRange(null), null);
 });
 
 test('validateNoticeDraft: 方向がどちらもfalseならエラー', () => {

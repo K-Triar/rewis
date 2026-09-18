@@ -43,6 +43,13 @@ export function setNoticeRange(notice, range) {
   return draft;
 }
 
+// 環状線・ラケット型の区間は「始点から終点へ下り方向に進んだ側」に一本化した。
+// 旧データの direction:'backward' は始点と終点を入れ替えた同じ駅集合なので、その形に直す。
+export function normalizeRange(range) {
+  if (!range || range.direction !== 'backward') return range;
+  return { fromStationId: range.toStationId, toStationId: range.fromStationId, direction: null };
+}
+
 export function setNoticeDirections(notice, directions) {
   const draft = structuredClone(notice);
   draft.directions = { forward: !!directions.forward, backward: !!directions.backward };
@@ -152,9 +159,6 @@ export function validateNoticeDraft(network, masters, notice) {
   if (notice.range != null) {
     if (!notice.range.fromStationId || !notice.range.toStationId) {
       return '影響区間の始点・終点を選択してください。';
-    }
-    if (line.loop && !notice.range.direction) {
-      return '影響区間の方向を選択してください。';
     }
   }
 

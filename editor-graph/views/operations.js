@@ -309,20 +309,23 @@ export function renderOperationsView(container, ctx) {
     });
     rangeSection.appendChild(h('div', { class: 'g-checkbox' }, fullLineCheckbox, h('span', {}, '全線')));
     if (notice.range) {
+      const range = noticeOps.normalizeRange(notice.range);
       rangeSection.appendChild(h('div', { class: 'g-ws-right__note' },
-        `${stationLabel(network, notice.range.fromStationId)} 〜 ${stationLabel(network, notice.range.toStationId)}`,
+        `${stationLabel(network, range.fromStationId)} 〜 ${stationLabel(network, range.toStationId)}`,
         h('button', { type: 'button', class: 'g-btn g-btn--small', disabled: ui.mode !== 'idle', onClick: () => startPickRange() }, '区間を選び直す')
       ));
       if (line && line.loop) {
-        const dirSelect = h('select', { class: 'g-select' },
-          h('option', { value: '', selected: !notice.range.direction }, '（未選択）'),
-          h('option', { value: 'forward', selected: notice.range.direction === 'forward' }, line.directions.forward),
-          h('option', { value: 'backward', selected: notice.range.direction === 'backward' }, line.directions.backward)
-        );
-        dirSelect.addEventListener('change', () => {
-          mutateSelectedNotice((n) => noticeOps.setNoticeRange(n, { ...n.range, direction: dirSelect.value || null }));
-        });
-        rangeSection.appendChild(h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '方向'), dirSelect));
+        rangeSection.appendChild(h('div', { class: 'g-ws-right__note' },
+          `始点から終点へ「${line.directions.forward}」方向に進んだ側が対象です。反対側にする場合は入れ替えてください。`,
+          h('button', {
+            type: 'button',
+            class: 'g-btn g-btn--small',
+            onClick: () => mutateSelectedNotice((n) => {
+              const r = noticeOps.normalizeRange(n.range);
+              return noticeOps.setNoticeRange(n, { fromStationId: r.toStationId, toStationId: r.fromStationId, direction: null });
+            })
+          }, '始点と終点を入れ替える')
+        ));
       }
     } else {
       rangeSection.appendChild(h('div', { class: 'g-ws-right__note' },
