@@ -1446,18 +1446,6 @@ function setupScrollableTabs(tabs) {
     parent.replaceChild(wrapper, tabs);
     wrapper.appendChild(tabs);
 
-    // Create chevron indicators (display-only, not clickable)
-    const left = document.createElement('span');
-    left.className = 'route-tabs-chevron left';
-    left.innerText = '＜';
-
-    const right = document.createElement('span');
-    right.className = 'route-tabs-chevron right';
-    right.innerText = '＞';
-
-    wrapper.appendChild(left);
-    wrapper.appendChild(right);
-
     // scroll/resize/mutation handling
     // Use a small delay initially to allow the layout to settle before measurement.
     function updateOverflowState(el) {
