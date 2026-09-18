@@ -50,62 +50,65 @@
                     </div>
                 </div>
 
-                <!-- 出発駅 -->
-                <div class="station-input-row">
-                    <div class="badge badge-square">発</div>
-                    <div class="field input-wrapper">
-                        <input
-                            type="text"
-                            id="departure"
-                            class="field-input"
-                            placeholder="出発駅"
-                            autocomplete="off"
-                        >
-                        <div class="field-suggestions" id="departure-suggestions"></div>
+                <!-- 発着・経由駅の入力群（page-mode-toggleとは独立して縦方向中央に配置） -->
+                <div class="search-fields">
+                    <!-- 出発駅 -->
+                    <div class="station-input-row">
+                        <div class="badge badge-square">発</div>
+                        <div class="field input-wrapper">
+                            <input
+                                type="text"
+                                id="departure"
+                                class="field-input"
+                                placeholder="出発駅"
+                                autocomplete="off"
+                            >
+                            <div class="field-suggestions" id="departure-suggestions"></div>
+                        </div>
+                        <div class="station-suffix">から</div>
                     </div>
-                    <div class="station-suffix">から</div>
-                </div>
 
-                <!-- 経由駅（動的に追加） -->
-                <div class="via-stations" id="via-stations">
-                    <!-- 経由駅は動的に追加 -->
-                </div>
+                    <!-- 経由駅（動的に追加） -->
+                    <div class="via-stations" id="via-stations">
+                        <!-- 経由駅は動的に追加 -->
+                    </div>
 
 
-                <!-- 経由追加と入替を同一行に配置 -->
-                <div class="via-swap-row">
-                    <button type="button" class="btn btn-neutral-pill" id="add-via">
-                        ＋ 経由
-                    </button>
+                    <!-- 経由追加と入替を同一行に配置 -->
+                    <div class="via-swap-row">
+                        <button type="button" class="btn btn-neutral-pill" id="add-via">
+                            ＋ 経由
+                        </button>
 
-                    <div class="swap-button-container">
-                        <button type="button" class="btn btn-icon-circle btn-icon-circle--outline" id="swap-stations" title="出発駅と到着駅を入れ替え">
-                            ⇅
+                        <div class="swap-button-container">
+                            <button type="button" class="btn btn-icon-circle btn-icon-circle--outline" id="swap-stations" title="出発駅と到着駅を入れ替え">
+                                ⇅
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 到着駅 -->
+                    <div class="station-input-row">
+                        <div class="badge badge-square">着</div>
+                        <div class="field input-wrapper">
+                            <input
+                                type="text"
+                                id="arrival"
+                                class="field-input"
+                                placeholder="到着駅"
+                                autocomplete="off"
+                            >
+                            <div class="field-suggestions" id="arrival-suggestions"></div>
+                        </div>
+                        <div class="station-suffix">まで</div>
+                    </div>
+
+                    <!-- 検索ボタン -->
+                    <div class="search-button-row">
+                        <button type="button" class="btn btn-primary" id="search-button">
+                            GO!
                         </button>
                     </div>
-                </div>
-
-                <!-- 到着駅 -->
-                <div class="station-input-row">
-                    <div class="badge badge-square">着</div>
-                    <div class="field input-wrapper">
-                        <input
-                            type="text"
-                            id="arrival"
-                            class="field-input"
-                            placeholder="到着駅"
-                            autocomplete="off"
-                        >
-                        <div class="field-suggestions" id="arrival-suggestions"></div>
-                    </div>
-                    <div class="station-suffix">まで</div>
-                </div>
-
-                <!-- 検索ボタン -->
-                <div class="search-button-row">
-                    <button type="button" class="btn btn-primary" id="search-button">
-                        GO!
-                    </button>
                 </div>
 
                 <div class="filter-panel">

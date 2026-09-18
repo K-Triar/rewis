@@ -40,6 +40,40 @@ body:not(.results-open) main.page-main {
 
 /* ===== 検索モード切替の配置 ===== */
 /* .page-mode-toggle / .page-mode-toggle-label は design-system/components.css 側の共通クラス（旧 .search-mode-wrapper / .search-mode-label） */
+/*
+ * design-system 側の既定（モバイルで position:absolute）は、路線・運行情報
+ * ページのようにトグル下が可変長のスクロールリストで、かつトグル分の余白を
+ * padding-topで確保しておけば足りるケース向け。乗換案内ページは main 側で
+ * #search-section 全体を縦方向中央寄せにしているため、絶対配置のトグルは
+ * 経由駅が増えて内容が伸びるとセンタリングされた入力欄群と重なってしまう。
+ * ここではトグルを通常のフロー（先頭要素）に戻し、代わりに #search-section
+ * 自体を縦3ブロック（トグル＝上固定／.search-fields＝中央寄せ／
+ * .filter-panel＝下寄り）のflex列にすることで、内容量が変わってもトグルと
+ * 重ならないようにする。「モード上・入力欄中央・フィルター下」という
+ * 画面全体の位置関係は変えていない。
+ */
+@media (max-width: 768px) {
+    #search-section {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+    }
+    #search-section .page-mode-toggle {
+        position: static;
+        top: auto;
+        left: auto;
+        transform: none;
+        z-index: auto;
+        margin: var(--space-5) auto var(--space-6);
+    }
+    .search-fields {
+        /* 上のトグルと下のフィルターパネルの間の余白を、上下均等な auto マージンで
+           吸収する。経由駅が増えて .search-fields が伸びるほど余白が縮むだけで、
+           トグル・フィルターパネルの位置とは干渉しない。 */
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+}
 
 /* ===== 駅入力行（バッジ＋入力欄＋サフィックス） ===== */
 .station-input-row {

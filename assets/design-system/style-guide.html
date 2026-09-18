@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REWIS デザインシステム スタイルガイド</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
+    <style>
+        /* このページ自体の見た目（ガイド表示用のグルーCSS。デザインシステム本体ではない） */
+        body { padding: var(--space-7); max-width: 960px; margin: 0 auto; background: var(--color-bg-page); }
+        .guide-section { margin-bottom: var(--space-8); }
+        .guide-section h2 {
+            font-size: var(--font-size-2xl);
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-bg-subtle);
+            padding-bottom: var(--space-2);
+            margin-bottom: var(--space-5);
+        }
+        .guide-section h3 {
+            font-size: var(--font-size-lg);
+            margin: var(--space-6) 0 var(--space-3);
+            color: var(--color-heading);
+        }
+        .guide-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            align-items: center;
+            margin-bottom: var(--space-4);
+        }
+        .guide-swatch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+        .guide-swatch-color {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+        .guide-note {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-top: var(--space-2);
+        }
+        code {
+            background: var(--color-bg-subtle);
+            padding: 2px 6px;
+            border-radius: var(--radius-xs);
+            font-size: 0.85em;
+        }
+        .guide-modal-demo { position: static; background: transparent; display: block; }
+        .guide-overlay-demo {
+            position: relative;
+            border: 1px dashed var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-5);
+            min-height: 120px;
+        }
+        .guide-overlay-demo .notice-section,
+        .guide-overlay-demo .loading-section {
+            position: static;
+            display: flex;
+            width: 100%;
+            max-width: none;
+            transform: none;
+            padding: 0;
+            pointer-events: auto;
+        }
+        .guide-mobile-frame {
+            width: 360px;
+            max-width: 100%;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: var(--color-bg-surface);
+        }
+        .guide-mobile-frame .mobile-bottom-nav { display: flex; position: static; }
+        .guide-mobile-frame .bottom-sheet { position: static; bottom: auto; }
+        .guide-mobile-frame .sheet-backdrop { display: none; }
+        .guide-sidebar-demo { width: 250px; }
+        .guide-timeline-demo { max-width: 480px; }
+    </style>
+</head>
+<body>
+    <header class="guide-section">
+        <h1 style="font-size: var(--font-size-3xl); color: var(--color-heading);">REWIS デザインシステム</h1>
+        <p class="guide-note">
+            design-system/tokens.css・layout.css・components.css の3ファイルだけで、このページは成立している
+            （assets/css/style.css には一切依存していない）。実際の使用例は
+            <a href="../../transfer/index.html">transfer</a> を参照。
+        </p>
+    </header>
+
+    <section class="guide-section">
+        <h2>Color</h2>
+        <div class="guide-row">
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-primary)"></div>primary</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-primary-hover)"></div>primary-hover</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-secondary)"></div>secondary</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-danger)"></div>danger</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-route-start)"></div>route-start</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-route-transfer)"></div>route-transfer</div>
+        </div>
+        <div class="guide-row">
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-bg-page)"></div>bg-page</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-bg-surface)"></div>bg-surface</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-bg-subtle)"></div>bg-subtle</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-text)"></div>text</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-text-secondary)"></div>text-secondary</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-border)"></div>border</div>
+        </div>
+        <div class="guide-row">
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-normal)"></div>status-normal</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-warning)"></div>status-warning</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-suspend)"></div>status-suspend</div>
+        </div>
+        <div class="guide-row">
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-normal-bg)"></div>status-normal-bg</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-warning-bg)"></div>status-warning-bg</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-suspend-bg)"></div>status-suspend-bg</div>
+        </div>
+        <p class="guide-note">status-* は route-start / secondary / danger のエイリアス。運行状況など3段階ステータス表示の枠線・文字色に使う。status-*-bg はそれぞれの淡色トーンで、枠線+背景色で状態を示すカード構成（ホームの運行状況カード等）に使う。</p>
+    </section>
+
+    <section class="guide-section">
+        <h2>Button</h2>
+        <div class="guide-row">
+            <button class="btn btn-primary" style="width:auto;">GO!</button>
+            <button class="btn btn-outline-pill">検索画面に戻る</button>
+            <button class="btn btn-neutral-pill">＋ 経由</button>
+            <button class="btn btn-icon-circle btn-icon-circle--outline">⇅</button>
+            <button class="btn btn-icon-circle btn-icon-circle--ghost">✕</button>
+            <button class="btn btn-plain" aria-label="ヘルプ">?</button>
+        </div>
+        <p class="guide-note"><code>.btn-primary</code> / <code>.btn-outline-pill</code> / <code>.btn-neutral-pill</code> / <code>.btn-icon-circle</code>（<code>--outline</code> / <code>--ghost</code>）/ <code>.btn-plain</code></p>
+    </section>
+
+    <section class="guide-section">
+        <h2>Badge</h2>
+        <div class="guide-row">
+            <span class="badge badge-square">発</span>
+            <span class="badge badge-square badge-square--sm">着</span>
+            <span class="badge badge-square badge-square--compact">経1</span>
+            <span class="badge badge-circle">1</span>
+            <span class="badge badge-pill">乗換不要(直通)</span>
+            <span class="badge badge-train badge-train--tc">TrainCarts</span>
+            <span class="badge badge-train badge-train--sx">新幹線</span>
+            <span class="badge badge-train badge-train--mc">トロッコ</span>
+            <span class="badge badge-platform">2番のりば</span>
+            <span class="badge badge-platform--solid">2番のりば</span>
+        </div>
+        <p class="guide-note"><code>.badge</code> は必ずベースクラスとして併記し、<code>.badge-square</code> 等の見た目クラスと組み合わせる。</p>
+    </section>
+
+    <section class="guide-section">
+        <h2>Surface / Card / Panel</h2>
+        <div class="guide-row" style="align-items: stretch;">
+            <div class="surface" style="padding: var(--space-5); width: 200px;">surface<br><span class="guide-note">白背景＋影＋角丸12px</span></div>
+            <div class="card" style="width: 200px;">card<br><span class="guide-note">薄い枠線＋角丸8px</span></div>
+            <div class="panel" style="width: 200px;">panel<br><span class="guide-note">淡いグレー背景</span></div>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Field</h2>
+        <div class="guide-row" style="max-width: 320px;">
+            <div class="field" style="width:100%;">
+                <input type="text" class="field-input" placeholder="出発駅">
+            </div>
+        </div>
+        <div class="field" style="max-width: 320px;">
+            <input type="text" class="field-input" value="中央駅">
+            <div class="field-suggestions is-open">
+                <div class="field-suggestion">
+                    <span class="field-suggestion__name">中央駅</span>
+                    <span class="field-suggestion__lines">KT本線</span>
+                </div>
+                <div class="field-suggestion">
+                    <span class="field-suggestion__name">中央公園前</span>
+                    <span class="field-suggestion__lines">グリーンライン</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Segmented toggle</h2>
+        <div class="segmented" id="guide-segmented" role="tablist">
+            <button type="button" class="segmented-btn" data-mode="time">所要時間優先</button>
+            <button type="button" class="segmented-btn is-selected" data-mode="balance">バランス</button>
+            <button type="button" class="segmented-btn" data-mode="transfer">乗換回数優先</button>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Page mode toggle</h2>
+        <p class="guide-note">.segmented をページ上部に配置する共通の外枠。モバイル幅では main の上に絶対配置で重なる（transfer/operation共通）。</p>
+        <div class="page-mode-toggle" style="position: static; margin: 0;">
+            <div class="page-mode-toggle-label">モード：</div>
+            <div class="segmented" role="tablist">
+                <button type="button" class="segmented-btn is-selected">経路検索</button>
+                <button type="button" class="segmented-btn">駅から探す</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Notice</h2>
+        <div class="notice" style="position: relative;">
+            <span class="error-text">出発駅が正しく入力されていません</span>
+            <button class="error-close" aria-label="閉じる">&times;</button>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Spinner</h2>
+        <div class="spinner"></div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Page overlay（Notice section / Loading section）</h2>
+        <p class="guide-note">.notice / .spinner をページ上に配置する共通の外枠。本来は position:fixed でページ中央上部・画面全体に重なるが、ここでは枠内に収まるよう静的表示に切り替えて例示している。</p>
+        <h3>Notice section</h3>
+        <div class="guide-overlay-demo">
+            <div class="notice-section" style="display: flex;">
+                <div class="notice" style="position: relative;">
+                    <span class="error-text">出発駅が正しく入力されていません</span>
+                    <button class="error-close" aria-label="閉じる">&times;</button>
+                </div>
+            </div>
+        </div>
+        <h3>Loading section</h3>
+        <div class="guide-overlay-demo">
+            <div class="loading-section" style="display: flex;">
+                <div class="spinner"></div>
+                <p>読み込み中...</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Share result wrapper</h2>
+        <p class="guide-note">JSが動的生成する共有ボタンの配置行（transfer/operation共通）。</p>
+        <div class="share-result-wrapper">
+            <button class="btn btn-outline-pill">検索結果を共有する</button>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Modal（表示例）</h2>
+        <div class="guide-modal-demo">
+            <div class="modal" style="max-width: 420px;">
+                <h3>使い方</h3>
+                <p>モーダルの内容がここに入る。</p>
+                <div class="modal-actions">
+                    <button class="btn btn-outline-pill">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Filter toggle</h2>
+        <div class="filter-panel">
+            <div class="filter-icons-row">
+                <label class="filter-toggle">
+                    <input type="checkbox" id="guide-own-company-only">
+                    <div class="filter-toggle-item">
+                        <div class="filter-toggle-top-label">KT線のみ</div>
+                        <div class="filter-toggle-icon filter-toggle-icon--kt" role="img" aria-label="KT線のみ"></div>
+                        <div class="filter-toggle-caption">
+                            <span class="status-on">オン</span>
+                            <span class="status-off">オフ</span>
+                        </div>
+                    </div>
+                </label>
+                <label class="filter-toggle">
+                    <input type="checkbox" id="guide-type-tc" checked>
+                    <div class="filter-toggle-item">
+                        <div class="filter-toggle-top-label">列車種別</div>
+                        <div class="filter-toggle-icon filter-toggle-icon--tc" role="img" aria-label="TrainCarts"></div>
+                        <div class="filter-toggle-caption">TrainCarts</div>
+                    </div>
+                </label>
+                <label class="filter-toggle">
+                    <input type="checkbox" id="guide-type-sx" checked>
+                    <div class="filter-toggle-item">
+                        <div class="filter-toggle-icon filter-toggle-icon--sx" role="img" aria-label="新幹線"></div>
+                        <div class="filter-toggle-caption">新幹線</div>
+                    </div>
+                </label>
+                <label class="filter-toggle">
+                    <input type="checkbox" id="guide-type-mc" checked>
+                    <div class="filter-toggle-item">
+                        <div class="filter-toggle-icon filter-toggle-icon--mc" role="img" aria-label="トロッコ"></div>
+                        <div class="filter-toggle-caption">トロッコ</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+        <p class="guide-note"><code>.filter-panel</code> &gt; <code>.filter-icons-row</code> &gt; <code>.filter-toggle</code>（<code>input[checkbox]</code> + <code>.filter-toggle-item</code>）。1つ目の項目とそれ以降の間に区切り線が入る。</p>
+    </section>
+
+    <section class="guide-section">
+        <h2>Icon</h2>
+        <div class="guide-row">
+            <span class="icon icon-home" style="background-color: var(--color-text-secondary);"></span>
+            <span class="icon icon-walking" style="background-color: var(--color-text-secondary);"></span>
+            <span class="icon icon-train" style="background-color: var(--color-text-secondary);"></span>
+            <span class="icon icon-menu" style="background-color: var(--color-text-secondary);"></span>
+        </div>
+        <p class="guide-note"><code>.icon</code> はマスク画像。<code>background-color</code>（または <code>currentColor</code>）で色を指定する。<code>.icon-home</code> / <code>.icon-walking</code> / <code>.icon-train</code> / <code>.icon-menu</code>。</p>
+    </section>
+
+    <section class="guide-section">
+        <h2>Side navigation</h2>
+        <nav class="guide-sidebar-demo surface">
+            <ul class="side-nav-list">
+                <li class="side-nav-item">
+                    <a class="side-nav-link" href="#">
+                        <span class="icon icon-home" aria-hidden="true"></span>
+                        <span>ホーム</span>
+                    </a>
+                </li>
+                <li class="side-nav-item is-active">
+                    <a class="side-nav-link is-current-page" href="#" aria-current="page">
+                        <span class="icon icon-walking" aria-hidden="true"></span>
+                        <span>乗換案内</span>
+                    </a>
+                </li>
+            </ul>
+            <hr class="side-nav-divider">
+            <ul class="side-nav-list">
+                <li class="side-nav-item small">
+                    <a class="side-nav-link" href="#">
+                        <span class="icon icon-info" aria-hidden="true"></span>
+                        <span>REWISについて</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </section>
+
+    <section class="guide-section">
+        <h2>Mobile bottom navigation / Bottom sheet</h2>
+        <p class="guide-note">実際は <code>max-width: 768px</code> でのみ表示される固定要素。ここではモバイル幅を模した枠内に強制表示している。</p>
+        <div class="guide-mobile-frame">
+            <nav class="mobile-bottom-nav">
+                <a class="mb-item" href="#">
+                    <span class="mb-icon icon-home" aria-hidden="true"></span>
+                    <span class="mb-label">ホーム</span>
+                </a>
+                <a class="mb-item is-active is-current-page" href="#" aria-current="page">
+                    <span class="mb-icon icon-walking" aria-hidden="true"></span>
+                    <span class="mb-label">乗換</span>
+                </a>
+                <button class="mb-item mb-menu" aria-expanded="false">
+                    <span class="mb-icon icon-menu" aria-hidden="true"></span>
+                    <span class="mb-label">メニュー</span>
+                </button>
+            </nav>
+        </div>
+        <div class="guide-mobile-frame" style="margin-top: var(--space-4);">
+            <div class="bottom-sheet open">
+                <div class="bottom-sheet-content">
+                    <a class="sheet-item" href="#">REWISについて</a>
+                    <a class="sheet-item" href="#">事業者向けページ</a>
+                    <button class="sheet-close">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="guide-section">
+        <h2>Route results / Timeline</h2>
+        <div class="guide-timeline-demo">
+            <div class="route-tabs">
+                <button type="button" class="route-tab is-active">ルート1</button>
+                <button type="button" class="route-tab">ルート2</button>
+                <button type="button" class="route-tab">ルート3</button>
+            </div>
+            <div class="card route-card" style="margin-top: var(--space-4);">
+                <div class="route-header">
+                    <div class="route-summary">
+                        <span class="summary-time"><span class="summary-number">32</span><span class="summary-unit">分</span></span>
+                        <span class="summary-transfer"><span class="summary-unit">乗換&nbsp;</span><span class="summary-number">1</span><span class="summary-unit">回</span></span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-row timeline-row--station">
+                        <div class="timeline-time"><div class="timeline-time-departure">09:00 発</div></div>
+                        <div class="timeline-marker-col"><span class="badge badge-square badge-square--sm">発</span></div>
+                        <div class="timeline-station-row"><span class="timeline-station-name">中央駅</span></div>
+                    </div>
+                    <div class="timeline-row timeline-row--segment">
+                        <div class="timeline-time"></div>
+                        <div class="timeline-marker-col timeline-segment">
+                            <div class="timeline-segment-inner">
+                                <div class="badge badge-platform--solid">2番のりば</div>
+                                <div class="timeline-boarding-duration">12分 乗車</div>
+                                <div class="timeline-platform-spacer"></div>
+                            </div>
+                            <div class="timeline-line" style="background: var(--color-train-tc);"></div>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-line-row">
+                                <span class="timeline-line-symbol" style="--icon-color: var(--color-train-tc); background-color: var(--color-train-tc); mask-image: none; -webkit-mask-image: none; border-radius: var(--radius-circle);"></span>
+                                <span class="timeline-line-name">KT本線 快速</span>
+                            </div>
+                            <div class="timeline-meta-row"><span class="timeline-detail">中央公園前行</span></div>
+                            <div class="timeline-meta-row"><span class="timeline-detail">3駅目で降車</span></div>
+                            <div class="timeline-meta-row"><button type="button" class="btn btn-outline-pill">▼ 途中駅を表示</button></div>
+                        </div>
+                    </div>
+                    <div class="timeline-row timeline-row--station">
+                        <div class="timeline-time">
+                            <div class="timeline-time-arrival">09:12 着</div>
+                            <div class="timeline-time-departure">09:15 発</div>
+                        </div>
+                        <div class="timeline-marker-col"><span class="timeline-dot timeline-dot--transfer"></span></div>
+                        <div class="timeline-station-row">
+                            <span class="timeline-station-name">乗換駅</span>
+                            <span class="timeline-walk">
+                                <img src="../icons/walking.svg" class="timeline-walk-icon" alt="walk">
+                                3分
+                            </span>
+                        </div>
+                    </div>
+                    <div class="timeline-row timeline-row--station">
+                        <div class="timeline-time"><div class="timeline-time-arrival">09:32 着</div></div>
+                        <div class="timeline-marker-col"><span class="badge badge-square badge-square--sm">着</span></div>
+                        <div class="timeline-station-row"><span class="timeline-station-name">終点駅</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="guide-note">
+            <code>.route-tabs</code>/<code>.route-tab</code>（結果タブ）、<code>.card.route-card</code> &gt; <code>.route-header</code> + <code>.timeline</code>。
+            駅行は <code>.timeline-row--station</code>、区間行は <code>.timeline-row--segment</code>、徒歩連絡のみの行は無装飾の <code>.timeline-row</code>。
+            発着マーカーは <code>.badge-square--sm</code>、乗換マーカーは <code>.timeline-dot--transfer</code>、通過駅マーカーは <code>.timeline-dot</code>（インライン<code>background</code>で色指定）。
+            番線は <code>.badge-platform--solid</code>、路線色の縦線は <code>.timeline-line</code>（インライン<code>background</code>で色指定）。
+            実際の <code>.timeline-line-symbol</code> は列車種別アイコンのマスク画像（このガイドでは省略し円で代用）。
+        </p>
+    </section>
+
+    <section class="guide-section">
+        <h2>Page layout（参考）</h2>
+        <p class="guide-note">
+            ページ全体の骨格は layout.css が担う: <code>.page-header</code>（固定ヘッダー） /
+            <code>.page-footer</code>（フッター） / <code>.page-container</code> &gt; <code>.page-columns</code> &gt;
+            <code>.page-main</code> + <code>.page-sidebar</code>（2カラム、モバイルはサイドバー非表示の1カラム）。
+            このガイド自体は独自レイアウトのため実演はせず、実例は <a href="../../transfer/index.html">transfer</a> を参照。
+        </p>
+    </section>
+
+    <script type="module">
+        // セグメントトグルのスライド演出だけ、このページ用に軽く再現
+        const container = document.getElementById('guide-segmented');
+        const buttons = Array.from(container.querySelectorAll('.segmented-btn'));
+        function setMode(btn) {
+            buttons.forEach(b => b.classList.toggle('is-selected', b === btn));
+            const rect = btn.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            container.style.setProperty('--seg-width', `${rect.width}px`);
+            container.style.setProperty('--seg-left', `${rect.left - containerRect.left}px`);
+        }
+        buttons.forEach(b => b.addEventListener('click', () => setMode(b)));
+        setMode(buttons.find(b => b.classList.contains('is-selected')) || buttons[0]);
+    </script>
+</body>
+</html>
