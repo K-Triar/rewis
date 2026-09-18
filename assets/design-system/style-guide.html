@@ -444,11 +444,43 @@
                     </div>
                 </div>
             </div>
+            <div class="card route-card" style="margin-top: var(--space-4);">
+                <div class="route-header">
+                    <div class="route-summary">
+                        <span class="summary-time"><span class="summary-number">41</span><span class="summary-unit">分</span></span>
+                        <span class="summary-transfer"><span class="summary-unit">乗換&nbsp;</span><span class="summary-number">1</span><span class="summary-unit">回</span></span>
+                    </div>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-row timeline-row--station">
+                        <div class="timeline-time"><div class="timeline-time-arrival">09:19 着</div></div>
+                        <div class="timeline-marker-col"><span class="timeline-dot timeline-dot--transfer"></span></div>
+                        <div class="timeline-station-row"><span class="timeline-station-name">乗換元駅</span></div>
+                    </div>
+                    <div class="timeline-row timeline-row--walk">
+                        <div class="timeline-time"></div>
+                        <div class="timeline-marker-col timeline-segment">
+                            <div class="timeline-line" style="background: var(--color-border);"></div>
+                        </div>
+                        <div class="timeline-content">
+                            <span class="timeline-walk">
+                                <img src="../icons/walking.svg" class="timeline-walk-icon" alt="walk">
+                                10秒
+                            </span>
+                        </div>
+                    </div>
+                    <div class="timeline-row timeline-row--station">
+                        <div class="timeline-time"><div class="timeline-time-departure">09:20 発</div></div>
+                        <div class="timeline-marker-col"><span class="timeline-dot timeline-dot--transfer"></span></div>
+                        <div class="timeline-station-row"><span class="timeline-station-name">乗換先駅</span></div>
+                    </div>
+                </div>
+            </div>
         </div>
         <p class="guide-note">
             <code>.route-tabs</code>/<code>.route-tab</code>（結果タブ）、<code>.card.route-card</code> &gt; <code>.route-header</code> + <code>.timeline</code>。
-            駅行は <code>.timeline-row--station</code>、区間行は <code>.timeline-row--segment</code>、徒歩連絡のみの行は無装飾の <code>.timeline-row</code>。
-            発着マーカーは <code>.badge-square--sm</code>、乗換マーカーは <code>.timeline-dot--transfer</code>、通過駅マーカーは <code>.timeline-dot</code>（インライン<code>background</code>で色指定）。
+            駅行は <code>.timeline-row--station</code>、区間行は <code>.timeline-row--segment</code>、別の駅への徒歩連絡行は <code>.timeline-row--walk</code>（前後の駅行のドットを <code>.timeline-line</code> でつなぎ、色は <code>var(--color-border)</code>）。
+            発着マーカーは <code>.badge-square--sm</code>、乗換マーカーは <code>.timeline-dot--transfer</code>（同一駅内の乗換・徒歩連絡の駅どちらも共通）、通過駅マーカーは <code>.timeline-dot</code>（インライン<code>background</code>で色指定）。
             番線は <code>.badge-platform--solid</code>、路線色の縦線は <code>.timeline-line</code>（インライン<code>background</code>で色指定）。
             実際の <code>.timeline-line-symbol</code> は列車種別アイコンのマスク画像（このガイドでは省略し円で代用）。
         </p>

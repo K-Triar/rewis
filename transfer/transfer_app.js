@@ -1024,10 +1024,17 @@ function buildTimelineItems(model, route) {
                 if (!started) {
                     pushStationRow(leg.fromStationId, 'start');
                     started = true;
+                } else {
+                    const last = items[items.length - 1];
+                    if (last && last.type === 'station' && last.marker !== 'start' && last.marker !== 'end') {
+                        last.marker = 'transfer';
+                    }
                 }
                 elapsed += leg.duration;
                 items.push({ type: 'walk', fromStationId: leg.fromStationId, toStationId: leg.toStationId, seconds: leg.duration });
-                pushStationRow(leg.toStationId, 'via');
+                const row = pushStationRow(leg.toStationId, 'transfer');
+                // 到着駅ならあとで「着」に読み替える（末尾の駅行を marker:'end' にする処理と対）
+                row.departureElapsed = elapsed;
             } else {
                 // 同じのりば・のりば間の乗換：直前に出した駅の行に発時刻・乗換時間を合成する
                 const last = items[items.length - 1];
@@ -1056,6 +1063,8 @@ function buildTimelineItems(model, route) {
                 elapsedFromSectionStart: s.elapsed - fromStop.elapsed
             }));
 
+            const isLastSection = si === leg.sections.length - 1;
+
             items.push({
                 type: 'segment',
                 lineId: section.lineId,
@@ -1066,17 +1075,16 @@ function buildTimelineItems(model, route) {
                 vehicleTypeId: line ? line.vehicleTypeId : null,
                 headsign: si === 0 ? leg.headsign : null,
                 alternativeHeadsigns: si === 0 ? (leg.alternativeHeadsigns || []) : [],
-                throughFromLineName: si > 0 ? model.lineName(leg.sections[si - 1].lineId) : null,
                 stopsCount: section.endStop - section.startStop,
                 departurePlatform: fromStop.platformId,
                 arrivalPlatform: toStop.platformId,
                 duration: toStop.elapsed - fromStop.elapsed,
+                throughToNext: !isLastSection,
                 midStops
             });
 
             elapsed = legBase + toStop.elapsed;
 
-            const isLastSection = si === leg.sections.length - 1;
             const row = pushStationRow(toStop.stationId, 'via');
             row.arrivalElapsed = elapsed;
             if (!isLastSection) {
@@ -1089,6 +1097,11 @@ function buildTimelineItems(model, route) {
     for (let i = items.length - 1; i >= 0; i--) {
         if (items[i].type === 'station') {
             items[i].marker = 'end';
+            // 徒歩連絡の到着先がそのまま終点になる場合：仮に入れておいた発時刻を着時刻に読み替える
+            if (items[i].arrivalElapsed == null && items[i].departureElapsed != null) {
+                items[i].arrivalElapsed = items[i].departureElapsed;
+                items[i].departureElapsed = null;
+            }
             break;
         }
     }
@@ -1170,7 +1183,7 @@ function createTableStationRow({ stationId, marker, arrivalElapsed = null, depar
     let markerHtml = '';
     if (marker === 'start' || marker === 'end') {
         markerHtml = `<span class="badge badge-square badge-square--sm">${marker === 'start' ? '発' : '着'}</span>`;
-    } else if (transferSeconds != null) {
+    } else if (marker === 'transfer' || transferSeconds != null) {
         markerHtml = `<span class="timeline-dot timeline-dot--transfer"></span>`;
     } else {
         markerHtml = `<span class="timeline-dot" style="background:${markerColor};"></span>`;
@@ -1193,18 +1206,22 @@ function createTableStationRow({ stationId, marker, arrivalElapsed = null, depar
     return row;
 }
 
-// 徒歩連絡行（別の駅への乗換）
+// 徒歩連絡行（別の駅への乗換）。乗換駅同士のドットは前後の駅行が担い、
+// この行では駅行のドット同士をつなぐ縦線だけを描画する。
 function createWalkInfoRow(item, model) {
     const row = document.createElement('div');
-    row.className = 'timeline-row';
+    row.className = 'timeline-row timeline-row--walk';
 
     const timeDiv = document.createElement('div');
     timeDiv.className = 'timeline-time';
     row.appendChild(timeDiv);
 
     const markerDiv = document.createElement('div');
-    markerDiv.className = 'timeline-marker-col';
-    markerDiv.innerHTML = `<span class="timeline-dot timeline-dot--transfer"></span>`;
+    markerDiv.className = 'timeline-marker-col timeline-segment';
+    const connector = document.createElement('div');
+    connector.className = 'timeline-line';
+    connector.style.background = 'var(--color-border)';
+    markerDiv.appendChild(connector);
     row.appendChild(markerDiv);
 
     const contentDiv = document.createElement('div');
@@ -1217,9 +1234,7 @@ function createWalkInfoRow(item, model) {
     icon.alt = 'walk';
     wrapper.appendChild(icon);
     const label = document.createElement('span');
-    const fromName = model.stationName(item.fromStationId) || item.fromStationId;
-    const toName = model.stationName(item.toStationId) || item.toStationId;
-    label.textContent = `徒歩連絡 ${formatSeconds(item.seconds)}（${fromName}→${toName}）`;
+    label.textContent = `徒歩 ${formatSeconds(item.seconds)}`;
     wrapper.appendChild(label);
     contentDiv.appendChild(wrapper);
     row.appendChild(contentDiv);
@@ -1337,8 +1352,7 @@ function createTableSegmentRow(item, model) {
     const lineName = document.createElement('span');
     lineName.className = 'timeline-line-name';
     const categoryText = item.categoryName ? ` ${item.categoryName}` : '';
-    const throughText = item.throughFromLineName ? `（${item.throughFromLineName}直通）` : '';
-    lineName.textContent = `${item.lineName}${categoryText}${throughText}`;
+    lineName.textContent = `${item.lineName}${categoryText}`;
 
     lineRow.appendChild(iconSpan);
     lineRow.appendChild(lineName);
@@ -1361,7 +1375,7 @@ function createTableSegmentRow(item, model) {
     metaRow.className = 'timeline-meta-row';
     const stopsDetail = document.createElement('span');
     stopsDetail.className = 'timeline-detail';
-    stopsDetail.textContent = `${stopsCount}駅目で降車`;
+    stopsDetail.textContent = item.throughToNext ? `${stopsCount}駅目で直通` : `${stopsCount}駅目で降車`;
     metaRow.appendChild(stopsDetail);
     segContentDiv.appendChild(metaRow);
 

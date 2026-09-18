@@ -1096,6 +1096,24 @@
     opacity: 0.9;
 }
 
+/* 徒歩連絡行：マーカー列は前後の駅行のドットをつなぐ縦線だけを持ち（ドットは
+   駅行側が担う）、列幅は駅行・区間行の2列目（56px/48px）に揃えて縦線の
+   横位置を一致させる。内容は行内で上下中央揃えにする。 */
+.timeline-row--walk {
+    grid-template-columns: 99px 56px 1fr;
+    align-items: stretch;
+}
+@media (max-width: 768px) {
+    .timeline-row--walk { grid-template-columns: 78px 48px 1fr; }
+}
+.timeline-row--walk .timeline-content {
+    display: flex;
+    align-items: center;
+}
+.timeline-row--walk .timeline-walk {
+    margin-left: 0;
+}
+
 .timeline-marker-col {
     display: flex;
     align-items: center;
@@ -1153,7 +1171,7 @@
     color: var(--color-text);
 }
 .timeline-content {
-    padding-left: var(--space-3);
+    padding-left: var(--space-1);
 }
 .timeline-row--segment .timeline-content {
     padding-top: var(--space-4);
