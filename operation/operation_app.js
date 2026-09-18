@@ -166,7 +166,9 @@ function scrollOperationTopOnMobile() {
 // ========================================
 function getNoticeFields(notice) {
     const fields = [];
-    if (notice.range != null) {
+    if (notice.range == null) {
+        fields.push({ label: '区間', value: '全線' });
+    } else {
         const sName = model.stationName(notice.range.fromStationId) || '一部区間';
         const eName = model.stationName(notice.range.toStationId) || '';
         if (sName && eName) {
@@ -175,7 +177,7 @@ function getNoticeFields(notice) {
     }
     const causeHeading = getCauseHeading(notice);
     if (causeHeading) {
-        fields.push({ label: '原因', value: causeHeading });
+        fields.push({ label: '事由', value: causeHeading });
     }
     return fields;
 }
