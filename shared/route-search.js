@@ -425,13 +425,16 @@ export function searchRoutes(model, graph, {
 } = {}) {
   if (!fromStationId || !toStationId || fromStationId === toStationId) return [];
 
+  // 出発駅そのものに運行系統が発着しない（徒歩連絡でしか出られない駅の）場合もあるので、
+  // stationPlatforms にエントリが無くても、徒歩連絡（startWalk）だけで探索を続行する。
   const fromEntry = graph.stationPlatforms.get(fromStationId);
-  if (!fromEntry) return [];
 
   const startEdges = [];
-  fromEntry.D.forEach(dId => {
-    startEdges.push({ to: dId, dur: 0, kind: 'start' });
-  });
+  if (fromEntry) {
+    fromEntry.D.forEach(dId => {
+      startEdges.push({ to: dId, dur: 0, kind: 'start' });
+    });
+  }
   graph.crossStationTransfers.forEach(tr => {
     if (tr.fromStationId !== fromStationId) return;
     const toEntry = graph.stationPlatforms.get(tr.toStationId);
@@ -561,12 +564,10 @@ export function searchRoutes(model, graph, {
   // 「特定の列車に乗ることを強制する」候補探索では、その列車に乗ってもすぐ降りて
   // 別ののりばへ乗り換えるだけ（1駅も進まない）の経路が最短になることがある。
   // これは実質「その列車には乗らない」のと同じで、案内としては無意味なので除外する。
+  // （出発駅で徒歩連絡してから乗る場合など、先頭以外の leg でも起こり得るのですべて見る）
   const routes = results
     .map(r => buildRoute(model, graph, r.path, r.score, fromStationId, toStationId))
-    .filter(route => {
-      const firstLeg = route.legs[0];
-      return !(firstLeg && firstLeg.type === 'ride' && firstLeg.stops.length < 2);
-    });
+    .filter(route => !route.legs.some(leg => leg.type === 'ride' && leg.stops.length < 2));
   const unique = dedupeRoutes(routes);
 
   unique.sort((a, b) => {
