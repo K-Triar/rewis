@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { COL, ROW, visibleStationIds, resolvePositions } from '../editor-core/auto-layout.js';
+import { COL, ROW, visibleStationIds, resolvePositions, savedLayouts, setLayout, fillMissingLayouts } from '../editor-core/auto-layout.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -87,4 +87,43 @@ test('駅が空の路線は飛ばすこと', () => {
   network.lines.push({ id: 'LC', stations: [] });
   const positions = resolvePositions(network, {});
   assert.equal(positions.size, 4);
+});
+
+test('savedLayouts: station.layout が数値の駅だけ取り出す', () => {
+  const network = loadNetwork();
+  network.stations[0].layout = { x: 10, y: 20 };
+  network.stations[1].layout = { x: 'a', y: 20 };
+  network.stations[2].layout = null;
+  assert.deepEqual(savedLayouts(network), { [network.stations[0].id]: { x: 10, y: 20 } });
+});
+
+test('resolvePositions: 保存配置を省略すると station.layout が優先される', () => {
+  const network = loadNetwork();
+  network.stations.find((s) => s.id === 'S1').layout = { x: 999, y: 888 };
+  assert.deepEqual(resolvePositions(network).get('S1'), { x: 999, y: 888 });
+});
+
+test('setLayout: 整数に丸めて station.layout に書き込む。存在しない駅は何もしない', () => {
+  const network = loadNetwork();
+  setLayout(network, 'S2', { x: 1.6, y: -2.4 });
+  assert.deepEqual(network.stations.find((s) => s.id === 'S2').layout, { x: 2, y: -2 });
+  setLayout(network, 'NOPE', { x: 1, y: 1 });
+  assert.equal(network.stations.some((s) => s.id === 'NOPE'), false);
+});
+
+test('fillMissingLayouts: 表示される駅のうち座標のない駅にだけ自動配置の結果を書き込む', () => {
+  const network = loadNetwork();
+  const expected = resolvePositions(network);
+  network.stations.find((s) => s.id === 'S1').layout = { x: 5, y: 5 };
+  network.stations.push({ id: 'S5', name: 'S5駅', kana: 'えすご', platforms: [], location: null });
+
+  const before = resolvePositions(network);
+  assert.equal(fillMissingLayouts(network), true);
+
+  const byId = (id) => network.stations.find((s) => s.id === id);
+  assert.deepEqual(byId('S1').layout, { x: 5, y: 5 });
+  assert.equal(byId('S5').layout, undefined);
+  before.forEach((pos, id) => assert.deepEqual(byId(id).layout, pos));
+  assert.equal(expected.size > 0, true);
+  assert.equal(fillMissingLayouts(network), false);
 });

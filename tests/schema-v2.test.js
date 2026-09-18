@@ -43,6 +43,20 @@ test('どの路線にも属さない駅を追加しても errors も warnings �
   assert.equal(result.warnings.length, base.warnings.length);
 });
 
+test('駅の layout: 省略・null・{x, y}（数値）は通り、それ以外は E_TYPE になる', () => {
+  const check = (layout, hasLayout = true) => {
+    const net = network();
+    if (hasLayout) net.stations[0].layout = layout;
+    return validateNetwork(net).errors.filter(e => e.path === 'stations[0].layout');
+  };
+  assert.equal(check(undefined, false).length, 0);
+  assert.equal(check(null).length, 0);
+  assert.equal(check({ x: 10, y: -20.5 }).length, 0);
+  assert.equal(check({ x: 10 })[0].code, 'E_TYPE');
+  assert.equal(check({ x: '1', y: 2 })[0].code, 'E_TYPE');
+  assert.equal(check({ x: NaN, y: 2 })[0].code, 'E_TYPE');
+});
+
 const networkErrorCases = {
   E_SCHEMA_VERSION: net => { net.schemaVersion = '1.0.0'; },
   E_KIND: net => { net.kind = 'wrong'; },

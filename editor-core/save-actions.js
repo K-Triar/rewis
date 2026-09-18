@@ -1,5 +1,7 @@
 // サーバーへの保存。DOM を使わない。02-editor-ui-spec.md 5章。
 
+import { fillMissingLayouts } from './auto-layout.js';
+
 const KIND_LABEL = { network: '路線網', operations: '運行情報' };
 
 export async function saveChangedDocs(store, { base, token, saveDoc }) {
@@ -21,6 +23,9 @@ export async function saveChangedDocs(store, { base, token, saveDoc }) {
       });
       break;
     }
+
+    // 図に表示中の駅の座標を、自動配置のものも含めて確定してから送る（D-042）。元に戻す操作の対象にはしない
+    if (kind === 'network') fillMissingLayouts(store.state.docs.network);
 
     const res = await saveDoc(base, token, kind, store.state.docs[kind], store.state.baseRevision[kind], 'rewis-editor-graph');
 

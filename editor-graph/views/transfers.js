@@ -2,9 +2,8 @@ import { createWorkspace } from '../canvas/workspace.js';
 import { createCanvas, trackPointer } from '../canvas/canvas.js';
 import { renderStationNode } from '../canvas/station-node.js';
 import { attachCanvasToolbar } from '../canvas/canvas-tab-base.js';
-import * as layoutStore from '../canvas/layout-store.js';
 import { graphUi } from '../canvas/ui-state.js';
-import { resolvePositions } from '../../editor-core/auto-layout.js';
+import { resolvePositions, setLayout } from '../../editor-core/auto-layout.js';
 import { boundsOf, portPoint, edgeMidpoint, nodeRect } from '../../editor-core/graph-geometry.js';
 import * as transferOps from '../../editor-core/transfer-ops.js';
 import * as groupOps from '../../editor-core/group-ops.js';
@@ -139,7 +138,7 @@ function mountGraphPane(container, ctx) {
   const positions = new Map();
   function resyncPositions() {
     positions.clear();
-    resolvePositions(network, layoutStore.loadSaved()).forEach((pos, id) => positions.set(id, pos));
+    resolvePositions(network).forEach((pos, id) => positions.set(id, pos));
   }
   resyncPositions();
 
@@ -198,7 +197,7 @@ function mountGraphPane(container, ctx) {
         });
         drawCanvas();
       },
-      onDragEnd: () => layoutStore.savePosition(station.id, positions.get(station.id))
+      onDragEnd: () => store.mutateDoc('network', (doc) => setLayout(doc, station.id, positions.get(station.id)))
     });
   }
 
@@ -546,8 +545,7 @@ function mountGraphPane(container, ctx) {
   refreshView();
 
   const { fitAll } = attachCanvasToolbar(workspace, canvas, {
-    getBounds: () => boundsOf([...positions.values()]),
-    onReset: () => { resyncPositions(); refreshView(); }
+    getBounds: () => boundsOf([...positions.values()])
   });
   workspace.toolbar.appendChild(helpTip(SHIFT_HELP_TEXT));
   if (!canvas.hasSavedViewport) fitAll();

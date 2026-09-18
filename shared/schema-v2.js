@@ -118,6 +118,10 @@ export function validateNetwork(doc) {
       checkIdFormat(p.id, `stations[${sIdx}].platforms[${pIdx}].id`, errors, `駅 "${s.id}" ののりば ID "${p.id}" の書式が不正です`);
     });
     checkDup(platforms, 'id', `stations[${sIdx}].platforms`, `駅 "${s.id}" ののりば ID`, errors);
+    // layout は図形式エディタの座標。省略可（undefined / null）
+    if (s.layout != null && !(Number.isFinite(s.layout.x) && Number.isFinite(s.layout.y))) {
+      errors.push(issue('E_TYPE', `stations[${sIdx}].layout`, `駅 "${s.id}" の layout が { x, y }（数値）の形ではありません`));
+    }
   });
 
   function platformExists(stationId, platformId) {

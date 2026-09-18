@@ -3,9 +3,8 @@ import { createCanvas } from '../canvas/canvas.js';
 import { createNodeDragHandler } from '../canvas/node-drag.js';
 import { renderStationNode } from '../canvas/station-node.js';
 import { attachCanvasToolbar } from '../canvas/canvas-tab-base.js';
-import * as layoutStore from '../canvas/layout-store.js';
 import { graphUi } from '../canvas/ui-state.js';
-import { resolvePositions } from '../../editor-core/auto-layout.js';
+import { resolvePositions, setLayout } from '../../editor-core/auto-layout.js';
 import { boundsOf } from '../../editor-core/graph-geometry.js';
 import * as noticeOps from '../../editor-core/notice-ops.js';
 import { generateNoticeText } from '../../shared/notice-text.js';
@@ -49,7 +48,7 @@ export function renderOperationsView(container, ctx) {
   const positions = new Map();
   function resyncPositions() {
     positions.clear();
-    resolvePositions(network, layoutStore.loadSaved()).forEach((pos, id) => positions.set(id, pos));
+    resolvePositions(network).forEach((pos, id) => positions.set(id, pos));
   }
   resyncPositions();
 
@@ -109,7 +108,7 @@ export function renderOperationsView(container, ctx) {
 
   const dragHandler = createNodeDragHandler(canvas, positions, {
     onChange: () => drawCanvas(),
-    onCommit: (id, pos) => layoutStore.savePosition(id, pos),
+    onCommit: (id, pos) => store.mutateDoc('network', (doc) => setLayout(doc, id, pos)),
     onClick: (station) => handleNodeClick(station)
   });
 
@@ -557,8 +556,7 @@ export function renderOperationsView(container, ctx) {
   refreshView();
 
   const { fitAll } = attachCanvasToolbar(workspace, canvas, {
-    getBounds: () => boundsOf([...positions.values()]),
-    onReset: () => { resyncPositions(); refreshView(); }
+    getBounds: () => boundsOf([...positions.values()])
   });
   if (!canvas.hasSavedViewport) fitAll();
 

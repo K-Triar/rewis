@@ -5,7 +5,39 @@ function validStationIds(network) {
   return new Set((network.stations || []).map((s) => s.id));
 }
 
-export function visibleStationIds(network, savedPositions) {
+function isValidLayout(layout) {
+  return !!layout && Number.isFinite(layout.x) && Number.isFinite(layout.y);
+}
+
+// 駅データ（station.layout）に保存されている座標を { 駅ID: {x, y} } で返す。
+export function savedLayouts(network) {
+  const saved = {};
+  (network.stations || []).forEach((s) => {
+    if (isValidLayout(s.layout)) saved[s.id] = { x: s.layout.x, y: s.layout.y };
+  });
+  return saved;
+}
+
+// 駅の座標を station.layout に書き込む（network を直接書き換える）。
+export function setLayout(network, stationId, pos) {
+  const station = (network.stations || []).find((s) => s.id === stationId);
+  if (!station) return;
+  station.layout = { x: Math.round(pos.x), y: Math.round(pos.y) };
+}
+
+// 図に表示される駅のうち座標が未保存のものに、自動配置の結果を station.layout として書き込む。書き換えたら true。
+export function fillMissingLayouts(network) {
+  let changed = false;
+  resolvePositions(network).forEach((pos, id) => {
+    const station = network.stations.find((s) => s.id === id);
+    if (!station || isValidLayout(station.layout)) return;
+    setLayout(network, id, pos);
+    changed = true;
+  });
+  return changed;
+}
+
+export function visibleStationIds(network, savedPositions = savedLayouts(network)) {
   const valid = validStationIds(network);
   const visible = new Set();
 
@@ -24,7 +56,7 @@ export function visibleStationIds(network, savedPositions) {
   return visible;
 }
 
-export function resolvePositions(network, savedPositions) {
+export function resolvePositions(network, savedPositions = savedLayouts(network)) {
   const visible = visibleStationIds(network, savedPositions);
   const saved = savedPositions || {};
   const positions = new Map();

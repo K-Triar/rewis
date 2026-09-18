@@ -138,3 +138,22 @@ test('network で失敗したら operations を送らないこと', async () => 
   assert.equal(results.length, 1);
   assert.equal(results[0].kind, 'network');
 });
+
+test('保存前に、図に表示中で座標のない駅へ layout が入り、元に戻す操作の対象にならない', async () => {
+  const store = createStore();
+  const network = minimalNetwork();
+  network.lines = [{ id: 'L1', name: 'L', companyId: 'C1', stations: ['S1'], loop: null, directions: { forward: '下り線', backward: '上り線' }, categories: [{ id: 'Lo', name: '普通' }] }];
+  store.setDoc('network', network, { revision: 1 });
+  store.setDoc('operations', minimalOperations(), { revision: 1 });
+  store.mutateDoc('network', (doc) => { doc.stations[0].name = '変更後'; });
+
+  let sent = null;
+  const saveDoc = async (base, token, kind, doc) => {
+    sent = JSON.parse(JSON.stringify(doc));
+    return { ok: true, status: 200, body: { revision: 2, updatedAt: '2026-04-06T15:00:00.000Z' } };
+  };
+  await saveChangedDocs(store, { base: 'http://x', token: 't', saveDoc });
+
+  assert.deepEqual(sent.stations[0].layout, { x: 0, y: 0 });
+  assert.equal(store.hasUnsavedChanges('network'), false);
+});
