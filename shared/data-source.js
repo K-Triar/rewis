@@ -14,6 +14,11 @@ export function getPublicWorkerApiBase() {
   return (configured || saved).replace(/\/$/, '');
 }
 
+export function getPublicDataVersion() {
+  const configured = globalThis.REWIS_PUBLIC_DATA_SOURCE && globalThis.REWIS_PUBLIC_DATA_SOURCE.dataVersion;
+  return configured === 2 ? 2 : 1;
+}
+
 function extractPayload(payload) {
   if (payload && typeof payload === 'object') {
     return (payload.data && typeof payload.data === 'object') ? payload.data : payload;
@@ -65,9 +70,10 @@ async function loadV2(workerBase, fetchImpl) {
   return { model, source: 'v2' };
 }
 
-export async function loadPublicModel({ workerBase, dataVersion = 1, fetchImpl = fetch } = {}) {
+export async function loadPublicModel({ workerBase, dataVersion, fetchImpl = fetch } = {}) {
+  const version = dataVersion != null ? dataVersion : getPublicDataVersion();
   const base = (workerBase || getPublicWorkerApiBase());
   if (!base) throw new Error('データ取得元（Workers API）が設定されていません');
-  if (dataVersion === 2) return loadV2(base, fetchImpl);
+  if (version === 2) return loadV2(base, fetchImpl);
   return loadV1(base, fetchImpl);
 }
