@@ -711,6 +711,64 @@ function loadFromUrlParams() {
 }
 
 // ========================================
+// タイムライン縦線（.timeline-line）の端を隣接する駅マーカーの中心にぴったり合わせる
+// ========================================
+// .timeline-line は固定ピクセルのtop/bottomで前後の駅マーカーに接続しているが、
+// 直通（乗換不要）で時刻表示が1行になる等、行の高さは内容によって変動するため、
+// 固定値では接続点がわずかにずれる（線がマーカーからはみ出す）ことがある。
+// 実際に描画されたマーカーの中心座標を測って線のtop/heightを直接指定することで、
+// 行の高さがどう変わっても接続点を厳密に一致させる。
+function findNearestMarkerDot(row, direction) {
+    let sib = row[direction];
+    while (sib) {
+        const dot = sib.querySelector(':scope > .timeline-marker-col > .timeline-dot, :scope > .timeline-marker-col > .badge-square');
+        if (dot) return dot;
+        sib = sib[direction];
+    }
+    return null;
+}
+
+function alignRouteCardTimelineLines(card) {
+    if (!card) return;
+    const lines = card.querySelectorAll('.timeline-line');
+    lines.forEach(line => {
+        const segMarkerCol = line.parentElement;
+        const segRow = segMarkerCol && segMarkerCol.closest('.timeline-row');
+        if (!segRow) return;
+
+        const prevDot = findNearestMarkerDot(segRow, 'previousElementSibling');
+        const nextDot = findNearestMarkerDot(segRow, 'nextElementSibling');
+        if (!prevDot || !nextDot) return;
+
+        const colRect = segMarkerCol.getBoundingClientRect();
+        const prevRect = prevDot.getBoundingClientRect();
+        const nextRect = nextDot.getBoundingClientRect();
+        const prevCenter = prevRect.top + prevRect.height / 2;
+        const nextCenter = nextRect.top + nextRect.height / 2;
+
+        line.style.top = `${prevCenter - colRect.top}px`;
+        line.style.height = `${nextCenter - prevCenter}px`;
+        line.style.bottom = 'auto';
+    });
+}
+
+// 結果セクション内で現在表示中のルートカードのタイムライン線を再調整する
+// （タブ切替やウィンドウリサイズなどレイアウトが変わり得るタイミングで呼ぶ）
+function alignVisibleRouteCardTimelineLines() {
+    const resultsSection = document.getElementById('results-section');
+    if (!resultsSection || resultsSection.style.display === 'none') return;
+    const visibleCard = Array.from(resultsSection.querySelectorAll('.route-card'))
+        .find(c => c.style.display !== 'none');
+    if (visibleCard) alignRouteCardTimelineLines(visibleCard);
+}
+
+let _timelineResizeTimer = null;
+window.addEventListener('resize', () => {
+    clearTimeout(_timelineResizeTimer);
+    _timelineResizeTimer = setTimeout(alignVisibleRouteCardTimelineLines, 150);
+});
+
+// ========================================
 // 結果表示
 // ========================================
 function displayResults(routes) {
@@ -827,6 +885,12 @@ function displayResults(routes) {
 
             // bring results into view
             resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // タブ切替で表示されたカードのタイムライン線を再調整する
+            requestAnimationFrame(() => {
+                const shownCard = resultsContainer.querySelector(`.route-card[data-index="${idx}"]`);
+                alignRouteCardTimelineLines(shownCard);
+            });
         });
 
         tabs.appendChild(tab);
@@ -932,6 +996,11 @@ function displayResults(routes) {
     try {
         document.body.classList.add('results-open');
     } catch (e) { /* noop for older environments */ }
+
+    // 初期表示カードのタイムライン線を、実際のレイアウト確定後に調整する
+    requestAnimationFrame(() => {
+        alignRouteCardTimelineLines(cards[initialIndex]);
+    });
 }
 
 // ========================================
@@ -1397,6 +1466,11 @@ function createStopsButton(item, model) {
         } else {
             markerList.style.marginTop = '';
         }
+
+        // 途中駅の展開/折り畳みで行の高さが変わるため、タイムライン線も再調整する
+        requestAnimationFrame(() => {
+            alignRouteCardTimelineLines(button.closest('.route-card'));
+        });
     });
 
     return { button, infoList, markerList };

@@ -197,7 +197,7 @@ html.no-scroll {
     .page-container {
         display: flex;
         flex-direction: column;
-        min-height: 100svh;
+        min-height: calc(100svh - 132px);
         max-width: 100%;
         margin: 61px 0 0;
         background: var(--color-bg-surface);

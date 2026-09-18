@@ -13,10 +13,14 @@
 /* ===== main を検索フォームのカードとして見せる ===== */
 main.page-main {
     overflow: hidden;
-    /* 検索フォームを縦方向中央に配置する、乗換案内ページ専用の設定。
-       他ページ（about/information等）ではコンテンツ量がまちまちで
-       不自然な余白の原因になるため、design-system/layout.css 側では
-       持たせず、このページ専用CSSでだけ有効にする。 */
+}
+/* 検索フォームを縦方向中央に配置する、乗換案内ページ専用の設定。
+   他ページ（about/information等）ではコンテンツ量がまちまちで
+   不自然な余白の原因になるため、design-system/layout.css 側では
+   持たせず、このページ専用CSSでだけ有効にする。
+   検索結果表示中（body.results-open）は結果一覧が縦方向中央寄せに
+   なるとモバイルで不自然にずれるため、検索フォーム表示時のみに限定する。 */
+body:not(.results-open) main.page-main {
     justify-content: center;
 }
 @media (min-width: 769px) {
