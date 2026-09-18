@@ -258,7 +258,7 @@ body:not(.results-open) main.page-main {
     .results-container {
         gap: 0;
     }
-    .timeline {
+    .route-table {
         width: 100vw;
         position: relative;
         left: 50%;
