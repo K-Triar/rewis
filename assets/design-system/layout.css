@@ -36,7 +36,7 @@ html.no-scroll {
     top: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+    background: var(--color-primary);
     color: #fff;
     padding: 10px 0;
     z-index: 1000;
@@ -74,7 +74,7 @@ html.no-scroll {
 
 @media (max-width: 768px) {
     .page-header__content {
-        padding: 10px 15px;
+        padding: 4px 15px;
     }
     .page-header__logo {
         height: 28px;
@@ -155,7 +155,6 @@ html.no-scroll {
     padding: var(--space-7);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: stretch;
     position: relative;
 }
@@ -200,7 +199,7 @@ html.no-scroll {
         flex-direction: column;
         min-height: 100svh;
         max-width: 100%;
-        margin: 76px 0 0;
+        margin: 61px 0 0;
         background: var(--color-bg-surface);
     }
     .page-columns {
@@ -214,7 +213,6 @@ html.no-scroll {
         background: transparent !important;
         border-radius: 0 !important;
         box-shadow: none !important;
-        padding: 0 !important;
     }
     .page-sidebar {
         display: none;

@@ -49,7 +49,7 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+        background: var(--color-primary);
         box-shadow: var(--shadow-sm);
         opacity: 0;
         transition: opacity var(--duration-base) ease;
@@ -130,15 +130,7 @@
     padding: var(--space-6);
 }
 
-.section-heading {
-    margin-bottom: var(--space-5);
-}
-
-.section-heading h2 {
-    font-size: 1.4rem;
-    font-weight: var(--font-weight-bold);
-    color: var(--color-heading);
-}
+/* .section-heading は design-system/components.css 側の共通クラス */
 
 @media (max-width: 768px) {
     .home-section {

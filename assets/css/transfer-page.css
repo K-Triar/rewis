@@ -13,6 +13,11 @@
 /* ===== main を検索フォームのカードとして見せる ===== */
 main.page-main {
     overflow: hidden;
+    /* 検索フォームを縦方向中央に配置する、乗換案内ページ専用の設定。
+       他ページ（about/information等）ではコンテンツ量がまちまちで
+       不自然な余白の原因になるため、design-system/layout.css 側では
+       持たせず、このページ専用CSSでだけ有効にする。 */
+    justify-content: center;
 }
 @media (min-width: 769px) {
     main.page-main {
@@ -22,6 +27,10 @@ main.page-main {
 @media (max-width: 768px) {
     main.page-main {
         min-height: calc(100svh - 160px);
+        /* layout.css は max-width:768px で .page-main の背景・角丸・影のみ
+           打ち消す。左右の余白（padding）ゼロも、検索フォームを画面幅
+           いっぱいに見せたい乗換案内ページ専用の演出なので、ここで指定する。 */
+        padding: 0;
     }
 }
 

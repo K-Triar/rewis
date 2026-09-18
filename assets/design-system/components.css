@@ -121,6 +121,9 @@
     display: block;
 }
 @media (max-width: 768px) {
+    .btn-plain {
+        padding: var(--space-1);
+    }
     .btn-plain img {
         width: 24px;
         height: 24px;
@@ -181,6 +184,14 @@
     font-weight: var(--font-weight-semibold);
     gap: var(--space-2);
 }
+.badge-pill--danger {
+    background: var(--color-danger);
+    color: #fff;
+}
+.badge-pill--neutral {
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+}
 
 .badge-train {
     padding: 3px 10px;
@@ -219,7 +230,6 @@
 .surface {
     background: var(--color-bg-surface);
     border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-sm);
     padding: 16px;
 }
 
@@ -235,6 +245,81 @@
     background: var(--color-bg-subtle);
     border-radius: var(--radius-md);
     padding: var(--space-4);
+}
+
+/* .card 内にリッチテキスト（見出し・段落・箇条書き）を置く場合の共通タイポグラフィ */
+.card--content h3 {
+    color: var(--color-primary);
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-3);
+}
+.card--content p {
+    color: var(--color-text);
+    margin-bottom: var(--space-2);
+    line-height: var(--line-height-base);
+}
+.card--content p:last-child {
+    margin-bottom: 0;
+}
+.card--content ul {
+    margin: var(--space-3) 0 0 var(--space-6);
+}
+.card--content li {
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
+}
+.card--content li:last-child {
+    margin-bottom: 0;
+}
+.card--content + .card--content {
+    margin-top: var(--space-5);
+}
+
+/* =========================================================
+   Section heading（ページ内セクションの共通見出し）
+   ========================================================= */
+.section-heading {
+    margin-bottom: var(--space-5);
+}
+.section-heading h2 {
+    font-size: 1.4rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+}
+
+/* =========================================================
+   Announcement list（お知らせ一覧。.card をアイテムの外枠として使う）
+   ========================================================= */
+.announcement-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+.announcement-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+.announcement-item__date {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-md);
+}
+.announcement-item__text {
+    flex: 1;
+    min-width: 200px;
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+}
+@media (max-width: 768px) {
+    .announcement-item {
+        gap: var(--space-3);
+    }
+    .announcement-item__text {
+        min-width: 100%;
+        font-size: var(--font-size-md);
+    }
 }
 
 /* =========================================================

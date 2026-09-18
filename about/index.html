@@ -14,95 +14,100 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/design-system/tokens.css">
+    <link rel="stylesheet" href="../assets/design-system/layout.css">
+    <link rel="stylesheet" href="../assets/design-system/components.css">
 </head>
-<body class="about-page">
-    <header>
-        <div class="header-content">
-            <div class="header-left">
-                <img src="../assets/icons/rewis_logo_w.svg" alt="REWIS" class="header-logo">
-                <h1>| REWISについて</h1>
+<body>
+    <header class="page-header">
+        <div class="page-header__content">
+            <div class="page-header__brand">
+                <img src="../assets/icons/rewis_logo_w.svg" alt="REWIS" class="page-header__logo">
+                <h1 class="page-header__title">| REWISについて</h1>
             </div>
         </div>
     </header>
 
-    <div class="container">
-        <div class="content-wrapper">
-            <main>
-                <section class="about-section" aria-label="REWISについて">
-                    <h2>REWISとは</h2>
+    <div class="page-container">
 
-                    <div class="about-card">
-                        <h3>サービス概要</h3>
-                        <p>REWIS(全世界鉄道情報システム)は、Kトライア瑠璃交通が開発した、DSクラフト内の各路線の乗換案内と路線・運行情報をまとめて提供する案内サービスです。</p>
-                        <p>皆様からの情報をもとに、Kトライア交通グループ以外の鉄道会社の情報も順次提供します。</p>
-                    </div>
+        <div class="page-columns">
 
-                    <div class="about-card">
-                        <h3>主な機能</h3>
-                        <ul>
-                            <li>出発駅・到着駅からの経路検索</li>
-                            <li>路線ごとの運行情報確認</li>
-                            <li>スマートフォンでも使いやすいモバイル表示</li>
-                        </ul>
-                    </div>
+        <main class="page-main surface" aria-labelledby="about-title">
+            <div class="section-heading">
+                <h2 id="about-title">REWISとは</h2>
+            </div>
 
-                    <div class="about-card">
-                        <h3>データについて</h3>
-                        <p>REWIS内のデータは、一部を除き各鉄道会社からの提供を受けたものです。</p>
-                        <p>Kトライア瑠璃社内での情報検証・追加に努めていますが、正確性を保証するものではありません。</p>
-                        <p>なお、各鉄道会社の関係者の皆様は、Kトライア瑠璃が発行する会社ごとのログインIDを使用し、事業者向けページから情報を更新できます。詳しくはKトライア瑠璃社員にお問い合わせください。</p>
-                    </div>
-                </section>
-            </main>
+            <div class="card card--content">
+                <h3>サービス概要</h3>
+                <p>REWIS(全世界鉄道情報システム)は、Kトライア瑠璃交通が開発した、DSクラフト内の各路線の乗換案内と路線・運行情報をまとめて提供する案内サービスです。</p>
+                <p>皆様からの情報をもとに、Kトライア交通グループ以外の鉄道会社の情報も順次提供します。</p>
+            </div>
 
-            <aside class="sidebar" id="sidebar" aria-label="メインメニュー">
-                <nav class="sidebar-nav">
-                    <ul class="top-group">
-                        <li class="nav-item">
-                            <a class="nav-btn" href="../">
-                                <span class="icon icon-home" aria-hidden="true"></span>
-                                <span class="label">ホーム</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-btn" href="../transfer/">
-                                <span class="icon icon-walking" aria-hidden="true"></span>
-                                <span class="label">乗換案内</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-btn" href="../operation/">
-                                <span class="icon icon-train" aria-hidden="true"></span>
-                                <span class="label">路線・運行情報</span>
-                            </a>
-                        </li>
-                    </ul>
+            <div class="card card--content">
+                <h3>主な機能</h3>
+                <ul>
+                    <li>出発駅・到着駅からの経路検索</li>
+                    <li>路線ごとの運行情報確認</li>
+                    <li>スマートフォンでも使いやすいモバイル表示</li>
+                </ul>
+            </div>
 
-                    <hr class="sidebar-divider">
+            <div class="card card--content">
+                <h3>データについて</h3>
+                <p>REWIS内のデータは、一部を除き各鉄道会社からの提供を受けたものです。</p>
+                <p>Kトライア瑠璃社内での情報検証・追加に努めていますが、正確性を保証するものではありません。</p>
+                <p>なお、各鉄道会社の関係者の皆様は、Kトライア瑠璃が発行する会社ごとのログインIDを使用し、事業者向けページから情報を更新できます。詳しくはKトライア瑠璃社員にお問い合わせください。</p>
+            </div>
+        </main>
 
-                    <ul class="bottom-group">
-                        <li class="nav-item small active">
-                            <a class="nav-btn is-current-page" href="../about/" aria-current="page">
-                                <span class="icon icon-info" aria-hidden="true"></span>
-                                <span class="label">REWISについて</span>
-                            </a>
-                        </li>
-                        <li class="nav-item small">
-                            <a class="nav-btn" href="../editor.html">
-                                <span class="icon icon-business" aria-hidden="true"></span>
-                                <span class="label">事業者向けページ</span>
-                            </a>
-                        </li>
-                        <li class="nav-item small">
-                            <a class="nav-btn" href="../information/">
-                                <span class="icon icon-news" aria-hidden="true"></span>
-                                <span class="label">お知らせ</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </aside>
+        <aside class="page-sidebar surface" id="sidebar" aria-label="メインメニュー">
+            <nav>
+                <ul class="side-nav-list">
+                    <li class="side-nav-item">
+                        <a class="side-nav-link" href="../">
+                            <span class="icon icon-home" aria-hidden="true"></span>
+                            <span>ホーム</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item">
+                        <a class="side-nav-link" href="../transfer/">
+                            <span class="icon icon-walking" aria-hidden="true"></span>
+                            <span>乗換案内</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item">
+                        <a class="side-nav-link" href="../operation/">
+                            <span class="icon icon-train" aria-hidden="true"></span>
+                            <span>路線・運行情報</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <hr class="side-nav-divider">
+
+                <ul class="side-nav-list">
+                    <li class="side-nav-item small is-active">
+                        <a class="side-nav-link is-current-page" href="../about/" aria-current="page">
+                            <span class="icon icon-info" aria-hidden="true"></span>
+                            <span>REWISについて</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item small">
+                        <a class="side-nav-link" href="../editor.html">
+                            <span class="icon icon-business" aria-hidden="true"></span>
+                            <span>事業者向けページ</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item small">
+                        <a class="side-nav-link" href="../information/">
+                            <span class="icon icon-news" aria-hidden="true"></span>
+                            <span>お知らせ</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
         </div>
     </div>
 
@@ -135,10 +140,10 @@
         </div>
     </div>
 
-    <footer>
-        <div class="footer-content">
-            <p class="footer-copyright">© 2025- REWIS by K-Triar Luli Transport</p>
-            <img src="../assets/icons/kt_luli_logo.svg" alt="K-Triar Luli Transport" class="footer-logo">
+    <footer class="page-footer">
+        <div class="page-footer__content">
+            <p>© 2025- REWIS by K-Triar Luli Transport</p>
+            <img src="../assets/icons/kt_luli_logo.svg" alt="K-Triar Luli Transport" class="page-footer__logo">
         </div>
     </footer>
 

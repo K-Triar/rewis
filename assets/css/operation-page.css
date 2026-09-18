@@ -15,12 +15,11 @@
 @media (max-width: 768px) {
     main.page-main {
         min-height: calc(100svh - 160px);
-        /* layout.css の .page-main は縦方向中央揃え(justify-content: center)を
-           デフォルトにしているが、これは transfer ページ向けの設定。
-           運行情報ページは中身の高さが路線ごとにまちまちで、短い路線だと
-           中央揃えのせいで上下に不自然な余白ができてしまうため、このページ
-           だけ上揃えに戻す（layout.css 側の値は他ページに影響するため変更しない）。 */
-        justify-content: flex-start;
+        /* layout.css は max-width:768px で .page-main の背景・角丸・影のみ
+           打ち消す。左右の余白（padding）ゼロは乗換案内ページ専用の演出に
+           切り出されたため、#operation-section 側で独自に余白を持つこの
+           ページでも、その前提（左右0）に合わせてここで明示する。 */
+        padding: 0;
     }
 }
 
