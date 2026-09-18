@@ -1043,7 +1043,6 @@
     grid-template-columns: 120px 56px 1fr;
     align-items: center;
     background: var(--color-bg-highlight);
-    gap: 0;
 }
 .timeline-row--segment {
     grid-template-columns: 99px 56px 1fr;
@@ -1136,6 +1135,17 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
+}
+/* 駅行だけ、時刻・駅名まわりの余白を詰める。
+   .timeline-row の gap 自体（マーカー列の左右の間隔）は区間行の
+   timeline-line の位置計算と共有されているため変更しない。
+   ここでは時刻側・駅名側の要素を負のマージンで gap 分だけ内側に
+   引き寄せるだけなので、マーカー列（ドット・線）の位置は一切動かない。 */
+.timeline-row--station .timeline-time {
+    margin-right: calc(-1 * var(--space-3));
+}
+.timeline-row--station .timeline-station-row {
+    margin-left: calc(-1 * var(--space-3));
 }
 .timeline-station-name {
     font-size: 1.13rem;
