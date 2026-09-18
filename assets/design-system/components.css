@@ -1043,6 +1043,7 @@
     grid-template-columns: 120px 56px 1fr;
     align-items: center;
     background: var(--color-bg-highlight);
+    gap: 0;
 }
 .timeline-row--segment {
     grid-template-columns: 99px 56px 1fr;
