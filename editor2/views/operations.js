@@ -64,6 +64,7 @@ export function renderOperationsView(container, ctx) {
   let stateFilter = 'active'; // active（下書き・公開中） | all | draft | published | closed
   let lineFilter = '';
   let scrolledToFocus = false;
+  let pendingScroll = null; // { type: 'top' } | { type: 'row', id }
 
   function visibleNotices() {
     return operations.notices.filter((n) => {
@@ -96,16 +97,15 @@ export function renderOperationsView(container, ctx) {
 
     container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '運行情報'),
-      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; pendingScroll = { type: 'top' }; render(); } }, '+ 追加')
     ));
     container.appendChild(h('div', { class: 'g-actions-row' }, stateSelect, lineSelect));
 
-    const detailContainer = h('div', {});
-    container.appendChild(detailContainer);
+    const detailContainer = h('div', { class: 'ed2-split__form' });
 
     const tbody = h('tbody', {});
     visibleNotices().forEach((notice) => tbody.appendChild(renderRow(notice)));
-    container.appendChild(h('div', { class: 'ed2-list-scroll g-table-wrap' },
+    const listWrap = h('div', { class: 'ed2-list-scroll ed2-split__list g-table-wrap' },
       h('table', { class: 'g-table' },
         h('thead', {}, h('tr', {},
           h('th', {}, '状態'), h('th', {}, '路線'), h('th', {}, '見出し'),
@@ -113,7 +113,8 @@ export function renderOperationsView(container, ctx) {
         )),
         tbody
       )
-    ));
+    );
+    container.appendChild(h('div', { class: 'ed2-split' }, listWrap, detailContainer));
 
     if (expandedId === '__new__') {
       detailContainer.appendChild(renderForm(null));
@@ -124,6 +125,16 @@ export function renderOperationsView(container, ctx) {
     if (focusId && !scrolledToFocus && expandedId === focusId && detailContainer.firstChild) {
       detailContainer.scrollIntoView({ block: 'center' });
       scrolledToFocus = true;
+    }
+    if (pendingScroll) {
+      const action = pendingScroll;
+      pendingScroll = null;
+      if (action.type === 'top') {
+        detailContainer.scrollIntoView({ block: 'start' });
+      } else if (action.type === 'row') {
+        const row = listWrap.querySelector(`[data-row-id="${action.id}"]`);
+        if (row) row.scrollIntoView({ block: 'center' });
+      }
     }
   }
 
@@ -155,7 +166,7 @@ export function renderOperationsView(container, ctx) {
     }
 
     const heading = generateNoticeText(notice, network, operations.masters).heading;
-    return h('tr', { class: expandedId === notice.id ? 'is-editing' : null },
+    return h('tr', { class: expandedId === notice.id ? 'is-editing' : null, 'data-row-id': notice.id },
       h('td', {}, STATE_LABEL[notice.state] || notice.state),
       h('td', {}, lineName(network, notice.lineId)),
       h('td', {}, heading),
@@ -164,7 +175,12 @@ export function renderOperationsView(container, ctx) {
       h('td', {},
         h('button', {
           class: 'g-btn g-btn--small', type: 'button',
-          onClick: () => { expandedId = expandedId === notice.id ? null : notice.id; render(); }
+          onClick: () => {
+            const opening = expandedId !== notice.id;
+            pendingScroll = opening ? { type: 'top' } : { type: 'row', id: notice.id };
+            expandedId = opening ? notice.id : null;
+            render();
+          }
         }, expandedId === notice.id ? '閉じる' : '詳細'),
         h('button', {
           class: 'g-btn g-btn--small', type: 'button',
@@ -432,6 +448,7 @@ export function renderOperationsView(container, ctx) {
           const ok = await confirmDialog('変更を破棄しますか？');
           if (!ok) return;
         }
+        pendingScroll = isNew ? null : { type: 'row', id: notice.id };
         expandedId = null;
         render();
       }

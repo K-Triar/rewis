@@ -30,21 +30,21 @@ export function renderLinesView(container, ctx) {
   let expandedId = focusLineId; // null | '__new__' | 路線ID
   let deletingId = null;
   let scrolledToFocus = false;
+  let pendingScroll = null; // { type: 'top' } | { type: 'row', id }
 
   function render() {
     clear(container);
 
     container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '路線'),
-      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; pendingScroll = { type: 'top' }; render(); } }, '+ 追加')
     ));
 
-    const detailContainer = h('div', {});
-    container.appendChild(detailContainer);
+    const detailContainer = h('div', { class: 'ed2-split__form' });
 
     const tbody = h('tbody', {});
     network.lines.forEach((line) => tbody.appendChild(renderLineRow(line)));
-    container.appendChild(h('div', { class: 'ed2-list-scroll g-table-wrap' },
+    const listWrap = h('div', { class: 'ed2-list-scroll ed2-split__list g-table-wrap' },
       h('table', { class: 'g-table' },
         h('thead', {}, h('tr', {},
           h('th', {}, '路線ID'), h('th', {}, '路線名'), h('th', {}, '会社'),
@@ -53,7 +53,8 @@ export function renderLinesView(container, ctx) {
         )),
         tbody
       )
-    ));
+    );
+    container.appendChild(h('div', { class: 'ed2-split' }, listWrap, detailContainer));
 
     if (expandedId === '__new__') {
       detailContainer.appendChild(renderLineForm(null));
@@ -64,6 +65,16 @@ export function renderLinesView(container, ctx) {
     if (focusLineId && !scrolledToFocus && expandedId === focusLineId && detailContainer.firstChild) {
       detailContainer.scrollIntoView({ block: 'center' });
       scrolledToFocus = true;
+    }
+    if (pendingScroll) {
+      const action = pendingScroll;
+      pendingScroll = null;
+      if (action.type === 'top') {
+        detailContainer.scrollIntoView({ block: 'start' });
+      } else if (action.type === 'row') {
+        const row = listWrap.querySelector(`[data-row-id="${action.id}"]`);
+        if (row) row.scrollIntoView({ block: 'center' });
+      }
     }
   }
 
@@ -113,7 +124,7 @@ export function renderLinesView(container, ctx) {
     const company = network.companies.find((c) => c.id === line.companyId);
     const vehicleType = network.vehicleTypes.find((v) => v.id === line.vehicleTypeId);
 
-    return h('tr', { class: expandedId === line.id ? 'is-editing' : null },
+    return h('tr', { class: expandedId === line.id ? 'is-editing' : null, 'data-row-id': line.id },
       h('td', {}, line.id),
       h('td', {}, line.name),
       h('td', {}, company ? company.name : line.companyId),
@@ -126,7 +137,12 @@ export function renderLinesView(container, ctx) {
         h('button', {
           class: 'g-btn g-btn--small',
           type: 'button',
-          onClick: () => { expandedId = expandedId === line.id ? null : line.id; render(); }
+          onClick: () => {
+            const opening = expandedId !== line.id;
+            pendingScroll = opening ? { type: 'top' } : { type: 'row', id: line.id };
+            expandedId = opening ? line.id : null;
+            render();
+          }
         }, expandedId === line.id ? '閉じる' : '詳細'),
         h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = line.id; render(); } }, '削除')
       )
@@ -389,7 +405,15 @@ export function renderLinesView(container, ctx) {
 
         h('div', { class: 'g-actions-row' },
           h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-          h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedId = null; render(); } }, 'キャンセル')
+          h('button', {
+            class: 'g-btn',
+            type: 'button',
+            onClick: () => {
+              pendingScroll = isNew ? null : { type: 'row', id: line.id };
+              expandedId = null;
+              render();
+            }
+          }, 'キャンセル')
         )
       )
     );

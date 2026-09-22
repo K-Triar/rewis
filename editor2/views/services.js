@@ -124,6 +124,7 @@ export function renderServicesView(container, ctx) {
   let expandedId = focusServiceId; // null | '__new__' | 運行系統ID
   let deletingId = null;
   let scrolledToFocus = false;
+  let pendingScroll = null; // { type: 'top' } | { type: 'row', id }
 
   function serviceWarningCount(index) {
     const warnings = store.state.validation.network.warnings || [];
@@ -144,7 +145,7 @@ export function renderServicesView(container, ctx) {
 
     container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '運行系統'),
-      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; pendingScroll = { type: 'top' }; render(); } }, '+ 追加')
     ));
 
     const lineFilterSelect = h('select', { class: 'g-select' }, h('option', { value: '' }, '全路線'), ...network.lines.map((l) => h('option', { value: l.id }, l.name)));
@@ -200,6 +201,16 @@ export function renderServicesView(container, ctx) {
       detailContainer.scrollIntoView({ block: 'center' });
       scrolledToFocus = true;
     }
+    if (pendingScroll) {
+      const action = pendingScroll;
+      pendingScroll = null;
+      if (action.type === 'top') {
+        detailContainer.scrollIntoView({ block: 'start' });
+      } else if (action.type === 'row') {
+        const row = tbody.querySelector(`[data-row-id="${action.id}"]`);
+        if (row) row.scrollIntoView({ block: 'center' });
+      }
+    }
   }
 
   function renderServiceRow(service) {
@@ -224,7 +235,7 @@ export function renderServicesView(container, ctx) {
       );
     }
 
-    return h('tr', { class: expandedId === service.id ? 'is-editing' : null },
+    return h('tr', { class: expandedId === service.id ? 'is-editing' : null, 'data-row-id': service.id },
       h('td', {}, service.circular ? '（環状）' : (service.headsign || '')),
       h('td', {}, summarizeSections(network, service.sections || [])),
       h('td', {}, String((service.stops || []).length)),
@@ -234,7 +245,12 @@ export function renderServicesView(container, ctx) {
       h('td', {},
         h('button', {
           class: 'g-btn g-btn--small', type: 'button',
-          onClick: () => { expandedId = expandedId === service.id ? null : service.id; render(); }
+          onClick: () => {
+            const opening = expandedId !== service.id;
+            pendingScroll = opening ? { type: 'top' } : { type: 'row', id: service.id };
+            expandedId = opening ? service.id : null;
+            render();
+          }
         }, expandedId === service.id ? '閉じる' : '詳細'),
         h('button', {
           class: 'g-btn g-btn--small', type: 'button',
@@ -244,6 +260,7 @@ export function renderServicesView(container, ctx) {
             clone.name = (clone.name || '') + '（複製）';
             store.mutateDoc('network', (doc) => doc.services.push(clone));
             expandedId = clone.id;
+            pendingScroll = { type: 'top' };
             render();
             refreshAll();
           }
@@ -254,6 +271,7 @@ export function renderServicesView(container, ctx) {
             const reversed = reverseService(network, service);
             store.mutateDoc('network', (doc) => doc.services.push(reversed));
             expandedId = reversed.id;
+            pendingScroll = { type: 'top' };
             render();
             refreshAll();
             await alertDialog('逆方向の運行系統を作成しました。のりばを確認してください。');
@@ -557,7 +575,15 @@ export function renderServicesView(container, ctx) {
 
         h('div', { class: 'g-actions-row' },
           h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-          h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedId = null; render(); } }, 'キャンセル')
+          h('button', {
+            class: 'g-btn',
+            type: 'button',
+            onClick: () => {
+              pendingScroll = isNew ? null : { type: 'row', id: service.id };
+              expandedId = null;
+              render();
+            }
+          }, 'キャンセル')
         )
       )
     );

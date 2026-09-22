@@ -35,3 +35,36 @@
   flex-direction: column;
   overflow: hidden;
 }
+
+/* 一覧とフォームの左右分割（駅・路線・乗換・駅グループ・運行情報タブ用。
+   運行系統タブは詳細フォームが横に幅を取りすぎるため対象外＝従来の縦積みのまま）。
+   900px未満では縦積みに戻し、スマホからの編集を維持する。 */
+.ed2-split {
+  display: flex;
+  gap: var(--stack-gap-normal);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.ed2-split__list {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ed2-split__form {
+  flex: none;
+  width: 360px;
+  min-width: 0;
+}
+.ed2-split__form:empty {
+  display: none;
+}
+@media (max-width: 899px) {
+  .ed2-split {
+    flex-direction: column;
+  }
+  .ed2-split__form {
+    /* スマホ幅では詳細フォームを一覧より前（上）に表示し、
+       スクロールせずに編集を開始できるようにする */
+    order: -1;
+    width: 100%;
+  }
+}

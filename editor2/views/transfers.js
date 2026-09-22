@@ -34,8 +34,10 @@ export function renderTransfersView(container, ctx) {
   let searchText = '';
   let expandedTransferId = focusTransferId; // null | '__new__' | 乗換ID
   let deletingTransferId = null;
+  let pendingTransferScroll = null; // { type: 'top' } | { type: 'row', id }
   let expandedGroupId = focusGroupId; // null | '__new__' | グループID
   let deletingGroupId = null;
+  let pendingGroupScroll = null; // { type: 'top' } | { type: 'row', id }
 
   const transfersSection = h('div', { class: 'ed2-flex-pane' });
   const defaultsSection = h('div', {});
@@ -61,7 +63,7 @@ export function renderTransfersView(container, ctx) {
       h('h2', {}, '乗換'),
       h('button', {
         class: 'g-btn g-btn--primary', type: 'button',
-        onClick: () => { expandedTransferId = '__new__'; renderTransfers(); }
+        onClick: () => { expandedTransferId = '__new__'; pendingTransferScroll = { type: 'top' }; renderTransfers(); }
       }, '+ 追加')
     ));
 
@@ -72,10 +74,21 @@ export function renderTransfersView(container, ctx) {
     });
     transfersSection.appendChild(h('div', { class: 'g-actions-row' }, searchInput));
 
-    const detailContainer = h('div', {});
-    transfersSection.appendChild(detailContainer);
-    const listContainer = h('div', { class: 'ed2-list-scroll' });
-    transfersSection.appendChild(listContainer);
+    const detailContainer = h('div', { class: 'ed2-split__form' });
+    const listContainer = h('div', { class: 'ed2-list-scroll ed2-split__list' });
+    transfersSection.appendChild(h('div', { class: 'ed2-split' }, listContainer, detailContainer));
+
+    function applyPendingTransferScroll() {
+      if (!pendingTransferScroll) return;
+      const action = pendingTransferScroll;
+      pendingTransferScroll = null;
+      if (action.type === 'top') {
+        detailContainer.scrollIntoView({ block: 'start' });
+      } else if (action.type === 'row') {
+        const row = listContainer.querySelector(`[data-row-id="${action.id}"]`);
+        if (row) row.scrollIntoView({ block: 'center' });
+      }
+    }
 
     function renderTransferList() {
       clear(listContainer);
@@ -117,7 +130,7 @@ export function renderTransfersView(container, ctx) {
         );
       }
 
-      return h('tr', { class: expandedTransferId === transfer.id ? 'is-editing' : null },
+      return h('tr', { class: expandedTransferId === transfer.id ? 'is-editing' : null, 'data-row-id': transfer.id },
         h('td', {}, endpointLabel(network, transfer.from)),
         h('td', {}, endpointLabel(network, transfer.to)),
         h('td', {}, String(transfer.seconds)),
@@ -126,7 +139,14 @@ export function renderTransfersView(container, ctx) {
         h('td', {},
           h('button', {
             class: 'g-btn g-btn--small', type: 'button',
-            onClick: () => { expandedTransferId = expandedTransferId === transfer.id ? null : transfer.id; renderTransferList(); renderTransferDetail(); }
+            onClick: () => {
+              const opening = expandedTransferId !== transfer.id;
+              pendingTransferScroll = opening ? { type: 'top' } : { type: 'row', id: transfer.id };
+              expandedTransferId = opening ? transfer.id : null;
+              renderTransferList();
+              renderTransferDetail();
+              applyPendingTransferScroll();
+            }
           }, expandedTransferId === transfer.id ? '閉じる' : '詳細'),
           h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingTransferId = transfer.id; renderTransferList(); } }, '削除')
         )
@@ -294,7 +314,18 @@ export function renderTransfersView(container, ctx) {
           h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, 'メモ'), noteInput),
           h('div', { class: 'g-actions-row' },
             h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedTransferId = null; renderTransferList(); renderTransferDetail(); } }, 'キャンセル')
+            h('button', {
+              class: 'g-btn',
+              type: 'button',
+              onClick: () => {
+                const cancelledId = transfer ? transfer.id : null;
+                expandedTransferId = null;
+                pendingTransferScroll = cancelledId ? { type: 'row', id: cancelledId } : null;
+                renderTransferList();
+                renderTransferDetail();
+                applyPendingTransferScroll();
+              }
+            }, 'キャンセル')
           )
         )
       );
@@ -305,6 +336,7 @@ export function renderTransfersView(container, ctx) {
     if (focusTransferId && detailContainer.firstChild) {
       detailContainer.scrollIntoView({ block: 'center' });
     }
+    applyPendingTransferScroll();
   }
 
   function renderDefaults() {
@@ -344,14 +376,25 @@ export function renderTransfersView(container, ctx) {
       h('h2', {}, '駅グループ'),
       h('button', {
         class: 'g-btn g-btn--primary', type: 'button',
-        onClick: () => { expandedGroupId = '__new__'; renderGroups(); }
+        onClick: () => { expandedGroupId = '__new__'; pendingGroupScroll = { type: 'top' }; renderGroups(); }
       }, '+ 追加')
     ));
 
-    const detailContainer = h('div', {});
-    groupsSection.appendChild(detailContainer);
-    const listContainer = h('div', { class: 'ed2-list-scroll' });
-    groupsSection.appendChild(listContainer);
+    const detailContainer = h('div', { class: 'ed2-split__form' });
+    const listContainer = h('div', { class: 'ed2-list-scroll ed2-split__list' });
+    groupsSection.appendChild(h('div', { class: 'ed2-split' }, listContainer, detailContainer));
+
+    function applyPendingGroupScroll() {
+      if (!pendingGroupScroll) return;
+      const action = pendingGroupScroll;
+      pendingGroupScroll = null;
+      if (action.type === 'top') {
+        detailContainer.scrollIntoView({ block: 'start' });
+      } else if (action.type === 'row') {
+        const row = listContainer.querySelector(`[data-row-id="${action.id}"]`);
+        if (row) row.scrollIntoView({ block: 'center' });
+      }
+    }
 
     function renderGroupList() {
       clear(listContainer);
@@ -388,13 +431,20 @@ export function renderTransfersView(container, ctx) {
         );
       }
 
-      return h('tr', { class: expandedGroupId === group.id ? 'is-editing' : null },
+      return h('tr', { class: expandedGroupId === group.id ? 'is-editing' : null, 'data-row-id': group.id },
         h('td', {}, group.name),
         h('td', {}, group.stationIds.map((id) => stationLabel(network, id)).join('、')),
         h('td', {},
           h('button', {
             class: 'g-btn g-btn--small', type: 'button',
-            onClick: () => { expandedGroupId = expandedGroupId === group.id ? null : group.id; renderGroupList(); renderGroupDetail(); }
+            onClick: () => {
+              const opening = expandedGroupId !== group.id;
+              pendingGroupScroll = opening ? { type: 'top' } : { type: 'row', id: group.id };
+              expandedGroupId = opening ? group.id : null;
+              renderGroupList();
+              renderGroupDetail();
+              applyPendingGroupScroll();
+            }
           }, expandedGroupId === group.id ? '閉じる' : '詳細'),
           h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingGroupId = group.id; renderGroupList(); } }, '削除')
         )
@@ -485,7 +535,18 @@ export function renderTransfersView(container, ctx) {
           h('div', { class: 'g-actions-row' }, picker),
           h('div', { class: 'g-actions-row' },
             h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedGroupId = null; renderGroupList(); renderGroupDetail(); } }, 'キャンセル')
+            h('button', {
+              class: 'g-btn',
+              type: 'button',
+              onClick: () => {
+                const cancelledId = group ? group.id : null;
+                expandedGroupId = null;
+                pendingGroupScroll = cancelledId ? { type: 'row', id: cancelledId } : null;
+                renderGroupList();
+                renderGroupDetail();
+                applyPendingGroupScroll();
+              }
+            }, 'キャンセル')
           )
         )
       );
@@ -496,6 +557,7 @@ export function renderTransfersView(container, ctx) {
     if (focusGroupId && detailContainer.firstChild) {
       detailContainer.scrollIntoView({ block: 'center' });
     }
+    applyPendingGroupScroll();
   }
 
   renderTransfers();

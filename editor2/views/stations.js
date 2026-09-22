@@ -18,6 +18,7 @@ export function renderStationsView(container, ctx) {
   let searchText = '';
   let expandedId = focusStationId; // null | '__new__' | 駅ID
   let deletingId = null;
+  let pendingScroll = null; // { type: 'top' } | { type: 'row', id }
 
   function matchesSearch(station) {
     if (!searchText) return true;
@@ -31,7 +32,7 @@ export function renderStationsView(container, ctx) {
 
     container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '駅'),
-      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; pendingScroll = { type: 'top' }; render(); } }, '+ 追加')
     ));
 
     const searchInput = h('input', { type: 'text', class: 'g-input', placeholder: '駅名・かなで検索', value: searchText });
@@ -41,11 +42,21 @@ export function renderStationsView(container, ctx) {
     });
     container.appendChild(h('div', { class: 'g-actions-row' }, searchInput));
 
-    const detailContainer = h('div', {});
-    container.appendChild(detailContainer);
+    const detailContainer = h('div', { class: 'ed2-split__form' });
+    const listContainer = h('div', { class: 'ed2-list-scroll ed2-split__list' });
+    container.appendChild(h('div', { class: 'ed2-split' }, listContainer, detailContainer));
 
-    const listContainer = h('div', { class: 'ed2-list-scroll' });
-    container.appendChild(listContainer);
+    function applyPendingScroll() {
+      if (!pendingScroll) return;
+      const action = pendingScroll;
+      pendingScroll = null;
+      if (action.type === 'top') {
+        detailContainer.scrollIntoView({ block: 'start' });
+      } else if (action.type === 'row') {
+        const row = listContainer.querySelector(`[data-row-id="${action.id}"]`);
+        if (row) row.scrollIntoView({ block: 'center' });
+      }
+    }
 
     function renderList() {
       clear(listContainer);
@@ -104,7 +115,7 @@ export function renderStationsView(container, ctx) {
         );
       }
 
-      return h('tr', { class: expandedId === station.id ? 'is-editing' : null },
+      return h('tr', { class: expandedId === station.id ? 'is-editing' : null, 'data-row-id': station.id },
         h('td', {}, station.id),
         h('td', {}, station.name),
         h('td', {}, station.kana || ''),
@@ -113,7 +124,14 @@ export function renderStationsView(container, ctx) {
           h('button', {
             class: 'g-btn g-btn--small',
             type: 'button',
-            onClick: () => { expandedId = expandedId === station.id ? null : station.id; renderList(); renderDetail(); }
+            onClick: () => {
+              const opening = expandedId !== station.id;
+              expandedId = opening ? station.id : null;
+              pendingScroll = opening ? { type: 'top' } : { type: 'row', id: station.id };
+              renderList();
+              renderDetail();
+              applyPendingScroll();
+            }
           }, expandedId === station.id ? '閉じる' : '詳細'),
           h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = station.id; renderList(); } }, '削除')
         )
@@ -304,7 +322,18 @@ export function renderStationsView(container, ctx) {
           h('div', { class: 'g-actions-row' }, newPlatformIdInput, newPlatformLabelInput, addPlatformBtn),
           h('div', { class: 'g-actions-row' },
             h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: saveStation }, isNew ? '追加する' : '保存'),
-            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedId = null; renderList(); renderDetail(); } }, 'キャンセル')
+            h('button', {
+              class: 'g-btn',
+              type: 'button',
+              onClick: () => {
+                const cancelledId = station ? station.id : null;
+                expandedId = null;
+                pendingScroll = cancelledId ? { type: 'row', id: cancelledId } : null;
+                renderList();
+                renderDetail();
+                applyPendingScroll();
+              }
+            }, 'キャンセル')
           )
         )
       );
@@ -315,6 +344,7 @@ export function renderStationsView(container, ctx) {
     if (focusStationId && detailContainer.firstChild) {
       detailContainer.scrollIntoView({ block: 'center' });
     }
+    applyPendingScroll();
   }
 
   render();
