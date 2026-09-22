@@ -273,6 +273,103 @@
   padding-left: calc(var(--space-md) - var(--borderWidth-thick));
 }
 
+/* 見出し行（タイトル＋主操作ボタン。表形式タブの先頭で使う） */
+.g-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--stack-gap-normal);
+  margin-bottom: var(--stack-gap-normal);
+}
+.g-section-header h2 {
+  font: var(--text-title-shorthand-medium);
+  margin: 0;
+}
+
+/* ボタン・入力欄を横に並べる操作行 */
+.g-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--stack-gap-condensed);
+  margin-block: var(--stack-gap-normal);
+}
+
+/* 表（editor2 の表形式タブで使う。図形式側は g-list を使うため、こちらは表形式専用） */
+.g-table-wrap {
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  overflow: auto;
+}
+.g-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--text-body-shorthand-medium);
+}
+.g-table th,
+.g-table td {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+  text-align: left;
+  vertical-align: middle;
+}
+.g-table thead th {
+  background: var(--bgColor-muted);
+  color: var(--fgColor-muted);
+  font: var(--text-body-shorthand-small);
+  font-weight: var(--base-text-weight-semibold);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  white-space: nowrap;
+}
+.g-table tbody tr:last-child td { border-bottom: none; }
+.g-table tbody tr:hover { background: var(--bgColor-muted); }
+.g-table tbody tr.is-editing { background: var(--bgColor-accent-muted); }
+.g-table .g-input,
+.g-table .g-select { height: var(--control-small-size); }
+
+/* 文字色だけのユーティリティ（表の中の短い注意書きなど） */
+.g-text-muted { color: var(--fgColor-muted); }
+.g-text-danger { color: var(--fgColor-danger); }
+.g-text-attention { color: var(--fgColor-attention); }
+
+/* 空の状態（データ未読込など）の案内文 */
+.g-empty {
+  padding: var(--stack-padding-normal);
+  color: var(--fgColor-muted);
+  font: var(--text-body-shorthand-medium);
+}
+
+/* 参照箇所のインラインリンク一覧（"駅「A」/ 駅「B」" のように並べる） */
+.g-ref-list { display: inline; }
+.g-ref-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--fgColor-accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+.g-ref-link:hover { color: var(--fgColor-accent); opacity: 0.8; }
+
+/* JSON プレビューなどの整形済みテキスト表示 */
+.g-json-preview {
+  max-height: 400px;
+  overflow: auto;
+  background: var(--bgColor-muted);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  padding: var(--stack-padding-condensed);
+  font: var(--text-codeBlock-shorthand);
+}
+
+/* ファイル選択 input を隠して label をボタン風に見せる */
+.g-file-label { cursor: pointer; }
+
+/* 行の並べ替え（ドラッグ&ドロップ） */
+.g-drag-row { cursor: grab; }
+.g-drag-row.g-drag-over { outline: var(--borderWidth-thick) dashed var(--borderColor-accent-emphasis); outline-offset: -2px; }
+
 @media (prefers-reduced-motion: reduce) {
   .g-btn, .g-input, .g-select, .g-textarea, .g-underline-nav__item {
     transition: none;

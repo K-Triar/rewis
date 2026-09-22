@@ -1,6 +1,6 @@
-import { h, clear } from '../dom.js';
+import { h, clear } from '../../editor-shared/dom.js';
 import * as api from '../../editor2/api.js';
-import { alertDialog, confirmDialog } from '../components/dialog.js';
+import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
 
 const KIND_LABEL = { network: '路線網', operations: '運行情報' };
 

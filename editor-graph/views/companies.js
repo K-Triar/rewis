@@ -1,6 +1,6 @@
-import { h, clear, icon } from '../dom.js';
-import { alertDialog, confirmDialog } from '../components/dialog.js';
-import { openPopover } from '../components/overlay.js';
+import { h, clear, icon } from '../../editor-shared/dom.js';
+import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
+import { openPopover } from '../../editor-shared/components/overlay.js';
 import * as companyOps from '../../editor-core/company-ops.js';
 import { findReferences } from '../../editor2/refs.js';
 

@@ -33,7 +33,6 @@ export function renderDataView(container, ctx) {
   view.appendChild(renderServerCard('operations'));
   view.appendChild(renderFileCard('network'));
   view.appendChild(renderFileCard('operations'));
-  view.appendChild(h('p', { style: 'color:var(--fgColor-muted);' }, 'v1 からの移行は、表形式のエディタで行います。'));
 
   function renderLoginCard() {
     const session = api.getSavedSession();

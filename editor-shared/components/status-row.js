@@ -1,7 +1,6 @@
 import { h, clear, icon } from '../dom.js';
 
 const KIND_LABEL = { network: '路線網', operations: '運行情報' };
-const CANVAS_TABS = new Set(['stations', 'lines', 'services', 'transfers']);
 
 function docStatusLabel(store, kind) {
   const meta = store.state.meta[kind];
@@ -19,7 +18,7 @@ function docStatusLabel(store, kind) {
 
 export function renderStatusRow(container, ctx) {
   clear(container);
-  const { store, activeTabId } = ctx;
+  const { store } = ctx;
 
   const errorCount = (store.state.validation.network.errors.length) + (store.state.validation.operations.errors.length);
   const warningCount = (store.state.validation.network.warnings.length) + (store.state.validation.operations.warnings.length);
@@ -38,24 +37,6 @@ export function renderStatusRow(container, ctx) {
     onClick: () => ctx.onOpenIssues && ctx.onOpenIssues('warnings')
   }, icon('alert-fill'), `注意 ${warningCount}`);
 
-  const undoBtn = h('button', {
-    type: 'button',
-    class: 'g-icon-btn g-btn--invisible',
-    'aria-label': '元に戻す（Ctrl+Z）',
-    title: '元に戻す（Ctrl+Z）',
-    disabled: !store.canUndo(),
-    onClick: () => ctx.onUndo && ctx.onUndo()
-  }, icon('undo'));
-
-  const redoBtn = h('button', {
-    type: 'button',
-    class: 'g-icon-btn g-btn--invisible',
-    'aria-label': 'やり直す（Ctrl+Y）',
-    title: 'やり直す（Ctrl+Y）',
-    disabled: !store.canRedo(),
-    onClick: () => ctx.onRedo && ctx.onRedo()
-  }, icon('redo'));
-
   const saveBtn = h('button', {
     type: 'button',
     class: 'g-btn g-btn--primary g-save-btn',
@@ -63,19 +44,42 @@ export function renderStatusRow(container, ctx) {
     onClick: () => ctx.onSave && ctx.onSave()
   }, icon('upload'), 'サーバーに保存');
 
-  const tableBtn = h('button', {
-    type: 'button',
-    class: 'g-btn',
-    onClick: () => ctx.onSwitchToTable && ctx.onSwitchToTable()
-  }, icon('table'), '表形式で編集');
+  const right = h('div', { class: 'g-status-actions' });
 
-  const right = h('div', { class: 'g-status-actions' }, undoBtn, redoBtn, saveBtn, tableBtn);
+  if (typeof store.canUndo === 'function') {
+    right.appendChild(h('button', {
+      type: 'button',
+      class: 'g-icon-btn g-btn--invisible',
+      'aria-label': '元に戻す（Ctrl+Z）',
+      title: '元に戻す（Ctrl+Z）',
+      disabled: !store.canUndo(),
+      onClick: () => ctx.onUndo && ctx.onUndo()
+    }, icon('undo')));
+    right.appendChild(h('button', {
+      type: 'button',
+      class: 'g-icon-btn g-btn--invisible',
+      'aria-label': 'やり直す（Ctrl+Y）',
+      title: 'やり直す（Ctrl+Y）',
+      disabled: !store.canRedo(),
+      onClick: () => ctx.onRedo && ctx.onRedo()
+    }, icon('redo')));
+  }
 
-  if (CANVAS_TABS.has(activeTabId)) {
+  right.appendChild(saveBtn);
+
+  if (ctx.switchView) {
+    right.appendChild(h('button', {
+      type: 'button',
+      class: 'g-btn',
+      onClick: () => ctx.switchView.onClick && ctx.switchView.onClick()
+    }, icon(ctx.switchView.iconName), ctx.switchView.label));
+  }
+
+  if (ctx.onOpenGuide) {
     right.appendChild(h('button', {
       type: 'button',
       class: 'g-btn g-btn--invisible',
-      onClick: () => ctx.onOpenGuide && ctx.onOpenGuide()
+      onClick: () => ctx.onOpenGuide()
     }, icon('question'), '操作ガイド'));
   }
 

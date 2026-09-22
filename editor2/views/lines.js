@@ -1,5 +1,5 @@
-import { h, clear } from '../dom.js';
-import { alertDialog } from '../components/dialog.js';
+import { h, clear } from '../../editor-shared/dom.js';
+import { alertDialog } from '../../editor-shared/components/dialog.js';
 import { createStationPicker } from '../components/station-picker.js';
 import { attachDragReorder } from '../components/drag-reorder.js';
 import { isValidId } from '../../shared/ids.js';
@@ -34,9 +34,9 @@ export function renderLinesView(container, ctx) {
   function render() {
     clear(container);
 
-    container.appendChild(h('div', { class: 'section-header' },
+    container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '路線'),
-      h('button', { class: 'add-btn', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
     ));
 
     const detailContainer = h('div', {});
@@ -44,8 +44,8 @@ export function renderLinesView(container, ctx) {
 
     const tbody = h('tbody', {});
     network.lines.forEach((line) => tbody.appendChild(renderLineRow(line)));
-    container.appendChild(h('div', { class: 'ed2-list-scroll' },
-      h('table', { class: 'data-table' },
+    container.appendChild(h('div', { class: 'ed2-list-scroll g-table-wrap' },
+      h('table', { class: 'g-table' },
         h('thead', {}, h('tr', {},
           h('th', {}, '路線ID'), h('th', {}, '路線名'), h('th', {}, '会社'),
           h('th', {}, '色'), h('th', {}, '車両種別'), h('th', {}, '駅数'),
@@ -81,10 +81,10 @@ export function renderLinesView(container, ctx) {
         return h('tr', {},
           h('td', {}, line.id),
           h('td', { colspan: '8' },
-            h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+            h('span', { class: 'g-text-danger' }, '削除できません。参照箇所: '),
             renderRefList(refs, requestNavigate),
             ' ',
-            h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = null; render(); } }, '閉じる')
+            h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = null; render(); } }, '閉じる')
           )
         );
       }
@@ -93,7 +93,7 @@ export function renderLinesView(container, ctx) {
         h('td', { colspan: '7' }, line.name),
         h('td', {},
           h('button', {
-            class: 'export-btn',
+            class: 'g-btn g-btn--danger g-btn--small',
             type: 'button',
             onClick: () => {
               store.mutateDoc('network', (doc) => {
@@ -105,7 +105,7 @@ export function renderLinesView(container, ctx) {
               refreshAll();
             }
           }, '削除する'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = null; render(); } }, 'キャンセル')
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = null; render(); } }, 'キャンセル')
         )
       );
     }
@@ -113,22 +113,22 @@ export function renderLinesView(container, ctx) {
     const company = network.companies.find((c) => c.id === line.companyId);
     const vehicleType = network.vehicleTypes.find((v) => v.id === line.vehicleTypeId);
 
-    return h('tr', { class: expandedId === line.id ? 'ed2-row-active' : null },
+    return h('tr', { class: expandedId === line.id ? 'is-editing' : null },
       h('td', {}, line.id),
       h('td', {}, line.name),
       h('td', {}, company ? company.name : line.companyId),
-      h('td', {}, h('span', { style: `display:inline-block;width:14px;height:14px;border:1px solid #999;background:${line.color || '#ccc'};` })),
+      h('td', {}, h('span', { style: `display:inline-block;width:14px;height:14px;border:1px solid var(--borderColor-default);background:${line.color || 'var(--bgColor-muted)'};vertical-align:middle;` })),
       h('td', {}, vehicleType ? vehicleType.shortName : line.vehicleTypeId),
       h('td', {}, String((line.stations || []).length)),
       h('td', {}, String((line.categories || []).length)),
       h('td', {}, shapeLabel(line)),
       h('td', {},
         h('button', {
-          class: 'preview-btn',
+          class: 'g-btn g-btn--small',
           type: 'button',
           onClick: () => { expandedId = expandedId === line.id ? null : line.id; render(); }
         }, expandedId === line.id ? '閉じる' : '詳細'),
-        h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = line.id; render(); } }, '削除')
+        h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = line.id; render(); } }, '削除')
       )
     );
   }
@@ -136,16 +136,16 @@ export function renderLinesView(container, ctx) {
   function renderLineForm(line) {
     const isNew = !line;
 
-    const idInput = h('input', { type: 'text', value: isNew ? '' : line.id, disabled: !isNew, placeholder: '例: KT-L' });
-    const nameInput = h('input', { type: 'text', value: isNew ? '' : line.name, placeholder: '路線名' });
-    const colorInput = h('input', { type: 'color', value: isNew ? '#3498db' : (line.color || '#3498db') });
+    const idInput = h('input', { type: 'text', class: 'g-input', value: isNew ? '' : line.id, disabled: !isNew, placeholder: '例: KT-L' });
+    const nameInput = h('input', { type: 'text', class: 'g-input', value: isNew ? '' : line.name, placeholder: '路線名' });
+    const colorInput = h('input', { type: 'color', class: 'g-input', value: isNew ? '#3498db' : (line.color || '#3498db') });
 
-    const companySelect = h('select', {},
+    const companySelect = h('select', { class: 'g-select' },
       ...network.companies.map((c) => h('option', { value: c.id }, c.name))
     );
     companySelect.value = isNew ? (network.companies[0] ? network.companies[0].id : '') : line.companyId;
 
-    const vehicleTypeSelect = h('select', {},
+    const vehicleTypeSelect = h('select', { class: 'g-select' },
       ...network.vehicleTypes.map((v) => h('option', { value: v.id }, v.name))
     );
     vehicleTypeSelect.value = isNew ? (network.vehicleTypes[0] ? network.vehicleTypes[0].id : '') : line.vehicleTypeId;
@@ -168,30 +168,30 @@ export function renderLinesView(container, ctx) {
           categoriesTbody.appendChild(h('tr', {},
             h('td', {}, category.id),
             h('td', { colspan: '2' },
-              h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+              h('span', { class: 'g-text-danger' }, '削除できません。参照箇所: '),
               renderRefList(refs, requestNavigate),
               ' ',
-              h('button', { class: 'preview-btn', type: 'button', onClick: () => { blockedCategoryId = null; renderCategories(); } }, '閉じる')
+              h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { blockedCategoryId = null; renderCategories(); } }, '閉じる')
             )
           ));
           return;
         }
 
-        const idInputC = h('input', { type: 'text', value: category.id, style: 'width:80px', disabled: !isNew && !category.__new });
-        const nameInputC = h('input', { type: 'text', value: category.name, style: 'width:120px' });
+        const idInputC = h('input', { type: 'text', class: 'g-input', value: category.id, style: 'width:80px', disabled: !isNew && !category.__new });
+        const nameInputC = h('input', { type: 'text', class: 'g-input', value: category.name, style: 'width:120px' });
         idInputC.addEventListener('change', () => { category.id = idInputC.value.trim(); });
         nameInputC.addEventListener('change', () => { category.name = nameInputC.value.trim(); });
 
         const upBtn = h('button', {
-          class: 'preview-btn', type: 'button', disabled: index === 0,
+          class: 'g-btn g-btn--small', type: 'button', disabled: index === 0,
           onClick: () => { [categories[index - 1], categories[index]] = [categories[index], categories[index - 1]]; renderCategories(); }
         }, '▲');
         const downBtn = h('button', {
-          class: 'preview-btn', type: 'button', disabled: index === categories.length - 1,
+          class: 'g-btn g-btn--small', type: 'button', disabled: index === categories.length - 1,
           onClick: () => { [categories[index + 1], categories[index]] = [categories[index], categories[index + 1]]; renderCategories(); }
         }, '▼');
         const deleteBtn = h('button', {
-          class: 'preview-btn', type: 'button',
+          class: 'g-btn g-btn--small', type: 'button',
           onClick: () => {
             if (!isNew) {
               const refs = findReferences(network, store.state.docs.operations, { type: 'category', lineId: line.id, id: category.id });
@@ -213,10 +213,10 @@ export function renderLinesView(container, ctx) {
     }
     renderCategories();
 
-    const newCategoryId = h('input', { type: 'text', placeholder: '種別ID', style: 'width:80px' });
-    const newCategoryName = h('input', { type: 'text', placeholder: '種別名', style: 'width:120px' });
+    const newCategoryId = h('input', { type: 'text', class: 'g-input', placeholder: '種別ID', style: 'width:80px' });
+    const newCategoryName = h('input', { type: 'text', class: 'g-input', placeholder: '種別名', style: 'width:120px' });
     const addCategoryBtn = h('button', {
-      class: 'preview-btn', type: 'button',
+      class: 'g-btn g-btn--small', type: 'button',
       onClick: async () => {
         const id = newCategoryId.value.trim();
         const name = newCategoryName.value.trim();
@@ -236,15 +236,15 @@ export function renderLinesView(container, ctx) {
       clear(stationsTbody);
       stations.forEach((stationId, index) => {
         const upBtn = h('button', {
-          class: 'preview-btn', type: 'button', disabled: index === 0,
+          class: 'g-btn g-btn--small', type: 'button', disabled: index === 0,
           onClick: () => { [stations[index - 1], stations[index]] = [stations[index], stations[index - 1]]; renderStations(); renderLoopSelect(); }
         }, '▲');
         const downBtn = h('button', {
-          class: 'preview-btn', type: 'button', disabled: index === stations.length - 1,
+          class: 'g-btn g-btn--small', type: 'button', disabled: index === stations.length - 1,
           onClick: () => { [stations[index + 1], stations[index]] = [stations[index], stations[index + 1]]; renderStations(); renderLoopSelect(); }
         }, '▼');
         const deleteBtn = h('button', {
-          class: 'preview-btn', type: 'button',
+          class: 'g-btn g-btn--small', type: 'button',
           onClick: () => { stations = stations.filter((s, i) => i !== index); renderStations(); renderLoopSelect(); }
         }, '削除');
         const row = h('tr', {}, h('td', {}, String(index)), h('td', {}, stationLabel(network, stationId)), h('td', {}, upBtn, downBtn, deleteBtn));
@@ -267,7 +267,7 @@ export function renderLinesView(container, ctx) {
     let shape = shapeOf(line || { loop });
     const shapeRadios = {};
     ['normal', 'circular', 'racket'].forEach((value) => {
-      const radio = h('input', { type: 'radio', name: 'ed2-line-shape', value });
+      const radio = h('input', { type: 'radio', name: 'g-line-shape', value });
       radio.checked = shape === value;
       radio.addEventListener('change', () => {
         shape = value;
@@ -284,22 +284,22 @@ export function renderLinesView(container, ctx) {
     function renderLoopSelect() {
       clear(loopSelectContainer);
       if (shape !== 'racket') return;
-      const select = h('select', {}, ...stations.map((stationId, index) => h('option', { value: String(index) }, `${index}: ${stationLabel(network, stationId)}`)));
+      const select = h('select', { class: 'g-select' }, ...stations.map((stationId, index) => h('option', { value: String(index) }, `${index}: ${stationLabel(network, stationId)}`)));
       select.value = String(loop ? Math.min(loop.startIndex, Math.max(stations.length - 1, 0)) : 0);
       select.addEventListener('change', () => { loop = { startIndex: Number(select.value) }; });
-      loopSelectContainer.appendChild(h('label', {}, '戻る駅: ', select));
+      loopSelectContainer.appendChild(h('label', { class: 'g-field__label' }, '戻る駅: ', select));
     }
     renderLoopSelect();
 
     // --- 方向名 ---
-    const forwardInput = h('input', { type: 'text', value: directions.forward });
-    const backwardInput = h('input', { type: 'text', value: directions.backward });
+    const forwardInput = h('input', { type: 'text', class: 'g-input', value: directions.forward });
+    const backwardInput = h('input', { type: 'text', class: 'g-input', value: directions.backward });
     const directionHints = h('div', {});
     function renderDirectionHints() {
       clear(directionHints);
       if (shape === 'circular') {
-        directionHints.appendChild(h('button', { class: 'preview-btn', type: 'button', onClick: () => { forwardInput.value = '外回り'; } }, '外回りにする'));
-        directionHints.appendChild(h('button', { class: 'preview-btn', type: 'button', onClick: () => { backwardInput.value = '内回り'; } }, '内回りにする'));
+        directionHints.appendChild(h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { forwardInput.value = '外回り'; } }, '外回りにする'));
+        directionHints.appendChild(h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { backwardInput.value = '内回り'; } }, '内回りにする'));
       }
     }
     renderDirectionHints();
@@ -347,52 +347,50 @@ export function renderLinesView(container, ctx) {
       refreshAll();
     }
 
-    return h('div', { class: 'export-card' },
-      h('h3', {}, isNew ? '路線を追加' : `路線を編集: ${line.id}`),
-      h('div', { class: 'worker-config-grid' },
-        h('label', {}, '路線ID'), idInput,
-        h('label', {}, '路線名'), nameInput,
-        h('label', {}, '会社'), companySelect,
-        h('label', {}, '色'), colorInput,
-        h('label', {}, '車両種別'), vehicleTypeSelect
-      ),
+    return h('div', { class: 'g-card' },
+      h('div', { class: 'g-card__header' }, isNew ? '路線を追加' : `路線を編集: ${line.id}`),
+      h('div', { class: 'g-card__body' },
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '路線ID'), idInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '路線名'), nameInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '会社'), companySelect),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '色'), colorInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '車両種別'), vehicleTypeSelect),
 
-      h('h4', {}, '種別'),
-      h('div', { class: 'table-container ed2-subtable' },
-        h('table', { class: 'data-table' },
-          h('thead', {}, h('tr', {}, h('th', {}, 'ID'), h('th', {}, '名前'), h('th', {}, '操作'))),
-          categoriesTbody
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '種別'),
+        h('div', { class: 'g-table-wrap ed2-subtable' },
+          h('table', { class: 'g-table' },
+            h('thead', {}, h('tr', {}, h('th', {}, 'ID'), h('th', {}, '名前'), h('th', {}, '操作'))),
+            categoriesTbody
+          )
+        ),
+        h('div', { class: 'g-actions-row' }, newCategoryId, newCategoryName, addCategoryBtn),
+
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '駅順'),
+        h('div', { class: 'g-table-wrap ed2-subtable' },
+          h('table', { class: 'g-table' },
+            h('thead', {}, h('tr', {}, h('th', {}, '#'), h('th', {}, '駅'), h('th', {}, '操作'))),
+            stationsTbody
+          )
+        ),
+        h('div', { class: 'g-actions-row' }, picker),
+
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '形状'),
+        h('div', { class: 'g-actions-row' },
+          h('label', { class: 'g-field__label' }, shapeRadios.normal, ' 普通の路線'),
+          h('label', { class: 'g-field__label' }, shapeRadios.circular, ' 環状線'),
+          h('label', { class: 'g-field__label' }, shapeRadios.racket, ' ラケット型')
+        ),
+        loopSelectContainer,
+
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '方向名'),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, 'forward（駅順どおり）'), forwardInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, 'backward（逆向き）'), backwardInput),
+        directionHints,
+
+        h('div', { class: 'g-actions-row' },
+          h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
+          h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedId = null; render(); } }, 'キャンセル')
         )
-      ),
-      h('div', { class: 'worker-config-actions' }, newCategoryId, newCategoryName, addCategoryBtn),
-
-      h('h4', {}, '駅順'),
-      h('div', { class: 'table-container ed2-subtable' },
-        h('table', { class: 'data-table' },
-          h('thead', {}, h('tr', {}, h('th', {}, '#'), h('th', {}, '駅'), h('th', {}, '操作'))),
-          stationsTbody
-        )
-      ),
-      h('div', { class: 'worker-config-actions' }, picker),
-
-      h('h4', {}, '形状'),
-      h('div', { class: 'worker-config-actions' },
-        h('label', {}, shapeRadios.normal, ' 普通の路線'),
-        h('label', {}, shapeRadios.circular, ' 環状線'),
-        h('label', {}, shapeRadios.racket, ' ラケット型')
-      ),
-      loopSelectContainer,
-
-      h('h4', {}, '方向名'),
-      h('div', { class: 'worker-config-grid' },
-        h('label', {}, 'forward（駅順どおり）'), forwardInput,
-        h('label', {}, 'backward（逆向き）'), backwardInput
-      ),
-      directionHints,
-
-      h('div', { class: 'worker-config-actions' },
-        h('button', { class: 'export-btn', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-        h('button', { class: 'preview-btn', type: 'button', onClick: () => { expandedId = null; render(); } }, 'キャンセル')
       )
     );
   }
@@ -402,7 +400,7 @@ export function renderLinesView(container, ctx) {
 
 function emptyNotice() {
   const p = document.createElement('p');
-  p.className = 'ed2-placeholder';
+  p.className = 'g-empty';
   p.textContent = '先に「保存/読込」タブで路線網 (network) を読み込んでください。';
   return p;
 }

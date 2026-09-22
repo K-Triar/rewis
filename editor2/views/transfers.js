@@ -1,5 +1,5 @@
-import { h, clear } from '../dom.js';
-import { alertDialog } from '../components/dialog.js';
+import { h, clear } from '../../editor-shared/dom.js';
+import { alertDialog } from '../../editor-shared/components/dialog.js';
 import { createStationPicker } from '../components/station-picker.js';
 import { newId } from '../../shared/ids.js';
 
@@ -57,20 +57,20 @@ export function renderTransfersView(container, ctx) {
   function renderTransfers() {
     clear(transfersSection);
 
-    transfersSection.appendChild(h('div', { class: 'section-header' },
+    transfersSection.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '乗換'),
       h('button', {
-        class: 'add-btn', type: 'button',
+        class: 'g-btn g-btn--primary', type: 'button',
         onClick: () => { expandedTransferId = '__new__'; renderTransfers(); }
       }, '+ 追加')
     ));
 
-    const searchInput = h('input', { type: 'text', placeholder: '駅名・かなで絞り込み', value: searchText });
+    const searchInput = h('input', { type: 'text', class: 'g-input', placeholder: '駅名・かなで絞り込み', value: searchText });
     searchInput.addEventListener('input', () => {
       searchText = searchInput.value;
       renderTransferList();
     });
-    transfersSection.appendChild(h('div', { class: 'search-box' }, searchInput));
+    transfersSection.appendChild(h('div', { class: 'g-actions-row' }, searchInput));
 
     const detailContainer = h('div', {});
     transfersSection.appendChild(detailContainer);
@@ -83,12 +83,14 @@ export function renderTransfersView(container, ctx) {
       network.transfers.filter(matchesSearch).forEach((transfer) => {
         tbody.appendChild(renderTransferRow(transfer));
       });
-      listContainer.appendChild(h('table', { class: 'data-table' },
-        h('thead', {}, h('tr', {},
-          h('th', {}, 'から'), h('th', {}, 'へ'), h('th', { style: 'width:80px' }, '秒数'),
-          h('th', { style: 'width:60px' }, '双方向'), h('th', {}, 'メモ'), h('th', { style: 'width:180px' }, '操作')
-        )),
-        tbody
+      listContainer.appendChild(h('div', { class: 'g-table-wrap' },
+        h('table', { class: 'g-table' },
+          h('thead', {}, h('tr', {},
+            h('th', {}, 'から'), h('th', {}, 'へ'), h('th', { style: 'width:80px' }, '秒数'),
+            h('th', { style: 'width:60px' }, '双方向'), h('th', {}, 'メモ'), h('th', { style: 'width:180px' }, '操作')
+          )),
+          tbody
+        )
       ));
     }
 
@@ -98,7 +100,7 @@ export function renderTransfersView(container, ctx) {
           h('td', { colspan: '5' }, `乗換「${endpointLabel(network, transfer.from)} → ${endpointLabel(network, transfer.to)}」を削除しますか？`),
           h('td', {},
             h('button', {
-              class: 'export-btn', type: 'button',
+              class: 'g-btn g-btn--danger g-btn--small', type: 'button',
               onClick: () => {
                 store.mutateDoc('network', (doc) => {
                   doc.transfers = doc.transfers.filter((t) => t.id !== transfer.id);
@@ -110,12 +112,12 @@ export function renderTransfersView(container, ctx) {
                 refreshAll();
               }
             }, '削除する'),
-            h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingTransferId = null; renderTransferList(); } }, 'キャンセル')
+            h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingTransferId = null; renderTransferList(); } }, 'キャンセル')
           )
         );
       }
 
-      return h('tr', { class: expandedTransferId === transfer.id ? 'ed2-row-active' : null },
+      return h('tr', { class: expandedTransferId === transfer.id ? 'is-editing' : null },
         h('td', {}, endpointLabel(network, transfer.from)),
         h('td', {}, endpointLabel(network, transfer.to)),
         h('td', {}, String(transfer.seconds)),
@@ -123,10 +125,10 @@ export function renderTransfersView(container, ctx) {
         h('td', {}, transfer.note || ''),
         h('td', {},
           h('button', {
-            class: 'preview-btn', type: 'button',
+            class: 'g-btn g-btn--small', type: 'button',
             onClick: () => { expandedTransferId = expandedTransferId === transfer.id ? null : transfer.id; renderTransferList(); renderTransferDetail(); }
           }, expandedTransferId === transfer.id ? '閉じる' : '詳細'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingTransferId = transfer.id; renderTransferList(); } }, '削除')
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingTransferId = transfer.id; renderTransferList(); } }, '削除')
         )
       );
     }
@@ -149,10 +151,10 @@ export function renderTransfersView(container, ctx) {
       let toStationId = isNew ? fromStationId : transfer.to.stationId;
       let toPlatformId = isNew ? null : transfer.to.platformId;
 
-      const secondsInput = h('input', { type: 'number', min: '0', step: '1', value: String(isNew ? 60 : transfer.seconds) });
+      const secondsInput = h('input', { type: 'number', class: 'g-input', min: '0', step: '1', value: String(isNew ? 60 : transfer.seconds) });
       const bidirectionalInput = h('input', { type: 'checkbox' });
       bidirectionalInput.checked = isNew ? false : !!transfer.bidirectional;
-      const noteInput = h('input', { type: 'text', value: isNew ? '' : (transfer.note || '') });
+      const noteInput = h('input', { type: 'text', class: 'g-input', value: isNew ? '' : (transfer.note || '') });
 
       const fromLabel = h('span', {}, stationLabel(network, fromStationId));
       const toLabel = h('span', {}, mode === 'same' ? '（同じ駅）' : stationLabel(network, toStationId));
@@ -167,7 +169,7 @@ export function renderTransfersView(container, ctx) {
         const options = mode === 'same'
           ? platforms.map((p) => h('option', { value: p.id }, p.label))
           : [h('option', { value: '' }, '（指定なし）'), ...platforms.map((p) => h('option', { value: p.id }, p.label))];
-        const select = h('select', {}, ...options);
+        const select = h('select', { class: 'g-select' }, ...options);
         select.value = fromPlatformId || (mode === 'same' && platforms[0] ? platforms[0].id : '');
         select.addEventListener('change', () => { fromPlatformId = select.value || null; });
         if (mode === 'same' && !fromPlatformId && platforms[0]) fromPlatformId = platforms[0].id;
@@ -181,7 +183,7 @@ export function renderTransfersView(container, ctx) {
         const options = mode === 'same'
           ? platforms.map((p) => h('option', { value: p.id }, p.label))
           : [h('option', { value: '' }, '（指定なし）'), ...platforms.map((p) => h('option', { value: p.id }, p.label))];
-        const select = h('select', {}, ...options);
+        const select = h('select', { class: 'g-select' }, ...options);
         select.value = toPlatformId || (mode === 'same' && platforms[0] ? platforms[0].id : '');
         select.addEventListener('change', () => { toPlatformId = select.value || null; });
         if (mode === 'same' && !toPlatformId && platforms[0]) toPlatformId = platforms[0].id;
@@ -214,7 +216,7 @@ export function renderTransfersView(container, ctx) {
 
       const modeRadios = {};
       ['same', 'walk'].forEach((value) => {
-        const radio = h('input', { type: 'radio', name: 'ed2-transfer-mode', value });
+        const radio = h('input', { type: 'radio', name: 'g-transfer-mode', value });
         radio.checked = mode === value;
         radio.addEventListener('change', () => {
           mode = value;
@@ -274,26 +276,26 @@ export function renderTransfersView(container, ctx) {
         refreshAll();
       }
 
-      return h('div', { class: 'export-card' },
-        h('h3', {}, isNew ? '乗換を追加' : `乗換を編集: ${transfer.id}`),
-        h('div', { class: 'worker-config-actions' },
-          h('label', {}, modeRadios.same, ' 同じ駅の中'),
-          h('label', {}, modeRadios.walk, ' 徒歩連絡（別の駅へ）')
-        ),
-        h('h4', {}, '乗換元'),
-        h('div', { class: 'worker-config-actions' }, fromPickerContainer, '現在: ', fromLabel),
-        h('div', { class: 'worker-config-actions' }, 'のりば: ', fromPlatformSelectContainer),
-        h('h4', {}, '乗換先'),
-        h('div', { class: 'worker-config-actions' }, toPickerContainer, '現在: ', toLabel),
-        h('div', { class: 'worker-config-actions' }, 'のりば: ', toPlatformSelectContainer),
-        h('div', { class: 'worker-config-grid' },
-          h('label', {}, '秒数'), secondsInput,
-          h('label', {}, '双方向'), bidirectionalInput,
-          h('label', {}, 'メモ'), noteInput
-        ),
-        h('div', { class: 'worker-config-actions' },
-          h('button', { class: 'export-btn', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { expandedTransferId = null; renderTransferDetail(); } }, 'キャンセル')
+      return h('div', { class: 'g-card' },
+        h('div', { class: 'g-card__header' }, isNew ? '乗換を追加' : `乗換を編集: ${transfer.id}`),
+        h('div', { class: 'g-card__body' },
+          h('div', { class: 'g-actions-row' },
+            h('label', { class: 'g-field__label' }, modeRadios.same, ' 同じ駅の中'),
+            h('label', { class: 'g-field__label' }, modeRadios.walk, ' 徒歩連絡（別の駅へ）')
+          ),
+          h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '乗換元'),
+          h('div', { class: 'g-actions-row' }, fromPickerContainer, '現在: ', fromLabel),
+          h('div', { class: 'g-actions-row' }, 'のりば: ', fromPlatformSelectContainer),
+          h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '乗換先'),
+          h('div', { class: 'g-actions-row' }, toPickerContainer, '現在: ', toLabel),
+          h('div', { class: 'g-actions-row' }, 'のりば: ', toPlatformSelectContainer),
+          h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '秒数'), secondsInput),
+          h('label', { class: 'g-field__label' }, bidirectionalInput, ' 双方向'),
+          h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, 'メモ'), noteInput),
+          h('div', { class: 'g-actions-row' },
+            h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
+            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedTransferId = null; renderTransferDetail(); } }, 'キャンセル')
+          )
         )
       );
     }
@@ -309,8 +311,8 @@ export function renderTransfersView(container, ctx) {
     clear(defaultsSection);
     const defaults = network.transferDefaults || { samePlatform: 5, unknown: 10 };
 
-    const samePlatformInput = h('input', { type: 'number', min: '0', step: '1', value: String(defaults.samePlatform) });
-    const unknownInput = h('input', { type: 'number', min: '0', step: '1', value: String(defaults.unknown) });
+    const samePlatformInput = h('input', { type: 'number', class: 'g-input', min: '0', step: '1', value: String(defaults.samePlatform) });
+    const unknownInput = h('input', { type: 'number', class: 'g-input', min: '0', step: '1', value: String(defaults.unknown) });
 
     async function applyChange(key, input) {
       const value = Number(input.value);
@@ -326,11 +328,11 @@ export function renderTransfersView(container, ctx) {
     samePlatformInput.addEventListener('change', () => applyChange('samePlatform', samePlatformInput));
     unknownInput.addEventListener('change', () => applyChange('unknown', unknownInput));
 
-    defaultsSection.appendChild(h('div', { class: 'export-card' },
-      h('h3', {}, '乗換の既定値'),
-      h('div', { class: 'worker-config-grid' },
-        h('label', {}, '同じのりばでの乗換秒数'), samePlatformInput,
-        h('label', {}, '不明な場合の乗換秒数'), unknownInput
+    defaultsSection.appendChild(h('div', { class: 'g-card' },
+      h('div', { class: 'g-card__header' }, '乗換の既定値'),
+      h('div', { class: 'g-card__body' },
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '同じのりばでの乗換秒数'), samePlatformInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '不明な場合の乗換秒数'), unknownInput)
       )
     ));
   }
@@ -338,10 +340,10 @@ export function renderTransfersView(container, ctx) {
   function renderGroups() {
     clear(groupsSection);
 
-    groupsSection.appendChild(h('div', { class: 'section-header' },
+    groupsSection.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '駅グループ'),
       h('button', {
-        class: 'add-btn', type: 'button',
+        class: 'g-btn g-btn--primary', type: 'button',
         onClick: () => { expandedGroupId = '__new__'; renderGroups(); }
       }, '+ 追加')
     ));
@@ -355,9 +357,11 @@ export function renderTransfersView(container, ctx) {
       clear(listContainer);
       const tbody = h('tbody', {});
       (network.stationGroups || []).forEach((group) => tbody.appendChild(renderGroupRow(group)));
-      listContainer.appendChild(h('table', { class: 'data-table' },
-        h('thead', {}, h('tr', {}, h('th', {}, 'グループ名'), h('th', {}, '駅'), h('th', { style: 'width:180px' }, '操作'))),
-        tbody
+      listContainer.appendChild(h('div', { class: 'g-table-wrap' },
+        h('table', { class: 'g-table' },
+          h('thead', {}, h('tr', {}, h('th', {}, 'グループ名'), h('th', {}, '駅'), h('th', { style: 'width:180px' }, '操作'))),
+          tbody
+        )
       ));
     }
 
@@ -367,7 +371,7 @@ export function renderTransfersView(container, ctx) {
           h('td', { colspan: '2' }, `駅グループ「${group.name}」を削除しますか？`),
           h('td', {},
             h('button', {
-              class: 'export-btn', type: 'button',
+              class: 'g-btn g-btn--danger g-btn--small', type: 'button',
               onClick: () => {
                 store.mutateDoc('network', (doc) => {
                   doc.stationGroups = doc.stationGroups.filter((g) => g.id !== group.id);
@@ -379,20 +383,20 @@ export function renderTransfersView(container, ctx) {
                 refreshAll();
               }
             }, '削除する'),
-            h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingGroupId = null; renderGroupList(); } }, 'キャンセル')
+            h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingGroupId = null; renderGroupList(); } }, 'キャンセル')
           )
         );
       }
 
-      return h('tr', { class: expandedGroupId === group.id ? 'ed2-row-active' : null },
+      return h('tr', { class: expandedGroupId === group.id ? 'is-editing' : null },
         h('td', {}, group.name),
         h('td', {}, group.stationIds.map((id) => stationLabel(network, id)).join('、')),
         h('td', {},
           h('button', {
-            class: 'preview-btn', type: 'button',
+            class: 'g-btn g-btn--small', type: 'button',
             onClick: () => { expandedGroupId = expandedGroupId === group.id ? null : group.id; renderGroupList(); renderGroupDetail(); }
           }, expandedGroupId === group.id ? '閉じる' : '詳細'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingGroupId = group.id; renderGroupList(); } }, '削除')
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingGroupId = group.id; renderGroupList(); } }, '削除')
         )
       );
     }
@@ -409,7 +413,7 @@ export function renderTransfersView(container, ctx) {
 
     function renderGroupForm(group) {
       const isNew = !group;
-      const nameInput = h('input', { type: 'text', value: isNew ? '' : group.name, placeholder: '例: 大阪・梅田' });
+      const nameInput = h('input', { type: 'text', class: 'g-input', value: isNew ? '' : group.name, placeholder: '例: 大阪・梅田' });
       let stationIds = isNew ? [] : group.stationIds.slice();
 
       const stationsTbody = h('tbody', {});
@@ -417,7 +421,7 @@ export function renderTransfersView(container, ctx) {
         clear(stationsTbody);
         stationIds.forEach((stationId, index) => {
           const deleteBtn = h('button', {
-            class: 'preview-btn', type: 'button',
+            class: 'g-btn g-btn--small', type: 'button',
             onClick: () => { stationIds = stationIds.filter((_, i) => i !== index); renderStations(); }
           }, '削除');
           stationsTbody.appendChild(h('tr', {}, h('td', {}, stationLabel(network, stationId)), h('td', {}, deleteBtn)));
@@ -467,20 +471,22 @@ export function renderTransfersView(container, ctx) {
         refreshAll();
       }
 
-      return h('div', { class: 'export-card' },
-        h('h3', {}, isNew ? '駅グループを追加' : `駅グループを編集: ${group.id}`),
-        h('div', { class: 'worker-config-grid' }, h('label', {}, 'グループ名'), nameInput),
-        h('h4', {}, '駅'),
-        h('div', { class: 'table-container' },
-          h('table', { class: 'data-table' },
-            h('thead', {}, h('tr', {}, h('th', {}, '駅'), h('th', {}, '操作'))),
-            stationsTbody
+      return h('div', { class: 'g-card' },
+        h('div', { class: 'g-card__header' }, isNew ? '駅グループを追加' : `駅グループを編集: ${group.id}`),
+        h('div', { class: 'g-card__body' },
+          h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, 'グループ名'), nameInput),
+          h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '駅'),
+          h('div', { class: 'g-table-wrap' },
+            h('table', { class: 'g-table' },
+              h('thead', {}, h('tr', {}, h('th', {}, '駅'), h('th', {}, '操作'))),
+              stationsTbody
+            )
+          ),
+          h('div', { class: 'g-actions-row' }, picker),
+          h('div', { class: 'g-actions-row' },
+            h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
+            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedGroupId = null; renderGroupDetail(); } }, 'キャンセル')
           )
-        ),
-        h('div', { class: 'worker-config-actions' }, picker),
-        h('div', { class: 'worker-config-actions' },
-          h('button', { class: 'export-btn', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { expandedGroupId = null; renderGroupDetail(); } }, 'キャンセル')
         )
       );
     }
@@ -499,7 +505,7 @@ export function renderTransfersView(container, ctx) {
 
 function emptyNotice() {
   const p = document.createElement('p');
-  p.className = 'ed2-placeholder';
+  p.className = 'g-empty';
   p.textContent = '先に「保存/読込」タブで路線網 (network) を読み込んでください。';
   return p;
 }

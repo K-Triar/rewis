@@ -1,5 +1,5 @@
-import { h, clear } from '../dom.js';
-import { alertDialog } from '../components/dialog.js';
+import { h, clear } from '../../editor-shared/dom.js';
+import { alertDialog } from '../../editor-shared/components/dialog.js';
 import { isValidId } from '../../shared/ids.js';
 import { findReferences } from '../refs.js';
 import { renderRefList } from '../components/ref-list.js';
@@ -19,17 +19,17 @@ export function renderCompaniesView(container, ctx) {
   function render() {
     clear(container);
 
-    container.appendChild(h('div', { class: 'section-header' },
+    container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '鉄道会社'),
-      h('button', { class: 'add-btn', type: 'button', onClick: () => { mode = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { mode = '__new__'; render(); } }, '+ 追加')
     ));
 
     const tbody = h('tbody', {});
     network.companies.forEach((company) => tbody.appendChild(renderRow(company)));
     if (mode === '__new__') tbody.appendChild(renderNewRow());
 
-    container.appendChild(h('div', { class: 'ed2-list-scroll' },
-      h('table', { class: 'data-table' },
+    container.appendChild(h('div', { class: 'g-table-wrap' },
+      h('table', { class: 'g-table' },
         h('thead', {}, h('tr', {},
           h('th', { style: 'width:160px' }, '会社ID'),
           h('th', {}, '会社名'),
@@ -41,8 +41,8 @@ export function renderCompaniesView(container, ctx) {
   }
 
   function renderNewRow() {
-    const idInput = h('input', { type: 'text', placeholder: '例: KT' });
-    const nameInput = h('input', { type: 'text', placeholder: '会社名' });
+    const idInput = h('input', { type: 'text', class: 'g-input', placeholder: '例: KT' });
+    const nameInput = h('input', { type: 'text', class: 'g-input', placeholder: '会社名' });
 
     async function save() {
       const id = idInput.value.trim();
@@ -65,19 +65,19 @@ export function renderCompaniesView(container, ctx) {
       refreshAll();
     }
 
-    return h('tr', {},
+    return h('tr', { class: 'is-editing' },
       h('td', {}, idInput),
       h('td', {}, nameInput),
       h('td', {},
-        h('button', { class: 'export-btn', type: 'button', onClick: save }, '保存'),
-        h('button', { class: 'preview-btn', type: 'button', onClick: () => { mode = null; render(); } }, 'キャンセル')
+        h('button', { class: 'g-btn g-btn--primary g-btn--small', type: 'button', onClick: save }, '保存'),
+        h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { mode = null; render(); } }, 'キャンセル')
       )
     );
   }
 
   function renderRow(company) {
     if (mode === company.id) {
-      const nameInput = h('input', { type: 'text', value: company.name });
+      const nameInput = h('input', { type: 'text', class: 'g-input', value: company.name });
 
       async function save() {
         const name = nameInput.value.trim();
@@ -94,12 +94,12 @@ export function renderCompaniesView(container, ctx) {
         refreshAll();
       }
 
-      return h('tr', {},
+      return h('tr', { class: 'is-editing' },
         h('td', {}, company.id),
         h('td', {}, nameInput),
         h('td', {},
-          h('button', { class: 'export-btn', type: 'button', onClick: save }, '保存'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { mode = null; render(); } }, 'キャンセル')
+          h('button', { class: 'g-btn g-btn--primary g-btn--small', type: 'button', onClick: save }, '保存'),
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { mode = null; render(); } }, 'キャンセル')
         )
       );
     }
@@ -110,10 +110,10 @@ export function renderCompaniesView(container, ctx) {
         return h('tr', {},
           h('td', {}, company.id),
           h('td', { colspan: '2' },
-            h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+            h('span', { class: 'g-text-danger' }, '削除できません。参照箇所: '),
             renderRefList(refs, requestNavigate),
             ' ',
-            h('button', { class: 'preview-btn', type: 'button', onClick: () => { mode = null; render(); } }, '閉じる')
+            h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { mode = null; render(); } }, '閉じる')
           )
         );
       }
@@ -123,7 +123,7 @@ export function renderCompaniesView(container, ctx) {
         h('td', {},
           '本当に削除しますか？ ',
           h('button', {
-            class: 'export-btn',
+            class: 'g-btn g-btn--danger g-btn--small',
             type: 'button',
             onClick: () => {
               store.mutateDoc('network', (doc) => {
@@ -134,7 +134,7 @@ export function renderCompaniesView(container, ctx) {
               refreshAll();
             }
           }, '削除する'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { mode = null; render(); } }, 'キャンセル')
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { mode = null; render(); } }, 'キャンセル')
         )
       );
     }
@@ -143,8 +143,8 @@ export function renderCompaniesView(container, ctx) {
       h('td', {}, company.id),
       h('td', {}, company.name),
       h('td', {},
-        h('button', { class: 'preview-btn', type: 'button', onClick: () => { mode = company.id; render(); } }, '編集'),
-        h('button', { class: 'preview-btn', type: 'button', onClick: () => { mode = { delete: company.id }; render(); } }, '削除')
+        h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { mode = company.id; render(); } }, '編集'),
+        h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { mode = { delete: company.id }; render(); } }, '削除')
       )
     );
   }
@@ -154,7 +154,7 @@ export function renderCompaniesView(container, ctx) {
 
 function emptyNotice() {
   const p = document.createElement('p');
-  p.className = 'ed2-placeholder';
+  p.className = 'g-empty';
   p.textContent = '先に「保存/読込」タブで路線網 (network) を読み込んでください。';
   return p;
 }

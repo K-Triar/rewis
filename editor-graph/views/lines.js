@@ -12,9 +12,9 @@ import { suggestCategoryId } from '../../editor-core/id-suggest.js';
 import { serviceTitle } from '../../editor-core/issue-location.js';
 import { findReferences } from '../../editor2/refs.js';
 import { isValidId } from '../../shared/ids.js';
-import { h, s, clear, icon } from '../dom.js';
-import { alertDialog, confirmDialog } from '../components/dialog.js';
-import { openPopover } from '../components/overlay.js';
+import { h, s, clear, icon } from '../../editor-shared/dom.js';
+import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
+import { openPopover } from '../../editor-shared/components/overlay.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
 

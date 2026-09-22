@@ -1,9 +1,9 @@
-import { h, clear, icon } from './dom.js';
+import { h, clear, icon } from '../editor-shared/dom.js';
 import { createStore } from '../editor-core/store.js';
 import { saveChangedDocs } from '../editor-core/save-actions.js';
 import { resolveIssueTarget } from '../editor-core/issue-location.js';
-import { renderStartView } from './views/start.js';
-import { renderDataView } from './views/data.js';
+import { renderStartView } from '../editor-shared/views/start-view.js';
+import { renderDataView } from '../editor-shared/views/data-view.js';
 import { renderStationsView } from './views/stations.js';
 import { renderLinesView } from './views/lines.js';
 import { renderServicesView } from './views/services.js';
@@ -12,14 +12,13 @@ import { renderOperationsView } from './views/operations.js';
 import { renderCompaniesView } from './views/companies.js';
 import { renderVehicleTypesView } from './views/vehicle-types.js';
 import { renderHistoryView } from './views/history.js';
-import { renderStatusRow } from './components/status-row.js';
-import { openIssuesDrawer } from './components/issues-drawer.js';
-import { alertDialog, confirmDialog } from './components/dialog.js';
+import { renderStatusRow } from '../editor-shared/components/status-row.js';
+import { openIssuesDrawer } from '../editor-shared/components/issues-drawer.js';
+import { alertDialog, confirmDialog } from '../editor-shared/components/dialog.js';
 import { openGuide } from './components/guide.js';
 import { GUIDE_STEPS } from './guide-steps.js';
 import * as api from '../editor2/api.js';
-
-const TAB_STORAGE_KEY = 'rewis_graph_tab';
+import { getTabFromUrl, setTabInUrl, onTabPopState } from '../editor-shared/tab-url.js';
 
 const TABS = [
   { id: 'stations', label: '駅', render: renderStationsView },
@@ -35,12 +34,7 @@ const TABS = [
 
 const store = createStore();
 
-function getSavedTab() {
-  const saved = sessionStorage.getItem(TAB_STORAGE_KEY);
-  return TABS.some((t) => t.id === saved) ? saved : 'services';
-}
-
-let activeTabId = getSavedTab();
+let activeTabId = getTabFromUrl(TABS.map((t) => t.id), 'stations');
 let activeTabHandle = null;
 let pendingFocus = null;
 let forceStartView = false;
@@ -69,7 +63,7 @@ function renderHeader() {
   const left = h('div', { class: 'g-header__left' },
     h('img', { class: 'g-header__logo', src: '../assets/icons/rewis_logo_w.svg', alt: '' }),
     h('div', { class: 'g-header__title' },
-      '| 路線データ編集'
+      '| 路線データ編集システム'
     )
   );
 
@@ -100,7 +94,7 @@ function renderNav() {
       onClick: () => {
         if (activeTabId === tab.id) return;
         activeTabId = tab.id;
-        sessionStorage.setItem(TAB_STORAGE_KEY, activeTabId);
+        setTabInUrl(activeTabId);
         renderNav();
         renderStatus();
         renderMain();
@@ -113,7 +107,7 @@ function renderNav() {
 function requestNavigate(target) {
   if (!target) return;
   activeTabId = target.tab;
-  sessionStorage.setItem(TAB_STORAGE_KEY, activeTabId);
+  setTabInUrl(activeTabId);
   pendingFocus = { id: target.id, sub: target.sub };
   renderNav();
   renderStatus();
@@ -135,18 +129,15 @@ function refreshStatus() {
 }
 
 function renderStatus() {
+  const guideSteps = GUIDE_STEPS[activeTabId];
   renderStatusRow(statusRow, {
     store,
-    activeTabId,
     onOpenIssues: openIssues,
     onUndo: () => { store.undo(); renderMain(); },
     onRedo: () => { store.redo(); renderMain(); },
     onSave: handleSave,
-    onSwitchToTable: handleSwitchToTable,
-    onOpenGuide: () => {
-      const steps = GUIDE_STEPS[activeTabId];
-      if (steps) openGuide(steps);
-    }
+    switchView: { label: '表形式で編集', iconName: 'table', onClick: handleSwitchToTable },
+    onOpenGuide: guideSteps ? () => openGuide(guideSteps) : null
   });
 }
 
@@ -283,6 +274,16 @@ store.subscribe(() => {
   renderStatus();
 });
 
+onTabPopState(TABS.map((t) => t.id), (tabId) => {
+  if (tabId === activeTabId) return;
+  activeTabId = tabId;
+  pendingFocus = null;
+  renderNav();
+  renderStatus();
+  renderMain();
+});
+
+setTabInUrl(activeTabId, { push: false });
 renderHeader();
 renderNav();
 renderStatus();

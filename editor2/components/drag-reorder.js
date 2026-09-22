@@ -3,20 +3,20 @@
 // 並行する別の配列を同じ順序で動かすのは呼び出し側の責任）。
 export function attachDragReorder(row, index, array, onReordered) {
   row.draggable = true;
-  row.classList.add('ed2-drag-row');
+  row.classList.add('g-drag-row');
   row.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData('text/plain', String(index));
   });
   row.addEventListener('dragover', (e) => {
     e.preventDefault();
-    row.classList.add('ed2-drag-over');
+    row.classList.add('g-drag-over');
   });
   row.addEventListener('dragleave', () => {
-    row.classList.remove('ed2-drag-over');
+    row.classList.remove('g-drag-over');
   });
   row.addEventListener('drop', (e) => {
     e.preventDefault();
-    row.classList.remove('ed2-drag-over');
+    row.classList.remove('g-drag-over');
     const fromIndex = Number(e.dataTransfer.getData('text/plain'));
     if (Number.isNaN(fromIndex) || fromIndex === index) return;
     const [moved] = array.splice(fromIndex, 1);

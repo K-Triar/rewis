@@ -4,8 +4,8 @@ import { createNodeDragHandler } from './node-drag.js';
 import { renderStationNode } from './station-node.js';
 import { resolvePositions, setLayout } from '../../editor-core/auto-layout.js';
 import { boundsOf } from '../../editor-core/graph-geometry.js';
-import { h, icon } from '../dom.js';
-import { helpTip } from '../components/help-tip.js';
+import { h, icon } from '../../editor-shared/dom.js';
+import { helpTip } from '../../editor-shared/components/help-tip.js';
 
 const LAYOUT_HELP_TEXT = '駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。';
 

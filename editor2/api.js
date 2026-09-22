@@ -115,15 +115,3 @@ export async function getPublic(base) {
   const body = await res.json().catch(() => ({}));
   return { ok: res.ok, status: res.status, body };
 }
-
-export function adminImport(base, token, { network, operations, force }) {
-  return authedFetch(base, token, '/v2/admin/import', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ network, operations, force })
-  });
-}
-
-export function getV1Latest(base, token) {
-  return authedFetch(base, token, '/data/latest', { cache: 'no-store' });
-}

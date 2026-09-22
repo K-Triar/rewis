@@ -1,4 +1,4 @@
-import { s, clear } from '../dom.js';
+import { s, clear } from '../../editor-shared/dom.js';
 import { graphUi } from './ui-state.js';
 
 const MIN_K = 0.25;

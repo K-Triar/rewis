@@ -1,4 +1,4 @@
-import { h, clear, icon } from '../dom.js';
+import { h, clear, icon } from '../../editor-shared/dom.js';
 
 function isItemSelected(selected, index) {
   if (!selected || selected.type !== 'item') return false;

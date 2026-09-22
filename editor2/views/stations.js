@@ -1,5 +1,5 @@
-import { h, clear } from '../dom.js';
-import { alertDialog } from '../components/dialog.js';
+import { h, clear } from '../../editor-shared/dom.js';
+import { alertDialog } from '../../editor-shared/components/dialog.js';
 import { isValidId } from '../../shared/ids.js';
 import { findReferences } from '../refs.js';
 import { renderRefList } from '../components/ref-list.js';
@@ -29,17 +29,17 @@ export function renderStationsView(container, ctx) {
   function render() {
     clear(container);
 
-    container.appendChild(h('div', { class: 'section-header' },
+    container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '駅'),
-      h('button', { class: 'add-btn', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
     ));
 
-    const searchInput = h('input', { type: 'text', placeholder: '駅名・かなで検索', value: searchText });
+    const searchInput = h('input', { type: 'text', class: 'g-input', placeholder: '駅名・かなで検索', value: searchText });
     searchInput.addEventListener('input', () => {
       searchText = searchInput.value;
       renderList();
     });
-    container.appendChild(h('div', { class: 'search-box' }, searchInput));
+    container.appendChild(h('div', { class: 'g-actions-row' }, searchInput));
 
     const detailContainer = h('div', {});
     container.appendChild(detailContainer);
@@ -53,15 +53,17 @@ export function renderStationsView(container, ctx) {
       network.stations.filter(matchesSearch).forEach((station) => {
         tbody.appendChild(renderStationRow(station));
       });
-      listContainer.appendChild(h('table', { class: 'data-table' },
-        h('thead', {}, h('tr', {},
-          h('th', { style: 'width:120px' }, '駅ID'),
-          h('th', {}, '駅名'),
-          h('th', {}, 'かな'),
-          h('th', { style: 'width:80px' }, 'のりば数'),
-          h('th', { style: 'width:180px' }, '操作')
-        )),
-        tbody
+      listContainer.appendChild(h('div', { class: 'g-table-wrap' },
+        h('table', { class: 'g-table' },
+          h('thead', {}, h('tr', {},
+            h('th', { style: 'width:120px' }, '駅ID'),
+            h('th', {}, '駅名'),
+            h('th', {}, 'かな'),
+            h('th', { style: 'width:80px' }, 'のりば数'),
+            h('th', { style: 'width:180px' }, '操作')
+          )),
+          tbody
+        )
       ));
     }
 
@@ -72,10 +74,10 @@ export function renderStationsView(container, ctx) {
           return h('tr', {},
             h('td', {}, station.id),
             h('td', { colspan: '4' },
-              h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+              h('span', { class: 'g-text-danger' }, '削除できません。参照箇所: '),
               renderRefList(refs, requestNavigate),
               ' ',
-              h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = null; renderList(); } }, '閉じる')
+              h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = null; renderList(); } }, '閉じる')
             )
           );
         }
@@ -84,7 +86,7 @@ export function renderStationsView(container, ctx) {
           h('td', { colspan: '3' }, station.name),
           h('td', {},
             h('button', {
-              class: 'export-btn',
+              class: 'g-btn g-btn--danger g-btn--small',
               type: 'button',
               onClick: () => {
                 store.mutateDoc('network', (doc) => {
@@ -97,23 +99,23 @@ export function renderStationsView(container, ctx) {
                 refreshAll();
               }
             }, '削除する'),
-            h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = null; renderList(); } }, 'キャンセル')
+            h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = null; renderList(); } }, 'キャンセル')
           )
         );
       }
 
-      return h('tr', { class: expandedId === station.id ? 'ed2-row-active' : null },
+      return h('tr', { class: expandedId === station.id ? 'is-editing' : null },
         h('td', {}, station.id),
         h('td', {}, station.name),
         h('td', {}, station.kana || ''),
         h('td', {}, String((station.platforms || []).length)),
         h('td', {},
           h('button', {
-            class: 'preview-btn',
+            class: 'g-btn g-btn--small',
             type: 'button',
             onClick: () => { expandedId = expandedId === station.id ? null : station.id; renderList(); renderDetail(); }
           }, expandedId === station.id ? '閉じる' : '詳細'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = station.id; renderList(); } }, '削除')
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = station.id; renderList(); } }, '削除')
         )
       );
     }
@@ -130,9 +132,9 @@ export function renderStationsView(container, ctx) {
 
     function renderStationForm(station) {
       const isNew = !station;
-      const idInput = h('input', { type: 'text', value: isNew ? '' : station.id, disabled: !isNew, placeholder: '例: KL01' });
-      const nameInput = h('input', { type: 'text', value: isNew ? '' : station.name, placeholder: '駅名' });
-      const kanaInput = h('input', { type: 'text', value: isNew ? '' : (station.kana || ''), placeholder: 'かな' });
+      const idInput = h('input', { type: 'text', class: 'g-input', value: isNew ? '' : station.id, disabled: !isNew, placeholder: '例: KL01' });
+      const nameInput = h('input', { type: 'text', class: 'g-input', value: isNew ? '' : station.name, placeholder: '駅名' });
+      const kanaInput = h('input', { type: 'text', class: 'g-input', value: isNew ? '' : (station.kana || ''), placeholder: 'かな' });
 
       let platforms = isNew ? [] : station.platforms.map((p) => ({ ...p }));
 
@@ -151,21 +153,21 @@ export function renderStationsView(container, ctx) {
           return h('tr', {},
             h('td', {}, platform.id),
             h('td', { colspan: '2' },
-              h('span', { class: 'ed2-issue-error' }, '削除できません。参照箇所: '),
+              h('span', { class: 'g-text-danger' }, '削除できません。参照箇所: '),
               renderRefList(refs, requestNavigate),
               ' ',
-              h('button', { class: 'preview-btn', type: 'button', onClick: () => { blockedPlatformId = null; renderPlatforms(); } }, '閉じる')
+              h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { blockedPlatformId = null; renderPlatforms(); } }, '閉じる')
             )
           );
         }
 
-        const idInputP = h('input', { type: 'text', value: platform.id, style: 'width:80px' });
-        const labelInputP = h('input', { type: 'text', value: platform.label, style: 'width:80px' });
+        const idInputP = h('input', { type: 'text', class: 'g-input', value: platform.id, style: 'width:80px' });
+        const labelInputP = h('input', { type: 'text', class: 'g-input', value: platform.label, style: 'width:80px' });
         idInputP.addEventListener('change', () => { platform.id = idInputP.value.trim(); });
         labelInputP.addEventListener('change', () => { platform.label = labelInputP.value.trim(); });
 
         const upBtn = h('button', {
-          class: 'preview-btn',
+          class: 'g-btn g-btn--small',
           type: 'button',
           disabled: index === 0,
           onClick: () => {
@@ -174,7 +176,7 @@ export function renderStationsView(container, ctx) {
           }
         }, '▲');
         const downBtn = h('button', {
-          class: 'preview-btn',
+          class: 'g-btn g-btn--small',
           type: 'button',
           disabled: index === platforms.length - 1,
           onClick: () => {
@@ -183,7 +185,7 @@ export function renderStationsView(container, ctx) {
           }
         }, '▼');
         const deleteBtn = h('button', {
-          class: 'preview-btn',
+          class: 'g-btn g-btn--small',
           type: 'button',
           onClick: () => {
             if (!isNew) {
@@ -208,10 +210,10 @@ export function renderStationsView(container, ctx) {
 
       renderPlatforms();
 
-      const newPlatformIdInput = h('input', { type: 'text', placeholder: 'のりばID', style: 'width:80px' });
-      const newPlatformLabelInput = h('input', { type: 'text', placeholder: '表示名', style: 'width:80px' });
+      const newPlatformIdInput = h('input', { type: 'text', class: 'g-input', placeholder: 'のりばID', style: 'width:80px' });
+      const newPlatformLabelInput = h('input', { type: 'text', class: 'g-input', placeholder: '表示名', style: 'width:80px' });
       const addPlatformBtn = h('button', {
-        class: 'preview-btn',
+        class: 'g-btn g-btn--small',
         type: 'button',
         onClick: async () => {
           const id = newPlatformIdInput.value.trim();
@@ -286,24 +288,24 @@ export function renderStationsView(container, ctx) {
         refreshAll();
       }
 
-      return h('div', { class: 'export-card' },
-        h('h3', {}, isNew ? '駅を追加' : `駅を編集: ${station.id}`),
-        h('div', { class: 'worker-config-grid' },
-          h('label', {}, '駅ID'), idInput,
-          h('label', {}, '駅名'), nameInput,
-          h('label', {}, 'かな'), kanaInput
-        ),
-        h('h4', {}, 'のりば'),
-        h('div', { class: 'table-container ed2-subtable' },
-          h('table', { class: 'data-table' },
-            h('thead', {}, h('tr', {}, h('th', {}, 'のりばID'), h('th', {}, '表示名'), h('th', {}, '操作'))),
-            platformsTbody
+      return h('div', { class: 'g-card' },
+        h('div', { class: 'g-card__header' }, isNew ? '駅を追加' : `駅を編集: ${station.id}`),
+        h('div', { class: 'g-card__body' },
+          h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '駅ID'), idInput),
+          h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '駅名'), nameInput),
+          h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, 'かな'), kanaInput),
+          h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, 'のりば'),
+          h('div', { class: 'g-table-wrap ed2-subtable' },
+            h('table', { class: 'g-table' },
+              h('thead', {}, h('tr', {}, h('th', {}, 'のりばID'), h('th', {}, '表示名'), h('th', {}, '操作'))),
+              platformsTbody
+            )
+          ),
+          h('div', { class: 'g-actions-row' }, newPlatformIdInput, newPlatformLabelInput, addPlatformBtn),
+          h('div', { class: 'g-actions-row' },
+            h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: saveStation }, isNew ? '追加する' : '保存'),
+            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedId = null; renderDetail(); } }, 'キャンセル')
           )
-        ),
-        h('div', { class: 'worker-config-actions' }, newPlatformIdInput, newPlatformLabelInput, addPlatformBtn),
-        h('div', { class: 'worker-config-actions' },
-          h('button', { class: 'export-btn', type: 'button', onClick: saveStation }, isNew ? '追加する' : '保存'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { expandedId = null; renderDetail(); } }, 'キャンセル')
         )
       );
     }
@@ -320,7 +322,7 @@ export function renderStationsView(container, ctx) {
 
 function emptyNotice() {
   const p = document.createElement('p');
-  p.className = 'ed2-placeholder';
+  p.className = 'g-empty';
   p.textContent = '先に「保存/読込」タブで路線網 (network) を読み込んでください。';
   return p;
 }

@@ -1,4 +1,4 @@
-import { s } from '../dom.js';
+import { s } from '../../editor-shared/dom.js';
 import { NODE, nodeRect, portPoint } from '../../editor-core/graph-geometry.js';
 
 function isHighlighted(highlightPorts, platformId) {

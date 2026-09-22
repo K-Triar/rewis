@@ -1,10 +1,10 @@
-import { h, clear } from '../dom.js';
+import { h, clear } from '../../editor-shared/dom.js';
 
 // stations: [{id, name, kana}] を検索候補として、選ぶと onSelect(stationId) を呼ぶ入力欄を作る
 export function createStationPicker(stations, onSelect, { placeholder = '駅名・かなで検索' } = {}) {
-  const input = h('input', { type: 'text', placeholder });
-  const list = h('div', { class: 'ed2-picker-list', hidden: true });
-  const wrapper = h('div', { class: 'ed2-picker' }, input, list);
+  const input = h('input', { type: 'text', class: 'g-input', placeholder });
+  const list = h('div', { class: 'g-overlay', hidden: true, style: 'position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;' });
+  const wrapper = h('div', { style: 'position:relative;' }, input, list);
 
   function renderSuggestions() {
     const needle = input.value.trim();
@@ -23,7 +23,7 @@ export function createStationPicker(stations, onSelect, { placeholder = '駅名�
     matches.forEach((s) => {
       list.appendChild(h('button', {
         type: 'button',
-        class: 'ed2-picker-item',
+        class: 'g-list__item',
         onMousedown: (e) => e.preventDefault(),
         onClick: () => {
           input.value = '';

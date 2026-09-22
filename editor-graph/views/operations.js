@@ -9,8 +9,8 @@ import { boundsOf } from '../../editor-core/graph-geometry.js';
 import * as noticeOps from '../../editor-core/notice-ops.js';
 import { generateNoticeText } from '../../shared/notice-text.js';
 import { computeAffectedIndices, throughTargetsFor } from '../../shared/model.js';
-import { h, s, clear, icon } from '../dom.js';
-import { alertDialog, confirmDialog } from '../components/dialog.js';
+import { h, s, clear, icon } from '../../editor-shared/dom.js';
+import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
 

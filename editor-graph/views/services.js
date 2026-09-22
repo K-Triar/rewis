@@ -13,9 +13,9 @@ import { matchesServiceFilter } from '../../editor-core/service-filter.js';
 import { suggestPlatformId } from '../../editor-core/id-suggest.js';
 import { serviceTitle, describeIssueLocation, issueTargetsForService } from '../../editor-core/issue-location.js';
 import { summarizeSections, totalRun, reverseService, stationName } from '../../editor2/views/services.js';
-import { h, s, clear, icon } from '../dom.js';
-import { alertDialog, confirmDialog } from '../components/dialog.js';
-import { openPopover } from '../components/overlay.js';
+import { h, s, clear, icon } from '../../editor-shared/dom.js';
+import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
+import { openPopover } from '../../editor-shared/components/overlay.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
 

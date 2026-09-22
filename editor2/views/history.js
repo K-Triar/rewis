@@ -1,6 +1,6 @@
-import { h, clear } from '../dom.js';
+import { h, clear } from '../../editor-shared/dom.js';
 import * as api from '../api.js';
-import { alertDialog, confirmDialog } from '../components/dialog.js';
+import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
 
 const KIND_LABEL = { network: '路線網', operations: '運行情報' };
 
@@ -15,9 +15,9 @@ export function renderHistoryView(container, ctx) {
 
   let activeKind = 'network';
 
-  const status = h('div', { class: 'worker-auth-status' }, '未取得');
+  const status = h('div', { class: 'g-text-muted' }, '未取得');
   const tbody = h('tbody', {});
-  const table = h('table', { class: 'data-table' },
+  const table = h('table', { class: 'g-table' },
     h('thead', {}, h('tr', {},
       h('th', {}, '#'),
       h('th', {}, '版'),
@@ -31,8 +31,9 @@ export function renderHistoryView(container, ctx) {
 
   function makeTabButton(kind) {
     return h('button', {
-      class: 'nav-btn' + (kind === activeKind ? ' active' : ''),
+      class: 'g-btn g-toggle-btn g-btn--small',
       type: 'button',
+      'aria-pressed': kind === activeKind ? 'true' : 'false',
       onClick: () => {
         activeKind = kind;
         renderTabs();
@@ -41,7 +42,7 @@ export function renderHistoryView(container, ctx) {
     }, KIND_LABEL[kind]);
   }
 
-  const tabsContainer = h('div', { class: 'worker-config-actions' });
+  const tabsContainer = h('div', { class: 'g-actions-row' });
   function renderTabs() {
     clear(tabsContainer);
     tabsContainer.appendChild(makeTabButton('network'));
@@ -72,9 +73,9 @@ export function renderHistoryView(container, ctx) {
         h('td', {}, item.updatedBy || ''),
         h('td', {}, item.client || ''),
         h('td', {},
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => onCompare(item) }, '比較'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => onLoadIntoEditor(item) }, 'エディタに読込'),
-          h('button', { class: 'export-btn', type: 'button', onClick: () => onRollback(item) }, 'この版に戻す')
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => onCompare(item) }, '比較'),
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => onLoadIntoEditor(item) }, 'エディタに読込'),
+          h('button', { class: 'g-btn g-btn--primary g-btn--small', type: 'button', onClick: () => onRollback(item) }, 'この版に戻す')
         )
       ));
     });
@@ -139,14 +140,15 @@ export function renderHistoryView(container, ctx) {
     renderList();
   }
 
-  const refreshBtn = h('button', { class: 'preview-btn', type: 'button', onClick: renderList }, '更新');
+  const refreshBtn = h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: renderList }, '更新');
 
-  container.appendChild(h('div', { class: 'export-card' },
-    h('h3', {}, 'Worker 保存履歴（v2）'),
-    tabsContainer,
-    refreshBtn,
-    status,
-    h('div', { class: 'table-container' }, table)
+  container.appendChild(h('div', { class: 'g-card' },
+    h('div', { class: 'g-card__header' }, 'Worker 保存履歴（v2）'),
+    h('div', { class: 'g-card__body' },
+      tabsContainer,
+      h('div', { class: 'g-actions-row' }, refreshBtn, status),
+      h('div', { class: 'g-table-wrap' }, table)
+    )
   ));
 
   renderList();

@@ -1,5 +1,5 @@
-import { h, clear } from '../dom.js';
-import { alertDialog, confirmDialog } from '../components/dialog.js';
+import { h, clear } from '../../editor-shared/dom.js';
+import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
 import { getSavedSession } from '../api.js';
 import {
   createEmptyNotice,
@@ -77,7 +77,7 @@ export function renderOperationsView(container, ctx) {
   function render() {
     clear(container);
 
-    const stateSelect = h('select', {},
+    const stateSelect = h('select', { class: 'g-select' },
       h('option', { value: 'active' }, '下書き・公開中'),
       h('option', { value: 'all' }, 'すべて'),
       h('option', { value: 'draft' }, '下書きのみ'),
@@ -87,26 +87,26 @@ export function renderOperationsView(container, ctx) {
     stateSelect.value = stateFilter;
     stateSelect.addEventListener('change', () => { stateFilter = stateSelect.value; render(); });
 
-    const lineSelect = h('select', {},
+    const lineSelect = h('select', { class: 'g-select' },
       h('option', { value: '' }, 'すべての路線'),
       ...network.lines.map((l) => h('option', { value: l.id }, l.name))
     );
     lineSelect.value = lineFilter;
     lineSelect.addEventListener('change', () => { lineFilter = lineSelect.value; render(); });
 
-    container.appendChild(h('div', { class: 'section-header' },
+    container.appendChild(h('div', { class: 'g-section-header' },
       h('h2', {}, '運行情報'),
-      h('button', { class: 'add-btn', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
+      h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: () => { expandedId = '__new__'; render(); } }, '+ 追加')
     ));
-    container.appendChild(h('div', { class: 'worker-config-actions' }, stateSelect, lineSelect));
+    container.appendChild(h('div', { class: 'g-actions-row' }, stateSelect, lineSelect));
 
     const detailContainer = h('div', {});
     container.appendChild(detailContainer);
 
     const tbody = h('tbody', {});
     visibleNotices().forEach((notice) => tbody.appendChild(renderRow(notice)));
-    container.appendChild(h('div', { class: 'ed2-list-scroll' },
-      h('table', { class: 'data-table' },
+    container.appendChild(h('div', { class: 'ed2-list-scroll g-table-wrap' },
+      h('table', { class: 'g-table' },
         h('thead', {}, h('tr', {},
           h('th', {}, '状態'), h('th', {}, '路線'), h('th', {}, '見出し'),
           h('th', {}, '原因'), h('th', {}, '更新日時'), h('th', { style: 'width:220px' }, '操作')
@@ -140,7 +140,7 @@ export function renderOperationsView(container, ctx) {
         h('td', { colspan: '5' }, '本当に削除しますか？'),
         h('td', {},
           h('button', {
-            class: 'export-btn', type: 'button',
+            class: 'g-btn g-btn--danger g-btn--small', type: 'button',
             onClick: () => {
               store.mutateDoc('operations', (doc) => { doc.notices = doc.notices.filter((n) => n.id !== notice.id); });
               deletingId = null;
@@ -149,13 +149,13 @@ export function renderOperationsView(container, ctx) {
               refreshAll();
             }
           }, '削除する'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = null; render(); } }, 'キャンセル')
+          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = null; render(); } }, 'キャンセル')
         )
       );
     }
 
     const heading = generateNoticeText(notice, network, operations.masters).heading;
-    return h('tr', { class: expandedId === notice.id ? 'ed2-row-active' : null },
+    return h('tr', { class: expandedId === notice.id ? 'is-editing' : null },
       h('td', {}, STATE_LABEL[notice.state] || notice.state),
       h('td', {}, lineName(network, notice.lineId)),
       h('td', {}, heading),
@@ -163,11 +163,11 @@ export function renderOperationsView(container, ctx) {
       h('td', {}, formatDateTime(notice.updatedAt)),
       h('td', {},
         h('button', {
-          class: 'preview-btn', type: 'button',
+          class: 'g-btn g-btn--small', type: 'button',
           onClick: () => { expandedId = expandedId === notice.id ? null : notice.id; render(); }
         }, expandedId === notice.id ? '閉じる' : '詳細'),
         h('button', {
-          class: 'preview-btn', type: 'button',
+          class: 'g-btn g-btn--small', type: 'button',
           onClick: () => {
             const dup = duplicateNotice(notice);
             store.mutateDoc('operations', (doc) => doc.notices.push(dup));
@@ -176,7 +176,7 @@ export function renderOperationsView(container, ctx) {
             refreshAll();
           }
         }, '複製'),
-        h('button', { class: 'preview-btn', type: 'button', onClick: () => { deletingId = notice.id; render(); } }, '削除')
+        h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => { deletingId = notice.id; render(); } }, '削除')
       )
     );
   }
@@ -185,10 +185,11 @@ export function renderOperationsView(container, ctx) {
     const isNew = !notice;
     let draft = isNew ? createEmptyNotice(network) : structuredClone(notice);
 
-    const form = h('div', { class: 'export-card' });
+    const form = h('div', { class: 'g-card' });
 
     function refreshForm() {
       clear(form);
+      form.appendChild(h('div', { class: 'g-card__header' }, isNew ? '運行情報を追加' : `運行情報を編集: ${draft.id}`));
       form.appendChild(buildFormBody());
     }
 
@@ -197,11 +198,11 @@ export function renderOperationsView(container, ctx) {
       const stations = draft.lineId ? stationsOfLine(network, draft.lineId) : [];
 
       // --- 路線・状態 ---
-      const lineSelect = h('select', {}, ...network.lines.map((l) => h('option', { value: l.id }, l.name)));
+      const lineSelect = h('select', { class: 'g-select' }, ...network.lines.map((l) => h('option', { value: l.id }, l.name)));
       lineSelect.value = draft.lineId || '';
       lineSelect.addEventListener('change', () => { draft = updateNoticeFields(draft, { lineId: lineSelect.value }); refreshForm(); });
 
-      const stateSelect = h('select', {},
+      const stateSelect = h('select', { class: 'g-select' },
         h('option', { value: 'draft' }, '下書き'),
         h('option', { value: 'published' }, '公開中'),
         h('option', { value: 'closed' }, '終了')
@@ -211,11 +212,11 @@ export function renderOperationsView(container, ctx) {
 
       // --- 発生日時 ---
       const occ = draft.occurrence;
-      const yearInput = h('input', { type: 'number', value: occ.year ?? '', style: 'width:80px' });
-      const monthInput = h('input', { type: 'number', min: '1', max: '12', value: occ.month ?? '', style: 'width:60px' });
-      const dayInput = h('input', { type: 'number', min: '1', max: '31', value: occ.day ?? '', style: 'width:60px' });
-      const hourInput = h('input', { type: 'number', min: '0', max: '23', value: occ.hour ?? '', style: 'width:60px', placeholder: '時' });
-      const minuteInput = h('input', { type: 'number', min: '0', max: '59', value: occ.minute ?? '', style: 'width:60px', placeholder: '分' });
+      const yearInput = h('input', { type: 'number', class: 'g-input', value: occ.year ?? '', style: 'width:80px' });
+      const monthInput = h('input', { type: 'number', class: 'g-input', min: '1', max: '12', value: occ.month ?? '', style: 'width:60px' });
+      const dayInput = h('input', { type: 'number', class: 'g-input', min: '1', max: '31', value: occ.day ?? '', style: 'width:60px' });
+      const hourInput = h('input', { type: 'number', class: 'g-input', min: '0', max: '23', value: occ.hour ?? '', style: 'width:60px', placeholder: '時' });
+      const minuteInput = h('input', { type: 'number', class: 'g-input', min: '0', max: '59', value: occ.minute ?? '', style: 'width:60px', placeholder: '分' });
       function commitOccurrence() {
         draft = updateNoticeFields(draft, {
           occurrence: {
@@ -241,20 +242,22 @@ export function renderOperationsView(container, ctx) {
 
       const rangeControls = h('div', {});
       if (!isFullLine) {
-        const startSelect = h('select', {}, ...stations.map((s) => h('option', { value: s.id }, s.name)));
+        const startSelect = h('select', { class: 'g-select' }, ...stations.map((s) => h('option', { value: s.id }, s.name)));
         startSelect.value = draft.range.fromStationId || '';
-        const endSelect = h('select', {}, ...stations.map((s) => h('option', { value: s.id }, s.name)));
+        const endSelect = h('select', { class: 'g-select' }, ...stations.map((s) => h('option', { value: s.id }, s.name)));
         endSelect.value = draft.range.toStationId || '';
         function commitRange() {
           draft = setNoticeRange(draft, { fromStationId: startSelect.value, toStationId: endSelect.value, direction: null });
         }
         startSelect.addEventListener('change', commitRange);
         endSelect.addEventListener('change', commitRange);
-        rangeControls.appendChild(h('label', {}, '始点 ', startSelect));
-        rangeControls.appendChild(h('label', {}, ' 終点 ', endSelect));
+        rangeControls.appendChild(h('div', { class: 'g-actions-row' },
+          h('label', { class: 'g-field__label' }, '始点 ', startSelect),
+          h('label', { class: 'g-field__label' }, '終点 ', endSelect)
+        ));
 
         if (line && line.loop) {
-          rangeControls.appendChild(h('p', { class: 'ed2-empty' },`環状線・ラケット型の路線では、始点から終点へ「${line.directions.forward}」方向に進んだ側の区間が対象です。反対側にしたい場合は始点と終点を入れ替えてください。`));
+          rangeControls.appendChild(h('p', { class: 'g-field__hint' }, `環状線・ラケット型の路線では、始点から終点へ「${line.directions.forward}」方向に進んだ側の区間が対象です。反対側にしたい場合は始点と終点を入れ替えてください。`));
         }
       }
 
@@ -277,7 +280,7 @@ export function renderOperationsView(container, ctx) {
         draft = setNoticeCategories(draft, allCategoriesCheckbox.checked ? null : []);
         refreshForm();
       });
-      const categoryChecks = h('div', {});
+      const categoryChecks = h('div', { class: 'g-actions-row' });
       if (draft.categoryIds != null && line) {
         line.categories.forEach((category) => {
           const checkbox = h('input', { type: 'checkbox' });
@@ -287,12 +290,12 @@ export function renderOperationsView(container, ctx) {
             if (checkbox.checked) next.add(category.id); else next.delete(category.id);
             draft = setNoticeCategories(draft, Array.from(next));
           });
-          categoryChecks.appendChild(h('label', {}, checkbox, ` ${category.name} `));
+          categoryChecks.appendChild(h('label', { class: 'g-field__label' }, checkbox, ` ${category.name} `));
         });
       }
 
       // --- 状態（ステータス） ---
-      const statusSelect = h('select', {},
+      const statusSelect = h('select', { class: 'g-select' },
         ...operations.masters.statusTemplates.map((t) => h('option', { value: t.code }, t.label)),
         h('option', { value: 'notice' }, 'お知らせ'),
         h('option', { value: 'other' }, 'その他')
@@ -301,27 +304,27 @@ export function renderOperationsView(container, ctx) {
       statusSelect.addEventListener('change', () => { draft = setNoticeStatus(operations.masters, draft, statusSelect.value); refreshForm(); });
 
       const isCustomStatus = draft.status.code === 'notice' || draft.status.code === 'other';
-      const statusHeadingInput = h('input', { type: 'text', value: draft.status.heading || '', disabled: !isCustomStatus, style: 'width:100%' });
-      const statusBodyInput = h('textarea', { rows: '2', style: 'width:100%', disabled: !isCustomStatus }, draft.status.body || '');
+      const statusHeadingInput = h('input', { type: 'text', class: 'g-input', value: draft.status.heading || '', disabled: !isCustomStatus });
+      const statusBodyInput = h('textarea', { class: 'g-textarea', rows: '2', disabled: !isCustomStatus }, draft.status.body || '');
       if (isCustomStatus) {
         statusHeadingInput.addEventListener('change', () => { draft = updateNoticeStatusText(draft, { heading: statusHeadingInput.value }); });
         statusBodyInput.addEventListener('change', () => { draft = updateNoticeStatusText(draft, { body: statusBodyInput.value }); });
       }
 
       // --- 原因 ---
-      const causeSelect = h('select', {}, ...operations.masters.causes.map((c) => h('option', { value: c.code }, c.label)));
+      const causeSelect = h('select', { class: 'g-select' }, ...operations.masters.causes.map((c) => h('option', { value: c.code }, c.label)));
       causeSelect.value = draft.cause.code;
       causeSelect.addEventListener('change', () => { draft = setNoticeCause(operations.masters, draft, causeSelect.value); refreshForm(); });
 
       const isCustomCause = draft.cause.code === 'other';
-      const causeHeadingInput = h('input', { type: 'text', value: draft.cause.heading || '', disabled: !isCustomCause, style: 'width:100%' });
-      const causeBodyInput = h('textarea', { rows: '2', style: 'width:100%', disabled: !isCustomCause }, draft.cause.body || '');
+      const causeHeadingInput = h('input', { type: 'text', class: 'g-input', value: draft.cause.heading || '', disabled: !isCustomCause });
+      const causeBodyInput = h('textarea', { class: 'g-textarea', rows: '2', disabled: !isCustomCause }, draft.cause.body || '');
       if (isCustomCause) {
         causeHeadingInput.addEventListener('change', () => { draft = updateNoticeCauseFields(draft, { heading: causeHeadingInput.value }); });
         causeBodyInput.addEventListener('change', () => { draft = updateNoticeCauseFields(draft, { body: causeBodyInput.value }); });
       }
 
-      const causeLineOptionSelect = h('select', {},
+      const causeLineOptionSelect = h('select', { class: 'g-select' },
         h('option', { value: 'affected' }, '影響路線と同じ'),
         h('option', { value: 'line' }, '別の路線'),
         h('option', { value: 'hidden' }, '表示しない')
@@ -331,10 +334,10 @@ export function renderOperationsView(container, ctx) {
 
       const causeLineSelectWrap = h('div', {});
       if (draft.cause.lineOption === 'line') {
-        const causeLineSelect = h('select', {}, ...network.lines.map((l) => h('option', { value: l.id }, l.name)));
+        const causeLineSelect = h('select', { class: 'g-select' }, ...network.lines.map((l) => h('option', { value: l.id }, l.name)));
         causeLineSelect.value = draft.cause.lineId || '';
         causeLineSelect.addEventListener('change', () => { draft = updateNoticeCauseFields(draft, { lineId: causeLineSelect.value }); });
-        causeLineSelectWrap.appendChild(h('label', {}, '原因路線 ', causeLineSelect));
+        causeLineSelectWrap.appendChild(h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '原因路線'), causeLineSelect));
       }
 
       // --- 折り返し ---
@@ -349,18 +352,18 @@ export function renderOperationsView(container, ctx) {
       const throughContainer = h('div', {});
       const throughLinks = draft.lineId ? throughTargetsFor(network, draft.lineId) : [];
       if (throughLinks.length === 0) {
-        throughContainer.appendChild(h('p', { class: 'ed2-empty' }, '直通設定はありません。'));
+        throughContainer.appendChild(h('p', { class: 'g-field__hint' }, '直通設定はありません。'));
       } else {
         throughLinks.forEach((link) => {
           const existing = (draft.throughServices || []).find((ts) => ts.lineId === link.lineId) || { lineId: link.lineId, state: 'none', target: link.allowedTargets[0], showOnThroughLine: false };
-          const stateSel = h('select', {},
+          const stateSel = h('select', { class: 'g-select' },
             h('option', { value: 'none' }, '影響なし'),
             h('option', { value: 'suspended' }, '直通中止'),
             h('option', { value: 'resumed' }, '直通再開')
           );
           stateSel.value = existing.state;
           const targetOptions = link.allowedTargets.includes('mutual') ? ['mutual', 'affected_to_through', 'through_to_affected'] : link.allowedTargets;
-          const targetSel = h('select', {}, ...targetOptions.map((t) => h('option', { value: t }, TARGET_LABEL[t])));
+          const targetSel = h('select', { class: 'g-select' }, ...targetOptions.map((t) => h('option', { value: t }, TARGET_LABEL[t])));
           targetSel.value = existing.target;
           const showCheckbox = h('input', { type: 'checkbox' });
           showCheckbox.checked = existing.showOnThroughLine;
@@ -379,20 +382,20 @@ export function renderOperationsView(container, ctx) {
           targetSel.addEventListener('change', commit);
           showCheckbox.addEventListener('change', commit);
 
-          throughContainer.appendChild(h('div', { class: 'worker-config-actions' },
+          throughContainer.appendChild(h('div', { class: 'g-actions-row' },
             h('strong', {}, lineName(network, link.lineId)),
-            h('label', {}, ' 直通状態 ', stateSel),
-            h('label', {}, ' 対象 ', targetSel),
-            h('label', {}, showCheckbox, ' 直通先路線に表示')
+            h('label', { class: 'g-field__label' }, ' 直通状態 ', stateSel),
+            h('label', { class: 'g-field__label' }, ' 対象 ', targetSel),
+            h('label', { class: 'g-field__label' }, showCheckbox, ' 直通先路線に表示')
           ));
         });
       }
 
       // --- プレビュー ---
       const preview = generateNoticeText(draft, network, operations.masters);
-      const textModeAuto = h('input', { type: 'radio', name: 'ed2-notice-text-mode' });
+      const textModeAuto = h('input', { type: 'radio', name: 'g-notice-text-mode' });
       textModeAuto.checked = draft.text.mode === 'auto';
-      const textModeCustom = h('input', { type: 'radio', name: 'ed2-notice-text-mode' });
+      const textModeCustom = h('input', { type: 'radio', name: 'g-notice-text-mode' });
       textModeCustom.checked = draft.text.mode === 'custom';
       textModeAuto.addEventListener('change', () => { draft = setNoticeText(draft, 'auto'); refreshForm(); });
       textModeCustom.addEventListener('change', () => {
@@ -401,8 +404,8 @@ export function renderOperationsView(container, ctx) {
       });
 
       const previewBox = draft.text.mode === 'custom'
-        ? h('textarea', { rows: '4', style: 'width:100%' }, draft.text.custom || '')
-        : h('div', { class: 'ed2-preview' }, h('strong', {}, preview.heading), h('p', {}, preview.body));
+        ? h('textarea', { class: 'g-textarea', rows: '4' }, draft.text.custom || '')
+        : h('div', { class: 'g-banner' }, h('div', {}, h('strong', {}, preview.heading), h('p', { style: 'margin:var(--space-xs) 0 0;' }, preview.body)));
       if (draft.text.mode === 'custom') {
         previewBox.addEventListener('change', () => { draft = setNoticeText(draft, 'custom', previewBox.value); });
       }
@@ -433,65 +436,58 @@ export function renderOperationsView(container, ctx) {
         render();
       }
 
-      return h('div', {},
-        h('h3', {}, isNew ? '運行情報を追加' : `運行情報を編集: ${draft.id}`),
-        h('div', { class: 'worker-config-grid' },
-          h('label', {}, '影響路線'), lineSelect,
-          h('label', {}, '状態'), stateSelect
-        ),
+      return h('div', { class: 'g-card__body' },
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '影響路線'), lineSelect),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '状態'), stateSelect),
 
-        h('h4', {}, '発生日時'),
-        h('div', { class: 'worker-config-actions' }, yearInput, '年', monthInput, '月', dayInput, '日', hourInput, minuteInput, '（時刻は空欄可）'),
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '発生日時'),
+        h('div', { class: 'g-actions-row' }, yearInput, '年', monthInput, '月', dayInput, '日', hourInput, minuteInput, '（時刻は空欄可）'),
 
-        h('h4', {}, '影響区間'),
-        h('label', {}, fullLineCheckbox, ' 全線'),
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '影響区間'),
+        h('label', { class: 'g-field__label' }, fullLineCheckbox, ' 全線'),
         rangeControls,
 
-        h('h4', {}, '方向（列車の進行方向）'),
-        h('div', { class: 'worker-config-actions' },
-          h('label', {}, forwardCheckbox, ` ${dirNames.forward}`),
-          h('label', {}, backwardCheckbox, ` ${dirNames.backward}`)
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '方向（列車の進行方向）'),
+        h('div', { class: 'g-actions-row' },
+          h('label', { class: 'g-field__label' }, forwardCheckbox, ` ${dirNames.forward}`),
+          h('label', { class: 'g-field__label' }, backwardCheckbox, ` ${dirNames.backward}`)
         ),
 
-        h('h4', {}, '影響種別'),
-        h('label', {}, allCategoriesCheckbox, ' すべて'),
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '影響種別'),
+        h('label', { class: 'g-field__label' }, allCategoriesCheckbox, ' すべて'),
         categoryChecks,
 
-        h('h4', {}, '状態（ステータス）'),
-        h('div', { class: 'worker-config-grid' },
-          h('label', {}, '種類'), statusSelect,
-          h('label', {}, '見出し'), statusHeadingInput,
-          h('label', {}, '本文'), statusBodyInput
-        ),
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '状態（ステータス）'),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '種類'), statusSelect),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '見出し'), statusHeadingInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '本文'), statusBodyInput),
 
-        h('h4', {}, '原因'),
-        h('div', { class: 'worker-config-grid' },
-          h('label', {}, '種類'), causeSelect,
-          h('label', {}, '見出し'), causeHeadingInput,
-          h('label', {}, '本文'), causeBodyInput,
-          h('label', {}, '原因路線の表示'), causeLineOptionSelect
-        ),
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '原因'),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '種類'), causeSelect),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '見出し'), causeHeadingInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '本文'), causeBodyInput),
+        h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, '原因路線の表示'), causeLineOptionSelect),
         causeLineSelectWrap,
 
-        h('h4', {}, '折り返し'),
-        h('div', { class: 'worker-config-actions' },
-          h('label', {}, turnbackStart, ' 始点で折り返し'),
-          h('label', {}, turnbackEnd, ' 終点で折り返し')
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '折り返し'),
+        h('div', { class: 'g-actions-row' },
+          h('label', { class: 'g-field__label' }, turnbackStart, ' 始点で折り返し'),
+          h('label', { class: 'g-field__label' }, turnbackEnd, ' 終点で折り返し')
         ),
 
-        h('h4', {}, '直通'),
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, '直通'),
         throughContainer,
 
-        h('h4', {}, 'プレビュー'),
-        h('div', { class: 'worker-config-actions' },
-          h('label', {}, textModeAuto, ' 自動生成'),
-          h('label', {}, textModeCustom, ' 手動で書き換える')
+        h('h4', { style: 'margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);' }, 'プレビュー'),
+        h('div', { class: 'g-actions-row' },
+          h('label', { class: 'g-field__label' }, textModeAuto, ' 自動生成'),
+          h('label', { class: 'g-field__label' }, textModeCustom, ' 手動で書き換える')
         ),
         previewBox,
 
-        h('div', { class: 'worker-config-actions' },
-          h('button', { class: 'export-btn', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-          h('button', { class: 'preview-btn', type: 'button', onClick: cancel }, 'キャンセル')
+        h('div', { class: 'g-actions-row' },
+          h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
+          h('button', { class: 'g-btn', type: 'button', onClick: cancel }, 'キャンセル')
         )
       );
     }
@@ -505,7 +501,7 @@ export function renderOperationsView(container, ctx) {
 
 function emptyNotice() {
   const p = document.createElement('p');
-  p.className = 'ed2-placeholder';
+  p.className = 'g-empty';
   p.textContent = '先に「保存/読込」タブで路線網 (network) と運行情報 (operations) を読み込んでください。';
   return p;
 }

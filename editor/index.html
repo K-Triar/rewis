@@ -6,21 +6,24 @@
     <title>路線データ編集システム - REWIS</title>
     <meta name="robots" content="noindex">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../editor-shared/primer/tokens/colors-base.css">
+    <link rel="stylesheet" href="../editor-shared/primer/tokens/colors-semantic.css">
+    <link rel="stylesheet" href="../editor-shared/primer/tokens/typography.css">
+    <link rel="stylesheet" href="../editor-shared/primer/tokens/spacing.css">
+    <link rel="stylesheet" href="../editor-shared/primer/tokens/borders.css">
+    <link rel="stylesheet" href="../editor-shared/primer/tokens/motion.css">
+    <link rel="stylesheet" href="../editor-shared/css/theme.css">
+    <link rel="stylesheet" href="../editor-shared/css/components.css">
+    <link rel="stylesheet" href="../editor-shared/css/app.css">
     <link rel="stylesheet" href="../editor2/editor2.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>路線データ編集システム</h1>
-            <p><a href="../editor-graph/">図で編集する（新しいエディタ）</a></p>
-        </header>
-
-        <nav class="main-nav" id="ed2-nav"></nav>
-
-        <div id="ed2-issues-panel" class="ed2-issues-panel"></div>
-
-        <main id="ed2-main"></main>
-    </div>
+    <div id="ed2-app"></div>
 
     <script type="module" src="../editor2/main.js"></script>
 </body>
