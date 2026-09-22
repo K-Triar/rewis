@@ -68,3 +68,48 @@
     width: 100%;
   }
 }
+
+/* 駅・路線・運行系統・乗換・駅グループ・運行情報タブ（.g-view でラップされる範囲）だけ、
+   Primerトークンを上書きして情報密度を上げる。鉄道会社・車両種別・履歴・データの読込と書出タブは
+   g-view を経由しない（selfWraps）ため対象外。図形式エディタ（#g-app）にも影響しない。
+   コンポーネント（g-card / g-table / g-btn / g-input / g-list / g-field など）は
+   すべてこれらの変数を参照しているため、上書きだけで一括して効く。 */
+#ed2-app .g-view {
+  --text-body-shorthand-medium: 400 0.75rem/1.4 var(--fontStack-sansSerif);
+  --text-body-shorthand-small: 400 0.6875rem/1.4 var(--fontStack-sansSerif);
+  --text-caption-shorthand: 400 0.6875rem/1.2 var(--fontStack-sansSerif);
+  --text-title-shorthand-small: 600 0.875rem/1.4 var(--fontStack-sansSerif);
+  --text-title-shorthand-medium: 600 1rem/1.4 var(--fontStack-sansSerifDisplay);
+
+  --space-xs: 3px;
+  --space-sm: 6px;
+  --space-md: 9px;
+  --space-lg: 12px;
+  --space-xl: 16px;
+  --stack-padding-condensed: 6px;
+  --stack-padding-normal: 12px;
+  --stack-padding-spacious: 16px;
+  --stack-gap-condensed: 6px;
+  --stack-gap-normal: 12px;
+  --stack-gap-spacious: 16px;
+
+  --control-xsmall-size: 20px;
+  --control-xsmall-paddingInline-normal: 6px;
+  --control-small-size: 22px;
+  --control-small-paddingBlock: 3px;
+  --control-small-paddingInline-normal: 8px;
+  --control-small-gap: 3px;
+  --control-medium-size: 26px;
+  --control-medium-paddingBlock: 4px;
+  --control-medium-paddingInline-normal: 9px;
+  --control-medium-gap: 6px;
+  --control-large-size: 32px;
+  --control-large-paddingBlock: 6px;
+}
+
+/* 一覧表のセル余白は、上記の一般的な余白トークンとは別枠で、
+   editor-v1相当までさらに詰める（表の行密度がそのまま情報量に直結するため）。 */
+#ed2-app .g-view .g-table th,
+#ed2-app .g-view .g-table td {
+  padding: 3px 6px;
+}
