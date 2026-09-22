@@ -294,7 +294,7 @@ export function renderTransfersView(container, ctx) {
           h('div', { class: 'g-field' }, h('label', { class: 'g-field__label' }, 'メモ'), noteInput),
           h('div', { class: 'g-actions-row' },
             h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedTransferId = null; renderTransferDetail(); } }, 'キャンセル')
+            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedTransferId = null; renderTransferList(); renderTransferDetail(); } }, 'キャンセル')
           )
         )
       );
@@ -485,7 +485,7 @@ export function renderTransfersView(container, ctx) {
           h('div', { class: 'g-actions-row' }, picker),
           h('div', { class: 'g-actions-row' },
             h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: save }, isNew ? '追加する' : '保存'),
-            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedGroupId = null; renderGroupDetail(); } }, 'キャンセル')
+            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedGroupId = null; renderGroupList(); renderGroupDetail(); } }, 'キャンセル')
           )
         )
       );

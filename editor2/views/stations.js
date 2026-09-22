@@ -304,7 +304,7 @@ export function renderStationsView(container, ctx) {
           h('div', { class: 'g-actions-row' }, newPlatformIdInput, newPlatformLabelInput, addPlatformBtn),
           h('div', { class: 'g-actions-row' },
             h('button', { class: 'g-btn g-btn--primary', type: 'button', onClick: saveStation }, isNew ? '追加する' : '保存'),
-            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedId = null; renderDetail(); } }, 'キャンセル')
+            h('button', { class: 'g-btn', type: 'button', onClick: () => { expandedId = null; renderList(); renderDetail(); } }, 'キャンセル')
           )
         )
       );

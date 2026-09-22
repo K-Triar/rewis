@@ -24,9 +24,9 @@ const TABS = [
   { id: 'services', label: '運行系統', render: renderServicesView },
   { id: 'transfers', label: '乗換・駅グループ', render: renderTransfersView },
   { id: 'operations', label: '運行情報', render: renderOperationsView },
-  { id: 'companies', label: '鉄道会社', render: renderCompaniesView },
-  { id: 'vehicle-types', label: '車両種別', render: renderVehicleTypesView },
-  { id: 'history', label: '履歴', render: renderHistoryView },
+  { id: 'companies', label: '鉄道会社', render: renderCompaniesView, selfWraps: true },
+  { id: 'vehicle-types', label: '車両種別', render: renderVehicleTypesView, selfWraps: true },
+  { id: 'history', label: '履歴', render: renderHistoryView, selfWraps: true },
   { id: 'data', label: 'データの読込と書出', render: renderDataView, selfWraps: true }
 ];
 

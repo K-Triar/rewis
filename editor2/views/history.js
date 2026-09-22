@@ -1,155 +1,208 @@
 import { h, clear } from '../../editor-shared/dom.js';
-import * as api from '../api.js';
+import * as api from '../../editor2/api.js';
 import { alertDialog, confirmDialog } from '../../editor-shared/components/dialog.js';
 
 const KIND_LABEL = { network: '路線網', operations: '運行情報' };
 
-function currentToken() {
-  const session = api.getSavedSession();
-  return session ? session.token : null;
+const FIELD_LABEL = {
+  companies: '鉄道会社', stations: '駅', lines: '路線', services: '運行系統',
+  transfers: '乗換', stationGroups: '駅グループ', notices: '運行情報'
+};
+
+function summarizeCounts(kind, doc) {
+  if (!doc) return {};
+  if (kind === 'network') {
+    return {
+      companies: (doc.companies || []).length,
+      stations: (doc.stations || []).length,
+      lines: (doc.lines || []).length,
+      services: (doc.services || []).length,
+      transfers: (doc.transfers || []).length,
+      stationGroups: (doc.stationGroups || []).length
+    };
+  }
+  return { notices: (doc.notices || []).length };
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function renderHistoryView(container, ctx) {
-  clear(container);
-  const { store, refreshAll, getApiBase } = ctx;
+  const { store, refreshStatus } = ctx;
 
   let activeKind = 'network';
+  let items = [];
+  let cursor = null;
+  let selectedKey = null;
+  let status = '';
 
-  const status = h('div', { class: 'g-text-muted' }, '未取得');
-  const tbody = h('tbody', {});
-  const table = h('table', { class: 'g-table' },
-    h('thead', {}, h('tr', {},
-      h('th', {}, '#'),
-      h('th', {}, '版'),
-      h('th', {}, '保存日時'),
-      h('th', {}, '更新者'),
-      h('th', {}, 'クライアント'),
-      h('th', {}, '操作')
-    )),
-    tbody
-  );
+  const view = h('div', { class: 'g-view' });
+  container.appendChild(view);
 
-  function makeTabButton(kind) {
-    return h('button', {
-      class: 'g-btn g-toggle-btn g-btn--small',
-      type: 'button',
-      'aria-pressed': kind === activeKind ? 'true' : 'false',
-      onClick: () => {
-        activeKind = kind;
-        renderTabs();
-        renderList();
-      }
-    }, KIND_LABEL[kind]);
+  function base() { return api.getSavedApiBase(); }
+  function token() {
+    const session = api.getSavedSession();
+    return session ? session.token : null;
   }
 
-  const tabsContainer = h('div', { class: 'g-actions-row' });
-  function renderTabs() {
-    clear(tabsContainer);
-    tabsContainer.appendChild(makeTabButton('network'));
-    tabsContainer.appendChild(makeTabButton('operations'));
-  }
-  renderTabs();
-
-  async function renderList() {
-    clear(tbody);
-    status.textContent = '取得中...';
-    const base = getApiBase();
-    const token = currentToken();
-    if (!base || !token) {
-      status.textContent = 'Workers API URL とログインが必要です（保存/読込タブで設定してください）。';
-      return;
-    }
-    const res = await api.getHistory(base, token, activeKind, { limit: 50 });
+  async function loadFirst() {
+    selectedKey = null;
+    status = '読込中…';
+    render();
+    const res = await api.getHistory(base(), token(), activeKind, { limit: 50 });
     if (!res.ok) {
-      status.textContent = `取得に失敗しました: ${res.body.error || res.status}`;
+      status = `取得に失敗しました: ${res.body.error || res.status}`;
+      items = [];
+      cursor = null;
+      render();
       return;
     }
-    status.textContent = `${res.body.items.length}件`;
-    res.body.items.forEach((item, i) => {
-      tbody.appendChild(h('tr', {},
-        h('td', {}, String(i + 1)),
-        h('td', {}, String(item.revision)),
-        h('td', {}, item.savedAt || ''),
-        h('td', {}, item.updatedBy || ''),
-        h('td', {}, item.client || ''),
-        h('td', {},
-          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => onCompare(item) }, '比較'),
-          h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: () => onLoadIntoEditor(item) }, 'エディタに読込'),
-          h('button', { class: 'g-btn g-btn--primary g-btn--small', type: 'button', onClick: () => onRollback(item) }, 'この版に戻す')
-        )
+    items = res.body.items;
+    cursor = res.body.cursor;
+    status = '';
+    render();
+  }
+
+  async function loadMore() {
+    const res = await api.getHistory(base(), token(), activeKind, { limit: 50, cursor });
+    if (!res.ok) {
+      status = `取得に失敗しました: ${res.body.error || res.status}`;
+      render();
+      return;
+    }
+    items = items.concat(res.body.items);
+    cursor = res.body.cursor;
+    render();
+  }
+
+  function render() {
+    clear(view);
+
+    const kindSwitch = h('div', { style: 'display:flex; gap:var(--stack-gap-condensed);' },
+      ['network', 'operations'].map((kind) => h('button', {
+        type: 'button',
+        class: 'g-btn g-toggle-btn',
+        'aria-pressed': String(kind === activeKind),
+        onClick: () => {
+          if (activeKind === kind) return;
+          activeKind = kind;
+          loadFirst();
+        }
+      }, KIND_LABEL[kind]))
+    );
+
+    const list = h('div', { class: 'g-list' });
+    items.forEach((item) => {
+      list.appendChild(h('button', {
+        type: 'button',
+        class: 'g-list__item' + (selectedKey === item.key ? ' is-selected' : ''),
+        onClick: () => { selectedKey = item.key; render(); }
+      },
+        h('div', {}, `版 ${item.revision}`),
+        h('div', { class: 'g-ws-right__note' }, formatDateTime(item.savedAt)),
+        h('div', { class: 'g-ws-right__note' }, `${item.updatedBy || '?'} / ${item.client || '?'}`),
+        item.rollbackFrom ? h('div', { class: 'g-ws-right__note' }, `ロールバック元: ${item.rollbackFrom}`) : null
       ));
     });
+
+    const listWrap = h('div', { class: 'g-history-detail__list' },
+      h('div', { class: 'g-card' },
+        h('div', { class: 'g-card__header' }, `${KIND_LABEL[activeKind]} の履歴`),
+        h('div', { class: 'g-card__body' },
+          status ? h('p', {}, status) : null,
+          list,
+          cursor ? h('button', { type: 'button', class: 'g-btn', onClick: loadMore }, 'さらに読み込む') : null
+        )
+      )
+    );
+
+    const selected = items.find((it) => it.key === selectedKey);
+    const body = h('div', { class: 'g-history-detail' }, listWrap);
+    if (selected) {
+      body.appendChild(h('div', { class: 'g-history-detail__panel' }, renderDetailPanel(selected)));
+    }
+
+    view.appendChild(h('div', { class: 'g-single-col g-single-col--wide' }, kindSwitch, body));
   }
 
-  async function onCompare(item) {
-    const base = getApiBase();
-    const token = currentToken();
-    const res = await api.getHistoryItem(base, token, activeKind, item.key);
-    if (!res.ok) {
-      await alertDialog('取得に失敗しました: ' + (res.body.error || res.status));
-      return;
-    }
-    const currentText = JSON.stringify(store.state.docs[activeKind], null, 2);
-    const targetText = JSON.stringify(res.body.doc, null, 2);
-    console.log('[REWIS editor2] history compare', {
-      key: item.key,
-      current: store.state.docs[activeKind],
-      target: res.body.doc
-    });
-    await alertDialog(
-      currentText === targetText
-        ? '現在エディタ上にある内容と同じです。'
-        : '現在エディタ上にある内容と異なります（詳細はブラウザのコンソールに出力しました）。'
+  function renderDetailPanel(item) {
+    const resultEl = h('div', {});
+    const unsaved = store.hasUnsavedChanges(activeKind);
+
+    const compareBtn = h('button', {
+      type: 'button', class: 'g-btn',
+      onClick: async () => {
+        clear(resultEl);
+        const res = await api.getHistoryItem(base(), token(), activeKind, item.key);
+        if (!res.ok) { await alertDialog('取得に失敗しました: ' + (res.body.error || res.status)); return; }
+        resultEl.appendChild(renderDiffTable(activeKind, store.state.docs[activeKind], res.body.doc));
+      }
+    }, '今のデータと比べる');
+
+    const loadBtn = h('button', {
+      type: 'button', class: 'g-btn',
+      onClick: async () => {
+        const res = await api.getHistoryItem(base(), token(), activeKind, item.key);
+        if (!res.ok) { await alertDialog('取得に失敗しました: ' + (res.body.error || res.status)); return; }
+        if (store.hasUnsavedChanges(activeKind)) {
+          const ok = await confirmDialog('未保存の変更は失われます。', { confirmLabel: '編集中のデータにする', danger: true });
+          if (!ok) return;
+        }
+        store.replaceDocLocally(activeKind, res.body.doc);
+        if (refreshStatus) refreshStatus();
+      }
+    }, 'この版を編集中のデータにする');
+
+    const rollbackBtn = h('button', {
+      type: 'button', class: 'g-btn g-btn--danger', disabled: unsaved,
+      onClick: async () => {
+        const ok = await confirmDialog('この版の内容を、新しい版としてサーバーに保存します。', { confirmLabel: 'この版に戻す', danger: true });
+        if (!ok) return;
+        const res = await api.rollback(base(), token(), activeKind, item.key, store.state.baseRevision[activeKind]);
+        if (res.status === 409) {
+          await alertDialog(`競合が発生しました（最新版 ${res.body.latestRevision}）。`);
+          return;
+        }
+        if (!res.ok) { await alertDialog('ロールバックに失敗しました: ' + (res.body.error || res.status)); return; }
+        const docRes = await api.getDoc(base(), token(), activeKind);
+        if (docRes.ok) store.setDoc(activeKind, docRes.body.doc, docRes.body.meta);
+        if (refreshStatus) refreshStatus();
+        loadFirst();
+      }
+    }, 'この版に戻す');
+
+    return h('div', { class: 'g-card' },
+      h('div', { class: 'g-card__header' }, `版 ${item.revision}`),
+      h('div', { class: 'g-card__body' },
+        h('p', { class: 'g-ws-right__note' }, formatDateTime(item.savedAt)),
+        h('p', { class: 'g-ws-right__note' }, `更新した人: ${item.updatedBy || '?'} / client: ${item.client || '?'}`),
+        item.rollbackFrom ? h('p', { class: 'g-ws-right__note' }, `ロールバック元: ${item.rollbackFrom}`) : null,
+        h('div', { style: 'display:flex; flex-direction:column; gap:var(--stack-gap-condensed);' }, compareBtn, loadBtn, rollbackBtn),
+        unsaved ? h('p', { class: 'g-field__hint' }, '先にサーバーに保存するか、変更を取り消してください。') : null,
+        resultEl
+      )
     );
   }
 
-  async function onLoadIntoEditor(item) {
-    const base = getApiBase();
-    const token = currentToken();
-    const res = await api.getHistoryItem(base, token, activeKind, item.key);
-    if (!res.ok) {
-      await alertDialog('取得に失敗しました: ' + (res.body.error || res.status));
-      return;
-    }
-    const ok = await confirmDialog(`版 ${item.revision} の内容をエディタに読み込みます（未保存の状態として扱います）。よろしいですか？`);
-    if (!ok) return;
-    store.replaceDocLocally(activeKind, res.body.doc);
-    refreshAll();
+  function renderDiffTable(kind, currentDoc, targetDoc) {
+    const before = summarizeCounts(kind, currentDoc);
+    const after = summarizeCounts(kind, targetDoc);
+    const rows = Object.keys(after).map((key) => h('tr', {},
+      h('td', {}, FIELD_LABEL[key] || key),
+      h('td', {}, String(before[key] ?? 0)),
+      h('td', {}, String(after[key] ?? 0))
+    ));
+    return h('table', { class: 'g-diff-table' },
+      h('thead', {}, h('tr', {}, h('th', {}, '項目'), h('th', {}, '今のデータ'), h('th', {}, 'この版'))),
+      h('tbody', {}, rows)
+    );
   }
 
-  async function onRollback(item) {
-    const ok = await confirmDialog(`版 ${item.revision} にロールバックします。よろしいですか？`);
-    if (!ok) return;
-    const base = getApiBase();
-    const token = currentToken();
-    const res = await api.rollback(base, token, activeKind, item.key, store.state.baseRevision[activeKind]);
-    if (res.status === 409) {
-      await alertDialog(`競合が発生しました（最新版 ${res.body.latestRevision}）。保存/読込タブで読み込み直してから再度お試しください。`);
-      return;
-    }
-    if (res.status === 422) {
-      const messages = (res.body.errors || []).map((e) => e.message).join(' / ');
-      await alertDialog('検証エラーがありロールバックできませんでした: ' + messages);
-      return;
-    }
-    if (!res.ok) {
-      await alertDialog('ロールバックに失敗しました: ' + (res.body.error || res.status));
-      return;
-    }
-    await alertDialog(`版 ${res.body.revision} としてロールバックしました。`);
-    renderList();
-  }
-
-  const refreshBtn = h('button', { class: 'g-btn g-btn--small', type: 'button', onClick: renderList }, '更新');
-
-  container.appendChild(h('div', { class: 'g-card' },
-    h('div', { class: 'g-card__header' }, 'Worker 保存履歴（v2）'),
-    h('div', { class: 'g-card__body' },
-      tabsContainer,
-      h('div', { class: 'g-actions-row' }, refreshBtn, status),
-      h('div', { class: 'g-table-wrap' }, table)
-    )
-  ));
-
-  renderList();
+  loadFirst();
+  return { destroy() {} };
 }
