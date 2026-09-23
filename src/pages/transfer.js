@@ -27,6 +27,10 @@ let brandName = 'Kトライア交通グループ';
 let ownCompanyIdList = ['KT'];
 // 検索モード: 'time' | 'balance' | 'transfer' (default: balance)
 let searchMode = 'balance';
+// 実行中の検索の世代番号（古い検索結果の反映を防ぐ）
+let searchSeq = 0;
+// 現在表示中の検索結果に対応するURLパラメータ（route を除く）
+let displayedSearchKey = null;
 
 function getTransferPenalty(mode) {
     switch (mode) {
@@ -114,7 +118,7 @@ function initializeUI() {
         });
     }
     document.getElementById('add-via').addEventListener('click', addViaStation);
-    document.getElementById('search-button').addEventListener('click', performSearch);
+    document.getElementById('search-button').addEventListener('click', () => performSearch());
 
     ['departure', 'arrival'].forEach(id => {
         document.getElementById(id).addEventListener('keypress', (e) => {
@@ -426,7 +430,10 @@ function getSearchGraph(filters) {
 // ========================================
 // 経路検索実行
 // ========================================
-function performSearch() {
+// historyMode: 'push'（ユーザー操作による検索。履歴に追加）
+//              'replace'（初回読み込み時。URLを正規化して現在の履歴を置き換え）
+//              'none'（ブラウザの戻る/進む。URLはそのまま）
+function performSearch({ historyMode = 'push' } = {}) {
     hideError();
     hideResults();
 
@@ -482,11 +489,16 @@ function performSearch() {
     }
 
     // URLパラメータを更新
-    updateUrlParams(departureStation, arrivalStation, viaStations, filters);
+    if (historyMode !== 'none') {
+        updateUrlParams(departureStation, arrivalStation, viaStations, filters, historyMode);
+    }
 
     showLoading();
 
+    // 戻る/進むを連打した場合などに、古い検索結果で上書きしないようにする
+    const seq = ++searchSeq;
     setTimeout(() => {
+        if (seq !== searchSeq) return;
         try {
             const graph = getSearchGraph(filters);
             const routes = searchRoutes(model, graph, {
@@ -532,7 +544,7 @@ function platformLabel(stationId, platformId) {
 // ========================================
 // URLパラメータ処理
 // ========================================
-function updateUrlParams(departureStation, arrivalStation, viaStations, filters) {
+function updateUrlParams(departureStation, arrivalStation, viaStations, filters, historyMode = 'push') {
     const params = new URLSearchParams();
 
     // search-mode: only include when not default 'balance'. Insert first so it appears at the
@@ -593,11 +605,53 @@ function updateUrlParams(departureStation, arrivalStation, viaStations, filters)
         params.set('route', preservedRoute);
     }
 
-    // URLを更新（履歴に追加）
+    // URLを更新（通常は履歴に追加、初回読み込み時は置き換え）
     const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({}, '', newUrl);
+    if (historyMode === 'replace') {
+        window.history.replaceState({}, '', newUrl);
+    } else {
+        window.history.pushState({}, '', newUrl);
+    }
     console.log('URLパラメータを更新:', newUrl);
 }
+
+// route を除いた検索条件のキー（同じ検索結果かどうかの判定用）
+function searchKeyFromParams(params) {
+    const p = new URLSearchParams(params);
+    p.delete('route');
+    return p.toString();
+}
+
+// ブラウザの戻る/進むでURLが変わったとき、URLに合わせて画面を切り替える
+function handleTransferPopState() {
+    if (!model) return;
+    const params = new URLSearchParams(window.location.search);
+    const resultsSection = document.getElementById('results-section');
+    const resultsVisible = resultsSection && resultsSection.style.display !== 'none';
+
+    // 同じ検索条件で route だけが変わった場合は、再検索せずタブだけ切り替える
+    if (resultsVisible && displayedSearchKey !== null && searchKeyFromParams(params) === displayedSearchKey) {
+        const routeParam = parseInt(params.get('route'), 10);
+        const count = document.querySelectorAll('#results-container .route-card').length;
+        const idx = (!isNaN(routeParam) && routeParam >= 1 && routeParam <= count) ? routeParam - 1 : 0;
+        showRouteIndex(idx);
+        return;
+    }
+
+    if (params.has('from') && params.has('to')) {
+        applyParamsToForm(params);
+        performSearch({ historyMode: 'none' });
+    } else {
+        // パラメータなし → 検索画面（入力内容はそのまま残す）
+        searchSeq++; // 実行中の検索があれば破棄
+        hideLoading();
+        hideError();
+        hideResults();
+        showSearchSection();
+        window.scrollTo({ top: 0 });
+    }
+}
+window.addEventListener('popstate', handleTransferPopState);
 
 function clearUrlParams() {
     // パラメータを削除してベースURLに戻す
@@ -608,6 +662,26 @@ function clearUrlParams() {
 
 function loadFromUrlParams() {
     const params = new URLSearchParams(window.location.search);
+
+    // パラメータがない場合は検索モードだけ反映する
+    if (!params.has('from') && !params.has('to')) {
+        applySearchModeFromParams(params);
+        return;
+    }
+
+    console.log('URLパラメータから検索条件を読み込み中...');
+    applyParamsToForm(params);
+
+    // すべての条件が設定されたら自動的に検索を実行
+    if (params.get('from') && params.get('to')) {
+        console.log('URLパラメータに基づいて自動検索を実行します');
+        setTimeout(() => {
+            performSearch({ historyMode: 'replace' });
+        }, 500); // UIの更新を待つため少し遅延
+    }
+}
+
+function applySearchModeFromParams(params) {
     // search-mode が指定されている場合は内部状態と UI を更新
     try {
         const sm = params.get('search-mode');
@@ -624,39 +698,26 @@ function loadFromUrlParams() {
     } catch (e) {
         // ignore
     }
+}
 
-    // パラメータがない場合は何もしない
-    if (!params.has('from') && !params.has('to')) {
-        return;
-    }
-
-    console.log('URLパラメータから検索条件を読み込み中...');
+// URLパラメータの検索条件を入力欄・フィルターに反映する
+function applyParamsToForm(params) {
+    applySearchModeFromParams(params);
 
     // 出発駅を設定
     const fromId = params.get('from');
-    if (fromId) {
-        const fromStation = findStationById(fromId);
-        if (fromStation) {
-            document.getElementById('departure').value = fromStation.name;
-            console.log('出発駅設定:', fromStation.name);
-        } else {
-            console.warn('出発駅が見つかりません:', fromId);
-        }
-    }
+    const fromStation = findStationById(fromId);
+    document.getElementById('departure').value = fromStation ? fromStation.name : '';
+    if (fromId && !fromStation) console.warn('出発駅が見つかりません:', fromId);
 
     // 到着駅を設定
     const toId = params.get('to');
-    if (toId) {
-        const toStation = findStationById(toId);
-        if (toStation) {
-            document.getElementById('arrival').value = toStation.name;
-            console.log('到着駅設定:', toStation.name);
-        } else {
-            console.warn('到着駅が見つかりません:', toId);
-        }
-    }
+    const toStation = findStationById(toId);
+    document.getElementById('arrival').value = toStation ? toStation.name : '';
+    if (toId && !toStation) console.warn('到着駅が見つかりません:', toId);
 
-    // 経由駅を設定（via1, via2, via3...）
+    // 既存の経由駅をクリアしてから設定（via1, via2, via3...）
+    document.querySelectorAll('.via-station-item').forEach(item => item.remove());
     let viaIndex = 1;
     while (params.has(`via${viaIndex}`)) {
         const viaId = params.get(`via${viaIndex}`);
@@ -708,14 +769,6 @@ function loadFromUrlParams() {
         console.log('トロッコ: 無効');
     } else {
         document.getElementById('type-mc').checked = true;
-    }
-
-    // すべての条件が設定されたら自動的に検索を実行
-    if (fromId && toId) {
-        console.log('URLパラメータに基づいて自動検索を実行します');
-        setTimeout(() => {
-            performSearch();
-        }, 500); // UIの更新を待つため少し遅延
     }
 }
 
@@ -780,6 +833,28 @@ window.addEventListener('resize', () => {
 // ========================================
 // 結果表示
 // ========================================
+// 指定したルートのタブ・カード（と共有ボタン）だけを表示する
+function showRouteIndex(idx, { align = true } = {}) {
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.querySelectorAll('.route-tab').forEach((t, i) => {
+        t.classList.toggle('is-active', i === idx);
+    });
+    resultsContainer.querySelectorAll('.route-card').forEach((c, i) => {
+        const showing = (i === idx);
+        c.style.display = showing ? 'block' : 'none';
+        const shareWrapper = c.querySelector('.share-result-wrapper');
+        if (shareWrapper) shareWrapper.style.display = showing ? '' : 'none';
+    });
+
+    // 切替で表示されたカードのタイムライン線を再調整する
+    if (align) {
+        requestAnimationFrame(() => {
+            const shownCard = resultsContainer.querySelector(`.route-card[data-index="${idx}"]`);
+            alignRouteCardTimelineLines(shownCard);
+        });
+    }
+}
+
 function displayResults(routes) {
     const resultsSection = document.getElementById('results-section');
     const resultsContainer = document.getElementById('results-container');
@@ -868,18 +943,7 @@ function displayResults(routes) {
         tab.dataset.index = idx;
 
         tab.addEventListener('click', () => {
-            // activate tab
-            const allTabs = tabs.querySelectorAll('.route-tab');
-            allTabs.forEach(t => t.classList.toggle('is-active', t === tab));
-
-            // show/hide cards and their share buttons
-            const cards = resultsContainer.querySelectorAll('.route-card');
-            cards.forEach((c, i) => {
-                const showing = (i === idx);
-                c.style.display = showing ? 'block' : 'none';
-                const shareWrapper = c.querySelector('.share-result-wrapper');
-                if (shareWrapper) shareWrapper.style.display = showing ? '' : 'none';
-            });
+            showRouteIndex(idx);
 
             // update URL to include route param because user explicitly selected a route
             try {
@@ -894,12 +958,6 @@ function displayResults(routes) {
 
             // bring results into view
             resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-            // タブ切替で表示されたカードのタイムライン線を再調整する
-            requestAnimationFrame(() => {
-                const shownCard = resultsContainer.querySelector(`.route-card[data-index="${idx}"]`);
-                alignRouteCardTimelineLines(shownCard);
-            });
         });
 
         tabs.appendChild(tab);
@@ -988,17 +1046,9 @@ function displayResults(routes) {
         initialIndex = 0;
     }
 
-    // Activate the initial tab
-    const allTabs = tabs.querySelectorAll('.route-tab');
-    allTabs.forEach((t, i) => t.classList.toggle('is-active', i === initialIndex));
-
-    // show/hide cards according to initialIndex and ensure share button visibility
-    const cards = resultsContainer.querySelectorAll('.route-card');
-    cards.forEach((c, i) => {
-        c.style.display = (i === initialIndex) ? 'block' : 'none';
-        const shareWrapper = c.querySelector('.share-result-wrapper');
-        if (shareWrapper) shareWrapper.style.display = (i === initialIndex) ? '' : 'none';
-    });
+    // Activate the initial tab and card
+    showRouteIndex(initialIndex, { align: false });
+    displayedSearchKey = searchKeyFromParams(window.location.search);
 
     resultsSection.style.display = 'block';
     // mark body so CSS can adjust layout for results view on small screens
@@ -1008,7 +1058,7 @@ function displayResults(routes) {
 
     // 初期表示カードのタイムライン線を、実際のレイアウト確定後に調整する
     requestAnimationFrame(() => {
-        alignRouteCardTimelineLines(cards[initialIndex]);
+        alignRouteCardTimelineLines(resultsContainer.querySelectorAll('.route-card')[initialIndex]);
     });
 }
 
@@ -1515,7 +1565,10 @@ function hideSearchSection() {
 }
 
 function showSearchSection() {
-    document.getElementById('search-section').style.display = 'block';
+    // インラインの display を外してCSS側の指定に戻す。'block' を直接指定すると
+    // モバイル用の flex 列レイアウト（トグル上・入力欄中央・フィルター下）が
+    // 上書きされ、要素が上に寄ってしまう。
+    document.getElementById('search-section').style.display = '';
 }
 
 // 共有ダイアログ表示は src/shared/ui-dom.js の showShareDialog を使用（インポート済み）

@@ -826,8 +826,18 @@ function generateETag() {
 
 function corsHeaders(request, env) {
   const origin = request.headers.get('Origin') || '';
-  const allowedOrigin = String(env.ALLOWED_ORIGIN || '').trim();
-  const useOrigin = allowedOrigin || origin || '*';
+  const allowedOrigins = String(env.ALLOWED_ORIGIN || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  let useOrigin;
+  if (allowedOrigins.length === 0) {
+    useOrigin = origin || '*';
+  } else if (allowedOrigins.includes(origin) || isLocalDevOrigin(origin)) {
+    useOrigin = origin;
+  } else {
+    useOrigin = allowedOrigins[0];
+  }
 
   return {
     'Access-Control-Allow-Origin': useOrigin,
@@ -836,6 +846,22 @@ function corsHeaders(request, env) {
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
+}
+
+// ローカル開発用サーバー（Live Server 等）からのアクセスを許可する。
+// localhost / 127.0.0.1、自宅LAN (10.0.1.0/24)、Tailscale (100.64.0.0/10) の http のみ。ポートは任意。
+function isLocalDevOrigin(origin) {
+  const m = /^http:\/\/([^/:]+)(?::\d{1,5})?$/.exec(origin);
+  if (!m) return false;
+  const host = m[1];
+  if (host === 'localhost' || host === '127.0.0.1') return true;
+  const ip = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
+  if (!ip) return false;
+  const o = ip.slice(1).map(Number);
+  if (o.some((n) => n > 255)) return false;
+  if (o[0] === 10 && o[1] === 0 && o[2] === 1) return true;
+  if (o[0] === 100 && o[1] >= 64 && o[1] <= 127) return true;
+  return false;
 }
 
 function generateToken() {

@@ -150,6 +150,27 @@ body:not(.results-open) main.page-main {
     flex: 0 1 400px;
     max-width: 400px;
 }
+@media (max-width: 768px) {
+    /* 経由駅行を発着駅行（.station-input-row）と同じ配置にする：
+       中央揃え・同じ左右パディング・入力欄は残り幅いっぱい。
+       右端の「から/まで」と ✕ ボタンは同じ固定幅にして、
+       バッジと入力欄の位置・幅が発着駅行と一致するようにする。 */
+    .via-station-item {
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 16px;
+    }
+    .via-station-item .input-wrapper {
+        flex: 1;
+    }
+    .via-station-item .btn-icon-circle--ghost,
+    .station-suffix {
+        flex: 0 0 40px;
+        width: 40px;
+        text-align: center;
+    }
+}
 
 /* ===== 経由追加 / 入替行 ===== */
 .via-swap-row {

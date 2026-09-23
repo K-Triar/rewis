@@ -240,7 +240,8 @@ ALLOWED_ORIGIN = "https://yourname.github.io"
 TOKEN_TTL_SECONDS = "1800"
 ```
 
-- ALLOWED_ORIGIN: あなたの GitHub Pages の URL に変更してください
+- ALLOWED_ORIGIN: あなたの GitHub Pages の URL に変更してください（カンマ区切りで複数指定可）
+  - これとは別に、ローカル開発用の `http://localhost` / `http://127.0.0.1`、自宅LAN `10.0.1.0/24`、Tailscale `100.64.0.0/10` の http オリジンは任意のポートで常に許可されます（`worker/src/index.js` の `isLocalDevOrigin()`）
 - TOKEN_TTL_SECONDS: トークンの有効秒数（デフォルト 1800秒 = 30分）
 
 ### 4-4.（オプション）ローカル開発用に .dev.vars を設定
