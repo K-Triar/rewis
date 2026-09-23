@@ -19,3 +19,10 @@ export function newId(prefix) {
 export function sanitizeIdPart(s) {
   return String(s).replace(/[^A-Za-z0-9_-]/g, '_');
 }
+
+// meta.ownCompanyId は文字列（従来）または配列（複数自社）のどちらもとりうる。常に配列で扱うための正規化。
+export function ownCompanyIds(meta) {
+  const v = meta && meta.ownCompanyId;
+  if (Array.isArray(v)) return v.filter(Boolean);
+  return v ? [v] : [];
+}

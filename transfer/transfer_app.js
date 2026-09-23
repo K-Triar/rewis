@@ -3,6 +3,7 @@
 // ========================================
 import { loadPublicModel } from '../shared/data-source.js';
 import { buildSearchGraph, searchRoutes } from '../shared/route-search.js';
+import { ownCompanyIds } from '../shared/ids.js';
 import {
     showShareDialog,
     setupBottomSheet,
@@ -23,7 +24,7 @@ let viaStationCount = 0;
 // displayed sequential index which is computed from the visible items.
 let viaUniqueIdCounter = 0;
 let brandName = 'Kトライア交通グループ';
-let ownCompanyId = 'KT';
+let ownCompanyIdList = ['KT'];
 // 検索モード: 'time' | 'balance' | 'transfer' (default: balance)
 let searchMode = 'balance';
 
@@ -55,7 +56,7 @@ function getTransferPenalty(mode) {
                 brandName = meta.appName.replace(/乗換案内システム$/, '').trim();
             }
             if (meta.ownCompanyId) {
-                ownCompanyId = meta.ownCompanyId;
+                ownCompanyIdList = ownCompanyIds(meta);
             }
         }
         groupMatesByStation = buildGroupMates(model.network);

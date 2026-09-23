@@ -1,6 +1,8 @@
 // 経路探索：運行系統を単位としたグラフを作り、二分ヒープを使ったダイクストラ法で検索する。
 // 仕様は docs/rewis-v2/phase-3-route-search.md の 3-2・3-3 を参照。
 
+import { ownCompanyIds } from './ids.js';
+
 // ========================================
 // 二分ヒープ（優先度キュー）
 // ========================================
@@ -58,13 +60,13 @@ function platformKey(platformId) {
 
 export function buildSearchGraph(model, { vehicleTypeIds = null, ownCompanyOnly = false } = {}) {
   const network = model.network;
-  const ownCompanyId = network.meta ? network.meta.ownCompanyId : null;
+  const ownIds = ownCompanyIds(network.meta);
   const lineById = model.lineById;
 
   function lineAllowed(line) {
     if (!line) return false;
     if (vehicleTypeIds && !vehicleTypeIds.has(line.vehicleTypeId)) return false;
-    if (ownCompanyOnly && line.companyId !== ownCompanyId) return false;
+    if (ownCompanyOnly && !ownIds.includes(line.companyId)) return false;
     return true;
   }
 

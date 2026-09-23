@@ -3483,8 +3483,8 @@ main {
     mask-position: center;
 }
 .filter-icon-mc {
-    -webkit-mask-image: url('../icons/mc.svg');
-    mask-image: url('../icons/mc.svg');
+    -webkit-mask-image: url('../icons/MC.svg');
+    mask-image: url('../icons/MC.svg');
     -webkit-mask-size: contain;
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;

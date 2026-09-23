@@ -34,6 +34,26 @@ test('v2-minimal-operations.json は errors が0件になる', () => {
   assert.deepEqual(result.errors, []);
 });
 
+test('meta.ownCompanyId は配列（複数自社）でも errors が0件になる', () => {
+  const net = network();
+  net.companies.push({ id: 'C2', name: 'D鉄道' });
+  net.meta.ownCompanyId = ['C1', 'C2'];
+  const result = validateNetwork(net);
+  assert.deepEqual(result.errors, []);
+});
+
+test('meta.ownCompanyId が空配列だと E_OWN_COMPANY', () => {
+  const net = network();
+  net.meta.ownCompanyId = [];
+  assert.ok(hasCode(validateNetwork(net).errors, 'E_OWN_COMPANY'));
+});
+
+test('meta.ownCompanyId の配列に存在しないIDが含まれると E_OWN_COMPANY', () => {
+  const net = network();
+  net.meta.ownCompanyId = ['C1', 'NOPE'];
+  assert.ok(hasCode(validateNetwork(net).errors, 'E_OWN_COMPANY'));
+});
+
 test('どの路線にも属さない駅を追加しても errors も warnings も増えない', () => {
   const base = validateNetwork(network());
   const net = network();

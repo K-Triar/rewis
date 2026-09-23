@@ -1,6 +1,6 @@
 // 鉄道会社の編集ロジック。DOM を使わない。02-editor-ui-spec.md 15.1、17章。
 
-import { isValidId } from '../shared/ids.js';
+import { isValidId, ownCompanyIds } from '../shared/ids.js';
 
 export function validateCompanyDraft(network, company, isNew) {
   if (isNew) {
@@ -13,7 +13,7 @@ export function validateCompanyDraft(network, company, isNew) {
 
 // 自社（meta.ownCompanyId）は削除できない。表形式にはない、図形式で追加するチェック（仕様17章）。
 export function canDeleteCompany(network, id) {
-  if (network.meta && network.meta.ownCompanyId === id) {
+  if (ownCompanyIds(network.meta).includes(id)) {
     return '自社は削除できません。';
   }
   return null;

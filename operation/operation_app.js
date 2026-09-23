@@ -3,6 +3,7 @@
 // ========================================
 import { loadPublicModel } from '../shared/data-source.js';
 import { computeAffectedIndices } from '../shared/model.js';
+import { ownCompanyIds } from '../shared/ids.js';
 import {
     showShareDialog,
     setupBottomSheet,
@@ -23,12 +24,7 @@ function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
 
     const vehicleTypeId = (line.vehicleTypeId || 'TC').toUpperCase();
-    const iconPathMap = {
-        TC: '../assets/icons/TC.svg',
-        SX: '../assets/icons/SX.svg',
-        MC: '../assets/icons/mc.svg'
-    };
-    const iconPath = iconPathMap[vehicleTypeId] || iconPathMap.TC;
+    const iconPath = `../assets/icons/${vehicleTypeId}.svg`;
 
     el.textContent = '';
     el.style.backgroundColor = line.color || 'var(--color-primary)';
@@ -292,11 +288,11 @@ function renderLineListView() {
     if (!container || !model) return;
     container.innerHTML = '';
 
-    const ownCompanyId = model.network.meta?.ownCompanyId || 'KT';
+    const ownIds = ownCompanyIds(model.network.meta).length ? ownCompanyIds(model.network.meta) : ['KT'];
 
     // 登録されている全ての会社を取得し、自社(ownCompanyId)を先頭にする
     const allCompanyIds = model.network.companies.map(c => c.id);
-    const targetCompanies = [ownCompanyId, ...allCompanyIds.filter(id => id !== ownCompanyId)];
+    const targetCompanies = [...ownIds, ...allCompanyIds.filter(id => !ownIds.includes(id))];
 
     targetCompanies.forEach(companyId => {
         const company = model.companyById.get(companyId);

@@ -553,7 +553,7 @@
 .filter-toggle-icon--kt { mask-image: url(../icons/kt_icon.svg); -webkit-mask-image: url(../icons/kt_icon.svg); }
 .filter-toggle-icon--tc { mask-image: url(../icons/TC.svg); -webkit-mask-image: url(../icons/TC.svg); }
 .filter-toggle-icon--sx { mask-image: url(../icons/SX.svg); -webkit-mask-image: url(../icons/SX.svg); }
-.filter-toggle-icon--mc { mask-image: url(../icons/mc.svg); -webkit-mask-image: url(../icons/mc.svg); }
+.filter-toggle-icon--mc { mask-image: url(../icons/MC.svg); -webkit-mask-image: url(../icons/MC.svg); }
 
 .filter-toggle-caption {
     font-size: var(--font-size-sm);

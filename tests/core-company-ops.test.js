@@ -30,3 +30,10 @@ test('canDeleteCompany: 自社でなければ削除できる（null）', () => {
   const withSecondCompany = { ...network, companies: [...network.companies, { id: 'C2', name: 'D鉄道' }] };
   assert.equal(canDeleteCompany(withSecondCompany, 'C2'), null);
 });
+
+test('canDeleteCompany: 自社が配列で複数指定されていても、含まれていれば削除できない', () => {
+  const net = { ...network, meta: { ...network.meta, ownCompanyId: ['C1', 'C2'] }, companies: [...network.companies, { id: 'C2', name: 'D鉄道' }] };
+  assert.notEqual(canDeleteCompany(net, 'C1'), null);
+  assert.notEqual(canDeleteCompany(net, 'C2'), null);
+});
+

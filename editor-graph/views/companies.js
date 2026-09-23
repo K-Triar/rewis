@@ -3,6 +3,7 @@ import { alertDialog, confirmDialog } from '../../editor-shared/components/dialo
 import { openPopover } from '../../editor-shared/components/overlay.js';
 import * as companyOps from '../../editor-core/company-ops.js';
 import { findReferences } from '../../editor2/refs.js';
+import { ownCompanyIds } from '../../shared/ids.js';
 
 const REF_TAB_BY_KIND = { line: 'lines' };
 
@@ -62,7 +63,7 @@ export function renderCompaniesView(container, ctx) {
   }
 
   function renderRow(company) {
-    const isOwn = network.meta && network.meta.ownCompanyId === company.id;
+    const isOwn = ownCompanyIds(network.meta).includes(company.id);
     return h('button', {
       type: 'button',
       class: 'g-list__item' + (selectedId === company.id ? ' is-selected' : ''),
@@ -74,7 +75,7 @@ export function renderCompaniesView(container, ctx) {
     },
       h('span', {}, company.name),
       h('span', { class: 'g-list__item-id' }, company.id),
-      isOwn ? h('span', { class: 'g-label' }, '自社') : null
+      isOwn ? h('span', { class: 'g-label' }, 'KT線') : null
     );
   }
 

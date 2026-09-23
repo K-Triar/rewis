@@ -1,4 +1,4 @@
-import { ID_PATTERN } from './ids.js';
+import { ID_PATTERN, ownCompanyIds } from './ids.js';
 
 function issue(code, path, message) {
   return { code, path, message };
@@ -131,9 +131,10 @@ export function validateNetwork(doc) {
     return platforms.some(p => p && p.id === platformId);
   }
 
-  // meta.ownCompanyId
+  // meta.ownCompanyId（文字列 or 配列。1社以上必須で、すべて companies に存在すること）
   const companyIds = new Set(companies.map(c => c && c.id));
-  if (!meta.ownCompanyId || !companyIds.has(meta.ownCompanyId)) {
+  const ownIds = ownCompanyIds(meta);
+  if (ownIds.length === 0 || !ownIds.every(id => companyIds.has(id))) {
     errors.push(issue('E_OWN_COMPANY', 'meta.ownCompanyId', 'meta.ownCompanyId が companies にありません'));
   }
 
