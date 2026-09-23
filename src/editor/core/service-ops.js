@@ -1,7 +1,7 @@
 // 運行系統タブの編集ロジック。DOM を使わない。02-editor-ui-spec.md 12章、17章。
 
 import { newId } from '../../shared/ids.js';
-import { expandSectionsToSegments, buildSectionsFromSegments, stationName } from '../table/views/services.js';
+import { expandSectionsToSegments, buildSectionsFromSegments, stationName } from './service-sections.js';
 import { suggestRun } from './run-suggest.js';
 import { repairSegments } from './segment-infer.js';
 

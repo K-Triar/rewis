@@ -1,4 +1,4 @@
-import { h, clear } from '../../common/dom.js';
+import { h, clear } from '../dom.js';
 
 export function renderVehicleTypesView(container, ctx) {
   const { store } = ctx;

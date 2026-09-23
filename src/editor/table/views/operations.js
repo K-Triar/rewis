@@ -17,34 +17,18 @@ import {
   removeThroughService,
   setNoticeText,
   duplicateNotice,
-  validateNoticeDraft
+  validateNoticeDraft,
+  NOTICE_STATE_LABEL,
+  THROUGH_TARGET_LABEL
 } from '../../core/notice-ops.js';
+import { lineName } from '../../core/lookup.js';
+import { formatDateTime } from '../../common/format.js';
 import { generateNoticeText } from '../../../shared/notice-text.js';
 import { throughTargetsFor } from '../../../shared/model.js';
-
-const STATE_LABEL = { draft: '下書き', published: '公開中', closed: '終了' };
-const TARGET_LABEL = { mutual: '相互', affected_to_through: '影響路線→直通先', through_to_affected: '直通先→影響路線' };
-
-function lineName(network, lineId) {
-  const line = (network.lines || []).find((l) => l.id === lineId);
-  return line ? line.name : lineId;
-}
 
 function stationsOfLine(network, lineId) {
   const line = (network.lines || []).find((l) => l.id === lineId);
   return line ? line.stations.map((id) => (network.stations || []).find((s) => s.id === id)).filter(Boolean) : [];
-}
-
-function formatDateTime(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  const hh = String(date.getHours()).padStart(2, '0');
-  const mm = String(date.getMinutes()).padStart(2, '0');
-  return `${y}/${m}/${d} ${hh}:${mm}`;
 }
 
 export function renderOperationsView(container, ctx) {
@@ -167,7 +151,7 @@ export function renderOperationsView(container, ctx) {
 
     const heading = generateNoticeText(notice, network, operations.masters).heading;
     return h('tr', { class: expandedId === notice.id ? 'is-editing' : null, 'data-row-id': notice.id },
-      h('td', {}, STATE_LABEL[notice.state] || notice.state),
+      h('td', {}, NOTICE_STATE_LABEL[notice.state] || notice.state),
       h('td', {}, lineName(network, notice.lineId)),
       h('td', {}, heading),
       h('td', {}, causeLabel(notice)),
@@ -379,7 +363,7 @@ export function renderOperationsView(container, ctx) {
           );
           stateSel.value = existing.state;
           const targetOptions = link.allowedTargets.includes('mutual') ? ['mutual', 'affected_to_through', 'through_to_affected'] : link.allowedTargets;
-          const targetSel = h('select', { class: 'g-select' }, ...targetOptions.map((t) => h('option', { value: t }, TARGET_LABEL[t])));
+          const targetSel = h('select', { class: 'g-select' }, ...targetOptions.map((t) => h('option', { value: t }, THROUGH_TARGET_LABEL[t])));
           targetSel.value = existing.target;
           const showCheckbox = h('input', { type: 'checkbox' });
           showCheckbox.checked = existing.showOnThroughLine;

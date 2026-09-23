@@ -1,4 +1,6 @@
-// 図形式エディタの共通ストア（元に戻す・やり直す付き）。DOM を使わない。
+// 両エディタの共通ストア。DOM を使わない。
+// createStore({ undo: false }) では元に戻す・やり直すを持たない（表形式エディタ）。
+// その場合 canUndo などのメソッド自体を持たないので、ステータス行にボタンが出ない。
 // 02-editor-ui-spec.md 7章。
 
 import { validateNetwork, validateOperations } from '../../shared/schema-v2.js';
@@ -12,7 +14,7 @@ function restoreInPlace(target, json) {
   Object.assign(target, JSON.parse(json));
 }
 
-export function createStore() {
+export function createStore({ undo = true } = {}) {
   const state = {
     docs: { network: null, operations: null },
     meta: { network: null, operations: null },
@@ -40,6 +42,7 @@ export function createStore() {
   }
 
   function pushUndo(kind) {
+    if (!undo) return;
     undoStack.push({ kind, json: JSON.stringify(state.docs[kind]) });
     if (undoStack.length > MAX_HISTORY) undoStack.shift();
     redoStack = [];
@@ -101,8 +104,12 @@ export function createStore() {
     revalidate() {
       revalidate();
       notify();
-    },
+    }
+  };
 
+  if (!undo) return store;
+
+  Object.assign(store, {
     canUndo() {
       return undoStack.length > 0;
     },
@@ -128,7 +135,7 @@ export function createStore() {
       revalidate();
       notify();
     }
-  };
+  });
 
   return store;
 }

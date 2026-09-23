@@ -14,17 +14,9 @@ import { helpTip } from '../../common/components/help-tip.js';
 import { createStationSearch } from '../components/station-search.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
+import { stationOf, stationName } from '../../core/lookup.js';
 
 const SHIFT_HELP_TEXT = 'このタブでは、駅の移動は Shift を押しながらのドラッグだけです。ドラッグだけで始めると、乗換の登録になります。';
-
-function stationOf(network, stationId) {
-  return (network.stations || []).find((st) => st.id === stationId) || null;
-}
-
-function stationLabel(network, stationId) {
-  const station = stationOf(network, stationId);
-  return station ? station.name : stationId;
-}
 
 function platformLabelOf(station, platformId) {
   if (platformId == null) return null;
@@ -604,7 +596,7 @@ function mountTablesPane(container, ctx, focusGroupId) {
       const row = h('div', { class: 'g-list__row' + (group.id === focusGroupId ? ' is-selected' : '') },
         h('div', {},
           h('div', {}, group.name),
-          h('div', { class: 'g-svc-row__badges' }, group.stationIds.map((id) => h('span', { class: 'g-label' }, stationLabel(network, id))))
+          h('div', { class: 'g-svc-row__badges' }, group.stationIds.map((id) => h('span', { class: 'g-label' }, stationName(network, id))))
         ),
         h('div', { class: 'g-tr-group-actions' },
           h('button', {
@@ -657,7 +649,7 @@ function mountTablesPane(container, ctx, focusGroupId) {
         clear(listEl);
         stationIds.forEach((id) => {
           listEl.appendChild(h('div', { class: 'g-list__row' },
-            h('span', {}, stationLabel(network, id)),
+            h('span', {}, stationName(network, id)),
             h('button', {
               type: 'button', class: 'g-btn g-btn--small',
               onClick: () => { stationIds = stationIds.filter((sid) => sid !== id); renderStations(); }

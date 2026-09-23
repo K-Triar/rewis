@@ -1,6 +1,7 @@
-import { h, clear } from '../../common/dom.js';
-import * as api from '../../common/api.js';
-import { alertDialog, confirmDialog } from '../../common/components/dialog.js';
+import { h, clear } from '../dom.js';
+import * as api from '../api.js';
+import { alertDialog, confirmDialog } from '../components/dialog.js';
+import { formatDateTime } from '../format.js';
 
 const KIND_LABEL = { network: '路線網', operations: '運行情報' };
 
@@ -22,14 +23,6 @@ function summarizeCounts(kind, doc) {
     };
   }
   return { notices: (doc.notices || []).length };
-}
-
-function formatDateTime(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function renderHistoryView(container, ctx) {

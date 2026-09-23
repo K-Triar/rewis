@@ -3,6 +3,9 @@
 
 import { newId } from '../../shared/ids.js';
 
+export const NOTICE_STATE_LABEL = { draft: '下書き', published: '公開中', closed: '終了' };
+export const THROUGH_TARGET_LABEL = { mutual: '相互', affected_to_through: '影響路線→直通先', through_to_affected: '直通先→影響路線' };
+
 export function createEmptyNotice(network) {
   const firstLine = (network && network.lines || [])[0];
   return {

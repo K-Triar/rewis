@@ -1,6 +1,6 @@
-import { h, clear, icon } from '../../common/dom.js';
-import { alertDialog, confirmDialog } from '../../common/components/dialog.js';
-import { openPopover } from '../../common/components/overlay.js';
+import { h, clear, icon } from '../dom.js';
+import { alertDialog, confirmDialog } from '../components/dialog.js';
+import { openPopover } from '../components/overlay.js';
 import * as companyOps from '../../core/company-ops.js';
 import { findReferences } from '../../core/refs.js';
 import { ownCompanyIds } from '../../../shared/ids.js';

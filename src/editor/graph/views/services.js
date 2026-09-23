@@ -12,24 +12,15 @@ import * as stationOps from '../../core/station-ops.js';
 import { matchesServiceFilter } from '../../core/service-filter.js';
 import { suggestPlatformId } from '../../core/id-suggest.js';
 import { serviceTitle, describeIssueLocation, issueTargetsForService } from '../../core/issue-location.js';
-import { summarizeSections, totalRun, reverseService, stationName } from '../../table/views/services.js';
+import { summarizeSections, totalRun, reverseService, stationName, categoryName } from '../../core/service-sections.js';
 import { h, s, clear, icon } from '../../common/dom.js';
 import { alertDialog, confirmDialog } from '../../common/components/dialog.js';
 import { openPopover } from '../../common/components/overlay.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
+import { stationOf, lineOf } from '../../core/lookup.js';
 
 const MUTED_COLOR = '#999999';
-
-function lineOf(network, lineId) {
-  return (network.lines || []).find((l) => l.id === lineId) || null;
-}
-
-function categoryNameOf(network, lineId, categoryId) {
-  const line = lineOf(network, lineId);
-  const category = line && (line.categories || []).find((c) => c.id === categoryId);
-  return category ? category.name : categoryId;
-}
 
 function firstSectionColor(network, service) {
   const section = (service.sections || [])[0];
@@ -42,10 +33,6 @@ function formatSeconds(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
   const sVal = totalSeconds % 60;
   return `${m}分${sVal}秒`;
-}
-
-function stationOf(network, stationId) {
-  return (network.stations || []).find((st) => st.id === stationId) || null;
 }
 
 function platformLabelOf(station, platformId) {
@@ -996,7 +983,7 @@ export function renderServicesView(container, ctx) {
       const lineId = lineSelectEdge.value || null;
       const newLine = lineOf(network, lineId);
       const categories = newLine ? newLine.categories || [] : [];
-      const currentCategoryName = seg.lineId != null ? categoryNameOf(network, seg.lineId, seg.categoryId) : null;
+      const currentCategoryName = seg.lineId != null ? categoryName(network, seg.lineId, seg.categoryId) : null;
       const matched = currentCategoryName ? categories.find((c) => c.name === currentCategoryName) : null;
       const categoryId = matched ? matched.id : (categories[0] ? categories[0].id : null);
       applySegment(index, rangeEnd ?? index, { lineId, categoryId });

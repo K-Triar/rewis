@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validateNetwork } from '../../../src/shared/schema-v2.js';
-import { reverseService } from '../../../src/editor/table/views/services.js';
+import { reverseService } from '../../../src/editor/core/service-sections.js';
 import {
   createEmptyService, segmentsOf, withSegments, appendStop, insertStop, removeStop, moveStop,
   setStopPlatform, setStopFlags, setRun, setSegmentRange, setCircular, updateServiceFields,

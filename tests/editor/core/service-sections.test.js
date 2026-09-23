@@ -11,7 +11,7 @@ import {
   totalRun,
   reverseService,
   stationName
-} from '../../../src/editor/table/views/services.js';
+} from '../../../src/editor/core/service-sections.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

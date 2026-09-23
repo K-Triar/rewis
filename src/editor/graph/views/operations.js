@@ -7,30 +7,16 @@ import { graphUi } from '../canvas/ui-state.js';
 import { resolvePositions, setLayout } from '../../core/auto-layout.js';
 import { boundsOf } from '../../core/graph-geometry.js';
 import * as noticeOps from '../../core/notice-ops.js';
+import { NOTICE_STATE_LABEL, THROUGH_TARGET_LABEL } from '../../core/notice-ops.js';
 import { generateNoticeText } from '../../../shared/notice-text.js';
 import { computeAffectedIndices, throughTargetsFor } from '../../../shared/model.js';
 import { h, s, clear, icon } from '../../common/dom.js';
 import { alertDialog, confirmDialog } from '../../common/components/dialog.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
+import { stationOf, stationName, lineOf } from '../../core/lookup.js';
 
 const MUTED_COLOR = '#999999';
-const STATE_LABEL = { draft: '下書き', published: '公開中', closed: '終了' };
-const TARGET_LABEL = { mutual: '相互', affected_to_through: '影響路線→直通先', through_to_affected: '直通先→影響路線' };
-
-function stationOf(network, stationId) {
-  return (network.stations || []).find((st) => st.id === stationId) || null;
-}
-
-function stationLabel(network, stationId) {
-  const station = stationOf(network, stationId);
-  return station ? station.name : stationId;
-}
-
-function lineOf(network, lineId) {
-  return (network.lines || []).find((l) => l.id === lineId) || null;
-}
-
 export function renderOperationsView(container, ctx) {
   const { store, focus } = ctx;
   const network = store.state.docs.network;
@@ -225,7 +211,7 @@ export function renderOperationsView(container, ctx) {
           h('span', {}, heading)
         ),
         h('div', { class: 'g-svc-row__badges' },
-          h('span', { class: 'g-label' }, STATE_LABEL[notice.state] || notice.state)
+          h('span', { class: 'g-label' }, NOTICE_STATE_LABEL[notice.state] || notice.state)
         )
       ));
     });
@@ -311,7 +297,7 @@ export function renderOperationsView(container, ctx) {
     if (notice.range) {
       const range = noticeOps.normalizeRange(notice.range);
       rangeSection.appendChild(h('div', { class: 'g-ws-right__note' },
-        `${stationLabel(network, range.fromStationId)} 〜 ${stationLabel(network, range.toStationId)}`,
+        `${stationName(network, range.fromStationId)} 〜 ${stationName(network, range.toStationId)}`,
         h('button', { type: 'button', class: 'g-btn g-btn--small', disabled: ui.mode !== 'idle', onClick: () => startPickRange() }, '区間を選び直す')
       ));
       if (line && line.loop) {
@@ -458,7 +444,7 @@ export function renderOperationsView(container, ctx) {
         );
         const targetOptions = link.allowedTargets.includes('mutual') ? ['mutual', 'affected_to_through', 'through_to_affected'] : link.allowedTargets;
         const targetSel = h('select', { class: 'g-select', disabled: existing.state !== 'suspended' },
-          targetOptions.map((t) => h('option', { value: t, selected: existing.target === t }, TARGET_LABEL[t]))
+          targetOptions.map((t) => h('option', { value: t, selected: existing.target === t }, THROUGH_TARGET_LABEL[t]))
         );
         const showCheckbox = h('input', { type: 'checkbox', checked: existing.showOnThroughLine, disabled: existing.state !== 'suspended' });
 

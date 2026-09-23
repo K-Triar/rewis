@@ -17,18 +17,10 @@ import { alertDialog, confirmDialog } from '../../common/components/dialog.js';
 import { openPopover } from '../../common/components/overlay.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
+import { stationOf, stationName } from '../../core/lookup.js';
 
 const MUTED_COLOR = '#999999';
 const REF_TAB_BY_KIND = { service: 'services' };
-
-function stationOf(network, stationId) {
-  return (network.stations || []).find((st) => st.id === stationId) || null;
-}
-
-function stationLabel(network, stationId) {
-  const station = stationOf(network, stationId);
-  return station ? station.name : stationId;
-}
 
 function shapeOf(line) {
   if (!line.loop) return 'normal';
@@ -307,7 +299,7 @@ export function renderLinesView(container, ctx) {
       if (workspace.ribbonHost) clear(workspace.ribbonHost);
       return;
     }
-    const items = (line.stations || []).map((stationId) => ({ label: stationLabel(network, stationId) }));
+    const items = (line.stations || []).map((stationId) => ({ label: stationName(network, stationId) }));
     const connectors = [];
     for (let i = 0; i < (line.stations || []).length - 1; i++) {
       connectors.push({ label: '', color: line.color, dashed: false });
@@ -364,8 +356,8 @@ export function renderLinesView(container, ctx) {
       const stations = line ? line.stations : [];
       const a = stations[ui.insertIndex - 1];
       const b = stations[ui.insertIndex];
-      const nameA = a != null ? stationLabel(network, a) : '';
-      const nameB = b != null ? stationLabel(network, b) : '';
+      const nameA = a != null ? stationName(network, a) : '';
+      const nameB = b != null ? stationName(network, b) : '';
       text = nameB ? `${nameA}と${nameB}の間に入れる駅をクリックしてください。` : `${nameA}のあとに入れる駅をクリックしてください。`;
     } else {
       text = '終点の次に戻る駅を、図の中でクリックしてください。';
@@ -514,7 +506,7 @@ export function renderLinesView(container, ctx) {
     section.appendChild(h('div', { class: 'g-shape-toggle' }, normalBtn, circularBtn, racketBtn));
 
     if (shape === 'racket' && line.loop) {
-      const loopName = stationLabel(network, line.stations[line.loop.startIndex]);
+      const loopName = stationName(network, line.stations[line.loop.startIndex]);
       section.appendChild(h('div', { class: 'g-ws-right__note' },
         `戻る駅: ${loopName}`,
         h('button', { type: 'button', class: 'g-btn g-btn--small', onClick: () => startPickLoopMode() }, '戻る駅を変える')
@@ -646,7 +638,7 @@ export function renderLinesView(container, ctx) {
 
   function renderStationPanel(line, index) {
     const stationId = line.stations[index];
-    workspace.right.appendChild(h('div', { class: 'g-field__label' }, `${stationLabel(network, stationId)}（${index + 1} 番目）`));
+    workspace.right.appendChild(h('div', { class: 'g-field__label' }, `${stationName(network, stationId)}（${index + 1} 番目）`));
 
     workspace.right.appendChild(h('div', { class: 'g-svc-actions' },
       h('button', {

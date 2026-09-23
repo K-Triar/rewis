@@ -1,6 +1,8 @@
 // issues-panel のクリックや findReferences の結果から、エディタ内のどのタブ・どの行へ
 // 飛べばよいかを求める。DOM に依存しないため node --test でも読み込める。
 
+import { resolveIssueTarget } from '../core/issue-location.js';
+
 const TAB_BY_REF_KIND = {
   line: 'lines',
   service: 'services',
@@ -18,44 +20,23 @@ export function refToFocus(ref) {
   return { tab, type: ref.kind, id: ref.id };
 }
 
-const TAB_BY_ARRAY_NAME = {
-  companies: 'companies',
-  stations: 'stations',
-  lines: 'lines',
-  services: 'services',
-  transfers: 'transfers',
-  stationGroups: 'transfers',
-  notices: 'operations'
-};
-
-const TYPE_BY_ARRAY_NAME = {
+const TYPE_BY_TAB = {
   companies: 'company',
   stations: 'station',
   lines: 'line',
   services: 'service',
   transfers: 'transfer',
-  stationGroups: 'stationGroup',
-  notices: 'notice'
+  operations: 'notice'
 };
 
 // issues-panel の issue（{ code, path, message }）から、飛び先を求める。
-// path の先頭が「配列名[番号]」の形（例: "stations[3].platforms"）のときだけ求められる。
+// 飛び先の判定は図形式と共通の resolveIssueTarget（{ tab, id, sub }）に任せ、
+// 表形式のビューが使う { tab, type, id } の形に直す。
 // docs は { network, operations }。kind は issue が network / operations のどちらのものか。
 export function resolveIssueFocus(kind, issue, docs) {
-  if (!issue || !issue.path) return null;
-  const match = issue.path.match(/^(\w+)\[(\d+)\]/);
-  if (!match) return null;
-  const [, arrayName, idxText] = match;
-  const tab = TAB_BY_ARRAY_NAME[arrayName];
-  const type = TYPE_BY_ARRAY_NAME[arrayName];
-  if (!tab || !type) return null;
-
-  const doc = kind === 'operations' ? docs && docs.operations : docs && docs.network;
-  if (!doc) return null;
-  const list = doc[arrayName];
-  if (!Array.isArray(list)) return null;
-  const item = list[Number(idxText)];
-  if (!item || !item.id) return null;
-
-  return { tab, type, id: item.id };
+  const target = resolveIssueTarget(kind, issue, docs);
+  if (!target) return null;
+  const type = target.sub && target.sub.type === 'group' ? 'stationGroup' : TYPE_BY_TAB[target.tab];
+  if (!type) return null;
+  return { tab: target.tab, type, id: target.id };
 }

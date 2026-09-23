@@ -121,3 +121,17 @@ test('canUndo/canRedo は未読込のときも安全', () => {
   store.undo();
   store.redo();
 });
+
+test('undo: false では元に戻す系のメソッドを持たず、履歴も積まない', () => {
+  const store = createStore({ undo: false });
+  store.setDoc('network', minimalNetwork(), { revision: 1 });
+  assert.equal(typeof store.canUndo, 'undefined');
+  assert.equal(typeof store.undo, 'undefined');
+
+  store.mutateDoc('network', (doc) => { doc.stations[0].name = '変更後'; });
+  assert.equal(store.state.docs.network.stations[0].name, '変更後');
+  assert.equal(store.hasUnsavedChanges('network'), true);
+
+  store.replaceDocLocally('network', minimalNetwork());
+  assert.equal(store.hasUnsavedChanges('network'), false);
+});
