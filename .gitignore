@@ -15,8 +15,8 @@ docs/
 # 開発用ツールの出力
 tools/out/
 
-# v1移行専用の開発ツール（段階5-7で archive-v1-tools/ へ移動。git管理対象外）
-archive-v1-tools/
+# アーカイブ（v1移行専用の開発ツール archive/v1-tools/ など。git管理対象外）
+archive/
 
 primer-primitives-design-system/
 design-lab/

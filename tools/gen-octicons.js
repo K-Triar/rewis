@@ -1,4 +1,4 @@
-// docs/rewis-v2/assets/octicons/*.svg を読み、editor-shared/icons.js を生成する。
+// docs/rewis-v2/assets/octicons/*.svg を読み、src/editor/common/icons.js を生成する。
 // 使い方: node tools/gen-octicons.js
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const srcDir = path.join(rootDir, 'docs', 'rewis-v2', 'assets', 'octicons');
-const outFile = path.join(rootDir, 'editor-shared', 'icons.js');
+const outFile = path.join(rootDir, 'src', 'editor', 'common', 'icons.js');
 
 const files = readdirSync(srcDir)
   .filter((name) => name.endsWith('-16.svg'))
@@ -29,7 +29,7 @@ const lines = entries.map(([name, paths]) => {
 });
 
 const output = `// 自動生成: node tools/gen-octicons.js（docs/rewis-v2/assets/octicons/*.svg から）
-// ライセンス: editor-shared/icons-LICENSE（MIT, github/primer/octicons）
+// ライセンス: src/editor/common/icons-LICENSE（MIT, github/primer/octicons）
 export const ICONS = {
 ${lines.join(',\n')}
 };

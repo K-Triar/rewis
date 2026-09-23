@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rewis-v12';
+const CACHE_NAME = 'rewis-v13';
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 function toScopedPath(path) {
@@ -28,24 +28,24 @@ const APP_SHELL_URLS = [
   toScopedPath('/assets/design-system/tokens.css'),
   toScopedPath('/assets/design-system/layout.css'),
   toScopedPath('/assets/design-system/components.css'),
-  toScopedPath('/assets/js/index_app.js'),
+  toScopedPath('/src/pages/index.js'),
   toScopedPath('/assets/js/rewis_public_config.js'),
   toScopedPath('/editor-v1/editor.css'),
   toScopedPath('/editor-v1/editor.js'),
-  toScopedPath('/transfer/transfer_app.js'),
-  toScopedPath('/operation/operation_app.js'),
-  toScopedPath('/shared/validate-v1.js'),
-  toScopedPath('/shared/escape.js'),
-  toScopedPath('/shared/ids.js'),
-  toScopedPath('/shared/schema-v2.js'),
-  toScopedPath('/shared/convert-v1-to-v2.js'),
-  toScopedPath('/shared/v1-overrides.js'),
-  toScopedPath('/shared/notice-text.js'),
-  toScopedPath('/shared/public-v1.js'),
-  toScopedPath('/shared/model.js'),
-  toScopedPath('/shared/data-source.js'),
-  toScopedPath('/shared/ui-dom.js'),
-  toScopedPath('/shared/route-search.js')
+  toScopedPath('/src/pages/transfer.js'),
+  toScopedPath('/src/pages/operation.js'),
+  toScopedPath('/src/shared/validate-v1.js'),
+  toScopedPath('/src/shared/escape.js'),
+  toScopedPath('/src/shared/ids.js'),
+  toScopedPath('/src/shared/schema-v2.js'),
+  toScopedPath('/src/shared/convert-v1-to-v2.js'),
+  toScopedPath('/src/shared/v1-overrides.js'),
+  toScopedPath('/src/shared/notice-text.js'),
+  toScopedPath('/src/shared/public-v1.js'),
+  toScopedPath('/src/shared/model.js'),
+  toScopedPath('/src/shared/data-source.js'),
+  toScopedPath('/src/shared/ui-dom.js'),
+  toScopedPath('/src/shared/route-search.js')
 ];
 
 // インストールイベント

@@ -7,11 +7,11 @@
  * アイコンのパス（url(...)）はこのファイル自身の場所からの相対パス
  * （assets/design-system/ → ../icons/）で解決される。
  *
- * ファイル末尾に「互換レイヤー」がある。shared/ui-dom.js
+ * ファイル末尾に「互換レイヤー」がある。src/shared/ui-dom.js
  * （transfer/operation/index 共通の本番JS）が生成する要素は
  * back-to-search-btn 等の旧クラス名を今もハードコードしているため、
  * このファイルではそれらも同じ見た目になるよう別名として対応させている。
- * shared/ui-dom.js 側を新クラス名に統合する作業は別タスク（未着手）。
+ * src/shared/ui-dom.js 側を新クラス名に統合する作業は別タスク（未着手）。
  */
 
 /* =========================================================
@@ -815,7 +815,7 @@
    Mobile bottom navigation + bottom sheet
    互換注記: .mb-item / .mb-menu / .sheet-item はここでは互換レイヤーではなく
    本コンポーネント自体の正式なクラス名として扱う
-   （shared/ui-dom.js の setupBottomSheet がこの名前で要素を検索するため）。
+   （src/shared/ui-dom.js の setupBottomSheet がこの名前で要素を検索するため）。
    ========================================================= */
 .mobile-bottom-nav {
     display: none;
@@ -1355,10 +1355,10 @@
 }
 
 /* =========================================================
-   互換レイヤー（shared/ui-dom.js が生成する要素専用）
-   本番共通JS（shared/ui-dom.js）は以下のクラス名をハードコードして
+   互換レイヤー（src/shared/ui-dom.js が生成する要素専用）
+   本番共通JS（src/shared/ui-dom.js）は以下のクラス名をハードコードして
    要素を生成・検索するため、このデザインシステム側でも同名クラスを
-   定義して見た目を合わせている。shared/ui-dom.js 自体を新クラス名
+   定義して見た目を合わせている。src/shared/ui-dom.js 自体を新クラス名
    （.modal-overlay / .modal / .modal-actions / .btn-outline-pill 等）
    に統合する作業は今回未着手（別タスク）。
    ========================================================= */

@@ -1,7 +1,7 @@
-import { validateV1 } from '../../shared/validate-v1.js';
-import { toPublicV1 } from '../../shared/public-v1.js';
-import { validateNetwork, validateOperations } from '../../shared/schema-v2.js';
-import { compilePublic } from '../../shared/compile-public.js';
+import { validateV1 } from '../../src/shared/validate-v1.js';
+import { toPublicV1 } from '../../src/shared/public-v1.js';
+import { validateNetwork, validateOperations } from '../../src/shared/schema-v2.js';
+import { compilePublic } from '../../src/shared/compile-public.js';
 
 const NEW_HISTORY_PREFIX = 'data:hist:';
 const OLD_HISTORY_PREFIX = 'data:history:';

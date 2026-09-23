@@ -37,9 +37,11 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
 
 事業者向けのデータ編集ページは、同じデータを異なる操作方法で編集できる2種類のエディタで構成されています。
 
-- **表形式エディタ**（`editor/`、`editor2/` が実装）：一覧・フォーム中心の編集画面。
-- **図形式エディタ**（`editor-graph/` が実装、共通ロジックは `editor-core/`）：路線図の上でクリック・ドラッグしながら編集する画面。表形式エディタのヘッダーにある「図で編集する（新しいエディタ）」リンクから行き来できます。
+- **表形式エディタ**（入口 `editor/`、実装 `src/editor/table/`）：一覧・フォーム中心の編集画面。
+- **図形式エディタ**（入口 `editor-graph/`、実装 `src/editor/graph/`）：路線図の上でクリック・ドラッグしながら編集する画面。表形式エディタのヘッダーにある「図で編集する（新しいエディタ）」リンクから行き来できます。
 - **旧エディタ v1**（`editor-v1/`）：過去のエディタです。現在は閲覧専用（保存不可）として残しています。
+
+2つのエディタが共有するコードは `src/editor/core/`（DOMに依存しない編集ロジック）と `src/editor/common/`（UI部品・CSS・API呼び出し）にあります。
 
 使い方は次のマニュアルを参照してください。
 
@@ -52,15 +54,20 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
 .
 ├── index.html, transfer.html, operation.html, about.html, information.html, editor.html
 │                         # 公開ページ・エディタへの転送スタブ（実体は同名ディレクトリ）
-├── transfer/, operation/, about/, information/, editor/, editor-v1/
-│                         # 各公開ページ・エディタの実体（HTML/CSS/JS）
-├── editor2/              # 表形式エディタの実装（dom・api・store・views ほか）
-├── editor-graph/          # 図形式エディタの実装（canvas・components・views ほか）
-├── editor-core/            # 図形式・表形式が共有する編集ロジック（DOMに依存しない純粋関数。node --test で検証）
-├── shared/                # スキーマ検証・データ変換・経路探索など、公開ページとエディタが共有するロジック
+├── transfer/, operation/, about/, information/, editor/, editor-graph/
+│                         # 各ページの入口HTML（URLになる。JSは src/ 配下）
+├── editor-v1/              # 旧エディタ（閲覧専用。HTML/CSS/JS一式）
+├── src/
+│   ├── editor/
+│   │   ├── table/          # 表形式エディタの実装（editor/ から読み込む）
+│   │   ├── graph/          # 図形式エディタの実装（editor-graph/ から読み込む）
+│   │   ├── core/           # 両エディタ共通の編集ロジック（DOMに依存しない純粋関数。node --test で検証）
+│   │   └── common/         # 両エディタ共通のUI部品・CSS・Primerトークン・API呼び出し
+│   ├── pages/              # 公開ページ（index / transfer / operation）のJS
+│   └── shared/             # スキーマ検証・データ変換・経路探索など、公開ページ・エディタ・Workerが共有するロジック
 ├── worker/                 # Cloudflare Workers 製の保存用API（認証・保存・履歴・ロールバック）
-├── assets/                 # 画像・アイコンなど静的アセット
-├── tests/                  # node --test によるユニットテスト
+├── assets/                 # CSS・デザインシステム・画像・アイコンなど静的アセット
+├── tests/                  # node --test によるユニットテスト（src/ と同じ構成: editor/core, editor/table, shared, worker）
 ├── tools/                  # 開発補助スクリプト（Octiconsの生成など）
 ├── manifest.json, service-worker.js
 │                         # PWA用マニフェストとオフラインキャッシュ
@@ -78,7 +85,7 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
                  │
                  ▼
         Cloudflare KV（正本データ・履歴）
-                 │ 公開用に整形（shared/compile-public.js）
+                 │ 公開用に整形（src/shared/compile-public.js）
                  ▼
   [ 利用者 ] transfer / operation ほか公開ページ（GitHub Pages）
 ```

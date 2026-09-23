@@ -744,7 +744,7 @@ async function compareHistoryItem(key) {
     try {
         const record = await fetchHistoryItemRecord(key);
         if (!record) return;
-        const { compareCounts } = await import('../shared/validate-v1.js');
+        const { compareCounts } = await import('../src/shared/validate-v1.js');
         const rows = compareCounts(appData, record.data);
         const summary = formatCompareCounts(rows);
         const savedAt = formatHistoryDateTime(record.meta && record.meta.updatedAt);
@@ -760,7 +760,7 @@ async function loadHistoryItemIntoEditor(key) {
         const record = await fetchHistoryItemRecord(key);
         if (!record) return;
 
-        const { compareCounts, LARGE_DROP_RATIO } = await import('../shared/validate-v1.js');
+        const { compareCounts, LARGE_DROP_RATIO } = await import('../src/shared/validate-v1.js');
         const rows = compareCounts(appData, record.data);
         const summary = formatCompareCounts(rows);
         if (!confirm('現在の編集内容を、この履歴の内容に置き換えます。\n\n' + (summary || '差分はありません') + '\n\nよろしいですか？')) return;
@@ -4097,7 +4097,7 @@ async function exportData() {
     // エクスポート用にデータをクリーンアップ
     const exportPayload = cleanDataForExport(appData);
 
-    const { validateV1 } = await import('../shared/validate-v1.js');
+    const { validateV1 } = await import('../src/shared/validate-v1.js');
     const { errors } = validateV1(exportPayload);
     if (errors.length > 0) {
         alert('保存できません。以下のエラーを修正してください。\n\n' + formatValidationErrors(errors));
@@ -4230,7 +4230,7 @@ function loadDataFile() {
             return;
         }
 
-        const { validateV1, compareCounts, LARGE_DROP_RATIO } = await import('../shared/validate-v1.js');
+        const { validateV1, compareCounts, LARGE_DROP_RATIO } = await import('../src/shared/validate-v1.js');
         const { errors } = validateV1(parsed);
         if (errors.length > 0) {
             alert('読み込めません。以下のエラーがあります。\n\n' + formatValidationErrors(errors));
