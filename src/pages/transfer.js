@@ -521,6 +521,14 @@ function findStationById(id) {
     return model.network.stations.find(s => s.id === id) || null;
 }
 
+// のりばIDを表示名に変換する（見つからなければIDをそのまま返す）
+function platformLabel(stationId, platformId) {
+    if (platformId == null) return null;
+    const station = findStationById(stationId);
+    const platform = station && (station.platforms || []).find(p => p.id === platformId);
+    return platform && platform.label ? platform.label : platformId;
+}
+
 // ========================================
 // URLパラメータ処理
 // ========================================
@@ -1077,8 +1085,8 @@ function buildTimelineItems(model, route) {
                 headsign: si === 0 ? leg.headsign : null,
                 headsigns: si === 0 ? (leg.headsigns || [leg.headsign]) : [],
                 stopsCount: section.endStop - section.startStop,
-                departurePlatform: fromStop.platformId,
-                arrivalPlatform: toStop.platformId,
+                departurePlatform: platformLabel(fromStop.stationId, fromStop.platformId),
+                arrivalPlatform: platformLabel(toStop.stationId, toStop.platformId),
                 duration: toStop.elapsed - fromStop.elapsed,
                 throughToNext: !isLastSection,
                 midStops

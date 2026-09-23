@@ -48,6 +48,7 @@ export function renderHistoryView(container, ctx) {
     status = '読込中…';
     render();
     const res = await api.getHistory(base(), token(), activeKind, { limit: 50 });
+    if (res.status === 401) { ctx.onUnauthorized(); return; }
     if (!res.ok) {
       status = `取得に失敗しました: ${res.body.error || res.status}`;
       items = [];
@@ -63,6 +64,7 @@ export function renderHistoryView(container, ctx) {
 
   async function loadMore() {
     const res = await api.getHistory(base(), token(), activeKind, { limit: 50, cursor });
+    if (res.status === 401) { ctx.onUnauthorized(); return; }
     if (!res.ok) {
       status = `取得に失敗しました: ${res.body.error || res.status}`;
       render();
@@ -132,6 +134,7 @@ export function renderHistoryView(container, ctx) {
       onClick: async () => {
         clear(resultEl);
         const res = await api.getHistoryItem(base(), token(), activeKind, item.key);
+        if (res.status === 401) { ctx.onUnauthorized(); return; }
         if (!res.ok) { await alertDialog('取得に失敗しました: ' + (res.body.error || res.status)); return; }
         resultEl.appendChild(renderDiffTable(activeKind, store.state.docs[activeKind], res.body.doc));
       }
@@ -141,6 +144,7 @@ export function renderHistoryView(container, ctx) {
       type: 'button', class: 'g-btn',
       onClick: async () => {
         const res = await api.getHistoryItem(base(), token(), activeKind, item.key);
+        if (res.status === 401) { ctx.onUnauthorized(); return; }
         if (!res.ok) { await alertDialog('取得に失敗しました: ' + (res.body.error || res.status)); return; }
         if (store.hasUnsavedChanges(activeKind)) {
           const ok = await confirmDialog('未保存の変更は失われます。', { confirmLabel: '編集中のデータにする', danger: true });
@@ -157,6 +161,7 @@ export function renderHistoryView(container, ctx) {
         const ok = await confirmDialog('この版の内容を、新しい版としてサーバーに保存します。', { confirmLabel: 'この版に戻す', danger: true });
         if (!ok) return;
         const res = await api.rollback(base(), token(), activeKind, item.key, store.state.baseRevision[activeKind]);
+        if (res.status === 401) { ctx.onUnauthorized(); return; }
         if (res.status === 409) {
           await alertDialog(`競合が発生しました（最新版 ${res.body.latestRevision}）。`);
           return;

@@ -62,12 +62,7 @@ export function renderDataView(container, ctx) {
         body.appendChild(h('button', {
           class: 'g-btn',
           type: 'button',
-          onClick: async () => {
-            const base = api.getSavedApiBase();
-            await api.logout(base, currentSession.token);
-            rerenderBody();
-            ctx.refreshStatus && ctx.refreshStatus();
-          }
+          onClick: () => ctx.logout(currentSession)
         }, 'ログアウト'));
         return;
       }
@@ -131,6 +126,10 @@ export function renderDataView(container, ctx) {
         if (!ok) return;
       }
       const res = await api.getDoc(base, session.token, kind);
+      if (res.status === 401) {
+        ctx.onUnauthorized();
+        return;
+      }
       if (res.status === 404) {
         setStatus('サーバーにまだデータがありません。管理者に移行を依頼してください。', 'attention');
         return;

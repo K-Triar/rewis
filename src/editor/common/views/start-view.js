@@ -1,5 +1,6 @@
 import { h, clear } from '../dom.js';
 import { helpTip } from '../components/help-tip.js';
+import { confirmDialog } from '../components/dialog.js';
 import * as api from '../api.js';
 
 const API_URL_HELP = 'REWIS のデータを保存しているサーバーの URL です。管理者から教えてもらった値を入れてください。';
@@ -14,6 +15,7 @@ export function renderStartView(container, ctx) {
   container.appendChild(wrap);
 
   let session = api.getSavedSession();
+  const dataLoaded = !!store.state.docs.network;
   const status = h('div', { class: 'g-banner', hidden: true });
 
   function setStatus(text, variant = null) {
@@ -80,6 +82,10 @@ export function renderStartView(container, ctx) {
       setStatus('先にログインしてください。', 'attention');
       return;
     }
+    if (store.hasAnyUnsavedChanges()) {
+      const ok = await confirmDialog('未保存の変更は失われます。', { confirmLabel: '読み込む', danger: true });
+      if (!ok) return;
+    }
     setStatus(null);
     for (const kind of ['network', 'operations']) {
       const res = await api.getDoc(base, token, kind);
@@ -110,12 +116,26 @@ export function renderStartView(container, ctx) {
     body.appendChild(h('div', { class: 'g-field__label' }, '① ログイン'));
     body.appendChild(renderLoginSection());
     body.appendChild(h('div', { class: 'g-field__label', style: 'margin-top:var(--stack-gap-normal);' }, '② データを読み込む'));
-    body.appendChild(h('button', {
-      class: 'g-btn g-btn--primary',
+    const loadButton = h('button', {
+      class: 'g-btn' + (dataLoaded ? '' : ' g-btn--primary'),
       type: 'button',
       disabled: !session,
       onClick: doLoadData
-    }, '路線網と運行情報を読み込む'));
+    }, dataLoaded ? 'サーバーから読み込み直す' : '路線網と運行情報を読み込む');
+    if (dataLoaded) {
+      // ログアウト前に読み込んでいたデータ（未保存の変更を含む）のまま編集に戻る
+      body.appendChild(h('div', { style: 'display:flex; gap:var(--stack-gap-condensed);' },
+        h('button', {
+          class: 'g-btn g-btn--primary',
+          type: 'button',
+          disabled: !session,
+          onClick: () => ctx.onLoaded && ctx.onLoaded()
+        }, '編集を続ける'),
+        loadButton
+      ));
+    } else {
+      body.appendChild(loadButton);
+    }
     body.appendChild(status);
     card.appendChild(body);
   }

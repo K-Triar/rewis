@@ -71,11 +71,7 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
       right.appendChild(h('button', {
         class: 'g-btn g-btn--invisible',
         type: 'button',
-        onClick: async () => {
-          const base = api.getSavedApiBase();
-          await api.logout(base, session.token);
-          refreshStatus();
-        }
+        onClick: () => logout(session)
       }, icon('sign-out'), 'ログアウト'));
     }
 
@@ -125,6 +121,22 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
   function refreshStatus() {
     renderHeader();
     renderStatus();
+  }
+
+  // ログアウトしたら編集中のタブは閉じてログイン画面（開始画面）に切り替える。
+  // 読込済みのデータは消さないので、ログインし直せば開始画面から編集を続けられる
+  async function logout(session) {
+    if (store.hasAnyUnsavedChanges()) {
+      const ok = await confirmDialog(
+        '未保存の変更があります。ログアウトしても変更は残りますが、保存するにはもう一度ログインする必要があります。',
+        { confirmLabel: 'ログアウト' }
+      );
+      if (!ok) return;
+    }
+    await api.logout(api.getSavedApiBase(), session.token);
+    forceStartView = true;
+    refreshStatus();
+    renderMain();
   }
 
   function undo() { store.undo(); renderMain(); }
@@ -189,11 +201,25 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
     if (last.status === 'invalid') {
       openIssues('errors');
     } else if (/ログイン/.test(last.message)) {
-      api.clearSession();
-      forceStartView = true;
-      refreshStatus();
-      renderMain();
+      showLoginAgain();
     }
+  }
+
+  // セッションを消してログイン画面（開始画面）に切り替える。読込済みのデータは残す
+  function showLoginAgain() {
+    api.clearSession();
+    forceStartView = true;
+    refreshStatus();
+    renderMain();
+  }
+
+  // 各タブでサーバーから 401 が返ったときに呼ぶ
+  async function handleUnauthorized() {
+    const message = api.getSavedSession()
+      ? 'ログインの有効期限が切れました。もう一度ログインしてください。'
+      : 'ログインが必要です。';
+    await alertDialog(message);
+    showLoginAgain();
   }
 
   async function handleSwitchView() {
@@ -216,6 +242,8 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
     refreshAll,
     refreshStatus,
     requestNavigate,
+    logout,
+    onUnauthorized: handleUnauthorized,
     onLoaded() {
       forceStartView = false;
       refreshStatus();
