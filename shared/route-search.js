@@ -237,16 +237,23 @@ export function buildSearchGraph(model, { vehicleTypeIds = null, ownCompanyOnly 
 }
 
 // ========================================
-// 同じ停車パターンで行先が違う運行系統を探す（3-3 alternativeHeadsigns）
+// 同じ停車パターンで走る運行系統の行先を集める（3-3 headsigns / alternativeHeadsigns）
+// 自分の行先も含め、データ上の運行系統の並び順で返す
 // ========================================
-function computeAlternativeHeadsigns(model, graph, service, stopIndices, perEdgeSection) {
+function computeHeadsigns(model, graph, service, stopIndices, perEdgeSection) {
   const windowLen = stopIndices.length;
-  if (windowLen < 2) return [];
-  const ownStops = stopIndices.map(idx => service.stops[idx]);
   const results = new Set();
+  if (windowLen < 2) {
+    if (service.headsign) results.add(service.headsign);
+    return Array.from(results);
+  }
+  const ownStops = stopIndices.map(idx => service.stops[idx]);
 
   model.activeServices.forEach(other => {
-    if (other.id === service.id) return;
+    if (other.id === service.id) {
+      if (service.headsign) results.add(service.headsign);
+      return;
+    }
     const otherEdgeSection = graph.sectionForServiceEdge.get(other.id);
     const n = other.stops.length;
     const maxStart = other.circular ? n : n - windowLen + 1;
@@ -273,7 +280,7 @@ function computeAlternativeHeadsigns(model, graph, service, stopIndices, perEdge
         }
       }
       if (ok) {
-        if (other.headsign && other.headsign !== service.headsign) results.add(other.headsign);
+        if (other.headsign) results.add(other.headsign);
         break;
       }
     }
@@ -283,11 +290,116 @@ function computeAlternativeHeadsigns(model, graph, service, stopIndices, perEdge
 }
 
 // ========================================
+// 同じ列車どうしの見せかけの乗換をまとめる
+// ========================================
+// 「列車Xに乗る → 同じのりばで乗換 → 列車Yに乗る」で、Y も X の乗車区間を
+// 同じ駅・のりば・路線・種別で走っているなら、乗っている人から見ると同じ列車に
+// 座り続けているだけなので、最初から Y に乗った1回の乗車に書き直す。
+// のりばが null の駅での乗換は、同じのりばか分からないので対象にしない。
+function sameTrainStartIndex(graph, rideX, serviceX, serviceY, boardIndexY) {
+  const m = rideX.stopIndices.length;
+  const n = serviceY.stops.length;
+  const edgeSectionX = graph.sectionForServiceEdge.get(serviceX.id);
+  const edgeSectionY = graph.sectionForServiceEdge.get(serviceY.id);
+  const positions = [];
+  for (let k = 0; k < m; k++) {
+    let pos = boardIndexY - (m - 1 - k);
+    if (serviceY.circular) pos = ((pos % n) + n) % n;
+    if (pos < 0) return null;
+    positions.push(pos);
+  }
+  for (let k = 0; k < m; k++) {
+    const a = serviceX.stops[rideX.stopIndices[k]];
+    const b = serviceY.stops[positions[k]];
+    if (a.stationId !== b.stationId || a.platformId !== b.platformId) return null;
+  }
+  for (let k = 0; k < m - 1; k++) {
+    const secX = edgeSectionX[rideX.stopIndices[k]];
+    const secY = edgeSectionY[positions[k]];
+    if (!secX || !secY || secX.lineId !== secY.lineId || secX.categoryId !== secY.categoryId) return null;
+  }
+  if (serviceY.stops[positions[0]].board === false) return null;
+  return positions;
+}
+
+function mergeSameTrainTransfers(model, graph, items) {
+  let i = 0;
+  while (i + 2 < items.length) {
+    const rideX = items[i];
+    const tr = items[i + 1];
+    const rideY = items[i + 2];
+    const candidate = rideX.type === 'ride' && tr.type === 'transfer' && rideY.type === 'ride'
+      && tr.kind === 'platform'
+      && tr.fromStationId === tr.toStationId
+      && tr.fromPlatformId != null
+      && tr.fromPlatformId === tr.toPlatformId;
+    if (!candidate) {
+      i++;
+      continue;
+    }
+    const serviceX = model.serviceById.get(rideX.serviceId);
+    const serviceY = model.serviceById.get(rideY.serviceId);
+    const positions = sameTrainStartIndex(graph, rideX, serviceX, serviceY, rideY.stopIndices[0]);
+    if (!positions) {
+      i++;
+      continue;
+    }
+    const stopIndices = positions.concat(rideY.stopIndices.slice(1));
+    const elapsed = [0];
+    for (let k = 0; k < stopIndices.length - 1; k++) {
+      elapsed.push(elapsed[k] + (serviceY.stops[stopIndices[k]].run || 0));
+    }
+    items.splice(i, 3, { type: 'ride', serviceId: rideY.serviceId, stopIndices, elapsed });
+    // 書き直した乗車が、その1つ前の乗車ともまとめられるようになることがあるので戻って見直す
+    i = Math.max(0, i - 2);
+  }
+}
+
+// ========================================
 // 経路の組み立て（辺の列 → Route）
 // ========================================
-function buildRoute(model, graph, path, score, fromStationId, toStationId) {
-  const legs = [];
-  let totalDuration = 0;
+function buildRideLeg(model, graph, ride) {
+  const service = model.serviceById.get(ride.serviceId);
+  const edgeSection = graph.sectionForServiceEdge.get(ride.serviceId);
+  const stopIndices = ride.stopIndices;
+
+  const stops = stopIndices.map((idx, pos) => {
+    const raw = service.stops[idx];
+    return { stationId: raw.stationId, platformId: raw.platformId, elapsed: ride.elapsed[pos] };
+  });
+
+  const perEdgeSection = [];
+  for (let k = 0; k < stopIndices.length - 1; k++) {
+    perEdgeSection.push(edgeSection[stopIndices[k]]);
+  }
+
+  const sections = [];
+  for (let k = 0; k < perEdgeSection.length; k++) {
+    const sec = perEdgeSection[k];
+    const last = sections[sections.length - 1];
+    if (last && last.lineId === sec.lineId && last.categoryId === sec.categoryId && last.endStop === k) {
+      last.endStop = k + 1;
+    } else {
+      sections.push({ lineId: sec.lineId, categoryId: sec.categoryId, startStop: k, endStop: k + 1 });
+    }
+  }
+
+  const headsigns = computeHeadsigns(model, graph, service, stopIndices, perEdgeSection);
+  return {
+    type: 'ride',
+    serviceId: ride.serviceId,
+    headsign: service.headsign,
+    headsigns,
+    alternativeHeadsigns: headsigns.filter(h => h !== service.headsign),
+    stops,
+    sections,
+    duration: ride.elapsed[ride.elapsed.length - 1]
+  };
+}
+
+function buildRoute(model, graph, path, transferPenalty, fromStationId, toStationId) {
+  // 1. 辺の列を「乗車」と「乗換」の並びにする（乗車はまだ停車駅の添字のまま）
+  const items = [];
   let ride = null;
 
   function stationPlatformOf(nodeId) {
@@ -299,52 +411,13 @@ function buildRoute(model, graph, path, score, fromStationId, toStationId) {
     return { stationId: node.stationId, platformId: node.platformId };
   }
 
-  function closeRide() {
-    if (!ride) return;
-    const service = model.serviceById.get(ride.serviceId);
-    const edgeSection = graph.sectionForServiceEdge.get(ride.serviceId);
-    const stopIndices = ride.stopIndices;
-
-    const stops = stopIndices.map((idx, pos) => {
-      const raw = service.stops[idx];
-      return { stationId: raw.stationId, platformId: raw.platformId, elapsed: ride.elapsed[pos] };
-    });
-
-    const perEdgeSection = [];
-    for (let k = 0; k < stopIndices.length - 1; k++) {
-      perEdgeSection.push(edgeSection[stopIndices[k]]);
-    }
-
-    const sections = [];
-    for (let k = 0; k < perEdgeSection.length; k++) {
-      const sec = perEdgeSection[k];
-      const last = sections[sections.length - 1];
-      if (last && last.lineId === sec.lineId && last.categoryId === sec.categoryId && last.endStop === k) {
-        last.endStop = k + 1;
-      } else {
-        sections.push({ lineId: sec.lineId, categoryId: sec.categoryId, startStop: k, endStop: k + 1 });
-      }
-    }
-
-    legs.push({
-      type: 'ride',
-      serviceId: ride.serviceId,
-      headsign: service.headsign,
-      alternativeHeadsigns: computeAlternativeHeadsigns(model, graph, service, stopIndices, perEdgeSection),
-      stops,
-      sections,
-      duration: ride.elapsed[ride.elapsed.length - 1]
-    });
-    ride = null;
-  }
-
   for (let i = 1; i < path.length; i++) {
     const { nodeId, edge } = path[i];
     if (!edge) continue;
 
     if (edge.kind === 'board') {
       const rNode = graph.nodes[nodeId];
-      ride = { serviceId: rNode.serviceId, stopIndices: [rNode.stopIndex], elapsed: [0] };
+      ride = { type: 'ride', serviceId: rNode.serviceId, stopIndices: [rNode.stopIndex], elapsed: [0] };
       continue;
     }
 
@@ -352,12 +425,12 @@ function buildRoute(model, graph, path, score, fromStationId, toStationId) {
       const rNode = graph.nodes[nodeId];
       ride.stopIndices.push(rNode.stopIndex);
       ride.elapsed.push(ride.elapsed[ride.elapsed.length - 1] + edge.dur);
-      totalDuration += edge.dur;
       continue;
     }
 
     if (edge.kind === 'alight') {
-      closeRide();
+      items.push(ride);
+      ride = null;
       continue;
     }
 
@@ -372,17 +445,36 @@ function buildRoute(model, graph, path, score, fromStationId, toStationId) {
     // transfer / walk / startWalk / arriveWalk
     const from = stationPlatformOf(path[i - 1].nodeId);
     const to = stationPlatformOf(nodeId);
-    legs.push({
+    items.push({
       type: 'transfer',
       kind: edge.kind === 'transfer' ? 'platform' : 'walk',
       fromStationId: from.stationId != null ? from.stationId : fromStationId,
       fromPlatformId: from.platformId,
       toStationId: to.stationId != null ? to.stationId : toStationId,
       toPlatformId: to.platformId,
-      duration: edge.dur
+      duration: edge.dur,
+      penalized: edge.kind === 'transfer' || edge.kind === 'walk'
     });
-    totalDuration += edge.dur;
   }
+
+  // 2. 同じ列車どうしの見せかけの乗換をまとめる
+  mergeSameTrainTransfers(model, graph, items);
+
+  // 3. Leg にする。score は探索と同じ計算（所要時間＋乗換・徒歩連絡ごとのペナルティ）でまとめた後の値を出し直す
+  let totalDuration = 0;
+  let score = 0;
+  const legs = items.map(item => {
+    if (item.type === 'ride') {
+      const leg = buildRideLeg(model, graph, item);
+      totalDuration += leg.duration;
+      score += leg.duration;
+      return leg;
+    }
+    const { penalized, ...leg } = item;
+    totalDuration += leg.duration;
+    score += leg.duration + (penalized ? transferPenalty : 0);
+    return leg;
+  });
 
   const transferCount = legs.filter(l => l.type === 'ride').length - 1;
 
@@ -392,13 +484,17 @@ function buildRoute(model, graph, path, score, fromStationId, toStationId) {
 // ========================================
 // 重複経路の除去
 // ========================================
+// 乗車は運行系統ではなく「駅・のりばの並び＋各区間の路線・種別」で比べる。
+// 行先を併記する対象になる系統どうし（乗っている人から見て同じ列車）は、同じ経路として扱う。
+function rideSignature(leg) {
+  const stops = leg.stops.map(s => `${s.stationId}@${s.platformId ?? ''}`).join(',');
+  const sections = leg.sections.map(s => `${s.lineId}/${s.categoryId}:${s.startStop}-${s.endStop}`).join(',');
+  return `R:${stops}:${sections}`;
+}
+
 function routeSignature(route) {
   return route.legs.map(leg => {
-    if (leg.type === 'ride') {
-      const first = leg.stops[0];
-      const last = leg.stops[leg.stops.length - 1];
-      return `R:${leg.serviceId}:${first.stationId}:${first.platformId ?? ''}:${last.stationId}:${last.platformId ?? ''}`;
-    }
+    if (leg.type === 'ride') return rideSignature(leg);
     return `T:${leg.kind}:${leg.fromStationId}:${leg.fromPlatformId ?? ''}:${leg.toStationId}:${leg.toPlatformId ?? ''}`;
   }).join('|');
 }
@@ -568,15 +664,15 @@ export function searchRoutes(model, graph, {
   // これは実質「その列車には乗らない」のと同じで、案内としては無意味なので除外する。
   // （出発駅で徒歩連絡してから乗る場合など、先頭以外の leg でも起こり得るのですべて見る）
   const routes = results
-    .map(r => buildRoute(model, graph, r.path, r.score, fromStationId, toStationId))
+    .map(r => buildRoute(model, graph, r.path, transferPenalty, fromStationId, toStationId))
     .filter(route => !route.legs.some(leg => leg.type === 'ride' && leg.stops.length < 2));
-  const unique = dedupeRoutes(routes);
 
-  unique.sort((a, b) => {
+  // 同じ列車でも運行系統ごとに所要時間が違うことがあるので、並べ替えてから重複を除き、良いほうを残す
+  routes.sort((a, b) => {
     if (a.score !== b.score) return a.score - b.score;
     if (a.totalDuration !== b.totalDuration) return a.totalDuration - b.totalDuration;
     return a.transferCount - b.transferCount;
   });
 
-  return unique.slice(0, maxRoutes);
+  return dedupeRoutes(routes).slice(0, maxRoutes);
 }

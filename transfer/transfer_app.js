@@ -1075,7 +1075,7 @@ function buildTimelineItems(model, route) {
                 lineColor: line ? line.color : '#ccc',
                 vehicleTypeId: line ? line.vehicleTypeId : null,
                 headsign: si === 0 ? leg.headsign : null,
-                alternativeHeadsigns: si === 0 ? (leg.alternativeHeadsigns || []) : [],
+                headsigns: si === 0 ? (leg.headsigns || [leg.headsign]) : [],
                 stopsCount: section.endStop - section.startStop,
                 departurePlatform: fromStop.platformId,
                 arrivalPlatform: toStop.platformId,
@@ -1365,7 +1365,8 @@ function createTableSegmentRow(item, model) {
         headsignRow.className = 'timeline-meta-row';
         const headsignSpan = document.createElement('span');
         headsignSpan.className = 'timeline-detail';
-        const headsignText = [item.headsign, ...item.alternativeHeadsigns].map(h => `${h}行`).join('・');
+        // データ上の運行系統の並び順で固定（どの系統の経路が残っても同じ順番になる）
+        const headsignText = item.headsigns.map(h => `${h}行`).join('・');
         headsignSpan.textContent = headsignText;
         headsignRow.appendChild(headsignSpan);
         segContentDiv.appendChild(headsignRow);

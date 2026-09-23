@@ -860,9 +860,24 @@ function renderLineDiagram(lineId) {
 
         const walks = model.walkTransfersByStation.get(stId) || [];
         if (walks.length > 0) {
-            const walkText = walks
-                .map(w => `${model.stationName(w.toStationId)}（${formatSeconds(w.seconds)}）`)
-                .join('・');
+            // のりばごとに複数登録された同じ駅への徒歩連絡は、所要時間の幅で1つにまとめる
+            const rangeByStation = new Map();
+            walks.forEach(w => {
+                const range = rangeByStation.get(w.toStationId);
+                if (range) {
+                    range.min = Math.min(range.min, w.seconds);
+                    range.max = Math.max(range.max, w.seconds);
+                } else {
+                    rangeByStation.set(w.toStationId, { min: w.seconds, max: w.seconds });
+                }
+            });
+            const walkText = Array.from(rangeByStation, ([toStationId, { min, max }]) => {
+                let time;
+                if (min === max) time = formatSeconds(min);
+                else if (max < 60) time = `${Math.round(min)}〜${formatSeconds(max)}`;
+                else time = `${formatSeconds(min)}〜${formatSeconds(max)}`;
+                return `${model.stationName(toStationId)}（${time}）`;
+            }).join('・');
             const walk = document.createElement('div');
             walk.className = 'station-transfer';
             walk.textContent = `徒歩：${walkText}`;

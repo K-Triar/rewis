@@ -43,12 +43,10 @@ test('2. 並走する2路線・直通しない運行系統：乗換1回', () => 
   assert.equal(rideLegs[1].serviceId, 'sv_s2b');
 });
 
-test('3. 同じ種別で直通する・しない列車がある：行先の違う経路が出る', () => {
+test('3. 同じ区間を同じのりば・種別で走る行先違いの系統：1つの経路にまとまり、行先を併記する', () => {
   const routes = search('s3a', 's3b');
-  assert.ok(routes.length >= 2);
-  const headsigns = new Set(routes.map(r => r.legs[0].headsign));
-  assert.ok(headsigns.has('s3c行'));
-  assert.ok(headsigns.has('s3d行'));
+  assert.equal(routes.length, 1);
+  assert.deepEqual(routes[0].legs[0].headsigns, ['s3c行', 's3d行']);
 });
 
 test('4. 環状線で最後から先頭へまたぐ移動：乗り換えずに到着', () => {
@@ -141,4 +139,44 @@ test('12. 出発駅の別のりばから無関係な列車に乗る候補は、�
       assert.ok(firstLeg.stops.length >= 2, '1駅も進まない乗車が経路の先頭に来てはいけない');
     }
   });
+});
+
+test('13. 分岐する行先違いの系統：共通区間では1つの経路になり、行先はデータの並び順で併記する', () => {
+  const routes = search('s13a', 's13b');
+  assert.equal(routes.length, 1);
+  const leg = routes[0].legs[0];
+  assert.deepEqual(leg.headsigns, ['s13w行', 's13g行']);
+  assert.deepEqual(leg.alternativeHeadsigns, leg.headsigns.filter(h => h !== leg.headsign));
+});
+
+test('14. 同じのりばで同じ列車に乗り換えるだけの経路は、1回の乗車にまとまる', () => {
+  const routes = search('s13a', 's13g');
+  assert.equal(routes.length, 1);
+  const best = routes[0];
+  assert.equal(best.transferCount, 0);
+  assert.equal(best.legs.length, 1);
+  assert.equal(best.legs[0].serviceId, 'sv_s13g');
+  assert.deepEqual(best.legs[0].stops.map(s => s.stationId), ['s13a', 's13b', 's13g']);
+  assert.equal(best.totalDuration, 20);
+  assert.equal(best.score, 20);
+});
+
+test('15. 別ののりばへの乗換は、同じ列車とみなさず乗換として残る', () => {
+  const routes = search('s13a', 's13z');
+  assert.equal(routes.length, 1);
+  const best = routes[0];
+  assert.equal(best.transferCount, 1);
+  assert.deepEqual(best.legs.map(l => l.type), ['ride', 'transfer', 'ride']);
+  assert.deepEqual(best.legs[0].headsigns, ['s13w行', 's13g行']);
+  assert.equal(best.legs[2].serviceId, 'sv_s13z');
+});
+
+test('16. のりば指定なし（null）の駅での乗換は、同じ列車か分からないのでまとめない', () => {
+  const routes = search('s14a', 's14c');
+  assert.equal(routes[0].transferCount, 0);
+  assert.equal(routes[0].legs[0].serviceId, 'sv_s14c');
+  const withTransfer = routes.find(r => r.transferCount === 1);
+  assert.ok(withTransfer);
+  assert.equal(withTransfer.legs[0].serviceId, 'sv_s14d');
+  assert.equal(withTransfer.legs[1].fromStationId, 's14b');
 });
