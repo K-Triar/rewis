@@ -16,6 +16,8 @@ import {
 
 let model = null;
 let opCurrentLineId = null;
+// 専用線のぼかし用 SVG <filter> の id をページ内で一意にするための連番
+let loopGlowFilterSeq = 0;
 
 function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
@@ -560,43 +562,187 @@ function renderLineDiagram(lineId) {
     });
 
     const noticeList = model.noticesByLine.get(lineId) || [];
-    const noticeAffected = noticeList.map(notice => ({
-        notice,
-        indices: new Set(computeAffectedIndices(line, notice.range)),
-    }));
+    // 影響区間は「駅（node）」と「駅間（線）」の2つで判定する。駅間は隣り合う2駅の
+    // 組 'a-b'（a<b）と、環状・ラケット型の終端駅→戻る駅の区間 'loop'（専用線）で表す。
+    // computeAffectedIndices は進行順の駅添字を返すので、連続する2駅から駅間を作る。
+    const lastIdx = order.length - 1;
+    const loopEdgeStart = line.loop ? line.loop.startIndex : -1;
+    function edgeKey(a, b) {
+        if (line.loop && Math.abs(a - b) !== 1
+            && Math.min(a, b) === loopEdgeStart && Math.max(a, b) === lastIdx) return 'loop';
+        return `${Math.min(a, b)}-${Math.max(a, b)}`;
+    }
+    const noticeAffected = noticeList.map(notice => {
+        const seq = computeAffectedIndices(line, notice.range);
+        const edges = new Set();
+        if (notice.range == null) {
+            for (let i = 0; i < lastIdx; i++) edges.add(edgeKey(i, i + 1));
+            if (line.loop) edges.add('loop');
+        } else {
+            for (let i = 0; i < seq.length - 1; i++) edges.add(edgeKey(seq[i], seq[i + 1]));
+        }
+        return { notice, indices: new Set(seq), edges };
+    });
 
-    function isCategoryAffectedAt(idx, categoryId) {
-        return noticeAffected.some(({ notice, indices }) => (
-            indices.has(idx) && (notice.categoryIds == null || notice.categoryIds.includes(categoryId))
-        ));
+    function noticeAppliesTo(notice, categoryId) {
+        return categoryId == null || notice.categoryIds == null || notice.categoryIds.includes(categoryId);
     }
 
-    function getCategorySeverityAt(idx, categoryId) {
+    function worstSeverity(matches) {
         let severity = null;
-        noticeAffected.forEach(({ notice, indices }) => {
-            if (!indices.has(idx)) return;
-            if (notice.categoryIds != null && !notice.categoryIds.includes(categoryId)) return;
-            if (isSuspendNotice(notice)) {
-                severity = 'suspend';
-            } else if (!severity) {
-                severity = 'warning';
-            }
+        matches.forEach(notice => {
+            if (isSuspendNotice(notice)) severity = 'suspend';
+            else if (!severity) severity = 'warning';
         });
         return severity;
     }
 
-    const catAffectedIndices = {};
-    cats.forEach(c => {
-        catAffectedIndices[c.id] = order
-            .map((_, idx) => idx)
-            .filter(idx => isCategoryAffectedAt(idx, c.id));
-    });
+    function isCategoryAffectedAt(idx, categoryId) {
+        return noticeAffected.some(({ notice, indices }) => indices.has(idx) && noticeAppliesTo(notice, categoryId));
+    }
+
+    // categoryId が null のときは種別を問わない（専用線は全種別で共有のため）
+    function getEdgeSeverity(key, categoryId) {
+        return worstSeverity(noticeAffected
+            .filter(({ notice, edges }) => edges.has(key) && noticeAppliesTo(notice, categoryId))
+            .map(({ notice }) => notice));
+    }
+
+    function buildGlow(severity, extraClass) {
+        const glow = document.createElement('div');
+        glow.className = `diagram-line-glow affected--${severity}`;
+        if (extraClass) glow.classList.add(extraClass);
+        return glow;
+    }
+
+    const loopSeverity = line.loop ? getEdgeSeverity('loop', null) : null;
+
+    // 環状・ラケット型路線: 終端駅の下で本線から分岐し、専用の線で始点/分岐駅へ戻る。
+    // 環状線（loop.startIndex === 0）は始点駅の高さで半円を描いてピル型に、
+    // ラケット型（loop.startIndex > 0）は戻る駅の高さで直角に曲がって本線へ合流する。
+    const hasLoop = !!line.loop;
+    const loopStartIdx = hasLoop ? line.loop.startIndex : -1;
+    const loopTerminalIdx = order.length - 1;
+    const LOOP_CELL = 32;
+    const LOOP_R = 16;
+    const LOOP_ROWH = 48;
+    const LOOP_TOP_STRAIGHT = 24;
+
+    // SVG は曲線部分だけを固定サイズ（64×48、伸縮なし）で描き、行の高さに応じて
+    // 伸びる必要がある縦の直線部分は通常の diagram-line（div）で描く。
+    // 以前は SVG を top:0; bottom:0 でセル高さに追従させようとしていたが、<svg> は
+    // 置換要素のため絶対配置で top/bottom を両方指定しても高さが伸びず（viewBox の
+    // 縦横比から 48px に固定される）、行が 48px を超えると（駅名の行高・乗換表記の
+    // 折返しなど）SVG の下端とセル下端の間に隙間ができていた。
+    //
+    // glowSeverity を渡すと、同じ形の曲線を影響区間のぼかし（.diagram-line-glow の
+    // box-shadow 相当: 幅24px・ぼかし5px）として描く。隣接する div のぼかしと端で
+    // 薄まって継ぎ目が見えないよう、端点はそれぞれ直線方向へ 12px 延ばして重ねる。
+    function buildLoopArcSvg(kind, glowSeverity) {
+        const isGlow = !!glowSeverity;
+        // 'top' だけは駅中心の上に短い直線を挟むぶん SVG を上へ伸ばす（CSS の --top と対応）
+        const svgH = kind === 'top' ? LOOP_ROWH + LOOP_TOP_STRAIGHT : LOOP_ROWH;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', String(LOOP_CELL * 2));
+        svg.setAttribute('height', String(svgH));
+        svg.setAttribute('viewBox', `0 0 ${LOOP_CELL * 2} ${svgH}`);
+        svg.classList.add('diagram-loop-svg');
+        if (kind === 'top') svg.classList.add('diagram-loop-svg--top');
+        if (kind === 'bottom') svg.classList.add('diagram-loop-svg--bottom');
+        if (isGlow) svg.classList.add('diagram-loop-glow', `affected--${glowSeverity}`);
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('fill', 'none');
+        if (isGlow) {
+            // ぼかしが SVG の枠外まで広がるので filter 領域も広く取る（SVG 自体は overflow: visible）
+            const filterId = `diagram-loop-glow-${++loopGlowFilterSeq}`;
+            const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+            filter.setAttribute('id', filterId);
+            filter.setAttribute('filterUnits', 'userSpaceOnUse');
+            filter.setAttribute('x', '-48');
+            filter.setAttribute('y', '-48');
+            filter.setAttribute('width', String(LOOP_CELL * 2 + 96));
+            filter.setAttribute('height', String(svgH + 96));
+            const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+            blur.setAttribute('stdDeviation', '5');
+            filter.appendChild(blur);
+            svg.appendChild(filter);
+            path.setAttribute('filter', `url(#${filterId})`);
+            path.setAttribute('stroke-width', '24');
+            path.setAttribute('stroke-linecap', 'butt');
+        } else {
+            path.setAttribute('stroke', line.color || 'var(--color-primary)');
+            path.setAttribute('stroke-width', '6');
+            // 端点の接線方向へ 3px はみ出させ、隣接する div の縦線と重ねて継ぎ目を防ぐ
+            path.setAttribute('stroke-linecap', 'square');
+        }
+        const ext = isGlow ? 12 : 0;
+        const cy = svgH - LOOP_ROWH / 2;
+        const loopX = LOOP_CELL / 2;
+        const mainX = LOOP_CELL + LOOP_CELL / 2;
+        let d = '';
+        if (kind === 'top') {
+            // 始点駅：駅中心から短く直線で上がり、半円で折り返して専用線側を駅中心の高さまで
+            // 下ろす（node に斜めに刺さらないよう、終端側の直線→U字と同じ見え方にする）。
+            // 駅中心より下の専用線の縦線は div
+            const arcY = cy - LOOP_TOP_STRAIGHT;
+            d = `M ${mainX} ${cy} L ${mainX} ${arcY} A ${LOOP_R} ${LOOP_R} 0 0 0 ${loopX} ${arcY} L ${loopX} ${cy + ext}`;
+        } else if (kind === 'bottom') {
+            // 終端駅の下：本線から間を空けずに半円で折り返して環状運転専用線へつなぐ
+            d = `M ${mainX} ${-ext} L ${mainX} 0 A ${LOOP_R} ${LOOP_R} 0 0 1 ${loopX} 0 L ${loopX} ${-ext}`;
+        } else if (kind === 'corner') {
+            // ラケット型の戻る駅：専用線（駅中心+R から下は div）を曲げて本線へ合流させる
+            d = `M ${loopX} ${cy + LOOP_R + ext} L ${loopX} ${cy + LOOP_R} A ${LOOP_R} ${LOOP_R} 0 0 1 ${loopX + LOOP_R} ${cy} L ${mainX} ${cy}`;
+        }
+        path.setAttribute('d', d);
+        svg.appendChild(path);
+        return svg;
+    }
+
+    function buildLoopBar(modifier) {
+        const bar = document.createElement('div');
+        bar.className = 'diagram-line';
+        if (modifier) bar.classList.add(modifier);
+        bar.style.backgroundColor = line.color || 'var(--color-primary)';
+        return bar;
+    }
+
+    function buildLoopCell(idx) {
+        const loopCell = document.createElement('div');
+        loopCell.className = 'op-diagram-cell op-diagram-cell--loop';
+        const inSpan = idx >= loopStartIdx && idx <= loopTerminalIdx;
+        if (inSpan) {
+            const isTopBoundary = idx === loopStartIdx;
+            // 専用線は終端駅→戻る駅の1区間を表すので、その区間が影響区間なら全体をぼかす
+            let kind = null;
+            let barModifier = null;
+            if (isTopBoundary && loopStartIdx === 0) {
+                kind = 'top';
+                barModifier = 'line-start';
+            } else if (isTopBoundary) {
+                kind = 'corner';
+                barModifier = 'loop-corner-start';
+            }
+            if (loopSeverity) {
+                if (kind) loopCell.appendChild(buildLoopArcSvg(kind, loopSeverity));
+                loopCell.appendChild(buildGlow(loopSeverity, barModifier === 'line-start' ? 'affected-start' : barModifier));
+            }
+            if (kind) loopCell.appendChild(buildLoopArcSvg(kind));
+            loopCell.appendChild(buildLoopBar(barModifier));
+        }
+        return loopCell;
+    }
 
     // ヘッダー行（種別名）
     const headerRow = document.createElement('div');
     headerRow.className = 'op-header-row';
     const headerDiagram = document.createElement('div');
     headerDiagram.className = 'op-diagram-headers';
+
+    if (hasLoop) {
+        const loopHeaderCell = document.createElement('div');
+        loopHeaderCell.className = 'op-diagram-cell op-diagram-cell--loop';
+        headerDiagram.appendChild(loopHeaderCell);
+    }
 
     cats.forEach(c => {
         const lbl = document.createElement('div');
@@ -633,6 +779,10 @@ function renderLineDiagram(lineId) {
             rowDiagram.appendChild(pill);
         }
 
+        if (hasLoop) {
+            rowDiagram.appendChild(buildLoopCell(idx));
+        }
+
         cats.forEach(c => {
             const bounds = boundsByCat[c.id];
             const cell = document.createElement('div');
@@ -649,18 +799,21 @@ function renderLineDiagram(lineId) {
                 // コンテキストが作られてしまい、区間の境目で隣のセルの diagram-line に
                 // よってぼかしが不自然に途切れて見えるため、必ず diagram-line 本体より
                 // 下に表示されるよう z-index で全体を通して制御する。
-                if (isCatAffected) {
-                    const glow = document.createElement('div');
-                    glow.className = `diagram-line-glow affected--${getCategorySeverityAt(idx, c.id) || 'warning'}`;
-                    const catIndices = catAffectedIndices[c.id];
-                    // diagram-line 本体が line-start/line-end で半分だけ表示される区間は、
-                    // glow も同じ範囲に収まるよう揃える（そうしないと駅の始点・終点の外側に
-                    // 線のない部分までぼかしだけが残ってしまう）。
-                    if (isLineStart) glow.classList.add('affected-start');
-                    if (isLineEnd) glow.classList.add('affected-end');
-                    if (catIndices.length && idx === catIndices[0]) glow.classList.add('affected-start');
-                    if (catIndices.length && idx === catIndices[catIndices.length - 1]) glow.classList.add('affected-end');
-                    cell.appendChild(glow);
+                // セルの上半分は「前の駅との駅間」、下半分は「次の駅との駅間」
+                // （終端駅の下半分は環状・ラケット型の専用線へ向かう 'loop' 区間）。
+                // diagram-line 本体が line-start/line-end で半分だけ表示される側には
+                // ぼかしも出さない（線のない部分にぼかしだけが残らないように）。
+                const topSev = !isLineStart && idx > 0 ? getEdgeSeverity(edgeKey(idx - 1, idx), c.id) : null;
+                let bottomSev = null;
+                if (!isLineEnd) {
+                    if (idx < lastIdx) bottomSev = getEdgeSeverity(edgeKey(idx, idx + 1), c.id);
+                    else if (line.loop) bottomSev = getEdgeSeverity('loop', c.id);
+                }
+                if (topSev && topSev === bottomSev) {
+                    cell.appendChild(buildGlow(topSev, null));
+                } else {
+                    if (topSev) cell.appendChild(buildGlow(topSev, 'affected-end'));
+                    if (bottomSev) cell.appendChild(buildGlow(bottomSev, 'affected-start'));
                 }
 
                 const lineBar = document.createElement('div');
@@ -725,13 +878,17 @@ function renderLineDiagram(lineId) {
         lineLayoutEl.appendChild(row);
     });
 
-    // 環状線：最後に「戻る」行を追加する
     if (line.loop) {
         const row = document.createElement('div');
         row.className = 'op-body-row';
 
         const rowDiagram = document.createElement('div');
         rowDiagram.className = 'op-diagram-cells';
+        const loopBottomCell = document.createElement('div');
+        loopBottomCell.className = 'op-diagram-cell op-diagram-cell--loop';
+        if (loopSeverity) loopBottomCell.appendChild(buildLoopArcSvg('bottom', loopSeverity));
+        loopBottomCell.appendChild(buildLoopArcSvg('bottom'));
+        rowDiagram.appendChild(loopBottomCell);
         cats.forEach(() => {
             const cell = document.createElement('div');
             cell.className = 'op-diagram-cell';

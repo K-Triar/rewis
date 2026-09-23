@@ -125,6 +125,23 @@ test('computeAffectedIndices: 環状線でdirectionがbackwardなら逆向きに
   assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S2', toStationId: 'S4', direction: 'backward' }), [0, 2]);
 });
 
+test('computeAffectedIndices: ラケット型は終端駅の次に分岐駅（loop.startIndex）へ戻る', () => {
+  const line = { stations: ['A', 'B', 'C', 'D', 'E'], loop: { startIndex: 2 } };
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'E', toStationId: 'D', direction: null }), [4, 2, 3]);
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'D', toStationId: 'C', direction: null }), [3, 4, 2]);
+});
+
+test('computeAffectedIndices: ラケット型でループ側から手前側への区間は一周後に下る', () => {
+  const line = { stations: ['A', 'B', 'C', 'D', 'E'], loop: { startIndex: 2 } };
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'D', toStationId: 'A', direction: null }), [3, 4, 2, 1, 0]);
+});
+
+test('computeAffectedIndices: ラケット型で分岐駅より手前だけの区間は通常路線と同じ', () => {
+  const line = { stations: ['A', 'B', 'C', 'D', 'E'], loop: { startIndex: 2 } };
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'C', toStationId: 'A', direction: null }), [0, 1, 2]);
+  assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'B', toStationId: 'E', direction: null }), [1, 2, 3, 4]);
+});
+
 test('computeAffectedIndices: 該当駅が路線にない場合は空配列', () => {
   const line = network.lines.find(l => l.id === 'LA');
   assert.deepEqual(computeAffectedIndices(line, { fromStationId: 'S4', toStationId: 'S1', direction: null }), []);

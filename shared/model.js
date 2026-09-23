@@ -162,14 +162,40 @@ export function computeAffectedIndices(line, range) {
   // 環状線・ラケット型: 始点から終点へ forward（下り）方向に進んだ側を対象とする。
   // direction === 'backward' は旧データ互換（逆向きに進んだ側）。
   if (line && line.loop) {
+    const last = stations.length - 1;
+    const startIndex = line.loop.startIndex || 0;
+    if (range.direction === 'backward') {
+      const indices = [];
+      let i = fromIdx;
+      for (let guard = 0; guard <= stations.length; guard++) {
+        indices.push(i);
+        if (i === toIdx) break;
+        i = (i - 1 + stations.length) % stations.length;
+      }
+      return indices;
+    }
+    // ラケット型で区間が分岐駅より手前（ループに入らない側）だけで完結する場合は通常の路線と同じ
+    if (startIndex > 0 && fromIdx <= startIndex && toIdx <= startIndex) {
+      const indices = [];
+      for (let i = Math.min(fromIdx, toIdx); i <= Math.max(fromIdx, toIdx); i++) indices.push(i);
+      return indices;
+    }
+    // 終端駅の次は loop.startIndex の駅へ戻る（環状線なら 0）。ラケット型でループを
+    // 一周して分岐駅に戻った後、終点が分岐駅より手前にあるなら手前側へ下っていく。
     const indices = [];
     let i = fromIdx;
-    for (let guard = 0; guard <= stations.length; guard++) {
+    let returned = false;
+    for (let guard = 0; guard <= stations.length * 2; guard++) {
       indices.push(i);
       if (i === toIdx) break;
-      i = range.direction === 'backward'
-        ? (i - 1 + stations.length) % stations.length
-        : (i + 1) % stations.length;
+      if (i === last) {
+        i = startIndex;
+        returned = true;
+      } else if (returned && toIdx < startIndex && i <= startIndex) {
+        i -= 1;
+      } else {
+        i += 1;
+      }
     }
     return indices;
   }

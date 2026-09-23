@@ -446,6 +446,53 @@
     bottom: 50%;
 }
 
+.op-diagram-cell--loop {
+    overflow: visible;
+}
+
+/*
+ * 環状・ラケット型の曲線 SVG は 64×48 固定で、駅の中心（セルの縦中央）に合わせて
+ * 置く。<svg> は置換要素なので top/bottom 両指定では伸びない点に注意。
+ * 行の高さに追従する縦線は .diagram-line（div）側で描く。
+ */
+.diagram-loop-svg {
+    position: absolute;
+    top: calc(50% - 24px);
+    left: 0;
+    width: 64px;
+    height: 48px;
+    z-index: 2;
+    pointer-events: none;
+}
+/* 環状線の始点: 駅中心の上に 24px の直線を挟むため 72px（JS の LOOP_TOP_STRAIGHT と対応） */
+.diagram-loop-svg--top {
+    top: calc(50% - 48px);
+    height: 72px;
+}
+.diagram-loop-svg--bottom {
+    top: 0;
+}
+/* ラケット型の戻る駅: 曲線（駅中心+16px から上）に続く専用線の縦線部分 */
+.diagram-line.loop-corner-start,
+.diagram-line-glow.loop-corner-start {
+    top: calc(50% + 16px);
+}
+
+/* 専用線の曲線部分の影響区間ぼかし（.diagram-line-glow の SVG 版。色と点滅を揃える） */
+.diagram-loop-svg.diagram-loop-glow {
+    z-index: 1;
+    overflow: visible;
+}
+.diagram-loop-glow path {
+    stroke: var(--color-status-warning);
+}
+.diagram-loop-glow.affected--suspend path {
+    stroke: var(--color-status-suspend);
+}
+.diagram-loop-glow.affected--suspend {
+    animation: diagram-line-blink 2s step-start infinite;
+}
+
 .diagram-pill {
     position: absolute;
     left: 13px;
@@ -480,7 +527,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .diagram-line-glow.affected--suspend {
+    .diagram-line-glow.affected--suspend,
+    .diagram-loop-glow.affected--suspend {
         animation: none;
     }
 }
