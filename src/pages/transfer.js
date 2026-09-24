@@ -140,32 +140,43 @@ function setupSearchModeToggle() {
     if (!container) return;
     const buttons = Array.from(container.querySelectorAll('.segmented-btn'));
 
+    // 選択中ボタンの実際の幅と位置を測ってピル（::before）のCSS変数に設定する。
+    // 検索画面が非表示（幅0）のときは測れないので前回値のまま残し、再表示時に測り直す。
+    function updateIndicator() {
+        const selectedBtn = buttons.find(btn => btn.dataset.mode === searchMode);
+        if (!selectedBtn) return;
+        const btnRect = selectedBtn.getBoundingClientRect();
+        if (btnRect.width === 0) return;
+        const containerRect = container.getBoundingClientRect();
+        container.style.setProperty('--seg-width', `${btnRect.width}px`);
+        container.style.setProperty('--seg-left', `${btnRect.left - containerRect.left}px`);
+    }
+
     function setMode(mode) {
         searchMode = mode;
-
-        // 選択されたボタンの位置と幅を取得
-        let selectedBtn = null;
-        buttons.forEach((btn, index) => {
-            const m = btn.dataset.mode;
-            const selected = m === mode;
+        buttons.forEach(btn => {
+            const selected = btn.dataset.mode === mode;
             btn.classList.toggle('is-selected', selected);
             btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
-            if (selected) selectedBtn = btn;
         });
-
-        // 選択されたボタンの実際の幅と位置を取得してCSS変数に設定
-        if (selectedBtn) {
-            const btnRect = selectedBtn.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            const leftOffset = btnRect.left - containerRect.left;
-
-            container.style.setProperty('--seg-width', `${btnRect.width}px`);
-            container.style.setProperty('--seg-left', `${leftOffset}px`);
-        }
+        updateIndicator();
     }
 
     // initialize according to current global
     setMode(searchMode);
+
+    // Webフォントの読み込み・画面回転・リサイズ・検索画面の再表示でボタンの幅や位置が
+    // 変わったら測り直す（ボタン自体を監視するので、コンテナ幅が変わらない文字幅の変化も拾う）
+    if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => updateIndicator());
+        ro.observe(container);
+        buttons.forEach(btn => ro.observe(btn));
+    } else {
+        window.addEventListener('resize', updateIndicator);
+    }
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(updateIndicator).catch(() => {});
+    }
 
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -195,6 +206,8 @@ function setupStationInput(inputId) {
     }
 
     input.addEventListener('input', () => {
+        // 手入力で内容が変わったら、候補・URLから確定していた駅IDは破棄する
+        delete input.dataset.stationId;
         const query = input.value.trim();
 
         if (query.length === 0) {
@@ -292,7 +305,7 @@ function displaySuggestions(stations, suggestionsDiv, input) {
         item.appendChild(linesSpan);
 
         item.addEventListener('click', () => {
-            input.value = station.name;
+            setStationInput(input, station);
             suggestionsDiv.classList.remove('is-open');
         });
 
@@ -331,6 +344,11 @@ function swapStations() {
     const temp = departure.value;
     departure.value = arrival.value;
     arrival.value = temp;
+
+    // 確定済みの駅IDも一緒に入れ替える
+    const tempId = departure.dataset.stationId;
+    setStationIdData(departure, arrival.dataset.stationId);
+    setStationIdData(arrival, tempId);
 
     // Reverse via stations order if there are multiple
     _reverseViaStationsIfNeeded();
@@ -437,34 +455,50 @@ function performSearch({ historyMode = 'push' } = {}) {
     hideError();
     hideResults();
 
-    const departureStation = findStationByName(document.getElementById('departure').value.trim());
-    const arrivalStation = findStationByName(document.getElementById('arrival').value.trim());
+    const departureInput = document.getElementById('departure');
+    const arrivalInput = document.getElementById('arrival');
+    const departure = resolveStationInput(departureInput);
+    const arrival = resolveStationInput(arrivalInput);
 
-    if (!departureStation) {
-        showError('出発駅が正しく入力されていません');
+    if (departure.ambiguous) {
+        showSearchError(ambiguousStationMessage(departureInput.value.trim()));
         return;
     }
-    if (!arrivalStation) {
-        showError('到着駅が正しく入力されていません');
+    if (!departure.station) {
+        showSearchError('出発駅が正しく入力されていません');
         return;
     }
+    if (arrival.ambiguous) {
+        showSearchError(ambiguousStationMessage(arrivalInput.value.trim()));
+        return;
+    }
+    if (!arrival.station) {
+        showSearchError('到着駅が正しく入力されていません');
+        return;
+    }
+    const departureStation = departure.station;
+    const arrivalStation = arrival.station;
     if (departureStation.id === arrivalStation.id) {
-        showError('出発駅と到着駅が同じです');
+        showSearchError('出発駅と到着駅が同じです');
         return;
     }
 
     const viaStations = [];
     const viaItems = document.querySelectorAll('.via-station-item');
     for (let item of viaItems) {
-        const viaId = item.querySelector('.field-input').id;
-        const viaValue = document.getElementById(viaId).value.trim();
+        const viaInput = item.querySelector('.field-input');
+        const viaValue = viaInput.value.trim();
         if (viaValue) {
-            const viaStation = findStationByName(viaValue);
-            if (!viaStation) {
-                showError(`経由駅「${viaValue}」が見つかりません`);
+            const via = resolveStationInput(viaInput);
+            if (via.ambiguous) {
+                showSearchError(ambiguousStationMessage(viaValue));
                 return;
             }
-            viaStations.push(viaStation);
+            if (!via.station) {
+                showSearchError(`経由駅「${viaValue}」が見つかりません`);
+                return;
+            }
+            viaStations.push(via.station);
         }
     }
 
@@ -484,7 +518,7 @@ function performSearch({ historyMode = 'push' } = {}) {
     }
 
     if (filters.allowedTrainTypes.size === 0) {
-        showError('少なくとも1つの列車種別を選択してください');
+        showSearchError('少なくとも1つの列車種別を選択してください');
         return;
     }
 
@@ -511,21 +545,59 @@ function performSearch({ historyMode = 'push' } = {}) {
             hideLoading();
 
             if (routes.length === 0) {
-                showError('指定された条件では経路が見つかりませんでした');
+                showSearchError('指定された条件では経路が見つかりませんでした');
             } else {
                 displayResults(routes);
             }
         } catch (error) {
             hideLoading();
-            showError('経路検索中にエラーが発生しました: ' + error.message);
+            showSearchError('経路検索中にエラーが発生しました: ' + error.message);
             console.error(error);
         }
     }, 100);
 }
 
-function findStationByName(name) {
-    if (!name || !model) return null;
-    return model.network.stations.find(s => s.name === name) || null;
+// 検索が失敗したときのエラー表示。結果は performSearch の冒頭で隠しているので、
+// 検索画面も必ず表示して「エラーだけが出ている画面」にならないようにする
+// （結果表示中に戻る/進むで検索できない条件の履歴へ移った場合など）
+function showSearchError(message) {
+    showSearchSection();
+    showError(message);
+}
+
+function ambiguousStationMessage(name) {
+    return `「${name}」という駅が複数あります。候補から選択してください`;
+}
+
+function findStationsByName(name) {
+    if (!name || !model) return [];
+    return model.network.stations.filter(s => s.name === name);
+}
+
+// 駅名入力欄に駅を確定させる（表示は駅名、どの駅かは data-station-id に保持）
+function setStationInput(input, station) {
+    input.value = station ? station.name : '';
+    setStationIdData(input, station ? station.id : null);
+}
+
+function setStationIdData(input, stationId) {
+    if (stationId) {
+        input.dataset.stationId = stationId;
+    } else {
+        delete input.dataset.stationId;
+    }
+}
+
+// 入力欄の駅を決める。候補・URLで確定した駅IDがあり、その駅名が入力中の文字と一致すれば
+// その駅を使う。なければ駅名で探し、同名駅が複数あるときは曖昧（ambiguous）として返す。
+function resolveStationInput(input) {
+    const name = input.value.trim();
+    if (!name) return { station: null, ambiguous: false };
+    const confirmed = findStationById(input.dataset.stationId);
+    if (confirmed && confirmed.name === name) return { station: confirmed, ambiguous: false };
+    const matches = findStationsByName(name);
+    if (matches.length === 1) return { station: matches[0], ambiguous: false };
+    return { station: null, ambiguous: matches.length > 1 };
 }
 
 function findStationById(id) {
@@ -555,18 +627,11 @@ function updateUrlParams(departureStation, arrivalStation, viaStations, filters,
         params.append('search-mode', 'transfer');
     }
 
-    // Preserve existing `route` parameter value (but do NOT insert it yet).
-    // We'll append it after adding other params so `route` stays at the end
-    // of the query string and the original parameter ordering isn't changed.
+    // 初回読み込み（replace）のときだけ、共有URLの route を引き継ぐ（末尾に付け直す）。
+    // ユーザー操作による新しい検索（push）では前の検索の route を持ち越さない。
     let preservedRoute = null;
-    try {
-        const currentParams = new URLSearchParams(window.location.search);
-        if (currentParams.has('route')) {
-            preservedRoute = currentParams.get('route');
-        }
-    } catch (e) {
-        // Defensive: if URL parsing fails for some reason, continue without route.
-        console.warn('Failed to read existing route param:', e);
+    if (historyMode === 'replace') {
+        preservedRoute = new URLSearchParams(window.location.search).get('route');
     }
 
     // 出発駅・到着駅
@@ -639,7 +704,11 @@ function handleTransferPopState() {
     }
 
     if (params.has('from') && params.has('to')) {
-        applyParamsToForm(params);
+        const { missingViaIds } = applyParamsToForm(params);
+        if (missingViaIds.length > 0) {
+            showMissingViaError(missingViaIds);
+            return;
+        }
         performSearch({ historyMode: 'none' });
     } else {
         // パラメータなし → 検索画面（入力内容はそのまま残す）
@@ -670,7 +739,11 @@ function loadFromUrlParams() {
     }
 
     console.log('URLパラメータから検索条件を読み込み中...');
-    applyParamsToForm(params);
+    const { missingViaIds } = applyParamsToForm(params);
+    if (missingViaIds.length > 0) {
+        showMissingViaError(missingViaIds);
+        return;
+    }
 
     // すべての条件が設定されたら自動的に検索を実行
     if (params.get('from') && params.get('to')) {
@@ -704,35 +777,33 @@ function applySearchModeFromParams(params) {
 function applyParamsToForm(params) {
     applySearchModeFromParams(params);
 
-    // 出発駅を設定
+    // 出発駅を設定（同名駅があっても URL の駅になるよう駅IDも保持する）
     const fromId = params.get('from');
     const fromStation = findStationById(fromId);
-    document.getElementById('departure').value = fromStation ? fromStation.name : '';
+    setStationInput(document.getElementById('departure'), fromStation);
     if (fromId && !fromStation) console.warn('出発駅が見つかりません:', fromId);
 
     // 到着駅を設定
     const toId = params.get('to');
     const toStation = findStationById(toId);
-    document.getElementById('arrival').value = toStation ? toStation.name : '';
+    setStationInput(document.getElementById('arrival'), toStation);
     if (toId && !toStation) console.warn('到着駅が見つかりません:', toId);
 
-    // 既存の経由駅をクリアしてから設定（via1, via2, via3...）
+    // 既存の経由駅をクリアしてから設定（via1, via2, via3...）。
+    // 見つからない経由駅も空欄の欄として残し、そのIDを呼び出し元へ返す（黙って読み飛ばさない）
     document.querySelectorAll('.via-station-item').forEach(item => item.remove());
+    const missingViaIds = [];
     let viaIndex = 1;
     while (params.has(`via${viaIndex}`)) {
         const viaId = params.get(`via${viaIndex}`);
         const viaStation = findStationById(viaId);
-        if (viaStation) {
-            addViaStation();
-            // 最後に追加された経由駅の入力欄を取得
-            const viaItems = document.querySelectorAll('.via-station-item');
-            const lastViaItem = viaItems[viaItems.length - 1];
-            const viaInput = lastViaItem.querySelector('.field-input');
-            if (viaInput) {
-                viaInput.value = viaStation.name;
-                console.log(`経由駅${viaIndex}設定:`, viaStation.name);
-            }
-        } else {
+        addViaStation();
+        // 最後に追加された経由駅の入力欄を取得
+        const viaItems = document.querySelectorAll('.via-station-item');
+        const viaInput = viaItems[viaItems.length - 1].querySelector('.field-input');
+        setStationInput(viaInput, viaStation);
+        if (!viaStation) {
+            missingViaIds.push(viaId);
             console.warn(`経由駅${viaIndex}が見つかりません:`, viaId);
         }
         viaIndex++;
@@ -770,6 +841,18 @@ function applyParamsToForm(params) {
     } else {
         document.getElementById('type-mc').checked = true;
     }
+
+    return { missingViaIds };
+}
+
+// URL の経由駅が見つからないときは検索せず、入力し直しを促す
+// （経由なしで検索すると共有元とは別の経路になり、URL からも経由駅が消えてしまうため）
+function showMissingViaError(missingViaIds) {
+    searchSeq++; // 実行中の検索があれば破棄
+    hideLoading();
+    hideResults();
+    const ids = missingViaIds.map(id => id || '（空）').join('、');
+    showSearchError(`共有された経由駅（ID: ${ids}）が見つかりません。経由駅を入力し直して検索してください`);
 }
 
 // ========================================
@@ -1555,6 +1638,8 @@ function createStopsButton(item, model) {
 // ========================================
 function hideResults() {
     document.getElementById('results-section').style.display = 'none';
+    // 非表示にしたタブは再利用されない（再表示は displayResults で作り直す）ので監視を外す
+    cleanupRouteTabs();
     try {
         document.body.classList.remove('results-open');
     } catch (e) { /* noop */ }
@@ -1621,11 +1706,15 @@ function setupScrollableTabs(tabs) {
         }
     }
 
+    // 前回の検索結果のタブに付けた監視を外してから、新しいタブの監視を始める
+    cleanupRouteTabs();
+
     // Initial delayed measurement so that DOM/CSS layout finishes
-    setTimeout(() => updateOverflowState(tabs), 50);
+    const initialTimer = setTimeout(() => updateOverflowState(tabs), 50);
 
     // Watch for container resizes
-    window.addEventListener('resize', () => updateOverflowState(tabs));
+    const onWindowResize = () => updateOverflowState(tabs);
+    window.addEventListener('resize', onWindowResize);
 
     // Use ResizeObserver to detect content/size changes of the tabs element
     let ro = null;
@@ -1652,10 +1741,20 @@ function setupScrollableTabs(tabs) {
     // expose update function for possible external calls
     tabs.__updateOverflowState = () => updateOverflowState(tabs);
 
-    // cleanup hook in case tabs are removed later
-    tabs.__cleanupScrollableTabs = () => {
-        window.removeEventListener('resize', () => updateOverflowState(tabs));
+    // タブが作り直される・結果が閉じられるときに cleanupRouteTabs() から呼ばれる
+    _routeTabsCleanup = () => {
+        clearTimeout(initialTimer);
+        window.removeEventListener('resize', onWindowResize);
         try { if (ro) ro.disconnect(); } catch (e) {}
         try { if (mo) mo.disconnect(); } catch (e) {}
     };
+}
+
+// 表示中の検索結果タブに付けた window リスナー・Observer を外す
+let _routeTabsCleanup = null;
+function cleanupRouteTabs() {
+    if (_routeTabsCleanup) {
+        _routeTabsCleanup();
+        _routeTabsCleanup = null;
+    }
 }

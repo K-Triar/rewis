@@ -658,6 +658,261 @@
         }
       ],
       "location": null
+    },
+    {
+      "id": "s15a",
+      "name": "s15a",
+      "kana": "s15a",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s15m",
+      "name": "s15m",
+      "kana": "s15m",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        },
+        {
+          "id": "2",
+          "label": "2"
+        },
+        {
+          "id": "3",
+          "label": "3"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s15b",
+      "name": "s15b",
+      "kana": "s15b",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s15y",
+      "name": "s15y",
+      "kana": "s15y",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s15x",
+      "name": "s15x",
+      "kana": "s15x",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s16a",
+      "name": "s16a",
+      "kana": "s16a",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s16b",
+      "name": "s16b",
+      "kana": "s16b",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s16z",
+      "name": "s16z",
+      "kana": "s16z",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s16y",
+      "name": "s16y",
+      "kana": "s16y",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s17a",
+      "name": "s17a",
+      "kana": "s17a",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s17m",
+      "name": "s17m",
+      "kana": "s17m",
+      "platforms": [],
+      "location": null
+    },
+    {
+      "id": "s17b",
+      "name": "s17b",
+      "kana": "s17b",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s17z",
+      "name": "s17z",
+      "kana": "s17z",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s18a",
+      "name": "s18a",
+      "kana": "s18a",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        },
+        {
+          "id": "2",
+          "label": "2"
+        },
+        {
+          "id": "3",
+          "label": "3"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s18b",
+      "name": "s18b",
+      "kana": "s18b",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        },
+        {
+          "id": "2",
+          "label": "2"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s18c",
+      "name": "s18c",
+      "kana": "s18c",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        },
+        {
+          "id": "2",
+          "label": "2"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s19a",
+      "name": "s19a",
+      "kana": "s19a",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        },
+        {
+          "id": "2",
+          "label": "2"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s19x",
+      "name": "s19x",
+      "kana": "s19x",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        },
+        {
+          "id": "2",
+          "label": "2"
+        }
+      ],
+      "location": null
+    },
+    {
+      "id": "s19z",
+      "name": "s19z",
+      "kana": "s19z",
+      "platforms": [
+        {
+          "id": "1",
+          "label": "1"
+        }
+      ],
+      "location": null
     }
   ],
   "stationGroups": [],
@@ -673,6 +928,58 @@
         "platformId": "1"
       },
       "seconds": 120,
+      "bidirectional": false
+    },
+    {
+      "id": "tr_s15_1_2",
+      "from": {
+        "stationId": "s15m",
+        "platformId": "1"
+      },
+      "to": {
+        "stationId": "s15m",
+        "platformId": "2"
+      },
+      "seconds": 45,
+      "bidirectional": false
+    },
+    {
+      "id": "tr_s16",
+      "from": {
+        "stationId": "s16a",
+        "platformId": null
+      },
+      "to": {
+        "stationId": "s16b",
+        "platformId": null
+      },
+      "seconds": 20,
+      "bidirectional": true
+    },
+    {
+      "id": "tr_s17_am",
+      "from": {
+        "stationId": "s17a",
+        "platformId": null
+      },
+      "to": {
+        "stationId": "s17m",
+        "platformId": null
+      },
+      "seconds": 15,
+      "bidirectional": false
+    },
+    {
+      "id": "tr_s17_mb",
+      "from": {
+        "stationId": "s17m",
+        "platformId": null
+      },
+      "to": {
+        "stationId": "s17b",
+        "platformId": null
+      },
+      "seconds": 25,
       "bidirectional": false
     }
   ],
@@ -1211,6 +1518,250 @@
         "s14b",
         "s14c",
         "s14d"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L24",
+      "name": "L24",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s15a",
+        "s15m"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L25",
+      "name": "L25",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s15m",
+        "s15b"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L26",
+      "name": "L26",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s15y",
+        "s15m",
+        "s15x"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L27",
+      "name": "L27",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s16a",
+        "s16z"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L28",
+      "name": "L28",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s16b",
+        "s16y"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L29",
+      "name": "L29",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s17z",
+        "s17a"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L30",
+      "name": "L30",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s17b",
+        "s17z"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L31",
+      "name": "L31",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s18a",
+        "s18b"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L32",
+      "name": "L32",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s18a",
+        "s18c"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L33",
+      "name": "L33",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s19a",
+        "s19x"
+      ],
+      "loop": null,
+      "directions": {
+        "forward": "下り",
+        "backward": "上り"
+      },
+      "categories": [
+        {
+          "id": "Lo",
+          "name": "Lo"
+        }
+      ]
+    },
+    {
+      "id": "L34",
+      "name": "L34",
+      "companyId": "KT",
+      "color": "#111",
+      "vehicleTypeId": "TC",
+      "stations": [
+        "s19x",
+        "s19a",
+        "s19z"
       ],
       "loop": null,
       "directions": {
@@ -1929,6 +2480,329 @@
       "sections": [
         {
           "lineId": "L23",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 2
+        }
+      ]
+    },
+    {
+      "id": "sv_s15in",
+      "headsign": "s15m行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s15a",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s15m",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L24",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s15out",
+      "headsign": "s15b行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s15m",
+          "platformId": "2",
+          "run": 10
+        },
+        {
+          "stationId": "s15b",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L25",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s15thru",
+      "headsign": "s15x行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s15y",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s15m",
+          "platformId": "3",
+          "run": 10
+        },
+        {
+          "stationId": "s15x",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L26",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 2
+        }
+      ]
+    },
+    {
+      "id": "sv_s16a",
+      "headsign": "s16z行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s16a",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s16z",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L27",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s16b",
+      "headsign": "s16y行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s16b",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s16y",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L28",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s17a",
+      "headsign": "s17a行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s17z",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s17a",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L29",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s17b",
+      "headsign": "s17z行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s17b",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s17z",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L30",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s18direct",
+      "headsign": "s18b行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s18a",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s18b",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L31",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s18away",
+      "headsign": "s18c行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s18a",
+          "platformId": "2",
+          "run": 10
+        },
+        {
+          "stationId": "s18c",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L32",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s18back",
+      "headsign": "s18b行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s18c",
+          "platformId": "2",
+          "run": 10
+        },
+        {
+          "stationId": "s18a",
+          "platformId": "3",
+          "run": 10
+        },
+        {
+          "stationId": "s18b",
+          "platformId": "2"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L32",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        },
+        {
+          "lineId": "L31",
+          "categoryId": "Lo",
+          "from": 1,
+          "to": 2
+        }
+      ]
+    },
+    {
+      "id": "sv_s19local",
+      "headsign": "s19x行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s19a",
+          "platformId": "1",
+          "run": 10
+        },
+        {
+          "stationId": "s19x",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L33",
+          "categoryId": "Lo",
+          "from": 0,
+          "to": 1
+        }
+      ]
+    },
+    {
+      "id": "sv_s19exp",
+      "headsign": "s19z行",
+      "active": true,
+      "circular": false,
+      "stops": [
+        {
+          "stationId": "s19x",
+          "platformId": "2",
+          "run": 10
+        },
+        {
+          "stationId": "s19a",
+          "platformId": "2",
+          "run": 10,
+          "board": false,
+          "alight": false
+        },
+        {
+          "stationId": "s19z",
+          "platformId": "1"
+        }
+      ],
+      "sections": [
+        {
+          "lineId": "L34",
           "categoryId": "Lo",
           "from": 0,
           "to": 2

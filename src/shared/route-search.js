@@ -70,28 +70,34 @@ export function buildSearchGraph(model, { vehicleTypeIds = null, ownCompanyOnly 
     return true;
   }
 
+  // 頂点の種類
+  //   R: 運行系統の停車駅に乗車中（次の駅へ進む・降りる）
+  //   B: 運行系統の停車駅で乗った直後（次の駅へ進むだけ。降りる辺は無い）
+  //   A: 駅・のりばに降りた / D: 駅・のりばで乗車待ち
+  //   W: 駅・のりばに徒歩連絡で着いた（乗る・さらに徒歩連絡・到着）
+  // B を分けることで「乗ってすぐ降りる（1駅も進まない）」乗車は探索上ありえなくなる。
   const nodes = [];
-  const rNodeId = new Map();
+  const serviceNodeId = new Map();
   const adNodeId = new Map();
-  // 駅ごとに、実際に作った A/D ノードののりばを覚えておく（出発・到着・乗換の展開に使う）
+  // 駅ごとに、実際に作った A/D/W ノードののりばを覚えておく（出発・到着・乗換の展開に使う）
   const stationPlatforms = new Map();
 
   function stationEntry(stationId) {
     let e = stationPlatforms.get(stationId);
     if (!e) {
-      e = { A: new Map(), D: new Map() };
+      e = { A: new Map(), D: new Map(), W: new Map() };
       stationPlatforms.set(stationId, e);
     }
     return e;
   }
 
-  function getRNode(serviceId, stopIndex, stationId, platformId) {
-    const key = `${serviceId}#${stopIndex}`;
-    let id = rNodeId.get(key);
+  function getServiceNode(kind, serviceId, stopIndex, stationId, platformId) {
+    const key = `${kind}|${serviceId}#${stopIndex}`;
+    let id = serviceNodeId.get(key);
     if (id === undefined) {
       id = nodes.length;
-      nodes.push({ kind: 'R', serviceId, stopIndex, stationId, platformId });
-      rNodeId.set(key, id);
+      nodes.push({ kind, serviceId, stopIndex, stationId, platformId });
+      serviceNodeId.set(key, id);
     }
     return id;
   }
@@ -135,17 +141,16 @@ export function buildSearchGraph(model, { vehicleTypeIds = null, ownCompanyOnly 
       const stop = stops[i];
       const isLast = i === n - 1;
       const hasNext = service.circular ? true : !isLast;
-      const rNode = getRNode(service.id, i, stop.stationId, stop.platformId);
+      const rNode = getServiceNode('R', service.id, i, stop.stationId, stop.platformId);
 
-      let rideAllowed = false;
+      let rNext = null;
       if (hasNext) {
         const section = edgeSection[i];
         const line = section && lineById.get(section.lineId);
         if (lineAllowed(line)) {
-          rideAllowed = true;
           const nextIndex = service.circular && isLast ? 0 : i + 1;
           const nextStop = stops[nextIndex];
-          const rNext = getRNode(service.id, nextIndex, nextStop.stationId, nextStop.platformId);
+          rNext = getServiceNode('R', service.id, nextIndex, nextStop.stationId, nextStop.platformId);
           addEdge(rNode, rNext, stop.run, 'ride');
         }
       }
@@ -155,9 +160,12 @@ export function buildSearchGraph(model, { vehicleTypeIds = null, ownCompanyOnly 
         addEdge(rNode, aNode, 0, 'alight');
       }
 
-      if (stop.board !== false && rideAllowed) {
+      // 乗車は D → B（乗った直後）とし、B からは次の停車駅へ進む辺だけを出す
+      if (stop.board !== false && rNext !== null) {
         const dNode = getADNode('D', stop.stationId, stop.platformId);
-        addEdge(dNode, rNode, 0, 'board');
+        const bNode = getServiceNode('B', service.id, i, stop.stationId, stop.platformId);
+        addEdge(dNode, bNode, 0, 'board');
+        addEdge(bNode, rNext, stop.run, 'ride');
       }
     }
   });
@@ -215,20 +223,53 @@ export function buildSearchGraph(model, { vehicleTypeIds = null, ownCompanyOnly 
     });
   });
 
-  // 別の駅への徒歩連絡（A→D）。のりばが null の側は、実際に存在するのりばへ展開する
+  // 別の駅への徒歩連絡。行き先は「徒歩で着いた」頂点 W（駅・のりばごと）にする。
+  // W からは、そののりばで乗る（D へ 0 秒の enter）・さらに徒歩連絡を続ける・到着駅ならそのまま着く、ができる。
+  function getWNode(stationId, platformId) {
+    const pk = platformKey(platformId);
+    const entry = stationEntry(stationId);
+    let id = entry.W.get(pk);
+    if (id === undefined) {
+      id = nodes.length;
+      nodes.push({ kind: 'W', stationId, platformId });
+      entry.W.set(pk, id);
+      const dId = entry.D.get(pk);
+      if (dId !== undefined) addEdge(id, dId, 0, 'enter');
+    }
+    return id;
+  }
+
+  // 行き先ののりばが null なら、実際に乗れるのりばへ展開する（乗れるのりばが無い駅なら null のまま1つ）。
+  // 出発時の徒歩連絡（searchRoutes の startWalk）でも使うので tr.toNodes に覚えておく。
   crossStationTransfers.forEach(tr => {
-    const fromEntry = stationPlatforms.get(tr.fromStationId);
     const toEntry = stationPlatforms.get(tr.toStationId);
-    if (!fromEntry || !toEntry) return;
-    const fromNodes = tr.fromPlatformId == null
-      ? Array.from(fromEntry.A.values())
-      : (fromEntry.A.has(tr.fromPlatformId) ? [fromEntry.A.get(tr.fromPlatformId)] : []);
-    const toNodes = tr.toPlatformId == null
-      ? Array.from(toEntry.D.values())
-      : (toEntry.D.has(tr.toPlatformId) ? [toEntry.D.get(tr.toPlatformId)] : []);
-    fromNodes.forEach(aId => {
-      toNodes.forEach(dId => {
-        addEdge(aId, dId, tr.seconds, 'walk');
+    const dKeys = toEntry ? Array.from(toEntry.D.keys()) : [];
+    let platformIds;
+    if (tr.toPlatformId != null) platformIds = [tr.toPlatformId];
+    else if (dKeys.length > 0) platformIds = dKeys.map(pk => (pk === '*' ? null : pk));
+    else platformIds = [null];
+    tr.toNodes = platformIds.map(pid => getWNode(tr.toStationId, pid));
+  });
+
+  // 徒歩連絡の出発側は、降りた頂点 A と、徒歩で着いた頂点 W（徒歩連絡の乗り継ぎ）
+  function walkSourceNodes(stationId, platformId) {
+    const entry = stationPlatforms.get(stationId);
+    if (!entry) return [];
+    const out = [];
+    ['A', 'W'].forEach(kind => {
+      if (platformId == null) {
+        entry[kind].forEach(id => out.push(id));
+      } else if (entry[kind].has(platformId)) {
+        out.push(entry[kind].get(platformId));
+      }
+    });
+    return out;
+  }
+
+  crossStationTransfers.forEach(tr => {
+    walkSourceNodes(tr.fromStationId, tr.fromPlatformId).forEach(srcId => {
+      tr.toNodes.forEach(wId => {
+        addEdge(srcId, wId, tr.seconds, 'walk');
       });
     });
   });
@@ -438,7 +479,8 @@ function buildRoute(model, graph, path, transferPenalty, fromStationId, toStatio
       continue;
     }
 
-    if (edge.kind === 'arrive') {
+    // arrive（到着）・enter（徒歩で着いたのりばで乗車待ちになる）は 0 秒で、案内には出さない
+    if (edge.kind === 'arrive' || edge.kind === 'enter') {
       continue;
     }
 
@@ -476,7 +518,8 @@ function buildRoute(model, graph, path, transferPenalty, fromStationId, toStatio
     return leg;
   });
 
-  const transferCount = legs.filter(l => l.type === 'ride').length - 1;
+  // 徒歩連絡だけで着く経路は乗車が0回なので、乗換回数は0とする
+  const transferCount = Math.max(0, legs.filter(l => l.type === 'ride').length - 1);
 
   return { totalDuration: Math.round(totalDuration), transferCount, score, legs };
 }
@@ -497,6 +540,43 @@ function routeSignature(route) {
     if (leg.type === 'ride') return rideSignature(leg);
     return `T:${leg.kind}:${leg.fromStationId}:${leg.fromPlatformId ?? ''}:${leg.toStationId}:${leg.toPlatformId ?? ''}`;
   }).join('|');
+}
+
+// ========================================
+// 強制候補の遠回りの除外
+// ========================================
+// 経路が通る駅の並び（乗車は途中の通過駅も含む。連続する同じ駅は1つにまとめる）
+function stationSequence(route) {
+  const seq = [];
+  const push = id => { if (seq[seq.length - 1] !== id) seq.push(id); };
+  route.legs.forEach(leg => {
+    if (leg.type === 'ride') {
+      leg.stops.forEach(s => push(s.stationId));
+    } else {
+      push(leg.fromStationId);
+      push(leg.toStationId);
+    }
+  });
+  return seq;
+}
+
+// 経由駅で区切った区間ごとに、同じ区間の中で一度通った駅へ戻ってくるか。
+// 「強制した列車で逆方向へ進み、通った駅を戻る」ような遠回りを見分ける。
+// 経由駅をまたぐ重複（経由駅へ行って同じ線を戻る等）は経由指定から必然的に起こるので許す。
+function revisitsStationWithinSegment(route, viaStationIds) {
+  const seq = stationSequence(route);
+  let viaIndex = 0;
+  let seen = new Set();
+  for (const stationId of seq) {
+    if (seen.has(stationId)) return true;
+    seen.add(stationId);
+    // 探索と同じく、次に通るべき経由駅に初めて着いた地点で区間を切り替える（経由駅は前後両方の区間に属する）
+    while (viaIndex < viaStationIds.length && stationId === viaStationIds[viaIndex]) {
+      viaIndex++;
+      seen = new Set([stationId]);
+    }
+  }
+  return false;
 }
 
 function dedupeRoutes(routes) {
@@ -535,13 +615,8 @@ export function searchRoutes(model, graph, {
   }
   graph.crossStationTransfers.forEach(tr => {
     if (tr.fromStationId !== fromStationId) return;
-    const toEntry = graph.stationPlatforms.get(tr.toStationId);
-    if (!toEntry) return;
-    const toNodes = tr.toPlatformId == null
-      ? Array.from(toEntry.D.values())
-      : (toEntry.D.has(tr.toPlatformId) ? [toEntry.D.get(tr.toPlatformId)] : []);
-    toNodes.forEach(dId => {
-      startEdges.push({ to: dId, dur: tr.seconds, kind: 'startWalk' });
+    tr.toNodes.forEach(wId => {
+      startEdges.push({ to: wId, dur: tr.seconds, kind: 'startWalk' });
     });
   });
   if (startEdges.length === 0) return [];
@@ -561,7 +636,7 @@ export function searchRoutes(model, graph, {
   function outgoingEdges(nodeId, restriction) {
     if (nodeId === START) {
       if (!restriction) return startEdges;
-      return startEdges.filter(e => e.to === restriction.dNodeId);
+      return startEdges.filter(e => e.to === restriction.firstNodeId);
     }
     if (nodeId === END) {
       // END は終端。経由駅が残っていて到達条件を満たさない場合はここで行き止まりになる
@@ -569,10 +644,16 @@ export function searchRoutes(model, graph, {
     }
     const node = graph.nodes[nodeId];
     let base = graph.edges[nodeId] || [];
-    if (restriction && restriction.rNodeId != null && nodeId === restriction.dNodeId) {
-      base = base.filter(e => e.to === restriction.rNodeId);
+    if (restriction) {
+      // 強制候補で徒歩で着いた W は、指定ののりばで乗車待ちになる辺だけ（そのまま到着・徒歩継続はさせない）
+      if (nodeId === restriction.enterFromNodeId) {
+        return base.filter(e => e.to === restriction.boardFromNodeId);
+      }
+      if (nodeId === restriction.boardFromNodeId) {
+        base = base.filter(e => e.to === restriction.boardToNodeId);
+      }
     }
-    if (node.kind !== 'A') return base;
+    if (node.kind !== 'A' && node.kind !== 'W') return base;
 
     const extra = [];
     if (node.stationId === toStationId) {
@@ -645,26 +726,33 @@ export function searchRoutes(model, graph, {
   const results = [];
   const base = runDijkstra(null);
   if (base) results.push(base);
-  // 出発時に乗れる運行系統・徒歩連絡の行き先ごとに、その選択だけを許した探索を追加で行う
+  // 出発時に乗れる運行系統ごとに、その列車に乗ることを強制した探索を追加で行う。
+  // 出発駅の D から乗る場合と、徒歩連絡で着いた W → D から乗る場合がある。
   startEdges.forEach(e => {
-    const boardEdges = (graph.edges[e.to] || []).filter(ed => ed.kind === 'board');
-    if (boardEdges.length === 0) {
-      const r = runDijkstra({ dNodeId: e.to, rNodeId: null });
-      if (r) results.push(r);
-      return;
-    }
-    boardEdges.forEach(b => {
-      const r = runDijkstra({ dNodeId: e.to, rNodeId: b.to });
-      if (r) results.push(r);
+    const viaWalk = graph.nodes[e.to].kind === 'W';
+    const boardFroms = viaWalk
+      ? (graph.edges[e.to] || []).filter(ed => ed.kind === 'enter').map(ed => ed.to)
+      : [e.to];
+    boardFroms.forEach(dId => {
+      (graph.edges[dId] || []).filter(ed => ed.kind === 'board').forEach(b => {
+        const r = runDijkstra({
+          firstNodeId: e.to,
+          enterFromNodeId: viaWalk ? e.to : null,
+          boardFromNodeId: dId,
+          boardToNodeId: b.to
+        });
+        if (r) results.push({ ...r, forced: true });
+      });
     });
   });
 
-  // 「特定の列車に乗ることを強制する」候補探索では、その列車に乗ってもすぐ降りて
-  // 別ののりばへ乗り換えるだけ（1駅も進まない）の経路が最短になることがある。
-  // これは実質「その列車には乗らない」のと同じで、案内としては無意味なので除外する。
-  // （出発駅で徒歩連絡してから乗る場合など、先頭以外の leg でも起こり得るのですべて見る）
+  // 強制候補では、その列車で逆方向へ進んでから通った駅を戻ってくるような遠回りが最短になることがあり、
+  // 案内としては無意味なので除外する（基本の探索結果の周回は、途中駅で乗れない列車に乗るため等の正当なものなので残す）。
+  // 1駅も進まない乗車はグラフの構造上もう起こらないが、万一のため引き続き除外する。
   const routes = results
-    .map(r => buildRoute(model, graph, r.path, transferPenalty, fromStationId, toStationId))
+    .map(r => ({ route: buildRoute(model, graph, r.path, transferPenalty, fromStationId, toStationId), forced: !!r.forced }))
+    .filter(({ route, forced }) => !(forced && revisitsStationWithinSegment(route, viaStationIds)))
+    .map(({ route }) => route)
     .filter(route => !route.legs.some(leg => leg.type === 'ride' && leg.stops.length < 2));
 
   // 同じ列車でも運行系統ごとに所要時間が違うことがあるので、並べ替えてから重複を除き、良いほうを残す

@@ -146,12 +146,23 @@ export function setupBottomSheet() {
 
 let _loadingPreventHandlers = null;
 
+function removeLoadingPreventHandlers() {
+  if (!_loadingPreventHandlers) return;
+  document.removeEventListener('touchmove', _loadingPreventHandlers.onTouchMove, { passive: false });
+  document.removeEventListener('wheel', _loadingPreventHandlers.onWheel, { passive: false });
+  document.removeEventListener('keydown', _loadingPreventHandlers.onKeyDown, { passive: false });
+  _loadingPreventHandlers = null;
+}
+
 export function showLoading() {
   const el = document.getElementById('loading-section');
   if (!el) return;
   el.style.display = 'flex';
 
   try {
+    // 表示中に再度呼ばれた場合、前回登録したハンドラを外してから登録し直す
+    // （上書きで参照を失うと hideLoading で外せず、スクロールが止まったままになる）
+    removeLoadingPreventHandlers();
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     if (isMobile) {
       const onTouchMove = function (e) { e.preventDefault(); };
@@ -186,13 +197,8 @@ export function hideLoading() {
   if (el) el.style.display = 'none';
 
   try {
-    if (_loadingPreventHandlers) {
-      document.removeEventListener('touchmove', _loadingPreventHandlers.onTouchMove, { passive: false });
-      document.removeEventListener('wheel', _loadingPreventHandlers.onWheel, { passive: false });
-      document.removeEventListener('keydown', _loadingPreventHandlers.onKeyDown, { passive: false });
-      _loadingPreventHandlers = null;
-      if (el) el.style.pointerEvents = '';
-    }
+    removeLoadingPreventHandlers();
+    if (el) el.style.pointerEvents = '';
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
   } catch (e) {

@@ -180,3 +180,64 @@ test('16. のりば指定なし（null）の駅での乗換は、同じ列車か
   assert.equal(withTransfer.legs[0].serviceId, 'sv_s14d');
   assert.equal(withTransfer.legs[1].fromStationId, 's14b');
 });
+
+function rideStations(route) {
+  return route.legs.filter(l => l.type === 'ride').map(l => l.stops.map(s => s.stationId));
+}
+
+test('17. 登録済みの乗換より未登録ののりばを中継するほうが安くても、乗ってすぐ降りる中継は使わず最適経路が残る', () => {
+  // s15m: 1→2 は 45 秒で登録済み。1→3→2 は未登録（既定 10 秒）だが、3 番で乗ってすぐ降りないと中継できない
+  const routes = search('s15a', 's15b');
+  assert.ok(routes.length > 0);
+  const best = routes[0];
+  assert.deepEqual(best.legs.map(l => l.type), ['ride', 'transfer', 'ride']);
+  assert.equal(best.legs[1].fromPlatformId, '1');
+  assert.equal(best.legs[1].toPlatformId, '2');
+  assert.equal(best.legs[1].duration, 45);
+  routes.forEach(route => {
+    route.legs.forEach(leg => {
+      if (leg.type === 'ride') assert.ok(leg.stops.length >= 2, '1駅も進まない乗車があってはいけない');
+    });
+  });
+});
+
+test('18. 徒歩連絡だけで着く経路：乗車なし・乗換0回', () => {
+  const routes = search('s16a', 's16b');
+  assert.ok(routes.length > 0);
+  const best = routes[0];
+  assert.equal(best.legs.length, 1);
+  assert.equal(best.legs[0].type, 'transfer');
+  assert.equal(best.legs[0].kind, 'walk');
+  assert.equal(best.transferCount, 0);
+  assert.equal(best.totalDuration, 20);
+});
+
+test('19. 列車が発着しない駅を挟んで徒歩連絡を乗り継げる', () => {
+  const routes = search('s17a', 's17b');
+  assert.ok(routes.length > 0);
+  const best = routes[0];
+  assert.deepEqual(best.legs.map(l => `${l.kind}:${l.fromStationId}>${l.toStationId}`), ['walk:s17a>s17m', 'walk:s17m>s17b']);
+  assert.equal(best.transferCount, 0);
+  assert.equal(best.totalDuration, 40);
+});
+
+test('20. 出発時に強制した列車で逆方向へ進み、通った駅を戻ってくる遠回りの候補は出さない', () => {
+  const routes = search('s18a', 's18b');
+  assert.ok(routes.length > 0);
+  routes.forEach(route => {
+    assert.ok(!rideStations(route).flat().includes('s18c'), '逆方向の s18c を回って戻る経路が出てはいけない');
+  });
+});
+
+test('21. 経由駅をまたぐ重複（経由駅へ行って出発駅を通って戻る）は、経由指定から必然なので残す', () => {
+  const routes = search('s18a', 's18b', { viaStationIds: ['s18c'] });
+  assert.ok(routes.length > 0);
+  assert.deepEqual(rideStations(routes[0]), [['s18a', 's18c'], ['s18c', 's18a', 's18b']]);
+});
+
+test('22. 基本の探索結果の周回（途中駅で乗れない列車に乗るため折り返す）は残す', () => {
+  // sv_s19exp は s19a で乗り降りできないので、s19x まで行って乗り、s19a を通過して s19z へ向かうしかない
+  const routes = search('s19a', 's19z');
+  assert.equal(routes.length, 1);
+  assert.deepEqual(rideStations(routes[0]), [['s19a', 's19x'], ['s19x', 's19a', 's19z']]);
+});
