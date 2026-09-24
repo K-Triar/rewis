@@ -2,6 +2,7 @@
 // 仕様は docs/rewis-v2/phase-3-route-search.md の 3-2・3-3 を参照。
 
 import { ownCompanyIds } from './ids.js';
+import { resolveTransferDefaults } from './schema-v2.js';
 
 // ========================================
 // 二分ヒープ（優先度キュー）
@@ -171,7 +172,7 @@ export function buildSearchGraph(model, { vehicleTypeIds = null, ownCompanyOnly 
   });
 
   // 乗換時間の決め方は 01-schema-v2.md 2.4 を参照
-  const transferDefaults = network.transferDefaults || { samePlatform: 5, unknown: 10 };
+  const transferDefaults = resolveTransferDefaults(network);
   const sameStationTransfers = [];
   const crossStationTransfers = [];
   (network.transfers || []).forEach(tr => {

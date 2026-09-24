@@ -16,6 +16,15 @@ function isIdString(v) {
   return typeof v === 'string' && ID_PATTERN.test(v);
 }
 
+// 乗換時間の既定値（01-schema-v2.md 2.4）。未指定や不正な項目は項目ごとにこの値で補う
+export const TRANSFER_DEFAULTS = Object.freeze({ samePlatform: 5, unknown: 10 });
+
+export function resolveTransferDefaults(network) {
+  const td = network && isPlainObject(network.transferDefaults) ? network.transferDefaults : {};
+  const pick = (key) => (Number.isFinite(td[key]) ? td[key] : TRANSFER_DEFAULTS[key]);
+  return { samePlatform: pick('samePlatform'), unknown: pick('unknown') };
+}
+
 function checkIdFormat(id, path, errors, message) {
   if (typeof id === 'string' && !ID_PATTERN.test(id)) {
     errors.push(issue('E_ID_FORMAT', path, message));
@@ -67,6 +76,13 @@ export function validateNetwork(doc) {
   }
   if (doc.transferDefaults !== undefined && !isPlainObject(doc.transferDefaults)) {
     errors.push(issue('E_TYPE', 'transferDefaults', 'transferDefaults がオブジェクトではありません'));
+  } else if (doc.transferDefaults !== undefined) {
+    for (const key of Object.keys(TRANSFER_DEFAULTS)) {
+      const v = doc.transferDefaults[key];
+      if (v !== undefined && !isNonNegInt(v)) {
+        errors.push(issue('E_TYPE', `transferDefaults.${key}`, `transferDefaults.${key} が0以上の整数ではありません`));
+      }
+    }
   }
   if (!isPlainObject(doc.meta)) {
     errors.push(issue('E_TYPE', 'meta', 'meta がオブジェクトではありません'));

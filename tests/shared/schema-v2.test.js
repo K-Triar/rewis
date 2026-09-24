@@ -152,3 +152,21 @@ test('operations: W_NOTICE_DIRECTIONS を検出する', () => {
   const result = validateOperations(ops, network());
   assert.equal(hasCode(result.warnings, 'W_NOTICE_DIRECTIONS'), true);
 });
+
+test('transferDefaults: 項目の省略は通り、0以上の整数でない値は E_TYPE になる', () => {
+  const ok = [undefined, {}, { unknown: 10 }, { samePlatform: 0, unknown: 10 }];
+  ok.forEach(td => {
+    const net = network();
+    if (td === undefined) delete net.transferDefaults; else net.transferDefaults = td;
+    assert.deepEqual(validateNetwork(net).errors, [], JSON.stringify(td));
+  });
+  const bad = [{ samePlatform: '5' }, { unknown: -1 }, { unknown: 1.5 }, { samePlatform: null }];
+  bad.forEach(td => {
+    const net = network();
+    net.transferDefaults = td;
+    const errors = validateNetwork(net).errors;
+    assert.equal(errors.length, 1, JSON.stringify(td));
+    assert.equal(errors[0].code, 'E_TYPE');
+    assert.match(errors[0].path, /^transferDefaults\./);
+  });
+});

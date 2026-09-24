@@ -2,6 +2,7 @@ import { h, clear } from '../../common/dom.js';
 import { alertDialog } from '../../common/components/dialog.js';
 import { createStationPicker } from '../components/station-picker.js';
 import { newId } from '../../../shared/ids.js';
+import { resolveTransferDefaults } from '../../../shared/schema-v2.js';
 
 function stationLabel(network, stationId) {
   const station = network.stations.find((s) => s.id === stationId);
@@ -341,7 +342,7 @@ export function renderTransfersView(container, ctx) {
 
   function renderDefaults() {
     clear(defaultsSection);
-    const defaults = network.transferDefaults || { samePlatform: 5, unknown: 10 };
+    const defaults = resolveTransferDefaults(network);
 
     const samePlatformInput = h('input', { type: 'number', class: 'g-input', min: '0', step: '1', value: String(defaults.samePlatform) });
     const unknownInput = h('input', { type: 'number', class: 'g-input', min: '0', step: '1', value: String(defaults.unknown) });
@@ -350,10 +351,10 @@ export function renderTransfersView(container, ctx) {
       const value = Number(input.value);
       if (!Number.isInteger(value) || value < 0) {
         await alertDialog('乗換秒数は0以上の整数で入力してください。');
-        input.value = String(network.transferDefaults[key]);
+        input.value = String(resolveTransferDefaults(network)[key]);
         return;
       }
-      store.mutateDoc('network', (doc) => { doc.transferDefaults[key] = value; });
+      store.mutateDoc('network', (doc) => { doc.transferDefaults = { ...resolveTransferDefaults(doc), [key]: value }; });
       refreshAll();
     }
 

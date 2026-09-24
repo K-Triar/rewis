@@ -3,7 +3,6 @@
 // ========================================
 import { loadPublicModel } from '../shared/data-source.js';
 import { buildSearchGraph, searchRoutes } from '../shared/route-search.js';
-import { ownCompanyIds } from '../shared/ids.js';
 import {
     showShareDialog,
     setupBottomSheet,
@@ -19,12 +18,9 @@ let model = null;
 let groupMatesByStation = new Map();
 // 絞り込み条件ごとに検索グラフを使い回すキャッシュ（3-2 仕様）
 const graphCache = new Map();
-let viaStationCount = 0;
 // Unique counter for DOM element ids of via inputs. This is separate from the
 // displayed sequential index which is computed from the visible items.
 let viaUniqueIdCounter = 0;
-let brandName = 'Kトライア交通グループ';
-let ownCompanyIdList = ['KT'];
 // 検索モード: 'time' | 'balance' | 'transfer' (default: balance)
 let searchMode = 'balance';
 // 実行中の検索の世代番号（古い検索結果の反映を防ぐ）
@@ -53,16 +49,6 @@ function getTransferPenalty(mode) {
         console.log('データ読み込み完了:', model ? 'OK' : 'NG');
         console.log('駅数:', model?.network?.stations?.length || 0);
 
-        // ブランド名・自社線ID取得
-        const meta = model && model.network ? model.network.meta : null;
-        if (meta) {
-            if (meta.appName) {
-                brandName = meta.appName.replace(/乗換案内システム$/, '').trim();
-            }
-            if (meta.ownCompanyId) {
-                ownCompanyIdList = ownCompanyIds(meta);
-            }
-        }
         groupMatesByStation = buildGroupMates(model.network);
 
         console.log('UI初期化開始...');
@@ -119,14 +105,6 @@ function initializeUI() {
     }
     document.getElementById('add-via').addEventListener('click', addViaStation);
     document.getElementById('search-button').addEventListener('click', () => performSearch());
-
-    ['departure', 'arrival'].forEach(id => {
-        document.getElementById(id).addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-    });
 
     // Adaptive search-section sizing removed: stable mobile layout only.
     // Formerly `setupSearchSectionSizing()` toggled `body.search-compact` based
@@ -205,25 +183,94 @@ function setupStationInput(inputId) {
         return;
     }
 
+    // 候補一覧は combobox + listbox として読み上げられるようにする
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-controls', suggestionsId);
+    input.setAttribute('aria-expanded', 'false');
+    suggestionsDiv.setAttribute('role', 'listbox');
+
+    function updateSuggestions() {
+        const query = input.value.trim();
+        if (query.length === 0) {
+            closeSuggestions(input, suggestionsDiv);
+            return;
+        }
+        displaySuggestions(searchStations(query), suggestionsDiv, input);
+    }
+
     input.addEventListener('input', () => {
         // 手入力で内容が変わったら、候補・URLから確定していた駅IDは破棄する
         delete input.dataset.stationId;
-        const query = input.value.trim();
+        updateSuggestions();
+    });
 
-        if (query.length === 0) {
-            suggestionsDiv.classList.remove('is-open');
-            return;
+    // 候補を押しても入力欄のフォーカスが外れないようにする（blur で候補が閉じてタップが空振りするのを防ぐ）
+    suggestionsDiv.addEventListener('mousedown', (e) => e.preventDefault());
+
+    input.addEventListener('blur', () => closeSuggestions(input, suggestionsDiv));
+
+    input.addEventListener('keydown', (e) => {
+        // 日本語入力の変換中（変換確定の Enter を含む）は何もしない
+        if (e.isComposing || e.keyCode === 229) return;
+
+        const isOpen = suggestionsDiv.classList.contains('is-open');
+        const items = isOpen ? Array.from(suggestionsDiv.querySelectorAll('.field-suggestion')) : [];
+        const activeIndex = items.findIndex(item => item.classList.contains('is-active'));
+
+        switch (e.key) {
+            case 'ArrowDown':
+            case 'ArrowUp': {
+                if (!isOpen) {
+                    updateSuggestions();
+                    if (suggestionsDiv.classList.contains('is-open')) e.preventDefault();
+                    return;
+                }
+                if (items.length === 0) return;
+                e.preventDefault();
+                const step = e.key === 'ArrowDown' ? 1 : -1;
+                const next = activeIndex === -1
+                    ? (step === 1 ? 0 : items.length - 1)
+                    : (activeIndex + step + items.length) % items.length;
+                setActiveSuggestion(input, items, next);
+                return;
+            }
+            case 'Enter':
+                e.preventDefault();
+                if (activeIndex !== -1) {
+                    items[activeIndex].click();
+                    return;
+                }
+                closeSuggestions(input, suggestionsDiv);
+                performSearch();
+                return;
+            case 'Escape':
+                if (isOpen) {
+                    e.preventDefault();
+                    closeSuggestions(input, suggestionsDiv);
+                }
+                return;
+            default:
+                return;
         }
-
-        const matchingStations = searchStations(query);
-        displaySuggestions(matchingStations, suggestionsDiv, input);
     });
+}
 
-    input.addEventListener('blur', () => {
-        setTimeout(() => {
-            suggestionsDiv.classList.remove('is-open');
-        }, 200);
+function closeSuggestions(input, suggestionsDiv) {
+    suggestionsDiv.classList.remove('is-open');
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+}
+
+function setActiveSuggestion(input, items, index) {
+    items.forEach((item, i) => {
+        const active = i === index;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-selected', active ? 'true' : 'false');
     });
+    const activeItem = items[index];
+    input.setAttribute('aria-activedescendant', activeItem.id);
+    activeItem.scrollIntoView({ block: 'nearest' });
 }
 
 function searchStations(query) {
@@ -232,15 +279,20 @@ function searchStations(query) {
         return [];
     }
 
-    const lowerQuery = query.toLowerCase();
+    const q = normalizeForSearch(query);
 
     return model.network.stations.filter(station => {
-        const name = String(station.name || '');
-        const kana = String(station.kana || '').toLowerCase();
-        return name.includes(query) ||
-               kana.includes(lowerQuery) ||
-               convertToHiragana(name).includes(lowerQuery);
+        return normalizeForSearch(station.name).includes(q) ||
+               normalizeForSearch(station.kana).includes(q);
     }).slice(0, 10);
+}
+
+// 駅名検索の比較用に文字をそろえる：全角・半角（NFKC）、英字の大文字・小文字、カタカナ→ひらがな
+function normalizeForSearch(text) {
+    return String(text || '')
+        .normalize('NFKC')
+        .toLowerCase()
+        .replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
 }
 
 // ヘルプモーダル・ボトムシート・noopリンクは src/shared/ui-dom.js に集約済み。
@@ -260,15 +312,19 @@ function normalizeLineDisplayName(name) {
 
 function displaySuggestions(stations, suggestionsDiv, input) {
     if (stations.length === 0) {
-        suggestionsDiv.classList.remove('is-open');
+        closeSuggestions(input, suggestionsDiv);
         return;
     }
 
     suggestionsDiv.innerHTML = '';
+    input.removeAttribute('aria-activedescendant');
 
-    stations.forEach(station => {
+    stations.forEach((station, idx) => {
         const item = document.createElement('div');
         item.className = 'field-suggestion';
+        item.id = `${input.id}-option-${idx}`;
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', 'false');
 
         // 路線名を取得して表示用に整形
         // 1) 元の路線名を取得
@@ -306,17 +362,14 @@ function displaySuggestions(stations, suggestionsDiv, input) {
 
         item.addEventListener('click', () => {
             setStationInput(input, station);
-            suggestionsDiv.classList.remove('is-open');
+            closeSuggestions(input, suggestionsDiv);
         });
 
         suggestionsDiv.appendChild(item);
     });
 
     suggestionsDiv.classList.add('is-open');
-}
-
-function convertToHiragana(text) {
-    return text.toLowerCase();
+    input.setAttribute('aria-expanded', 'true');
 }
 
 // ========================================
@@ -748,9 +801,8 @@ function loadFromUrlParams() {
     // すべての条件が設定されたら自動的に検索を実行
     if (params.get('from') && params.get('to')) {
         console.log('URLパラメータに基づいて自動検索を実行します');
-        setTimeout(() => {
-            performSearch({ historyMode: 'replace' });
-        }, 500); // UIの更新を待つため少し遅延
+        // ローディング表示の描画は performSearch 内の遅延で確保される
+        performSearch({ historyMode: 'replace' });
     }
 }
 
@@ -790,12 +842,17 @@ function applyParamsToForm(params) {
     if (toId && !toStation) console.warn('到着駅が見つかりません:', toId);
 
     // 既存の経由駅をクリアしてから設定（via1, via2, via3...）。
+    // 番号が飛んでいても（via1, via3 など）番号順にすべて読む。
     // 見つからない経由駅も空欄の欄として残し、そのIDを呼び出し元へ返す（黙って読み飛ばさない）
     document.querySelectorAll('.via-station-item').forEach(item => item.remove());
     const missingViaIds = [];
-    let viaIndex = 1;
-    while (params.has(`via${viaIndex}`)) {
-        const viaId = params.get(`via${viaIndex}`);
+    const viaParams = [];
+    params.forEach((value, key) => {
+        const m = /^via(\d+)$/.exec(key);
+        if (m) viaParams.push({ index: Number(m[1]), viaId: value });
+    });
+    viaParams.sort((a, b) => a.index - b.index);
+    for (const { index: viaIndex, viaId } of viaParams) {
         const viaStation = findStationById(viaId);
         addViaStation();
         // 最後に追加された経由駅の入力欄を取得
@@ -806,7 +863,6 @@ function applyParamsToForm(params) {
             missingViaIds.push(viaId);
             console.warn(`経由駅${viaIndex}が見つかりません:`, viaId);
         }
-        viaIndex++;
     }
 
     // フィルター設定（デフォルト: KTonly=disabled, TC/SX/MC=enabled）
@@ -941,24 +997,14 @@ function showRouteIndex(idx, { align = true } = {}) {
 function displayResults(routes) {
     const resultsSection = document.getElementById('results-section');
     const resultsContainer = document.getElementById('results-container');
-    const resultsCount = document.getElementById('results-count');
 
     // clear previous content
     resultsContainer.innerHTML = '';
-    resultsCount.textContent = '';
-
-    if (!routes || routes.length === 0) {
-        resultsSection.style.display = 'none';
-        resultsCount.textContent = '0件';
-        return;
-    }
 
     // 検索画面を隠す
     hideSearchSection();
 
-    resultsCount.textContent = `${routes.length} 件の経路が見つかりました`;
-
-    // 「検索画面に戻る」ボタンを作成（既存のボタン・ラッパーを再利用または削除して重複を防止）
+    // 「検索画面に戻る」ボタンを作成
     const backButton = document.createElement('button');
     backButton.className = 'btn btn-outline-pill';
     backButton.textContent = '検索画面に戻る';
@@ -971,48 +1017,22 @@ function displayResults(routes) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // 「検索結果」見出しの右側に戻るボタンを配置
-    const resultsInfo = resultsSection.querySelector('.results-info');
-    resultsInfo.innerHTML = ''; // 既存の内容をクリア
-
-    // Try to reuse an existing header wrapper if present to avoid creating duplicates
-    const existingHeaderWrapper = resultsSection.querySelector('.route-results-header');
-    const heading = resultsSection.querySelector('h2');
-
-    if (existingHeaderWrapper) {
-        // Remove any previous back button inside the existing wrapper
-        const prevBtn = existingHeaderWrapper.querySelector('.btn-outline-pill');
-        if (prevBtn) prevBtn.remove();
-
-        // Ensure the heading is inside the wrapper
-        if (heading && heading.parentNode !== existingHeaderWrapper) {
-            existingHeaderWrapper.insertBefore(heading, existingHeaderWrapper.firstChild || null);
-        }
-
-        // Append the fresh back button
-        existingHeaderWrapper.appendChild(backButton);
-    } else if (heading && heading.parentNode) {
-        // Create a new wrapper and insert the heading and back button
-        const headerWrapper = document.createElement('div');
+    // 「検索結果」見出しの右側に戻るボタンを配置する。
+    // 初回は見出しを .route-results-header で包み、2回目以降はそれを使い回して前回のボタンを差し替える
+    let headerWrapper = resultsSection.querySelector('.route-results-header');
+    if (!headerWrapper) {
+        const heading = resultsSection.querySelector('h2');
+        headerWrapper = document.createElement('div');
         headerWrapper.className = 'route-results-header';
-
-        // Insert wrapper before the heading, then move heading into it
         heading.parentNode.insertBefore(headerWrapper, heading);
         headerWrapper.appendChild(heading);
-        headerWrapper.appendChild(backButton);
-    } else {
-        // Fallback: append back button to resultsInfo if heading not found
-        // Also ensure no duplicate button exists there
-        const prevBtn = resultsInfo.querySelector('.btn-outline-pill');
-        if (prevBtn) prevBtn.remove();
-        resultsInfo.appendChild(backButton);
     }
+    const prevBackButton = headerWrapper.querySelector('.btn-outline-pill');
+    if (prevBackButton) prevBackButton.remove();
+    headerWrapper.appendChild(backButton);
 
-    // 件数表示は results-info の中に配置（見出しの下）
-    const countSpan = document.createElement('span');
-    countSpan.id = 'results-count';
-    countSpan.textContent = `${routes.length} 件の経路が見つかりました`;
-    resultsInfo.appendChild(countSpan);
+    // 件数表示（見出しの下の results-info 内）
+    document.getElementById('results-count').textContent = `${routes.length} 件の経路が見つかりました`;
 
     // タブ（ルート切替）メニューを作成
     const tabs = document.createElement('div');
@@ -1388,7 +1408,6 @@ function createWalkInfoRow(item, model) {
 function formatSeconds(sec) {
     if (sec === null || sec === undefined || sec === '') return '';
     const n = Math.round(Number(sec) || 0);
-    if (isNaN(n)) return '';
     if (n < 60) return `${n}秒`;
     const m = Math.floor(n / 60);
     const s = n % 60;
@@ -1401,7 +1420,6 @@ function formatSeconds(sec) {
 // so CSS can render digits large & blue while keeping units small & black.
 function formatDurationHtml(totalSeconds) {
     const n = Math.round(Number(totalSeconds) || 0);
-    if (isNaN(n)) return `<span class="summary-number">0</span><span class="summary-unit">秒</span>`;
 
     if (n < 60) {
         return `<span class="summary-number">${n}</span><span class="summary-unit">秒</span>`;
@@ -1667,13 +1685,6 @@ function showSearchSection() {
 function setupScrollableTabs(tabs) {
     if (!tabs || !tabs.parentNode) return;
 
-    // If already wrapped, don't wrap again
-    if (tabs.parentNode.classList && tabs.parentNode.classList.contains('route-tabs-wrapper')) {
-        // ensure overflow state
-        updateOverflowState(tabs);
-        return;
-    }
-
     const wrapper = document.createElement('div');
     wrapper.className = 'route-tabs-wrapper';
 
@@ -1737,9 +1748,6 @@ function setupScrollableTabs(tabs) {
     tabs.addEventListener('scroll', () => updateOverflowState(tabs), { passive: true });
     tabs.addEventListener('pointerdown', () => updateOverflowState(tabs), { passive: true });
     tabs.addEventListener('touchstart', () => updateOverflowState(tabs), { passive: true });
-
-    // expose update function for possible external calls
-    tabs.__updateOverflowState = () => updateOverflowState(tabs);
 
     // タブが作り直される・結果が閉じられるときに cleanupRouteTabs() から呼ばれる
     _routeTabsCleanup = () => {

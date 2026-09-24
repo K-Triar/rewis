@@ -15,6 +15,7 @@ import { createStationSearch } from '../components/station-search.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
 import { stationOf, stationName } from '../../core/lookup.js';
+import { resolveTransferDefaults } from '../../../shared/schema-v2.js';
 
 const SHIFT_HELP_TEXT = 'このタブでは、駅の移動は Shift を押しながらのドラッグだけです。ドラッグだけで始めると、乗換の登録になります。';
 
@@ -565,7 +566,7 @@ function mountTablesPane(container, ctx, focusGroupId) {
   }
 
   function renderDefaultsCard() {
-    const defaults = network.transferDefaults || { samePlatform: 5, unknown: 10 };
+    const defaults = resolveTransferDefaults(network);
     const sameInput = h('input', { type: 'number', class: 'g-input', value: String(defaults.samePlatform) });
     const unknownInput = h('input', { type: 'number', class: 'g-input', value: String(defaults.unknown) });
 
@@ -573,10 +574,10 @@ function mountTablesPane(container, ctx, focusGroupId) {
       const value = Number(input.value);
       if (!Number.isInteger(value) || value < 0) {
         await alertDialog('乗換秒数は0以上の整数で入力してください。');
-        input.value = String(network.transferDefaults[key]);
+        input.value = String(resolveTransferDefaults(network)[key]);
         return;
       }
-      store.mutateDoc('network', (doc) => { doc.transferDefaults[key] = value; });
+      store.mutateDoc('network', (doc) => { doc.transferDefaults = { ...resolveTransferDefaults(doc), [key]: value }; });
     }
     sameInput.addEventListener('change', () => applyChange('samePlatform', sameInput));
     unknownInput.addEventListener('change', () => applyChange('unknown', unknownInput));

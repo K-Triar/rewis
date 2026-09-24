@@ -241,3 +241,17 @@ test('22. 基本の探索結果の周回（途中駅で乗れない列車に乗�
   assert.equal(routes.length, 1);
   assert.deepEqual(rideStations(routes[0]), [['s19a', 's19x'], ['s19x', 's19a', 's19z']]);
 });
+
+test('23. transferDefaults が片方だけ指定されていても、足りない項目は既定値で補って同じ結果になる', () => {
+  const pairs = [['s13a', 's13z'], ['s14a', 's14c'], ['s15a', 's15b'], ['s2a', 's2c']];
+  const expected = pairs.map(([from, to]) => search(from, to));
+  [{ unknown: 10 }, { samePlatform: 5 }, {}].forEach(transferDefaults => {
+    const partialModel = buildModel({ ...network, transferDefaults }, [], {});
+    const partialGraph = buildSearchGraph(partialModel);
+    pairs.forEach(([from, to], i) => {
+      const routes = searchRoutes(partialModel, partialGraph, { fromStationId: from, toStationId: to });
+      routes.forEach(r => assert.ok(Number.isFinite(r.score), `${JSON.stringify(transferDefaults)} ${from}>${to} の score が数値ではない`));
+      assert.deepEqual(routes, expected[i], `${JSON.stringify(transferDefaults)} ${from}>${to}`);
+    });
+  });
+});

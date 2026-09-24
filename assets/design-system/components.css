@@ -373,7 +373,8 @@
 .field-suggestion:last-child {
     border-bottom: none;
 }
-.field-suggestion:hover {
+.field-suggestion:hover,
+.field-suggestion.is-active {
     background: var(--color-bg-subtle);
 }
 .field-suggestion__name {
