@@ -12,6 +12,7 @@ import { generateNoticeText } from '../../../shared/notice-text.js';
 import { computeAffectedIndices, throughTargetsFor } from '../../../shared/model.js';
 import { h, s, clear, icon } from '../../common/dom.js';
 import { alertDialog, confirmDialog } from '../../common/components/dialog.js';
+import { getSavedSession } from '../../common/api.js';
 import { maybeOpenGuideOnce } from '../components/guide.js';
 import { GUIDE_STEPS } from '../guide-steps.js';
 import { stationOf, stationName, lineOf } from '../../core/lookup.js';
@@ -42,13 +43,24 @@ export function renderOperationsView(container, ctx) {
     return operations.notices.find((n) => n.id === ui.selectedId) || null;
   }
 
+  // 表形式エディタの保存時と同じく、変更のたびに更新日時・更新者を記録する。
+  function stampNotice(notice, { created = false } = {}) {
+    const now = new Date().toISOString();
+    const session = getSavedSession();
+    const stamped = { ...notice, updatedAt: now, updatedBy: session ? session.userId : null };
+    if (created) stamped.createdAt = now;
+    return stamped;
+  }
+
   function mutateSelectedNotice(fn) {
     const id = ui.selectedId;
     if (!id) return;
     store.mutateDoc('operations', (doc) => {
       const idx = doc.notices.findIndex((n) => n.id === id);
       if (idx === -1) return;
-      doc.notices[idx] = fn(doc.notices[idx]);
+      const next = fn(doc.notices[idx]);
+      if (JSON.stringify(next) === JSON.stringify(doc.notices[idx])) return;
+      doc.notices[idx] = stampNotice(next);
     });
     refreshView();
   }
@@ -156,7 +168,7 @@ export function renderOperationsView(container, ctx) {
     type: 'button',
     class: 'g-btn',
     onClick: () => {
-      const draft = noticeOps.createEmptyNotice(network);
+      const draft = stampNotice(noticeOps.createEmptyNotice(network), { created: true });
       store.mutateDoc('operations', (doc) => doc.notices.push(draft));
       selectNotice(draft.id);
     }
@@ -494,7 +506,7 @@ export function renderOperationsView(container, ctx) {
       h('button', {
         type: 'button', class: 'g-btn',
         onClick: () => {
-          const dup = noticeOps.duplicateNotice(notice);
+          const dup = stampNotice(noticeOps.duplicateNotice(notice), { created: true });
           store.mutateDoc('operations', (doc) => doc.notices.push(dup));
           selectNotice(dup.id);
         }
