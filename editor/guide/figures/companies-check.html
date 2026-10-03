@@ -1,0 +1,27 @@
+<figure class="gd-figure" data-w="800" data-h="440">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      {{> page-header}}
+      <div class="g-main">
+        <div class="g-view" data-g="v-stations">
+          {{> stations-view}}
+        </div>
+        <div class="g-view" data-g="v-companies" hidden>
+          {{> companies-view}}
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>「鉄道会社」タブで、自分の会社が登録されているか確認する</figcaption>
+  <script type="text/x-gd-steps">
+    click  @tab-companies
+    remove @tab-stations is-selected
+    add    @tab-companies is-selected
+    hide   @v-stations
+    show   @v-companies
+    wait   500
+    spot   @co-KT
+    wait   600
+  </script>
+</figure>

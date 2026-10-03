@@ -1,0 +1,48 @@
+<figure class="gd-figure" data-w="980" data-h="540">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        {{> lines-view}}
+      </div>
+    </div>
+  </div>
+  <figcaption>路線ID・路線名などを入力し、種別を追加して、駅を検索して駅順に加える</figcaption>
+  <script type="text/x-gd-steps">
+    click  @line-add
+    show   @line-form-slot
+    type   @ln-id KT-H
+    type   @ln-name 白樺支線
+    select @ln-company KT
+    select @ln-vehicle TC
+    scroll @ln-cat-head
+    type   @cat-id Lo
+    type   @cat-name 普通
+    click  @cat-add
+    clear  @cat-id
+    clear  @cat-name
+    show   @cat-row
+    wait   500
+    scroll @ln-st-head
+    type   @ln-picker みな
+    show   @sugg-mina
+    click  @c-mina
+    hide   @sugg-mina
+    clear  @ln-picker
+    show   @st-0
+    wait   300
+    type   @ln-picker しら
+    show   @sugg-shira
+    click  @c-shira
+    hide   @sugg-shira
+    clear  @ln-picker
+    show   @st-1
+    enable @st-0-down
+    wait   600
+    scroll @ln-save
+    click  @ln-save
+    hide   @line-form-slot
+    show   @lr-KT-H
+    spot   @lr-KT-H
+    wait   400
+  </script>
+</figure>

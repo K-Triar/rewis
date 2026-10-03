@@ -1,0 +1,66 @@
+<figure class="gd-figure" data-w="980" data-h="420">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        <div class="g-section-header">
+          <h2>駅</h2>
+          <button class="g-btn g-btn--primary" type="button" data-g="add">+ 追加</button>
+        </div>
+        <div class="g-actions-row"><input type="text" class="g-input" placeholder="駅名・かなで検索"></div>
+        <div class="ed2-split">
+          <div class="ed2-list-scroll ed2-split__list">
+            <div class="g-table-wrap">
+              <table class="g-table">
+                <thead><tr><th style="width:120px">駅ID</th><th>駅名</th><th>かな</th><th style="width:80px">のりば数</th><th style="width:180px">操作</th></tr></thead>
+                <tbody>
+                  <tr><td>KL01</td><td>ルリ中央</td><td>るりちゅうおう</td><td>4</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                  <tr><td>KL02</td><td>港町</td><td>みなとまち</td><td>2</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                  <tr><td>KL03</td><td>白樺台</td><td>しらかばだい</td><td>2</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                  <tr data-g="row"><td>KL04</td><td>東ルリ</td><td>ひがしるり</td><td>1</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button" data-g="delete">削除</button></td></tr>
+                  <tr data-g="confirm" hidden><td>KL04</td><td colspan="3">東ルリ</td><td><button class="g-btn g-btn--danger g-btn--small" type="button">削除する</button><button class="g-btn g-btn--small" type="button" data-g="confirm-cancel">キャンセル</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="ed2-split__form" data-g="form" hidden>
+            <div class="g-card">
+              <div class="g-card__header">駅を追加</div>
+              <div class="g-card__body">
+                <div class="g-field"><label class="g-field__label">駅ID</label><input type="text" class="g-input" placeholder="例: KL01"></div>
+                <div class="g-field"><label class="g-field__label">駅名</label><input type="text" class="g-input" placeholder="駅名"></div>
+                <div class="g-field"><label class="g-field__label">かな</label><input type="text" class="g-input" placeholder="かな"></div>
+                <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">のりば</h4>
+                <div class="g-table-wrap ed2-subtable">
+                  <table class="g-table">
+                    <thead><tr><th>のりばID</th><th>表示名</th><th>操作</th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <div class="g-actions-row"><input type="text" class="g-input" placeholder="のりばID" style="width:80px"><input type="text" class="g-input" placeholder="表示名" style="width:80px"><button class="g-btn g-btn--small" type="button">+ のりば追加</button></div>
+                <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button">追加する</button><button class="g-btn" type="button" data-g="form-cancel">キャンセル</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>［+ 追加］で空のフォームが開く。［削除］を押すと、その行が確認の表示に変わる</figcaption>
+  <script type="text/x-gd-steps">
+    click @add
+    show  @form
+    wait  1600
+    click @form-cancel
+    hide  @form
+    wait  300
+    click @delete
+    hide  @row
+    show  @confirm
+    spot  @confirm
+    spot  off
+    click @confirm-cancel
+    hide  @confirm
+    show  @row
+    wait  600
+  </script>
+</figure>

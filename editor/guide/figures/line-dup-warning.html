@@ -1,0 +1,42 @@
+<figure class="gd-figure" data-w="980" data-h="440">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view" data-g="view">
+        {{> lines-view}}
+      </div>
+    </div>
+    <div class="g-dialog-backdrop" data-g="dialog" hidden>
+      <div class="g-dialog" role="alertdialog">
+        <div class="g-dialog__message">同じ駅が既に駅順に含まれています（ラケット型で同じ駅を2回通る場合を除き、通常は重複させません）。</div>
+        <div class="g-dialog__actions"><button type="button" class="g-btn g-btn--primary" data-g="ok">OK</button></div>
+      </div>
+    </div>
+  </div>
+  <figcaption>同じ駅を選ぶとメッセージが出るが、駅はそのまま追加される。不要な行は［削除］で外す</figcaption>
+  <script type="text/x-gd-steps">
+    show   @line-form-slot
+    show   @cat-row
+    show   @st-0
+    show   @st-1
+    enable @st-0-down
+    scroll @ln-st-head
+    wait   600
+    type   @ln-picker みな
+    show   @sugg-mina
+    click  @c-mina
+    hide   @sugg-mina
+    clear  @ln-picker
+    show   @dialog
+    wait   2200
+    click  @ok
+    hide   @dialog
+    show   @st-2
+    enable @st-1-down
+    spot   @st-2 同じ駅が2回
+    spot   off
+    click  @st-2-del
+    hide   @st-2
+    disable @st-1-down
+    wait   600
+  </script>
+</figure>

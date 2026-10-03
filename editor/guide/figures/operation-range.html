@@ -1,0 +1,65 @@
+<figure class="gd-figure" data-w="440" data-h="520">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view" style="background:var(--bgColor-muted);">
+<div class="g-card">
+  <div class="g-card__header" data-g="op-title">運行情報を編集: nt_5h2k9w3m7x</div>
+  <div class="g-card__body">
+    <div class="g-field"><label class="g-field__label">影響路線</label><select class="g-select"><option value="KT-L" selected>瑠璃本線</option><option value="KT-C">瑠璃環状線</option><option value="CR-K">湖畔線</option></select></div>
+    <div class="g-field"><label class="g-field__label">状態</label><select class="g-select" data-g="op-state"><option value="draft">下書き</option><option value="published" selected>公開中</option><option value="closed">終了</option></select></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">発生日時</h4>
+    <div class="g-actions-row"><input type="number" class="g-input" value="2026" style="width:80px">年<input type="number" class="g-input" min="1" max="12" style="width:60px" value="10" data-g="op-month">月<input type="number" class="g-input" min="1" max="31" style="width:60px" value="3" data-g="op-day">日<input type="number" class="g-input" min="0" max="23" style="width:60px" placeholder="時" value="18" data-g="op-hour"><input type="number" class="g-input" min="0" max="59" style="width:60px" placeholder="分" value="20" data-g="op-minute">（時刻は空欄可）</div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="op-range-head">影響区間</h4>
+    <label class="g-field__label"><input type="checkbox" checked data-g="op-full"> 全線</label>
+    <div data-g="op-range" hidden><div class="g-actions-row"><label class="g-field__label">始点 <select class="g-select" data-g="op-from"><option value="KL01" selected>ルリ中央</option><option value="KL02">港町</option><option value="KL03">白樺台</option><option value="KL04">東ルリ</option></select></label><label class="g-field__label">終点 <select class="g-select"><option value="KL01">ルリ中央</option><option value="KL02">港町</option><option value="KL03">白樺台</option><option value="KL04" selected>東ルリ</option></select></label></div></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">方向（列車の進行方向）</h4>
+    <div class="g-actions-row"><label class="g-field__label"><input type="checkbox" checked> 下り線</label><label class="g-field__label"><input type="checkbox" checked> 上り線</label></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">影響種別</h4>
+    <label class="g-field__label"><input type="checkbox" checked data-g="op-allcat"> すべて</label>
+    <div class="g-actions-row" data-g="op-cats" hidden><label class="g-field__label"><input type="checkbox">  普通 </label><label class="g-field__label"><input type="checkbox" data-g="op-cat-ra">  快速 </label></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="op-status-head">状態（ステータス）</h4>
+    <div class="g-field"><label class="g-field__label">種類</label><select class="g-select" data-g="op-status"><option value="OfS_SUSPEND" selected>運転見合わせ</option><option value="OfS_CANCEL">運休</option><option value="Aff_UNLISTED">乗換案内非対応</option><option value="Aff_SKIP">一部駅通過</option><option value="DSS_STOP">直通運転中止</option><option value="notice">お知らせ</option><option value="other">その他</option></select></div>
+    <div class="g-field"><label class="g-field__label">見出し</label><input type="text" class="g-input" disabled value="運転見合わせ" data-g="op-sh"></div>
+    <div class="g-field"><label class="g-field__label">本文</label><textarea class="g-textarea" rows="2" disabled data-g="op-sb">運転を見合わせています</textarea></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="op-cause-head">原因</h4>
+    <div class="g-field"><label class="g-field__label">種類</label><select class="g-select" data-g="op-cause"><option value="signal_check" selected>信号の確認</option><option value="vehicle_check">車両の確認</option><option value="track_check">線路の確認</option><option value="vehicle_track_check">車両・線路確認</option><option value="station_facility_check">駅設備の確認</option><option value="station_facility_track_check">駅設備・線路確認</option><option value="person_intrusion">線路内人立入</option><option value="animal_intrusion">線路内動物等立入</option><option value="animal_contact">動物等と接触</option><option value="track_intensive_work">線路の集中工事</option><option value="maintenance_work">保守工事</option><option value="station_facility_work">駅設備の工事</option><option value="track_switch_work">線路切替工事</option><option value="information_update">情報更新</option><option value="other">その他</option></select></div>
+    <div class="g-field"><label class="g-field__label">見出し</label><input type="text" class="g-input" disabled></div>
+    <div class="g-field"><label class="g-field__label">本文</label><textarea class="g-textarea" rows="2" disabled></textarea></div>
+    <div class="g-field"><label class="g-field__label">原因路線の表示</label><select class="g-select"><option value="affected" selected>影響路線と同じ</option><option value="line">別の路線</option><option value="hidden">表示しない</option></select></div>
+    <div></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">折り返し</h4>
+    <div class="g-actions-row"><label class="g-field__label"><input type="checkbox"> 始点で折り返し</label><label class="g-field__label"><input type="checkbox"> 終点で折り返し</label></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">直通</h4>
+    <div><p class="g-field__hint">直通設定はありません。</p></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="op-prev-head">プレビュー</h4>
+    <div class="g-actions-row"><label class="g-field__label"><input type="radio" name="operation-range-text" checked> 自動生成</label><label class="g-field__label"><input type="radio" name="operation-range-text" data-g="op-manual"> 手動で書き換える</label></div>
+    <div class="g-banner" data-g="pv2"><div><strong>【瑠璃本線】信号の確認　運転見合わせ</strong><p style="margin:var(--space-xs) 0 0;">10月3日18時20分ごろ、瑠璃本線で信号の確認をしているため、運転を見合わせています。</p></div></div><div class="g-banner" data-g="pv3" hidden><div><strong>【瑠璃本線】信号の確認　運転見合わせ</strong><p style="margin:var(--space-xs) 0 0;">10月3日18時20分ごろ、瑠璃本線で信号の確認をしているため、港町駅～東ルリ駅間で運転を見合わせています。</p></div></div>
+    <textarea class="g-textarea" rows="4" data-g="op-custom" hidden>【瑠璃本線】信号の確認　運転見合わせ
+10月3日18時20分ごろ、瑠璃本線で信号の確認をしているため、快速列車が港町駅～東ルリ駅間で運転を見合わせています。</textarea>
+    <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button" data-g="op-save">保存</button><button class="g-btn" type="button" data-g="op-cancel">キャンセル</button></div>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+  <figcaption>「全線」「すべて」のチェックを外すと、区間や種別を選べるようになる。文章は「手動で書き換える」で直せる</figcaption>
+  <script type="text/x-gd-steps">
+    scroll @op-range-head
+    uncheck @op-full
+    show   @op-range
+    select @op-from KL02
+    wait   400
+    uncheck @op-allcat
+    show   @op-cats
+    hide   @pv2
+    show   @pv3
+    check  @op-cat-ra
+    wait   400
+    scroll @op-prev-head
+    check  @op-manual
+    hide   @pv3
+    show   @op-custom
+    spot   @op-custom 書き換えられる
+    wait   300
+  </script>
+</figure>

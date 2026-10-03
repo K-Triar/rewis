@@ -1,0 +1,31 @@
+<figure class="gd-figure" data-w="980" data-h="440">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      {{> page-header-issues}}
+      <div class="g-main">
+        <div class="g-view">
+          {{> stations-view}}
+        </div>
+      </div>
+    </div>
+    <div class="g-dialog-backdrop" data-g="dialog" hidden>
+      <div class="g-dialog" role="alertdialog">
+        <div class="g-dialog__message">「路線網」にエラーが 1 件あるため保存できません。</div>
+        <div class="g-dialog__actions"><button type="button" class="g-btn g-btn--primary" data-g="ok">OK</button></div>
+      </div>
+    </div>
+    {{> issues-drawer}}
+  </div>
+  <figcaption>エラーがあると保存できない。［OK］でエラーの一覧が開く</figcaption>
+  <script type="text/x-gd-steps">
+    click @save
+    show  @dialog
+    wait  1800
+    click @ok
+    hide  @dialog
+    show  @drawer
+    spot  @issue-1
+    wait  600
+  </script>
+</figure>

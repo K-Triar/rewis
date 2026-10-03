@@ -1,0 +1,40 @@
+<figure class="gd-figure" data-w="980" data-h="480">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      {{> page-header-issues}}
+      <div class="g-main">
+        <div class="g-view">
+          {{> stations-view}}
+        </div>
+      </div>
+    </div>
+    {{> issues-drawer}}
+  </div>
+  <figcaption>［エラー］［注意］で表示を切り替え、行をクリックすると問題のある場所のフォームが開く</figcaption>
+  <script type="text/x-gd-steps">
+    click  @errors
+    show   @drawer
+    wait   900
+    click  @tg-warnings
+    remove @tg-errors g-btn--primary
+    add    @tg-warnings g-btn--primary
+    hide   @list-errors
+    show   @list-warnings
+    wait   1600
+    click  @tg-errors
+    remove @tg-warnings g-btn--primary
+    add    @tg-errors g-btn--primary
+    hide   @list-warnings
+    show   @list-errors
+    wait   500
+    click  @issue-1
+    hide   @drawer
+    show   @form-slot
+    show   @form-KL02
+    add    @r-KL02 is-editing
+    text   @d-KL02 閉じる
+    spot   @form-KL02 駅「港町」の編集フォーム
+    wait   400
+  </script>
+</figure>

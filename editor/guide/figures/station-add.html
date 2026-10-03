@@ -1,0 +1,24 @@
+<figure class="gd-figure" data-w="980" data-h="440">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        {{> stations-view}}
+      </div>
+    </div>
+  </div>
+  <figcaption>［+ 追加］→ 駅ID・駅名・かなを入力 →［追加する］</figcaption>
+  <script type="text/x-gd-steps">
+    click @add
+    show  @form-slot
+    show  @form-new
+    type  @fn-id KL05
+    type  @fn-name 灯台前
+    type  @fn-kana とうだいまえ
+    click @fn-add
+    hide  @form-new
+    hide  @form-slot
+    show  @r-KL05
+    spot  @r-KL05
+    wait  400
+  </script>
+</figure>

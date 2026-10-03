@@ -1,0 +1,40 @@
+<figure class="gd-figure" data-w="980" data-h="500">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view" data-g="view">
+        {{> stations-view}}
+      </div>
+    </div>
+  </div>
+  <figcaption>のりばの追加・並べ替え。使われているのりばは削除できない</figcaption>
+  <script type="text/x-gd-steps">
+    show   @form-slot
+    show   @form-KL02
+    add    @r-KL02 is-editing
+    text   @d-KL02 閉じる
+    wait   500
+    scroll @f2-plat-head
+    type   @f2-pid p3
+    type   @f2-plabel 3番線
+    click  @f2-padd
+    clear  @f2-pid
+    clear  @f2-plabel
+    show   @p2-3
+    enable @p2-2-down
+    wait   600
+    click  @p2-3-up
+    hide   @p2-3
+    show   @p2-3a
+    disable @p2-2-down
+    wait   900
+    click  @p2-1-del
+    hide   @p2-1
+    show   @p2-1-blocked
+    spot   @p2-1-blocked 削除できません。参照箇所:
+    spot   off
+    click  @p2-1-close
+    hide   @p2-1-blocked
+    show   @p2-1
+    wait   600
+  </script>
+</figure>

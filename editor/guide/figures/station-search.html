@@ -1,0 +1,18 @@
+<figure class="gd-figure" data-w="800" data-h="280">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        {{> stations-view}}
+      </div>
+    </div>
+  </div>
+  <figcaption>駅名かかなの一部を入力すると、一覧が絞り込まれる</figcaption>
+  <script type="text/x-gd-steps">
+    type @search しら
+    hide @r-KL01
+    hide @r-KL02
+    hide @r-KL04
+    spot @r-KL03
+    wait 600
+  </script>
+</figure>

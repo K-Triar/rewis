@@ -1,0 +1,20 @@
+<div class="g-section-header">
+  <h2>路線</h2>
+  <button class="g-btn g-btn--primary" type="button" data-g="line-add">+ 追加</button>
+</div>
+<div class="ed2-split">
+<div class="ed2-list-scroll ed2-split__list g-table-wrap">
+  <table class="g-table">
+    <thead><tr><th>路線ID</th><th>路線名</th><th>会社</th><th>色</th><th>車両種別</th><th>駅数</th><th>種別数</th><th>形状</th><th style="width:180px">操作</th></tr></thead>
+    <tbody>
+      <tr data-g="lr-KT-L"><td>KT-L</td><td>瑠璃本線</td><td>Kトライア瑠璃</td><td><span style="display:inline-block;width:14px;height:14px;border:1px solid var(--borderColor-default);background:#0078d7;vertical-align:middle;"></span></td><td>TC</td><td>4</td><td>2</td><td data-g="ls-KT-L">普通</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+      <tr data-g="lr-KT-C"><td>KT-C</td><td>瑠璃環状線</td><td>Kトライア瑠璃</td><td><span style="display:inline-block;width:14px;height:14px;border:1px solid var(--borderColor-default);background:#e67e22;vertical-align:middle;"></span></td><td>TC</td><td>3</td><td>1</td><td data-g="ls-KT-C">環状線</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+      <tr data-g="lr-CR-K"><td>CR-K</td><td>湖畔線</td><td>ころりん鉄道</td><td><span style="display:inline-block;width:14px;height:14px;border:1px solid var(--borderColor-default);background:#2e8b57;vertical-align:middle;"></span></td><td>TC</td><td>5</td><td>1</td><td data-g="ls-CR-K">ラケット型</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+      <tr data-g="lr-KT-H" hidden><td>KT-H</td><td>白樺支線</td><td>Kトライア瑠璃</td><td><span style="display:inline-block;width:14px;height:14px;border:1px solid var(--borderColor-default);background:#3498db;vertical-align:middle;"></span></td><td>TC</td><td>2</td><td>1</td><td data-g="ls-KT-H">普通</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="ed2-split__form" data-g="line-form-slot" hidden>
+{{> line-form-new}}
+</div>
+</div>

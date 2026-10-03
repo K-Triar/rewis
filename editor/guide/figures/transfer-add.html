@@ -1,0 +1,108 @@
+<figure class="gd-figure" data-w="1120" data-h="560">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        <div class="g-section-header">
+          <h2>乗換</h2>
+          <button class="g-btn g-btn--primary" type="button" data-g="tr-add">+ 追加</button>
+        </div>
+        <div class="g-actions-row"><input type="text" class="g-input" placeholder="駅名・かなで絞り込み"></div>
+        <div class="ed2-split">
+          <div class="ed2-list-scroll ed2-split__list">
+            <div class="g-table-wrap">
+              <table class="g-table">
+                <thead><tr><th>から</th><th>へ</th><th style="width:80px">秒数</th><th style="width:60px">双方向</th><th>メモ</th><th style="width:180px">操作</th></tr></thead>
+                <tbody>
+                  <tr><td>ルリ中央（KL01） 1番線</td><td>ルリ中央（KL01） 2番線</td><td>30</td><td>○</td><td></td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                  <tr><td>港町（KL02） （指定なし）</td><td>白樺台（KL03） （指定なし）</td><td>90</td><td>○</td><td>地下通路</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                  <tr data-g="tr-new" hidden><td>ルリ中央（KL01） 3番線</td><td>東ルリ（KL04） （指定なし）</td><td>75</td><td>○</td><td></td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="ed2-split__form" data-g="tr-form" hidden>
+            <div class="g-card">
+              <div class="g-card__header">乗換を追加</div>
+              <div class="g-card__body">
+                <div class="g-actions-row">
+                  <label class="g-field__label"><input type="radio" name="{{FIG}}-mode" checked> 同じ駅の中</label>
+                  <label class="g-field__label"><input type="radio" name="{{FIG}}-mode" data-g="mode-walk"> 徒歩連絡（別の駅へ）</label>
+                </div>
+                <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">乗換元</h4>
+                <div class="g-actions-row">
+                  <div>
+                    <div style="position:relative;">
+                      <input type="text" class="g-input" placeholder="駅名・かなで検索" data-g="from-picker">
+                      <div class="g-overlay" data-g="from-sugg" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="from-ruri">ルリ中央（KL01）</button><button type="button" class="g-list__item">東ルリ（KL04）</button></div>
+                    </div>
+                  </div>現在: <span>ルリ中央（KL01）</span>
+                </div>
+                <div class="g-actions-row">のりば: <div>
+                  <select class="g-select" data-g="from-plat-same"><option>1番線</option><option>2番線</option><option>3番線</option><option>4番線</option></select>
+                  <select class="g-select" data-g="from-plat-walk" hidden><option value="">（指定なし）</option><option value="1">1番線</option><option value="2">2番線</option><option value="3">3番線</option><option value="4">4番線</option></select>
+                </div></div>
+                <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="to-head">乗換先</h4>
+                <div class="g-actions-row">
+                  <div>
+                    <div style="position:relative;" data-g="to-picker-wrap" hidden>
+                      <input type="text" class="g-input" placeholder="駅名・かなで検索" data-g="to-picker">
+                      <div class="g-overlay" data-g="to-sugg" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="to-higashi">東ルリ（KL04）</button></div>
+                    </div>
+                  </div>現在: <span data-g="to-label">（同じ駅）</span>
+                </div>
+                <div class="g-actions-row">のりば: <div>
+                  <select class="g-select" data-g="to-plat-same"><option>1番線</option><option>2番線</option><option>3番線</option><option>4番線</option></select>
+                  <select class="g-select" data-g="to-plat-walk" hidden><option value="">（指定なし）</option><option>1番線</option><option>2番線</option><option>3番線</option><option>4番線</option></select>
+                  <select class="g-select" data-g="to-plat-higashi" hidden><option value="">（指定なし）</option><option>1番線</option></select>
+                </div></div>
+                <div class="g-field"><label class="g-field__label">秒数</label><input type="number" class="g-input" min="0" step="1" value="60" data-g="tr-sec"></div>
+                <label class="g-field__label"><input type="checkbox" data-g="tr-bi"> 双方向</label>
+                <div class="g-field"><label class="g-field__label">メモ</label><input type="text" class="g-input"></div>
+                <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button" data-g="tr-save">追加する</button><button class="g-btn" type="button">キャンセル</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>徒歩連絡の例：乗換元の駅とのりば → 乗換先の駅 → 秒数・双方向を入れて［追加する］</figcaption>
+  <script type="text/x-gd-steps">
+    click  @tr-add
+    show   @tr-form
+    wait   400
+    check  @mode-walk
+    hide   @from-plat-same
+    show   @from-plat-walk
+    hide   @to-plat-same
+    show   @to-plat-walk
+    show   @to-picker-wrap
+    text   @to-label ルリ中央（KL01）
+    wait   400
+    type   @from-picker ルリ
+    show   @from-sugg
+    click  @from-ruri
+    hide   @from-sugg
+    clear  @from-picker
+    select @from-plat-walk 3
+    scroll @to-head
+    type   @to-picker ひがし
+    show   @to-sugg
+    click  @to-higashi
+    hide   @to-sugg
+    clear  @to-picker
+    text   @to-label 東ルリ（KL04）
+    hide   @to-plat-walk
+    show   @to-plat-higashi
+    spot   @to-label
+    spot   off
+    clear  @tr-sec
+    type   @tr-sec 75
+    check  @tr-bi
+    click  @tr-save
+    hide   @tr-form
+    show   @tr-new
+    spot   @tr-new
+    wait   300
+  </script>
+</figure>

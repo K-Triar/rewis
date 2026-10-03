@@ -1,0 +1,36 @@
+<figure class="gd-figure" data-w="980" data-h="520">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      {{> page-header}}
+      <div class="g-main">
+        <div class="g-view">
+          {{> stations-view}}
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>① フォームの［保存］で一覧に反映 → ②［サーバーに保存］でサーバーに保存</figcaption>
+  <script type="text/x-gd-steps">
+    show   @form-slot           # はじめから港町の編集フォームを開いておく
+    show   @form-KL02
+    add    @r-KL02 is-editing
+    text   @d-KL02 閉じる
+    wait   600
+    type   @f2-name 駅
+    click  @f2-save
+    text   @n-KL02 港町駅
+    show   @unsaved
+    enable @save
+    spot   @r-KL02 一覧に反映
+    spot   @unsaved 未保存の変更あり
+    spot   off
+    click  @save
+    hide   @unsaved
+    disable @save
+    text   @net 版 13
+    show   @banner
+    spot   @banner 保存しました。
+    wait   600
+  </script>
+</figure>

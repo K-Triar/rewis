@@ -1,0 +1,39 @@
+<figure class="gd-figure" data-w="560" data-h="300">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view" style="background:var(--bgColor-muted);">
+        <div class="g-card">
+          <div class="g-card__header" data-g="card-head">乗換の既定値</div>
+          <div class="g-card__body">
+            <div class="g-field"><label class="g-field__label">同じのりばでの乗換秒数</label><input type="number" class="g-input" min="0" step="1" value="5" data-g="same"></div>
+            <div class="g-field"><label class="g-field__label">不明な場合の乗換秒数</label><input type="number" class="g-input" min="0" step="1" value="10" data-g="unknown"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="g-dialog-backdrop" data-g="dialog" hidden>
+      <div class="g-dialog" role="alertdialog">
+        <div class="g-dialog__message">乗換秒数は0以上の整数で入力してください。</div>
+        <div class="g-dialog__actions"><button type="button" class="g-btn g-btn--primary" data-g="ok">OK</button></div>
+      </div>
+    </div>
+  </div>
+  <figcaption>［保存］ボタンはなく、欄から抜けるとすぐに反映される。正しくない値は元に戻る</figcaption>
+  <script type="text/x-gd-steps">
+    clear @same
+    type  @same 8
+    click @card-head
+    spot  @same 反映
+    spot  off
+    clear @unknown
+    type  @unknown -5
+    click @card-head
+    show  @dialog
+    wait  1800
+    click @ok
+    hide  @dialog
+    value @unknown 10
+    spot  @unknown 元の値に戻る
+    wait  300
+  </script>
+</figure>

@@ -1,0 +1,46 @@
+<figure class="gd-figure" data-w="420" data-h="440">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view" style="background:var(--bgColor-muted);">
+        <div class="g-card">
+          <div class="g-card__header">路線を編集: KT-L</div>
+          <div class="g-card__body">
+            <h4 style="margin-block:0 var(--stack-gap-condensed);">形状</h4>
+            <div class="g-actions-row">
+              <label class="g-field__label"><input type="radio" name="{{FIG}}-shape" checked data-g="sh-normal"> 普通の路線</label>
+              <label class="g-field__label"><input type="radio" name="{{FIG}}-shape" data-g="sh-circular"> 環状線</label>
+              <label class="g-field__label"><input type="radio" name="{{FIG}}-shape" data-g="sh-racket"> ラケット型</label>
+            </div>
+            <div data-g="loop" hidden>
+              <label class="g-field__label">戻る駅: <select class="g-select" data-g="loop-sel"><option value="0">0: ルリ中央（KL01）</option><option value="1" selected>1: 港町（KL02）</option><option value="2">2: 白樺台（KL03）</option><option value="3">3: 東ルリ（KL04）</option></select></label>
+            </div>
+            <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">方向名</h4>
+            <div class="g-field"><label class="g-field__label">forward（駅順どおり）</label><input type="text" class="g-input" value="下り線" data-g="fwd"></div>
+            <div class="g-field"><label class="g-field__label">backward（逆向き）</label><input type="text" class="g-input" value="上り線" data-g="bwd"></div>
+            <div data-g="hints" hidden><button class="g-btn g-btn--small" type="button" data-g="outer">外回りにする</button><button class="g-btn g-btn--small" type="button" data-g="inner">内回りにする</button></div>
+            <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button">保存</button><button class="g-btn" type="button">キャンセル</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>ラケット型は「戻る駅」を選ぶ。環状線では方向名を外回り・内回りにするボタンが出る</figcaption>
+  <script type="text/x-gd-steps">
+    check  @sh-racket
+    show   @loop
+    wait   400
+    select @loop-sel 2
+    wait   900
+    check  @sh-circular
+    hide   @loop
+    show   @hints
+    wait   500
+    click  @outer
+    value  @fwd 外回り
+    click  @inner
+    value  @bwd 内回り
+    spot   @fwd
+    spot   @bwd
+    wait   300
+  </script>
+</figure>

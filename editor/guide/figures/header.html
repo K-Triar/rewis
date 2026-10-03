@@ -1,0 +1,90 @@
+<figure class="gd-figure" data-w="800" data-h="500">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      <div class="g-page-header">
+        <div class="g-status-row">
+          <div class="g-status-row__docs">
+            <div class="g-status-doc"><span>路線網</span><span class="g-label">版 12</span><span class="g-label g-label--attention">未保存の変更あり</span></div>
+            <div class="g-status-doc"><span>運行情報</span><span class="g-label">版 5</span></div>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="x-circle-fill"></i>エラー 0</button>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="alert-fill"></i>注意 0</button>
+          </div>
+          <div class="g-status-actions">
+            <button type="button" class="g-btn g-btn--primary g-save-btn"><i data-icon="upload"></i>サーバーに保存</button>
+            <button type="button" class="g-btn"><i data-icon="workflow"></i>図形式で編集</button>
+          </div>
+        </div>
+        {{> nav}}
+      </div>
+      <div class="g-main">
+        <div class="g-view" data-g="stations">
+          {{> stations-view}}
+        </div>
+        <!-- ログアウト後の開始画面（読み込んだデータは残っている） -->
+        <div class="g-view g-view--centered" data-g="start" hidden>
+          <div class="g-card g-start-card">
+            <div class="g-card__header">路線データ編集を始める</div>
+            <div class="g-card__body">
+              <div class="g-field__label">① ログイン</div>
+              <div class="g-field" data-g="form">
+                <div class="g-field__label">Workers API URL<button type="button" class="g-icon-btn g-btn--invisible g-btn--small"><i data-icon="question"></i></button></div>
+                <input type="url" class="g-input" value="https://rewis.example.workers.dev">
+                <div class="g-field__label">ユーザーID</div>
+                <input type="text" class="g-input" data-g="user">
+                <div class="g-field__label">パスワード</div>
+                <input type="password" class="g-input" data-g="pass">
+                <button type="button" class="g-btn g-btn--primary" data-g="login">ログイン</button>
+              </div>
+              <div class="g-field" data-g="done" hidden>
+                <div class="g-field__label">k_triar でログイン中</div>
+              </div>
+              <div class="g-field__label" style="margin-top:var(--stack-gap-normal);">② データを読み込む</div>
+              <div style="display:flex; gap:var(--stack-gap-condensed);">
+                <button type="button" class="g-btn g-btn--primary" disabled data-g="continue">編集を続ける</button>
+                <button type="button" class="g-btn" disabled data-g="reload">サーバーから読み込み直す</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="g-dialog-backdrop" data-g="dialog" hidden>
+      <div class="g-dialog" role="alertdialog">
+        <div class="g-dialog__message">未保存の変更があります。ログアウトしても変更は残りますが、保存するにはもう一度ログインする必要があります。</div>
+        <div class="g-dialog__actions">
+          <button type="button" class="g-btn">キャンセル</button>
+          <button type="button" class="g-btn g-btn--primary" data-g="dialog-ok">ログアウト</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>ログアウトしても、もう一度ログインして［編集を続ける］で作業に戻れる</figcaption>
+  <script type="text/x-gd-steps">
+    spot  @header-right
+    spot  off
+    click @logout
+    show  @dialog
+    wait  1800
+    click @dialog-ok
+    hide  @dialog
+    hide  @header-right
+    hide  @stations
+    show  @start
+    wait  900
+    type  @user k_triar
+    type  @pass rewis2026
+    click @login
+    hide  @form
+    show  @done
+    show  @header-right
+    enable @continue
+    enable @reload
+    spot  @reload サーバーから読み込み直す
+    spot  off
+    click @continue
+    hide  @start
+    show  @stations
+    wait  800
+  </script>
+</figure>

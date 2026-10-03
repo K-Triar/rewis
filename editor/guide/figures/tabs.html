@@ -1,0 +1,87 @@
+<figure class="gd-figure" data-w="800" data-h="340">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="gd-browser">
+        <span class="gd-browser__btn" data-g="back"><i data-icon="arrow-left"></i></span>
+        <span class="gd-browser__btn"><i data-icon="arrow-right"></i></span>
+        <div class="gd-browser__url">k-triar.github.io/rewis/editor/?tab=<b data-g="param">stations</b></div>
+      </div>
+      {{> header}}
+      <div class="g-page-header">
+        <div class="g-status-row">
+          <div class="g-status-row__docs">
+            <div class="g-status-doc"><span>路線網</span><span class="g-label">版 12</span></div>
+            <div class="g-status-doc"><span>運行情報</span><span class="g-label">版 5</span></div>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="x-circle-fill"></i>エラー 0</button>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="alert-fill"></i>注意 0</button>
+          </div>
+          <div class="g-status-actions">
+            <button type="button" class="g-btn g-btn--primary g-save-btn" disabled><i data-icon="upload"></i>サーバーに保存</button>
+            <button type="button" class="g-btn"><i data-icon="workflow"></i>図形式で編集</button>
+          </div>
+        </div>
+        {{> nav}}
+      </div>
+      <div class="g-main">
+        <div class="g-view" data-g="v-stations">
+          {{> stations-view}}
+        </div>
+        <div class="g-view" data-g="v-lines" hidden>
+          <div class="g-section-header"><h2>路線</h2><button class="g-btn g-btn--primary" type="button">+ 追加</button></div>
+          <div class="g-table-wrap">
+            <table class="g-table">
+              <thead><tr><th>路線ID</th><th>路線名</th><th>会社</th><th>色</th><th>車両種別</th><th>駅数</th><th>種別数</th><th>形状</th><th style="width:180px">操作</th></tr></thead>
+              <tbody>
+                <tr><td><span class="gd-ph"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph"></span></td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                <tr><td><span class="gd-ph"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph"></span></td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="g-view" data-g="v-services" hidden>
+          <div class="g-section-header"><h2>運行系統</h2><button class="g-btn g-btn--primary" type="button">+ 追加</button></div>
+          <div class="g-table-wrap">
+            <table class="g-table">
+              <thead><tr><th>行先</th><th>区間</th><th>停車数</th><th>所要時間</th><th>有効</th><th>警告</th><th style="width:220px">操作</th></tr></thead>
+              <tbody>
+                <tr><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:110px"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td></td><td><span class="gd-ph" style="width:120px"></span></td></tr>
+                <tr><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:110px"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td><span class="gd-ph"></span></td><td><span class="gd-ph" style="width:20px"></span></td><td></td><td><span class="gd-ph" style="width:120px"></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>開いているタブは URL の「?tab=」に記録され、ブラウザの「戻る」でも切り替わる</figcaption>
+  <script type="text/x-gd-steps">
+    click  @tab-lines
+    remove @tab-stations is-selected
+    add    @tab-lines is-selected
+    text   @param lines
+    hide   @v-stations
+    show   @v-lines
+    wait   500
+    click  @tab-services
+    remove @tab-lines is-selected
+    add    @tab-services is-selected
+    text   @param services
+    hide   @v-lines
+    show   @v-services
+    wait   900
+    click  @back
+    remove @tab-services is-selected
+    add    @tab-lines is-selected
+    text   @param lines
+    hide   @v-services
+    show   @v-lines
+    wait   500
+    click  @back
+    remove @tab-lines is-selected
+    add    @tab-stations is-selected
+    text   @param stations
+    hide   @v-lines
+    show   @v-stations
+    wait   600
+  </script>
+</figure>

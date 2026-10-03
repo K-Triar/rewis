@@ -1,0 +1,26 @@
+<div class="g-single-col">
+  <div class="g-card">
+    <div class="g-card__header">鉄道会社</div>
+    <div class="g-card__body">
+      <div class="g-list">
+        <button type="button" class="g-list__item" data-g="co-KT"><span>Kトライア瑠璃</span><span class="g-list__item-id">KT</span><span class="g-label">KT線</span></button>
+        <button type="button" class="g-list__item" data-g="co-HRA"><span>ヘルヴェティア鉄道局</span><span class="g-list__item-id">HRA</span></button>
+        <button type="button" class="g-list__item" data-g="co-CR"><span>ころりん鉄道</span><span class="g-list__item-id">CR</span></button>
+        <div class="g-company-detail" data-g="co-CR-detail" hidden>
+          <div class="g-field"><label class="g-field__label">会社名</label><input type="text" class="g-input" value="ころりん鉄道"></div>
+          <button type="button" class="g-btn g-btn--danger" data-g="co-CR-del"><i data-icon="trash"></i>鉄道会社を削除</button>
+          <div class="g-field" data-g="co-CR-blocked" hidden>
+            <span class="g-field__error">使われているため削除できません。</span>
+            <div class="g-list"><button type="button" class="g-list__item">路線「湖畔線」</button></div>
+          </div>
+        </div>
+        <button type="button" class="g-list__item is-selected" data-g="co-MT" hidden><span>みなと鉄道</span><span class="g-list__item-id">MT</span></button>
+        <div class="g-company-detail" data-g="co-MT-detail" hidden>
+          <div class="g-field"><label class="g-field__label">会社名</label><input type="text" class="g-input" value="みなと鉄道"></div>
+          <button type="button" class="g-btn g-btn--danger"><i data-icon="trash"></i>鉄道会社を削除</button>
+        </div>
+      </div>
+      <button type="button" class="g-btn" data-g="co-add"><i data-icon="plus"></i>鉄道会社を追加</button>
+    </div>
+  </div>
+</div>

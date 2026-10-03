@@ -1,0 +1,41 @@
+<figure class="gd-figure" data-w="900" data-h="230">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+<div class="g-section-header">
+  <h2>運行情報</h2>
+  <button class="g-btn g-btn--primary" type="button" data-g="op-add">+ 追加</button>
+</div>
+<div class="g-actions-row"><select class="g-select" data-g="flt-state"><option value="active" selected>下書き・公開中</option><option value="all">すべて</option><option value="draft">下書きのみ</option><option value="published">公開中のみ</option><option value="closed">終了のみ</option></select><select class="g-select" data-g="flt-line"><option value="" selected>すべての路線</option><option value="KT-L">瑠璃本線</option><option value="KT-C">瑠璃環状線</option><option value="CR-K">湖畔線</option></select></div>
+<div class="ed2-split">
+<div class="ed2-list-scroll ed2-split__list g-table-wrap">
+  <table class="g-table">
+    <thead><tr><th>状態</th><th>路線</th><th>見出し</th><th>原因</th><th>更新日時</th><th style="width:220px">操作</th></tr></thead>
+    <tbody>
+      <tr data-g="n1"><td>下書き</td><td>瑠璃環状線</td><td>【瑠璃環状線】保守工事　運休</td><td>保守工事</td><td>2026/10/01 21:05</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">複製</button><button class="g-btn g-btn--small" type="button" data-g="n1-del">削除</button></td></tr>
+      <tr data-g="n2"><td>公開中</td><td>湖畔線</td><td>【湖畔線】車両の確認　運転見合わせ</td><td>車両の確認</td><td>2026/10/03 17:42</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">複製</button><button class="g-btn g-btn--small" type="button" data-g="n2-del">削除</button></td></tr>
+      <tr data-g="n3" hidden><td>終了</td><td>瑠璃本線</td><td>【瑠璃本線】線路内動物等立入　運転見合わせ</td><td>線路内動物等立入</td><td>2026/09/28 10:12</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">複製</button><button class="g-btn g-btn--small" type="button" data-g="n3-del">削除</button></td></tr>
+      <tr data-g="n-new" hidden><td>公開中</td><td>瑠璃本線</td><td>【瑠璃本線】信号の確認　運転見合わせ</td><td>信号の確認</td><td>2026/10/03 18:25</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">複製</button><button class="g-btn g-btn--small" type="button" data-g="n-new-del">削除</button></td></tr>
+      <tr data-g="n2-confirm" hidden><td colspan="5">本当に削除しますか？</td><td><button class="g-btn g-btn--danger g-btn--small" type="button">削除する</button><button class="g-btn g-btn--small" type="button" data-g="n2-cancel">キャンセル</button></td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="ed2-split__form" data-g="op-form" hidden>
+
+</div>
+</div>
+      </div>
+    </div>
+  </div>
+  <figcaption>公開設定の「状態」と路線で絞り込める。初めは「下書き・公開中」だけが表示される</figcaption>
+  <script type="text/x-gd-steps">
+    select @flt-state all
+    show   @n3
+    spot   @n3 終了
+    spot   off
+    select @flt-line KT-L
+    hide   @n1
+    hide   @n2
+    wait   900
+  </script>
+</figure>

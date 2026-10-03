@@ -1,0 +1,23 @@
+<div class="g-card" data-g="form-KL02" hidden>
+  <div class="g-card__header">駅を編集: KL02</div>
+  <div class="g-card__body">
+    <div class="g-field"><label class="g-field__label">駅ID</label><input type="text" class="g-input" value="KL02" disabled></div>
+    <div class="g-field"><label class="g-field__label">駅名</label><input type="text" class="g-input" value="港町" data-g="f2-name"></div>
+    <div class="g-field"><label class="g-field__label">かな</label><input type="text" class="g-input" value="みなとまち" data-g="f2-kana"></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="f2-plat-head">のりば</h4>
+    <div class="g-table-wrap ed2-subtable">
+      <table class="g-table">
+        <thead><tr><th>のりばID</th><th>表示名</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr data-g="p2-1"><td><input type="text" class="g-input" value="p1" style="width:80px"></td><td><input type="text" class="g-input" value="1番線" style="width:80px"></td><td><button class="g-btn g-btn--small" type="button" disabled>▲</button><button class="g-btn g-btn--small" type="button">▼</button><button class="g-btn g-btn--small" type="button" data-g="p2-1-del">削除</button></td></tr>
+          <tr data-g="p2-1-blocked" hidden><td>p1</td><td colspan="2"><span class="g-text-danger">削除できません。参照箇所: </span><span class="g-ref-list"><button class="g-ref-link" type="button">運行系統「白樺台」の停車駅</button> / <button class="g-ref-link" type="button">乗換設定</button></span> <button class="g-btn g-btn--small" type="button" data-g="p2-1-close">閉じる</button></td></tr>
+          <tr data-g="p2-3a" hidden><td><input type="text" class="g-input" value="p3" style="width:80px"></td><td><input type="text" class="g-input" value="3番線" style="width:80px"></td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="p2-2"><td><input type="text" class="g-input" value="p2" style="width:80px"></td><td><input type="text" class="g-input" value="2番線" style="width:80px"></td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button" disabled data-g="p2-2-down">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="p2-3" hidden><td><input type="text" class="g-input" value="p3" style="width:80px"></td><td><input type="text" class="g-input" value="3番線" style="width:80px"></td><td><button class="g-btn g-btn--small" type="button" data-g="p2-3-up">▲</button><button class="g-btn g-btn--small" type="button" disabled>▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="g-actions-row"><input type="text" class="g-input" placeholder="のりばID" style="width:80px" data-g="f2-pid"><input type="text" class="g-input" placeholder="表示名" style="width:80px" data-g="f2-plabel"><button class="g-btn g-btn--small" type="button" data-g="f2-padd">+ のりば追加</button></div>
+    <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button" data-g="f2-save">保存</button><button class="g-btn" type="button" data-g="f2-cancel">キャンセル</button></div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+<figure class="gd-figure" data-w="800" data-h="300">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      <div class="g-page-header">
+        <div class="g-status-row">
+          <div class="g-status-row__docs">
+            <div class="g-status-doc"><span>路線網</span><span class="g-label" data-g="net">版 12</span><span class="g-label g-label--attention" data-g="unsaved">未保存の変更あり</span></div>
+            <div class="g-status-doc"><span>運行情報</span><span class="g-label" data-g="ops">版 5</span></div>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small" style="color: var(--fgColor-danger);" data-g="errors"><i data-icon="x-circle-fill"></i>エラー 1</button>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small" style="color: var(--fgColor-attention);" data-g="warnings"><i data-icon="alert-fill"></i>注意 2</button>
+          </div>
+          <div class="g-status-actions">
+            <button type="button" class="g-btn g-btn--primary g-save-btn" data-g="save"><i data-icon="upload"></i>サーバーに保存</button>
+            <button type="button" class="g-btn" data-g="switch"><i data-icon="workflow"></i>図形式で編集</button>
+          </div>
+        </div>
+        {{> nav}}
+      </div>
+      <div class="g-main">
+        <div class="g-view">
+          {{> stations-view}}
+        </div>
+      </div>
+    </div>
+    <div class="g-issues-backdrop" data-g="drawer" hidden>
+      <div class="g-issues-drawer g-overlay">
+        <div class="g-issues-drawer__switch">
+          <button type="button" class="g-btn g-btn--small g-btn--primary">エラー</button>
+          <button type="button" class="g-btn g-btn--small">注意</button>
+          <button type="button" class="g-icon-btn g-btn--invisible" data-g="drawer-close"><i data-icon="x"></i></button>
+        </div>
+        <ul class="g-issues-drawer__list">
+          <li>
+            <button type="button" class="g-issues-drawer__item">
+              <i data-icon="x-circle-fill"></i>
+              <div>
+                <div>駅 ID "KL02" が重複しています</div>
+                <div class="g-issues-drawer__location">場所: 駅「港町」</div>
+              </div>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <figcaption>状態の行の各項目。［エラー N］［注意 N］を押すと一覧が開く</figcaption>
+  <script type="text/x-gd-steps">
+    spot  @net 路線網 版 N
+    spot  @ops 運行情報 版 N
+    spot  @unsaved 未保存の変更あり
+    spot  @errors エラー N
+    spot  @warnings 注意 N
+    spot  @save サーバーに保存
+    spot  @switch 図形式で編集
+    spot  off
+    click @errors
+    show  @drawer
+    wait  2200
+    click @drawer-close
+    hide  @drawer
+    wait  400
+  </script>
+</figure>

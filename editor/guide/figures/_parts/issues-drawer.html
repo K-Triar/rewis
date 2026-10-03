@@ -1,0 +1,40 @@
+<div class="g-issues-backdrop" data-g="drawer" hidden>
+  <div class="g-issues-drawer g-overlay">
+    <div class="g-issues-drawer__switch">
+      <button type="button" class="g-btn g-btn--small g-btn--primary" data-g="tg-errors">エラー</button>
+      <button type="button" class="g-btn g-btn--small" data-g="tg-warnings">注意</button>
+      <button type="button" class="g-icon-btn g-btn--invisible" data-g="drawer-close"><i data-icon="x"></i></button>
+    </div>
+    <ul class="g-issues-drawer__list" data-g="list-errors">
+      <li>
+        <button type="button" class="g-issues-drawer__item" data-g="issue-1">
+          <i data-icon="x-circle-fill"></i>
+          <div>
+            <div>駅 ID "KL02" が重複しています</div>
+            <div class="g-issues-drawer__location">場所: 駅「港町」</div>
+          </div>
+        </button>
+      </li>
+    </ul>
+    <ul class="g-issues-drawer__list" data-g="list-warnings" hidden>
+      <li>
+        <button type="button" class="g-issues-drawer__item">
+          <i data-icon="alert-fill"></i>
+          <div>
+            <div>運行系統 "sv_8k2m4x7q1z" の 2 番目の停車駅ののりばが指定されていません</div>
+            <div class="g-issues-drawer__location">場所: 運行系統「白樺台」の 3 番目の停車駅（白樺台）</div>
+          </div>
+        </button>
+      </li>
+      <li>
+        <button type="button" class="g-issues-drawer__item">
+          <i data-icon="alert-fill"></i>
+          <div>
+            <div>路線 "KT-L" の駅 "KL04" に停車する有効な運行系統がありません</div>
+            <div class="g-issues-drawer__location">場所: 路線「瑠璃本線」</div>
+          </div>
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>

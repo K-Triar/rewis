@@ -1,0 +1,80 @@
+<figure class="gd-figure" data-w="760" data-h="500">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        <div class="g-card" style="margin-bottom:var(--stack-gap-normal);">
+          <div class="g-card__header">ログイン</div>
+          <div class="g-card__body">
+            <div class="g-field__label">k_triar でログイン中</div>
+            <button class="g-btn" type="button">ログアウト</button>
+          </div>
+        </div>
+        <div class="g-card" style="margin-bottom:var(--stack-gap-normal);">
+          <div class="g-card__header">サーバーから読み込む: 路線網</div>
+          <div class="g-card__body">
+            <button class="g-btn g-btn--primary" type="button" data-g="load-net">読み込む</button>
+            <div class="g-banner g-banner--success" data-g="load-msg" hidden>版 12 を読み込みました</div>
+          </div>
+        </div>
+        <div class="g-card" style="margin-bottom:var(--stack-gap-normal);">
+          <div class="g-card__header">サーバーから読み込む: 運行情報</div>
+          <div class="g-card__body">
+            <button class="g-btn g-btn--primary" type="button">読み込む</button>
+          </div>
+        </div>
+        <div class="g-card" style="margin-bottom:var(--stack-gap-normal);" data-g="file-net">
+          <div class="g-card__header">ファイル: 路線網</div>
+          <div class="g-card__body">
+            <div style="display:flex; gap:var(--stack-gap-condensed);">
+              <button class="g-btn" type="button" data-g="export">ファイルに書き出す</button>
+              <label class="g-btn" data-g="import">ファイルから読み込む</label>
+            </div>
+            <div class="g-banner g-banner--success" data-g="import-msg" hidden>ファイルから読み込みました（未保存）</div>
+          </div>
+        </div>
+        <div class="g-card" style="margin-bottom:var(--stack-gap-normal);">
+          <div class="g-card__header">ファイル: 運行情報</div>
+          <div class="g-card__body">
+            <div style="display:flex; gap:var(--stack-gap-condensed);">
+              <button class="g-btn" type="button">ファイルに書き出す</button>
+              <label class="g-btn">ファイルから読み込む</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="gd-download" data-g="download" hidden><i data-icon="download"></i>network.json</div>
+    <div class="g-dialog-backdrop" data-g="dialog" hidden>
+      <div class="g-dialog" role="alertdialog">
+        <div class="g-dialog__message">このファイルの内容に置き換えます（未保存の状態として扱います）。
+
+companies: 3 → 3
+stations: 4 → 5
+lines: 3 → 4
+services: 3 → 4
+transfers: 2 → 3</div>
+        <div class="g-dialog__actions"><button type="button" class="g-btn">キャンセル</button><button type="button" class="g-btn g-btn--primary" data-g="replace">置き換える</button></div>
+      </div>
+    </div>
+  </div>
+  <figcaption>［読み込む］でサーバーから読み込み直す。［ファイルに書き出す］［ファイルから読み込む］で手元のファイルとやり取りする</figcaption>
+  <script type="text/x-gd-steps">
+    click  @load-net
+    show   @load-msg
+    spot   @load-msg
+    spot   off
+    scroll @file-net
+    click  @export
+    show   @download
+    wait   1200
+    hide   @download
+    click  @import
+    show   @dialog
+    wait   2400
+    click  @replace
+    hide   @dialog
+    show   @import-msg
+    spot   @import-msg
+    wait   300
+  </script>
+</figure>

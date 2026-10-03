@@ -1,0 +1,32 @@
+<figure class="gd-figure" data-w="800" data-h="360">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      {{> page-header-unsaved}}
+      <div class="g-main">
+        <div class="g-view">
+          {{> stations-view}}
+        </div>
+      </div>
+    </div>
+    <div class="g-dialog-backdrop" data-g="dialog" hidden>
+      <div class="g-dialog" role="alertdialog">
+        <div class="g-dialog__message">未保存の変更は図形式のエディタに引き継がれません。先にサーバーに保存してください。</div>
+        <div class="g-dialog__actions">
+          <button type="button" class="g-btn" data-g="cancel">キャンセル</button>
+          <button type="button" class="g-btn g-btn--danger">保存せずに移動</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>未保存の変更があるときは確認が出る。変更を残すなら［キャンセル］して先に［サーバーに保存］</figcaption>
+  <script type="text/x-gd-steps">
+    click @switch
+    show  @dialog
+    wait  2200
+    click @cancel
+    hide  @dialog
+    spot  @save サーバーに保存
+    wait  300
+  </script>
+</figure>

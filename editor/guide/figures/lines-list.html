@@ -1,0 +1,17 @@
+<figure class="gd-figure" data-w="800" data-h="230">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        {{> lines-view}}
+      </div>
+    </div>
+  </div>
+  <figcaption>路線の一覧。形状は「普通」「環状線」「ラケット型」のいずれか</figcaption>
+  <script type="text/x-gd-steps">
+    spot @ls-KT-L 普通
+    spot @ls-KT-C 環状線
+    spot @ls-CR-K ラケット型
+    spot off
+    wait 400
+  </script>
+</figure>

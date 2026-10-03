@@ -1,0 +1,63 @@
+<figure class="gd-figure" data-w="820" data-h="420">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view" style="background:var(--bgColor-muted);">
+<div class="g-card">
+  <div class="g-card__header">運行系統を編集: sv_3n7p1q8r2t</div>
+  <div class="g-card__body">
+    <div class="g-field"><label class="g-field__label">行先</label><input type="text" class="g-input" placeholder="行先" value="白樺台" data-g="sv-head"></div>
+    <div class="g-field"><label class="g-field__label">メモ</label><input type="text" class="g-input" placeholder="メモ（任意）"></div>
+    <label class="g-field__label"><input type="checkbox" checked> 有効</label>
+    <label class="g-field__label"><input type="checkbox" data-g="sv-circ"> 環状</label>
+    <div data-g="circ-row" hidden><div class="g-actions-row"><label class="g-field__label">環状区間の路線: <select class="g-select"><option value="L">瑠璃本線</option><option value="C" selected>瑠璃環状線</option><option value="K">湖畔線</option></select></label><label class="g-field__label">種別: <select class="g-select"><option value="0" selected>普通</option></select></label></div></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="sv-stops-head">停車駅</h4>
+    <div class="g-table-wrap ed2-subtable">
+      <table class="g-table">
+        <thead><tr><th>#</th><th>駅</th><th data-g="col-plat">のりば</th><th data-g="col-board">乗車可</th><th data-g="col-alight">降車可</th><th data-g="col-run">秒数</th><th data-g="col-line">路線</th><th data-g="col-cat">種別</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr data-g="c0"><td>0</td><td>ルリ中央</td><td><select class="g-select"><option value="" selected>（指定なし）</option><option value="1">1番線</option><option value="2">2番線</option><option value="3">3番線</option><option value="4">4番線</option></select></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="number" class="g-input" min="0" step="1" style="width:70px" value="60"></td><td><select class="g-select"><option value="L" selected>瑠璃本線</option><option value="C">瑠璃環状線</option><option value="K">湖畔線</option></select></td><td><select class="g-select"><option value="0" selected>普通</option><option value="1">快速</option></select></td><td><button class="g-btn g-btn--small" type="button" disabled>▲</button><button class="g-btn g-btn--small" type="button">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="c1"><td>1</td><td>港町</td><td><select class="g-select"><option value="" selected>（指定なし）</option><option value="1">1番線</option><option value="2">2番線</option></select></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="number" class="g-input" min="0" step="1" style="width:70px" value="60"></td><td><select class="g-select"><option value="L" selected>瑠璃本線</option><option value="C">瑠璃環状線</option><option value="K">湖畔線</option></select></td><td><select class="g-select"><option value="0" selected>普通</option><option value="1">快速</option></select></td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="c2"><td>2</td><td>白樺台</td><td><select class="g-select"><option value="" selected>（指定なし）</option><option value="1">1番線</option><option value="2">2番線</option></select></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="number" class="g-input" min="0" step="1" style="width:70px" disabled></td><td></td><td></td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button" disabled>▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="e0" hidden><td>0</td><td>ルリ中央</td><td><select class="g-select"><option value="" selected>（指定なし）</option><option value="1">1番線</option><option value="2">2番線</option><option value="3">3番線</option><option value="4">4番線</option></select></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="number" class="g-input" min="0" step="1" style="width:70px" value="60"></td><td></td><td></td><td><button class="g-btn g-btn--small" type="button" disabled>▲</button><button class="g-btn g-btn--small" type="button">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="e1" hidden><td>1</td><td>港町</td><td><select class="g-select"><option value="" selected>（指定なし）</option><option value="1">1番線</option><option value="2">2番線</option></select></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="number" class="g-input" min="0" step="1" style="width:70px" value="60"></td><td></td><td></td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="e2" hidden><td>2</td><td>白樺台</td><td><select class="g-select"><option value="" selected>（指定なし）</option><option value="1">1番線</option><option value="2">2番線</option></select></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="number" class="g-input" min="0" step="1" style="width:70px" value="60" data-g="e2-run"></td><td></td><td></td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button" disabled>▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="g-actions-row">
+      <div style="position:relative;">
+        <input type="text" class="g-input" placeholder="駅名・かなで検索" data-g="sv-picker">
+        <div class="g-overlay" data-g="sg-ruri" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="c-ruri">ルリ中央（KL01）</button></div>
+        <div class="g-overlay" data-g="sg-mina" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="c-mina">港町（KL02）</button></div>
+        <div class="g-overlay" data-g="sg-shira" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="c-shira">白樺台（KL03）</button></div>
+      </div>
+    </div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">プレビュー</h4>
+    <div class="g-table-wrap ed2-subtable" data-g="pe1"><div style="padding:var(--space-sm);"><span style="display:inline-block;padding:2px 6px;margin:2px;border-left:4px solid #0078d7;background:var(--bgColor-muted);border-radius:var(--borderRadius-small);">ルリ中央</span><span style="display:inline-block;padding:2px 6px;margin:2px;border-left:4px solid #0078d7;background:var(--bgColor-muted);border-radius:var(--borderRadius-small);">港町</span><span style="display:inline-block;padding:2px 6px;margin:2px;border-left:4px solid #0078d7;background:var(--bgColor-muted);border-radius:var(--borderRadius-small);">白樺台</span></div></div>
+    <div class="g-table-wrap ed2-subtable" data-g="pe2" hidden><div style="padding:var(--space-sm);"><span style="display:inline-block;padding:2px 6px;margin:2px;border-left:4px solid #e67e22;background:var(--bgColor-muted);border-radius:var(--borderRadius-small);">ルリ中央</span><span style="display:inline-block;padding:2px 6px;margin:2px;border-left:4px solid #e67e22;background:var(--bgColor-muted);border-radius:var(--borderRadius-small);">港町</span><span style="display:inline-block;padding:2px 6px;margin:2px;border-left:4px solid #e67e22;background:var(--bgColor-muted);border-radius:var(--borderRadius-small);">白樺台</span></div></div>
+    <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button" data-g="sv-save">保存</button><button class="g-btn" type="button">キャンセル</button></div>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+  <figcaption>「環状」にチェックを入れると行先が空になり、環状区間の路線と種別を1つだけ選ぶ形になる</figcaption>
+  <script type="text/x-gd-steps">
+    check  @sv-circ
+    clear  @sv-head
+    disable @sv-head
+    show   @circ-row
+    hide   @c0
+    hide   @c1
+    hide   @c2
+    show   @e0
+    show   @e1
+    show   @e2
+    hide   @pe1
+    show   @pe2
+    spot   @sv-head 行先は入力できない
+    spot   @circ-row 環状区間の路線・種別
+    spot   @e2-run 最後の駅から最初の駅に戻るまでの秒数
+    spot   off
+  </script>
+</figure>

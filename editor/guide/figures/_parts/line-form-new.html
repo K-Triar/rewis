@@ -1,0 +1,50 @@
+<div class="g-card">
+  <div class="g-card__header">路線を追加</div>
+  <div class="g-card__body">
+    <div class="g-field"><label class="g-field__label">路線ID</label><input type="text" class="g-input" placeholder="例: KT-L" data-g="ln-id"></div>
+    <div class="g-field"><label class="g-field__label">路線名</label><input type="text" class="g-input" placeholder="路線名" data-g="ln-name"></div>
+    <div class="g-field"><label class="g-field__label">会社</label><select class="g-select" data-g="ln-company"><option value="KT">Kトライア瑠璃</option><option value="HRA">ヘルヴェティア鉄道局</option><option value="CR">ころりん鉄道</option></select></div>
+    <div class="g-field"><label class="g-field__label">色</label><input type="color" class="g-input" value="#3498db"></div>
+    <div class="g-field"><label class="g-field__label">車両種別</label><select class="g-select" data-g="ln-vehicle"><option value="TC">TrainCarts</option><option value="SX">新幹線</option><option value="MC">トロッコ</option></select></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="ln-cat-head">種別</h4>
+    <div class="g-table-wrap ed2-subtable">
+      <table class="g-table">
+        <thead><tr><th>ID</th><th>名前</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr data-g="cat-row" hidden><td><input type="text" class="g-input" value="Lo" style="width:80px"></td><td><input type="text" class="g-input" value="普通" style="width:120px"></td><td><button class="g-btn g-btn--small" type="button" disabled>▲</button><button class="g-btn g-btn--small" type="button" disabled>▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="g-actions-row"><input type="text" class="g-input" placeholder="種別ID" style="width:80px" data-g="cat-id"><input type="text" class="g-input" placeholder="種別名" style="width:120px" data-g="cat-name"><button class="g-btn g-btn--small" type="button" data-g="cat-add">+ 種別追加</button></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);" data-g="ln-st-head">駅順</h4>
+    <div class="g-table-wrap ed2-subtable">
+      <table class="g-table">
+        <thead><tr><th>#</th><th>駅</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr data-g="st-0" hidden><td>0</td><td>港町（KL02）</td><td><button class="g-btn g-btn--small" type="button" disabled>▲</button><button class="g-btn g-btn--small" type="button" disabled data-g="st-0-down">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="st-1" hidden><td>1</td><td>白樺台（KL03）</td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button" disabled data-g="st-1-down">▼</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+          <tr data-g="st-2" hidden><td>2</td><td>港町（KL02）</td><td><button class="g-btn g-btn--small" type="button">▲</button><button class="g-btn g-btn--small" type="button" disabled>▼</button><button class="g-btn g-btn--small" type="button" data-g="st-2-del">削除</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="g-actions-row">
+      <div style="position:relative;">
+        <input type="text" class="g-input" placeholder="駅名・かなで検索" data-g="ln-picker">
+        <div class="g-overlay" data-g="sugg-mina" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="c-mina">港町（KL02）</button></div>
+        <div class="g-overlay" data-g="sugg-shira" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="c-shira">白樺台（KL03）</button></div>
+      </div>
+    </div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">形状</h4>
+    <div class="g-actions-row">
+      <label class="g-field__label"><input type="radio" name="{{FIG}}-shape" checked> 普通の路線</label>
+      <label class="g-field__label"><input type="radio" name="{{FIG}}-shape"> 環状線</label>
+      <label class="g-field__label"><input type="radio" name="{{FIG}}-shape"> ラケット型</label>
+    </div>
+    <div></div>
+    <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">方向名</h4>
+    <div class="g-field"><label class="g-field__label">forward（駅順どおり）</label><input type="text" class="g-input" value="下り線"></div>
+    <div class="g-field"><label class="g-field__label">backward（逆向き）</label><input type="text" class="g-input" value="上り線"></div>
+    <div></div>
+    <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button" data-g="ln-save">追加する</button><button class="g-btn" type="button">キャンセル</button></div>
+  </div>
+</div>

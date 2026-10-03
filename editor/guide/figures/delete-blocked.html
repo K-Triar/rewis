@@ -1,0 +1,23 @@
+<figure class="gd-figure" data-w="800" data-h="300">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        {{> stations-view}}
+      </div>
+    </div>
+  </div>
+  <figcaption>ほかの場所から使われている駅は削除できず、使っている場所の一覧が表示される</figcaption>
+  <script type="text/x-gd-steps">
+    click @x-KL02
+    hide  @r-KL02
+    show  @blocked-KL02
+    spot  @blocked-KL02 削除できません。参照箇所:
+    move  @ref-line
+    spot  @ref-line クリックでその場所へ移動
+    spot  off
+    click @blocked-close
+    hide  @blocked-KL02
+    show  @r-KL02
+    wait  600
+  </script>
+</figure>

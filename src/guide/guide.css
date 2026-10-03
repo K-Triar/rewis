@@ -1,0 +1,296 @@
+/* 操作マニュアル（HTML 版）のページと画面イメージの見た目。
+   画面イメージの中身（ボタン・表・カードなど）は、エディタ本体と同じ CSS をそのまま使う。
+   ここでは (1) 本文の読みやすさ (2) 画面イメージの枠・カーソル・囲み枠・再生ボタン
+   (3) 画面いっぱいを前提にしたエディタの CSS を、図の枠の中に収めるための上書き だけを持つ。 */
+
+/* ---- ページ全体（app.css はエディタ用に画面固定・スクロールなしにしているので戻す） ---- */
+html, body { height: auto; }
+body {
+  display: block;
+  overflow: auto;
+  background: var(--bgColor-default);
+}
+.gd-doc#ed2-app { display: block; }
+
+.gd-doc {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 8px 16px 64px;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--fgColor-default);
+}
+
+/* 本文の見出し・段落など。画面イメージの中（.gd-stage）には効かせない */
+.gd-doc :is(h1, h2, h3, h4):not(.gd-stage *) {
+  line-height: 1.4;
+  margin: 1.8em 0 0.6em;
+}
+.gd-doc h1:not(.gd-stage *) { font-size: 1.6rem; margin-top: 1em; }
+.gd-doc h2:not(.gd-stage *) {
+  font-size: 1.35rem;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--borderColor-muted);
+}
+.gd-doc h3:not(.gd-stage *) { font-size: 1.1rem; }
+.gd-doc h4:not(.gd-stage *) { font-size: 1rem; }
+.gd-doc p:not(.gd-stage *) { margin: 0.6em 0; }
+.gd-doc :is(ul, ol):not(.gd-stage *) { margin: 0.5em 0; padding-left: 1.6em; }
+.gd-doc li:not(.gd-stage *) { margin: 0.25em 0; }
+.gd-doc li:not(.gd-stage *) > :is(ul, ol) { margin: 0.2em 0; }
+.gd-doc hr:not(.gd-stage *) {
+  border: none;
+  border-top: 1px solid var(--borderColor-default);
+  margin: 2.5em 0;
+}
+.gd-doc a:not(.gd-stage *) { color: var(--fgColor-accent); }
+.gd-doc code:not(.gd-stage *) {
+  font-family: var(--fontStack-monospace);
+  font-size: 0.88em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--bgColor-muted);
+}
+/* まだ HTML 版にしていない章へのリンク（GitHub の md へ飛ぶ） */
+.gd-doc a.gd-pending-link::after {
+  content: '↗';
+  font-size: 0.8em;
+  margin-left: 0.15em;
+}
+
+/* GitHub の [!NOTE] などと同じ形の囲み */
+.gd-callout {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--borderColor-accent-emphasis);
+  color: var(--fgColor-default);
+}
+.gd-callout__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--fgColor-accent);
+  margin: 0.2em 0 0.3em !important;
+}
+.gd-callout--warning,
+.gd-callout--caution { border-left-color: var(--borderColor-attention-emphasis); }
+.gd-callout--warning .gd-callout__title,
+.gd-callout--caution .gd-callout__title { color: var(--fgColor-attention); }
+
+/* ---- 画面イメージ ---- */
+.gd-figure {
+  margin: 1.4em 0 1.8em;
+}
+.gd-frame {
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 8px;
+  background: var(--bgColor-default);
+  box-shadow: 0 1px 3px rgba(31, 35, 40, 0.08), 0 6px 18px rgba(31, 35, 40, 0.06);
+}
+.gd-scaler {
+  position: relative;
+  transform-origin: 0 0;
+  overflow: hidden;
+}
+.gd-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* 本文の文字設定を持ち込まず、エディタの body と同じにする */
+  font: var(--text-body-shorthand-medium);
+  color: var(--fgColor-default);
+  background: var(--bgColor-default);
+  transition: opacity 0.3s;
+}
+.gd-stage.is-fading { opacity: 0; }
+/* 手順の show / hide は hidden 属性で切り替える（display を直接書いた要素にも効かせる） */
+.gd-stage [hidden] { display: none !important; }
+.gd-figure figcaption {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fgColor-muted);
+  text-align: center;
+}
+
+/* 押された見た目・入力中の見た目（本物の :active / :focus の代わり） */
+.gd-pressed { filter: brightness(0.88); transform: scale(0.97); }
+.gd-focus { outline: 2px solid var(--rewis-blue) !important; outline-offset: -1px; }
+
+.gd-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 30;
+  pointer-events: none;
+  transition: transform 0.65s cubic-bezier(0.45, 0, 0.2, 1);
+}
+.gd-cursor svg {
+  display: block;
+  margin: -2px 0 0 -5px; /* 矢印の先端を座標に合わせる */
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+  transform-origin: 5px 2px;
+  transition: transform 0.12s;
+}
+.gd-cursor.is-pressing svg { transform: scale(0.82); }
+
+.gd-ripple {
+  position: absolute;
+  z-index: 29;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  border: 3px solid var(--rewis-blue);
+  pointer-events: none;
+  animation: gd-ripple 0.6s ease-out forwards;
+}
+@keyframes gd-ripple {
+  from { transform: scale(0.2); opacity: 0.9; }
+  to { transform: scale(1); opacity: 0; }
+}
+
+.gd-spot {
+  position: absolute;
+  z-index: 25;
+  border: 2px solid var(--rewis-orange);
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.18);
+  pointer-events: none;
+  transition: left 0.35s, top 0.35s, width 0.35s, height 0.35s;
+}
+.gd-spot.has-label::after {
+  content: attr(data-label);
+  position: absolute;
+  left: -2px;
+  bottom: calc(100% + 4px);
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: var(--rewis-orange);
+  color: #fff;
+  font: 600 12px/1.6 var(--fontStack-sansSerif);
+  white-space: nowrap;
+}
+.gd-spot.has-label.is-label-below::after { bottom: auto; top: calc(100% + 4px); }
+
+.gd-controls {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 40;
+  display: flex;
+  gap: 4px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.gd-frame:hover .gd-controls,
+.gd-figure.is-paused .gd-controls,
+.gd-controls:focus-within { opacity: 1; }
+.gd-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fgColor-default);
+  cursor: pointer;
+}
+.gd-control:hover { background: #fff; color: var(--fgColor-accent); }
+.gd-control:focus-visible { outline: 2px solid var(--rewis-blue); outline-offset: 1px; }
+
+/* ---- 画面いっぱい前提のエディタの部品を、図の枠の中に収める ---- */
+.gd-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.gd-stage .g-dialog-backdrop,
+.gd-stage .g-issues-backdrop { position: absolute; }
+.gd-stage .g-issues-drawer { position: absolute; }
+.gd-stage .g-overlay.gd-popover { position: absolute; z-index: 20; }
+/* 図はいつも PC の幅で描くので、狭い画面向けの縦積みにしない */
+.gd-stage .ed2-split { flex-direction: row; }
+.gd-stage .ed2-split__form { order: 0; width: 360px; }
+/* 図の中ではスクロールバーを出さない（はみ出した部分は枠で切る） */
+.gd-stage * { scrollbar-width: none; }
+.gd-stage *::-webkit-scrollbar { display: none; }
+
+/* ブラウザのアドレス欄（タブが URL に記録されることを見せる図で使う） */
+.gd-browser {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  background: #e9ecef;
+  border-bottom: 1px solid var(--borderColor-default);
+  color: #57606a;
+}
+.gd-browser__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+.gd-browser__url {
+  flex: 1 1 auto;
+  height: 24px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: #fff;
+  font: 12px/24px var(--fontStack-sansSerif);
+  color: var(--fgColor-default);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.gd-browser__url b { font-weight: 600; color: var(--fgColor-accent); }
+
+/* 公開ページの画面イメージ（公開ページの layout.css の代わりに最低限の土台だけ置く） */
+.gd-public {
+  height: 100%;
+  padding: 16px;
+  background: var(--color-bg-page);
+  font-family: var(--fontStack-sansSerif);
+  box-sizing: border-box;
+}
+:where(.gd-public) :where(*) { margin: 0; padding: 0; box-sizing: border-box; }
+.gd-public .surface { width: 250px; }
+
+/* 図の説明に関係ない欄の中身（灰色の帯で「ここにデータが入る」ことだけを示す） */
+.gd-ph {
+  display: inline-block;
+  width: 48px;
+  height: 0.8em;
+  border-radius: 3px;
+  background: var(--bgColor-neutral-muted, #e6e8eb);
+  vertical-align: middle;
+}
+
+/* ブラウザのダウンロード表示（ファイルに書き出したことを見せる図で使う） */
+.gd-download {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--borderColor-default);
+  box-shadow: var(--shadow-floating-small);
+  font: 13px/1.4 var(--fontStack-sansSerif);
+  color: var(--fgColor-default);
+}

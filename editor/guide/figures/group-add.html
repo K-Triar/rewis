@@ -1,0 +1,75 @@
+<figure class="gd-figure" data-w="980" data-h="420">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        <div class="g-section-header">
+          <h2>駅グループ</h2>
+          <button class="g-btn g-btn--primary" type="button" data-g="gr-add">+ 追加</button>
+        </div>
+        <div class="ed2-split">
+          <div class="ed2-list-scroll ed2-split__list">
+            <div class="g-table-wrap">
+              <table class="g-table">
+                <thead><tr><th>グループ名</th><th>駅</th><th style="width:180px">操作</th></tr></thead>
+                <tbody>
+                  <tr><td>白樺台</td><td>白樺台（KL03）、白樺台（CR05）</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                  <tr data-g="gr-new" hidden><td>ルリ中央・東ルリ</td><td>ルリ中央（KL01）、東ルリ（KL04）</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="ed2-split__form" data-g="gr-form" hidden>
+            <div class="g-card">
+              <div class="g-card__header">駅グループを追加</div>
+              <div class="g-card__body">
+                <div class="g-field"><label class="g-field__label">グループ名</label><input type="text" class="g-input" placeholder="例: 大阪・梅田" data-g="gr-name"></div>
+                <h4 style="margin-block:var(--stack-gap-normal) var(--stack-gap-condensed);">駅</h4>
+                <div class="g-table-wrap">
+                  <table class="g-table">
+                    <thead><tr><th>駅</th><th>操作</th></tr></thead>
+                    <tbody>
+                      <tr data-g="g0" hidden><td>ルリ中央（KL01）</td><td><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                      <tr data-g="g1" hidden><td>東ルリ（KL04）</td><td><button class="g-btn g-btn--small" type="button">削除</button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="g-actions-row">
+                  <div style="position:relative;">
+                    <input type="text" class="g-input" placeholder="駅名・かなで検索" data-g="gr-picker">
+                    <div class="g-overlay" data-g="sg-ruri" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="c-ruri">ルリ中央（KL01）</button></div>
+                    <div class="g-overlay" data-g="sg-higashi" hidden style="position:absolute; z-index:900; max-height:280px; overflow:auto; width:100%;"><button type="button" class="g-list__item" data-g="c-higashi">東ルリ（KL04）</button></div>
+                  </div>
+                </div>
+                <div class="g-actions-row"><button class="g-btn g-btn--primary" type="button" data-g="gr-save">追加する</button><button class="g-btn" type="button">キャンセル</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>グループ名を入れ、検索欄から駅を2つ以上加えて［追加する］</figcaption>
+  <script type="text/x-gd-steps">
+    click @gr-add
+    show  @gr-form
+    type  @gr-name ルリ中央・東ルリ
+    type  @gr-picker るりちゅう
+    show  @sg-ruri
+    click @c-ruri
+    hide  @sg-ruri
+    clear @gr-picker
+    show  @g0
+    type  @gr-picker ひがし
+    show  @sg-higashi
+    click @c-higashi
+    hide  @sg-higashi
+    clear @gr-picker
+    show  @g1
+    wait  500
+    click @gr-save
+    hide  @gr-form
+    show  @gr-new
+    spot  @gr-new
+    wait  300
+  </script>
+</figure>

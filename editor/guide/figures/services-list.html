@@ -1,0 +1,41 @@
+<figure class="gd-figure" data-w="900" data-h="260">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+<div class="g-section-header">
+  <h2>運行系統</h2>
+  <button class="g-btn g-btn--primary" type="button" data-g="sv-add">+ 追加</button>
+</div>
+<div class="g-actions-row">
+  <label class="g-field__label">路線で絞込: <select class="g-select" data-g="flt-line"><option value="" selected>全路線</option><option value="L">瑠璃本線</option><option value="C">瑠璃環状線</option><option value="K">湖畔線</option></select></label>
+  <label class="g-field__label">種別で絞込: <select class="g-select" disabled data-g="flt-cat"><option value="" selected>全種別</option><option value="0">普通</option></select></label>
+</div>
+<div class="ed2-list-scroll g-table-wrap">
+  <table class="g-table">
+    <thead><tr><th>行先</th><th>区間</th><th>停車数</th><th>所要時間</th><th>有効</th><th data-g="col-warn">警告</th><th style="width:220px">操作</th></tr></thead>
+    <tbody>
+      <tr data-g="sv-1"><td>白樺台</td><td>瑠璃本線 普通</td><td>3</td><td>120秒</td><td>有効</td><td>1</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">複製</button><button class="g-btn g-btn--small" type="button" data-g="sv-1-rev">逆方向を作成</button><button class="g-btn g-btn--small" type="button" data-g="sv-1-del">削除</button></td></tr>
+      <tr data-g="sv-2"><td>ルリ中央</td><td>瑠璃本線 快速 → 湖畔線 普通</td><td>5</td><td>300秒</td><td>有効</td><td>0</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">複製</button><button class="g-btn g-btn--small" type="button" data-g="sv-2-rev">逆方向を作成</button><button class="g-btn g-btn--small" type="button" data-g="sv-2-del">削除</button></td></tr>
+      <tr data-g="sv-3"><td>（環状）</td><td>瑠璃環状線 普通</td><td>3</td><td>210秒</td><td>有効</td><td>0</td><td><button class="g-btn g-btn--small" type="button">詳細</button><button class="g-btn g-btn--small" type="button">複製</button><button class="g-btn g-btn--small" type="button" data-g="sv-3-rev">逆方向を作成</button><button class="g-btn g-btn--small" type="button" data-g="sv-3-del">削除</button></td></tr>
+
+    </tbody>
+  </table>
+</div>
+      </div>
+    </div>
+
+  </div>
+  <figcaption>「路線で絞込」で路線を選ぶと「種別で絞込」も選べるようになる</figcaption>
+  <script type="text/x-gd-steps">
+    select @flt-line K
+    hide   @sv-1
+    hide   @sv-3
+    enable @flt-cat
+    spot   @flt-cat
+    spot   off
+    wait   600
+    spot   @col-warn 警告
+    spot   @sv-2-rev
+    spot   off
+  </script>
+</figure>

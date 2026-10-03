@@ -1,0 +1,23 @@
+<div class="g-section-header">
+  <h2>駅</h2>
+  <button class="g-btn g-btn--primary" type="button" data-g="add">+ 追加</button>
+</div>
+<div class="g-actions-row"><input type="text" class="g-input" placeholder="駅名・かなで検索" data-g="search"></div>
+<div class="ed2-split"><div class="ed2-list-scroll ed2-split__list">
+<div class="g-table-wrap">
+  <table class="g-table">
+    <thead><tr><th style="width:120px">駅ID</th><th>駅名</th><th>かな</th><th style="width:80px">のりば数</th><th style="width:180px">操作</th></tr></thead>
+    <tbody>
+      <tr data-g="r-KL01"><td>KL01</td><td data-g="n-KL01">ルリ中央</td><td>るりちゅうおう</td><td>4</td><td><button class="g-btn g-btn--small" type="button" data-g="d-KL01">詳細</button><button class="g-btn g-btn--small" type="button" data-g="x-KL01">削除</button></td></tr>
+      <tr data-g="r-KL02"><td>KL02</td><td data-g="n-KL02">港町</td><td>みなとまち</td><td>2</td><td><button class="g-btn g-btn--small" type="button" data-g="d-KL02">詳細</button><button class="g-btn g-btn--small" type="button" data-g="x-KL02">削除</button></td></tr>
+      <tr data-g="blocked-KL02" hidden><td>KL02</td><td colspan="4"><span class="g-text-danger">削除できません。参照箇所: </span><span class="g-ref-list"><button class="g-ref-link" type="button" data-g="ref-line">路線「瑠璃本線」の駅順</button> / <button class="g-ref-link" type="button">運行系統「白樺台」の停車駅</button> / <button class="g-ref-link" type="button">乗換設定</button></span> <button class="g-btn g-btn--small" type="button" data-g="blocked-close">閉じる</button></td></tr>
+      <tr data-g="r-KL03"><td>KL03</td><td data-g="n-KL03">白樺台</td><td>しらかばだい</td><td>2</td><td><button class="g-btn g-btn--small" type="button" data-g="d-KL03">詳細</button><button class="g-btn g-btn--small" type="button" data-g="x-KL03">削除</button></td></tr>
+      <tr data-g="r-KL04"><td>KL04</td><td data-g="n-KL04">東ルリ</td><td>ひがしるり</td><td>1</td><td><button class="g-btn g-btn--small" type="button" data-g="d-KL04">詳細</button><button class="g-btn g-btn--small" type="button" data-g="x-KL04">削除</button></td></tr>
+      <tr data-g="r-KL05" hidden><td>KL05</td><td data-g="n-KL05">灯台前</td><td>とうだいまえ</td><td>0</td><td><button class="g-btn g-btn--small" type="button" data-g="d-KL05">詳細</button><button class="g-btn g-btn--small" type="button" data-g="x-KL05">削除</button></td></tr>
+    </tbody>
+  </table>
+</div>
+</div><div class="ed2-split__form" data-g="form-slot" hidden>
+{{> station-form-new}}
+{{> station-form-kl02}}
+</div></div>
