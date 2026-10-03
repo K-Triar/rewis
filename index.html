@@ -51,6 +51,16 @@
                 </div>
             </section>
 
+            <section class="install-card surface" id="install-card" aria-labelledby="install-card-title" hidden>
+                <img src="assets/img/kt_luli_logo_192.png" alt="" class="install-card__icon">
+                <div class="install-card__body">
+                    <p class="install-card__title" id="install-card-title">REWISをアプリで使う</p>
+                    <p class="install-card__text">ホーム画面からすぐに開けます</p>
+                </div>
+                <button type="button" class="btn btn-outline-pill install-card__action" data-install-action>追加</button>
+                <button type="button" class="btn btn-icon-circle btn-icon-circle--ghost install-card__close" data-install-close aria-label="閉じる" title="閉じる">×</button>
+            </section>
+
             <section class="home-section surface" aria-labelledby="quick-search-title">
                 <div class="section-heading">
                     <h2 id="quick-search-title">乗換案内</h2>
@@ -188,6 +198,7 @@
             <a class="sheet-item" href="about/">REWISについて</a>
             <a class="sheet-item" href="editor.html">事業者向けページ</a>
             <a class="sheet-item" href="information/">お知らせ</a>
+            <button type="button" class="sheet-item sheet-item--install" id="sheet-install" hidden>ホーム画面に追加</button>
             <button class="sheet-close" id="sheet-close">閉じる</button>
         </div>
     </div>

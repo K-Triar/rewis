@@ -2,6 +2,7 @@
 // グローバル変数
 // ========================================
 import { loadPublicModel } from '../shared/data-source.js';
+import { setupInstallPrompt } from '../shared/install-prompt.js';
 import { buildSearchGraph, searchRoutes } from '../shared/route-search.js';
 import {
     showShareDialog,
@@ -299,6 +300,7 @@ function normalizeForSearch(text) {
 // DOM はモジュールスクリプト実行時点で利用可能なため、ここで直接呼び出す。
 setupHelpModal();
 setupBottomSheet();
+setupInstallPrompt();
 setupNoopLinks();
 
 function normalizeLineDisplayName(name) {

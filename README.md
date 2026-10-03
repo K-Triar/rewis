@@ -4,7 +4,7 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
 
 - **公開サイト**：<https://k-triar.github.io/rewis/>
 - **利用者向け**：乗換案内・運行状況・路線情報の閲覧
-- **事業者（参加者）向け**：路線・駅・運行系統などのデータ編集（[表形式エディタの使い方](editor-v1/readme.md) と互換の [図形式エディタの使い方](editor-graph-guide.md) を参照）
+- **事業者（参加者）向け**：路線・駅・運行系統などのデータ編集（使い方は [図形式エディタの使い方](editor-graph-guide.md) を参照）
 
 ## 目次
 
@@ -38,7 +38,7 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
 事業者向けのデータ編集ページは、同じデータを異なる操作方法で編集できる2種類のエディタで構成されています。
 
 - **表形式エディタ**（入口 `editor/`、実装 `src/editor/table/`）：一覧・フォーム中心の編集画面。
-- **図形式エディタ**（入口 `editor-graph/`、実装 `src/editor/graph/`）：路線図の上でクリック・ドラッグしながら編集する画面。表形式エディタのヘッダーにある「図で編集する（新しいエディタ）」リンクから行き来できます。
+- **図形式エディタ**（入口 `editor-graph/`、実装 `src/editor/graph/`）：路線図の上でクリック・ドラッグしながら編集する画面。表形式エディタのヘッダーにある「図形式で編集」リンクから行き来できます。
 - **旧エディタ v1**（`editor-v1/`）：過去のエディタです。現在は閲覧専用（保存不可）として残しています。
 
 2つのエディタが共有するコードは `src/editor/core/`（DOMに依存しない編集ロジック）と `src/editor/common/`（UI部品・CSS・API呼び出し）にあります。
@@ -52,7 +52,8 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
 
 ```
 .
-├── index.html, transfer.html, operation.html, about.html, information.html, editor.html
+├── index.html            # ホーム
+├── transfer.html, operation.html, about.html, information.html, editor.html
 │                         # 公開ページ・エディタへの転送スタブ（実体は同名ディレクトリ）
 ├── transfer/, operation/, about/, information/, editor/, editor-graph/
 │                         # 各ページの入口HTML（URLになる。JSは src/ 配下）
@@ -69,8 +70,13 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
 ├── assets/                 # CSS・デザインシステム・画像・アイコンなど静的アセット
 ├── tests/                  # node --test によるユニットテスト（src/ と同じ構成: editor/core, editor/table, shared, worker）
 ├── tools/                  # 開発補助スクリプト（Octiconsの生成など）
-├── manifest.json, service-worker.js
-│                         # PWA用マニフェストとオフラインキャッシュ
+├── primer-primitives-design-system/
+│                         # Primer Primitives ベースのデザインシステム一式
+├── design-lab/             # 公開ページのデザイン検討用モックアップ・スタイルガイド
+├── docs/                   # 設計資料（REWIS v2 の仕様・決定事項など）
+├── archive/                # v1 時代の検証用ツール（旧経路探索との比較・変換レポートなど）
+├── manifest.json, service-worker.js, favicon.ico
+│                         # PWA用マニフェスト・オフラインキャッシュ・ファビコン
 ├── package.json            # ルートのテストスクリプト（`npm test`）
 └── LICENSE
 ```
@@ -79,13 +85,14 @@ REWISは、Minecraft サーバー内の鉄道網（Kトライア全世界鉄道�
 
 ```
 [ 事業者 ] → editor / editor-graph （事業者向けページ・GitHub Pages）
-                 │ 保存時のみ認証つきでAPIを呼び出す
+                 │ ログインしてAPIを呼び出す（読込・保存・履歴・ロールバック）
                  ▼
         Cloudflare Workers（worker/）
-                 │
+                 │ 保存・ロールバックのたびに公開用データも生成
+                 │（src/shared/compile-public.js）
                  ▼
-        Cloudflare KV（正本データ・履歴）
-                 │ 公開用に整形（src/shared/compile-public.js）
+        Cloudflare KV（正本データ・履歴・公開用データ）
+                 │ 公開用データを認証なしで配信（/v2/public）
                  ▼
   [ 利用者 ] transfer / operation ほか公開ページ（GitHub Pages）
 ```
@@ -94,7 +101,7 @@ Workers API の詳しいセットアップ手順は [`worker/README.md`](worker/
 
 ## 開発
 
-依存パッケージはありません。テストは Node.js 標準の `node:test` で実行します。
+ルートには依存パッケージはありません（`worker/` は独自の `package.json` を持ちます）。テストは Node.js 標準の `node:test` で実行します。
 
 ```sh
 npm test

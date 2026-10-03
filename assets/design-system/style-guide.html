@@ -271,6 +271,22 @@
     </section>
 
     <section class="guide-section">
+        <h2>Install prompt（ホーム画面に追加）</h2>
+        <p class="guide-note">モバイル端末のブラウザ閲覧時のみ <code>src/shared/install-prompt.js</code> が表示する。PWA起動中・PCでは出ない。カードはトップページ専用、全ページ共通の導線はメニュー内の <code>.sheet-item--install</code>。</p>
+        <div style="max-width: 420px; background: var(--color-bg-page); padding: var(--space-4); border-radius: var(--radius-xl);">
+            <section class="install-card surface">
+                <img src="../img/kt_luli_logo_192.png" alt="" class="install-card__icon">
+                <div class="install-card__body">
+                    <p class="install-card__title">REWISをアプリで使う</p>
+                    <p class="install-card__text">ホーム画面からすぐに開けます</p>
+                </div>
+                <button type="button" class="btn btn-outline-pill install-card__action">追加</button>
+                <button type="button" class="btn btn-icon-circle btn-icon-circle--ghost install-card__close" aria-label="閉じる">×</button>
+            </section>
+        </div>
+    </section>
+
+    <section class="guide-section">
         <h2>Filter toggle</h2>
         <div class="filter-panel">
             <div class="filter-icons-row">
@@ -376,6 +392,7 @@
                 <div class="bottom-sheet-content">
                     <a class="sheet-item" href="#">REWISについて</a>
                     <a class="sheet-item" href="#">事業者向けページ</a>
+                    <button type="button" class="sheet-item sheet-item--install">ホーム画面に追加</button>
                     <button class="sheet-close">閉じる</button>
                 </div>
             </div>

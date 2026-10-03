@@ -2,6 +2,7 @@
 // 路線・運行情報ページ用スクリプト
 // ========================================
 import { loadPublicModel } from '../shared/data-source.js';
+import { setupInstallPrompt } from '../shared/install-prompt.js';
 import { computeAffectedIndices } from '../shared/model.js';
 import { ownCompanyIds } from '../shared/ids.js';
 import {
@@ -992,6 +993,7 @@ function setupOperationModeToggle() {
 function initializeOperationUI() {
     setupOperationModeToggle();
     setupBottomSheet();
+    setupInstallPrompt();
     setupHelpModal();
     setupNoopLinks();
 

@@ -1,5 +1,6 @@
 import { loadPublicModel } from '../shared/data-source.js';
 import { setupBottomSheet, setupNoopLinks } from '../shared/ui-dom.js';
+import { setupInstallPrompt } from '../shared/install-prompt.js';
 
 const targetLineNames = ['瑠璃線', '貿易港線', '地下鉄中央線'];
 const statusRank = { normal: 0, warning: 1, suspend: 2 };
@@ -391,6 +392,7 @@ detailBtn.addEventListener('click', () => {
 });
 
 setupBottomSheet();
+setupInstallPrompt();
 setupNoopLinks();
 
 init();

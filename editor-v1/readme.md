@@ -4,7 +4,7 @@
 
 > [!IMPORTANT]
 > このページ（`editor-v1/`）は**旧バージョンのエディタ**で、現在は**閲覧専用**です。データの編集・保存はできません。
-> 実際のデータ編集は、現行のエディタ（表形式 `editor.html` / 図形式 `editor-graph.html`）で行ってください。使い方は [`editor-graph-guide.md`](../editor-graph-guide.md) を参照してください。
+> 実際のデータ編集は、現行のエディタ（表形式 `editor.html` / 図形式 `editor-graph/`）で行ってください。使い方は [`editor-graph-guide.md`](../editor-graph-guide.md) を参照してください。
 > 本ドキュメントは、過去の画面構成の記録として残しています。
 
 ---

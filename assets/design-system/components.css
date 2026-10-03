@@ -603,12 +603,82 @@
 }
 .modal h3 { margin: 0 0 var(--space-2) 0; color: var(--color-primary); }
 .modal p { margin: 0 0 var(--space-3) 0; color: var(--color-text-secondary); }
-.modal ul { margin: var(--space-2) 0 var(--space-4) var(--space-5); list-style-position: outside; }
+.modal ul,
+.modal ol { margin: var(--space-2) 0 var(--space-4) var(--space-5); list-style-position: outside; }
 .modal li { margin-bottom: var(--space-2); line-height: 1.45; }
 .modal-actions {
     display: flex;
     gap: var(--space-2);
     justify-content: flex-end;
+}
+
+/* =========================================================
+   Install prompt（ホーム画面に追加 / PWAインストール導線）
+   src/shared/install-prompt.js が表示条件を判定して hidden を外す。
+   モバイルのブラウザ閲覧時のみ出る前提のため、デスクトップ向けの調整は持たない。
+   ========================================================= */
+.install-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+}
+.install-card[hidden] {
+    display: none;
+}
+.install-card__icon {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-surface);
+    object-fit: contain;
+}
+.install-card__body {
+    flex: 1;
+    min-width: 0;
+}
+.install-card__title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+    line-height: 1.4;
+}
+.install-card__text {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+.install-card__action {
+    flex: none;
+    padding: var(--space-1) var(--space-4);
+}
+.install-card__close {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    margin-left: calc(var(--space-1) * -1);
+}
+
+.install-guide[hidden] {
+    display: none;
+}
+/* 手順中のボタン表記（共有アイコン・「…」）。実際のボタンを指していると分かるよう小さなキー風に囲む */
+.install-guide__key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin: 0 2px;
+    vertical-align: middle;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-highlight);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
 }
 
 /* =========================================================
@@ -913,6 +983,16 @@
     width: 100%;
     color: inherit;
     text-decoration: none;
+    font: inherit;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+}
+.sheet-item[hidden] {
+    display: none;
+}
+/* メニュー内の「ホーム画面に追加」。ページ遷移ではなく操作なので、リンク項目と区別して primary 色にする */
+.sheet-item--install {
+    color: var(--color-primary);
 }
 .sheet-close {
     padding: var(--space-3);

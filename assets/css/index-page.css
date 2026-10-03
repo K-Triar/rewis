@@ -137,6 +137,11 @@
         margin: 0 var(--space-4);
         padding: var(--space-5);
     }
+
+    /* ホーム画面に追加カード（components.css の .install-card）を他カードと同じ横余白に揃える */
+    .home-main .install-card {
+        margin: 0 var(--space-4);
+    }
 }
 
 /* =========================================================
