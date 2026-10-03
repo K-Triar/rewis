@@ -1,5 +1,5 @@
 // 操作マニュアルの「LLMに質問する：」。ページに埋め込んだ md の全文（#gd-md-source）を
-// クリップボードにコピーする。メニューの「Markdownとして表示」は公開中の md へのただのリンク（ここでは閉じるだけ）。
+// クリップボードにコピーする。メニューの「Markdownとして表示」「Markdownをダウンロード」は公開中の md へのただのリンク（ここでは閉じるだけ）。
 // 既定はコピー（チャット欄に貼れば全文が確実に読まれる。ファイルの添付は拾い読みされることがある）。
 
 const source = document.getElementById('gd-md-source');
@@ -66,7 +66,7 @@ if (source && box) {
   }
 
   box.addEventListener('click', (event) => {
-    // 「Markdownとして表示」はリンクのまま新しいタブで開き、メニューだけ閉じる
+    // 「Markdownとして表示」「Markdownをダウンロード」はリンクのまま動かし、メニューだけ閉じる
     if (event.target.closest('a.gd-menu__item')) {
       closeMenu(false);
       return;

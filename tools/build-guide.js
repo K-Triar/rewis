@@ -280,8 +280,9 @@ function includeParts(html, partsDirs, depth = 0) {
 }
 
 // 「LLMに質問する：」の部品。押したときの動きは src/guide/ask.js
-// mdUrl: 公開中の md（「Markdownとして表示」で開く）
+// mdUrl: 公開中の md（「Markdownとして表示」で開く／「Markdownをダウンロード」で保存する）
 function askBox(mdUrl) {
+  const mdFile = mdUrl.split('/').pop();
   return `<div class="gd-ask">
 <span class="gd-ask__label" id="gd-ask-label">LLMに質問する：</span>
 <div class="gd-split" role="group" aria-labelledby="gd-ask-label">
@@ -289,7 +290,8 @@ function askBox(mdUrl) {
 <button type="button" class="g-btn g-btn--small gd-split__toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="gd-ask-menu" aria-label="ほかの方法を選ぶ">${iconSvg('chevron-down')}</button>
 <div class="gd-menu" id="gd-ask-menu" role="menu" hidden>
 <button type="button" class="gd-menu__item" role="menuitem" data-gd-md="copy">${iconSvg('copy')}<span><span class="gd-menu__title">Markdownをコピー</span><span class="gd-menu__desc">AI のチャット欄に貼り付けて質問します</span></span></button>
-<a class="gd-menu__item" role="menuitem" href="${escapeHtml(mdUrl)}" target="_blank" rel="noopener">${iconSvg('link-external')}<span><span class="gd-menu__title">Markdownとして表示</span><span class="gd-menu__desc">新しいタブで開きます。URLをAIに渡せます</span></span></a>
+<a class="gd-menu__item" role="menuitem" href="${escapeHtml(mdUrl)}" target="_blank" rel="noopener">${iconSvg('link-external')}<span><span class="gd-menu__title">Markdownとして表示</span><span class="gd-menu__desc">新しいタブで開きます</span></span></a>
+<a class="gd-menu__item" role="menuitem" href="${escapeHtml(mdUrl)}" download="${escapeHtml(mdFile)}">${iconSvg('download')}<span><span class="gd-menu__title">Markdownをダウンロード</span><span class="gd-menu__desc">ファイルで保存します</span></span></a>
 </div>
 </div>
 </div>`;
