@@ -337,3 +337,78 @@ body {
   font: 13px/1.4 var(--fontStack-sansSerif);
   color: var(--fgColor-default);
 }
+
+/* ---- 「LLMに質問する：」（タイトルの下、右寄せ。md の全文をコピー・ダウンロードする） ---- */
+.gd-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 8px;
+  margin: -0.2em 0 0.4em;
+  line-height: 1.4;
+}
+.gd-ask__label {
+  font-size: 13px;
+  color: var(--fgColor-muted);
+}
+.gd-split {
+  position: relative;
+  display: inline-flex;
+}
+.gd-split__main {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.gd-split__toggle {
+  margin-left: -1px;
+  padding-inline: 6px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+.gd-split__toggle svg { transition: transform 0.15s; }
+.gd-split__toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.gd-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 4px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--overlay-bgColor, var(--bgColor-default));
+  box-shadow: var(--shadow-floating-small);
+}
+.gd-menu[hidden] { display: none; }
+.gd-menu__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--borderRadius-small, 4px);
+  background: none;
+  color: var(--fgColor-default);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gd-menu__item svg { flex: none; margin-top: 2px; color: var(--fgColor-muted); }
+.gd-menu__item:hover,
+.gd-menu__item:focus-visible {
+  background: var(--bgColor-neutral-muted, var(--bgColor-muted));
+  outline: none;
+}
+.gd-menu__title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+.gd-menu__desc {
+  display: block;
+  font-size: 12px;
+  color: var(--fgColor-muted);
+}

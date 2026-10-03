@@ -146,8 +146,8 @@ npm test
 
 | 文書 | 内容 |
 |---|---|
-| [`editor-guide.md`](editor-guide.md) | 表形式エディタの操作ガイド |
-| [`editor-graph-guide.md`](editor-graph-guide.md) | 図形式エディタの操作ガイド |
+| [`editor-guide.md`](editor-guide.md)（[HTML 版](https://k-triar.github.io/rewis/editor/guide/)） | 表形式エディタの操作マニュアル。HTML 版は画面イメージ付き |
+| [`editor-graph-guide.md`](editor-graph-guide.md)（[HTML 版](https://k-triar.github.io/rewis/editor-graph/guide/)） | 図形式エディタの操作マニュアル。HTML 版は画面イメージ付き |
 | [`editor-v1/readme.md`](editor-v1/readme.md) | 旧エディタ（v1・閲覧専用）の操作ガイド |
 | [`worker/README.md`](worker/README.md) | Workers 保存用APIの仕様とセットアップ手順 |
 

@@ -258,6 +258,10 @@
     margin-bottom: var(--space-2);
     line-height: var(--line-height-base);
 }
+.card--content a {
+    color: var(--color-primary);
+}
+
 .card--content p:last-child {
     margin-bottom: 0;
 }

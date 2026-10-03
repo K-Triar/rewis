@@ -114,6 +114,14 @@ function renderBlocks(lines, ctx) {
 
     if (!trimmed) { i++; continue; }
 
+    // AI に md を渡して質問する人向けの前置き（<!-- ai-note:start --> 〜 <!-- ai-note:end -->）は HTML 版に出さない
+    if (/^<!--\s*ai-note:start/.test(trimmed)) {
+      while (i < lines.length && !/^<!--\s*ai-note:end/.test(lines[i].trim())) i++;
+      if (i >= lines.length) throw new Error('<!-- ai-note:end --> がありません');
+      i++;
+      continue;
+    }
+
     const fig = trimmed.match(/^<!--\s*figure:\s*([\w-]+)\s*-->$/);
     if (fig) {
       out.push(ctx.figure(fig[1]));
@@ -246,6 +254,21 @@ function includeParts(html, partsDirs, depth = 0) {
   });
 }
 
+// 「LLMに質問する：」の部品。押したときの動きは src/guide/ask.js
+function askBox(mdName) {
+  return `<div class="gd-ask">
+<span class="gd-ask__label" id="gd-ask-label">LLMに質問する：</span>
+<div class="gd-split" role="group" aria-labelledby="gd-ask-label">
+<button type="button" class="g-btn g-btn--small gd-split__main" data-gd-md="copy">${iconSvg('copy')}<span data-gd-md-text>Markdownをコピー</span></button>
+<button type="button" class="g-btn g-btn--small gd-split__toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="gd-ask-menu" aria-label="ほかの方法を選ぶ">${iconSvg('chevron-down')}</button>
+<div class="gd-menu" id="gd-ask-menu" role="menu" hidden>
+<button type="button" class="gd-menu__item" role="menuitem" data-gd-md="copy">${iconSvg('copy')}<span><span class="gd-menu__title">Markdownをコピー</span><span class="gd-menu__desc">AI のチャット欄に貼り付けて質問します</span></span></button>
+<button type="button" class="gd-menu__item" role="menuitem" data-gd-md="download">${iconSvg('download')}<span><span class="gd-menu__title">Markdownをダウンロード</span><span class="gd-menu__desc">${escapeHtml(mdName)} として保存します</span></span></button>
+</div>
+</div>
+</div>`;
+}
+
 function cutChapters(lines, untilChapter) {
   if (!untilChapter) return lines;
   const stop = lines.findIndex((l) => {
@@ -298,6 +321,10 @@ function build(key) {
   // 他の md へのリンクも GitHub 上のものにする
   body = body.replace(/href="(?!https?:|#)([^"]+\.md)(#[^"]*)?"/g, (_, file, hash) => `href="${REPO_BLOB}${file}${hash || ''}"`);
 
+  // タイトルの下に「LLMに質問する：」（md の全文をコピー・ダウンロードする）を置く
+  if (!body.includes('</h1>')) throw new Error(`${conf.md} にタイトル（# 見出し）がありません`);
+  body = body.replace('</h1>', `</h1>\n${askBox(conf.md)}`);
+
   const html = `<!DOCTYPE html>
 <!-- 自動生成: node tools/build-guide.js ${key}（${conf.md} と ${conf.outDir}/figures/ から）。このファイルを直接編集しないこと -->
 <html lang="ja">
@@ -331,7 +358,10 @@ ${conf.css.map((href) => `    <link rel="stylesheet" href="${toRoot}/${href}">`)
     <main id="${conf.appId}" class="gd-doc">
 ${body}
     </main>
+    <!-- 「LLMに質問する：」でコピー・ダウンロードする md の全文（AI 向けの前置きも含めて、md のまま） -->
+    <script type="application/json" id="gd-md-source" data-filename="${escapeHtml(conf.md)}">${JSON.stringify(md).replace(/</g, '\\u003c')}</script>
     <script type="module" src="${toRoot}/src/guide/player.js"></script>
+    <script type="module" src="${toRoot}/src/guide/ask.js"></script>
 </body>
 </html>
 `;

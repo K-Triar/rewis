@@ -9,6 +9,7 @@ import { renderCompaniesView } from './views/companies.js';
 import { renderVehicleTypesView } from './views/vehicle-types.js';
 import { renderHistoryView } from './views/history.js';
 import { renderStatusRow } from './components/status-row.js';
+import { manualLink } from './components/manual-link.js';
 import { openIssuesDrawer } from './components/issues-drawer.js';
 import { alertDialog, confirmDialog } from './components/dialog.js';
 import * as api from './api.js';
@@ -66,6 +67,7 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
     );
 
     const right = h('div', { class: 'g-header__right' });
+    right.appendChild(manualLink({ className: 'g-btn g-btn--invisible g-header__manual' }));
     if (session) {
       right.appendChild(h('span', {}, `${session.userId} でログイン中`));
       right.appendChild(h('button', {

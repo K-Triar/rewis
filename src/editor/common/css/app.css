@@ -116,6 +116,32 @@ body {
   max-width: 480px;
   width: 100%;
 }
+/* 開始画面の下の「初めての方は、先に 操作マニュアル をご覧ください。」 */
+.g-start-card__manual {
+  padding: var(--stack-padding-condensed) var(--stack-padding-normal);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+  font: var(--text-body-shorthand-small);
+  color: var(--fgColor-muted);
+}
+.g-start-card__manual-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline: 4px;
+  font-weight: 600;
+  color: var(--fgColor-accent);
+  vertical-align: bottom;
+}
+
+/* ヘッダーの「操作マニュアル」（リンクを g-btn の見た目にする） */
+.g-header__manual { text-decoration: none; }
+@media (max-width: 600px) {
+  /* 幅が狭いときは本のアイコンだけにして、ログイン中の表示と並べる */
+  .g-header__manual { font-size: 0; gap: 0; padding-inline: 8px; }
+  /* タイトルは折り返さず、入りきらない分は … で省く */
+  .g-header__left { min-width: 0; }
+  .g-header__title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+}
 
 .g-issues-backdrop {
   position: fixed;

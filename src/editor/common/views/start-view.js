@@ -1,6 +1,7 @@
 import { h, clear } from '../dom.js';
 import { helpTip } from '../components/help-tip.js';
 import { confirmDialog } from '../components/dialog.js';
+import { manualLink } from '../components/manual-link.js';
 import * as api from '../api.js';
 
 const API_URL_HELP = 'REWIS のデータを保存しているサーバーの URL です。管理者から教えてもらった値を入れてください。';
@@ -138,6 +139,12 @@ export function renderStartView(container, ctx) {
     }
     body.appendChild(status);
     card.appendChild(body);
+    // 初めて編集する人が最初に見る画面なので、ここからマニュアルへ案内する
+    card.appendChild(h('div', { class: 'g-start-card__manual' },
+      '初めての方は、先に',
+      manualLink({ className: 'g-start-card__manual-link' }),
+      'をご覧ください。'
+    ));
   }
 
   rerender();
