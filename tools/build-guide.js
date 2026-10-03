@@ -11,6 +11,7 @@
 // そのガイドの figures/_parts/ → 両ガイド共通の src/guide/parts/ の順に探す。
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { ogpBlock } from './ogp.js';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ICONS } from '../src/editor/common/icons.js';
@@ -491,6 +492,7 @@ function build(key) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(title)}</title>
+${ogpBlock({ title: `事業者向けマニュアル（${conf.label}エディタ） - REWIS`, description: `REWISの路線データを${conf.label}エディタで編集する、鉄道事業者向けの操作マニュアルです。`, path: `${conf.outDir}/` })}
     <meta name="robots" content="noindex">
     <link rel="icon" href="${toRoot}/favicon.ico" type="image/x-icon">
 
