@@ -1,5 +1,5 @@
 // 操作マニュアルの「LLMに質問する：」。ページに埋め込んだ md の全文（#gd-md-source）を
-// クリップボードにコピーするか、md ファイルとしてダウンロードする。
+// クリップボードにコピーする。メニューの「Markdownとして表示」は公開中の md へのただのリンク（ここでは閉じるだけ）。
 // 既定はコピー（チャット欄に貼れば全文が確実に読まれる。ファイルの添付は拾い読みされることがある）。
 
 const source = document.getElementById('gd-md-source');
@@ -10,7 +10,6 @@ const RESET_MS = 2000;
 
 if (source && box) {
   const markdown = JSON.parse(source.textContent);
-  const filename = source.dataset.filename || 'guide.md';
   const main = box.querySelector('.gd-split__main');
   const mainText = main.querySelector('[data-gd-md-text]');
   const mainIcon = main.querySelector('svg');
@@ -52,18 +51,7 @@ if (source && box) {
     flash('コピーしました', true);
   }
 
-  function download() {
-    const url = URL.createObjectURL(new Blob([markdown], { type: 'text/markdown;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.append(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
-  }
-
-  const actions = { copy, download };
+  const actions = { copy };
 
   function openMenu(focusFirst) {
     menu.hidden = false;
@@ -78,6 +66,11 @@ if (source && box) {
   }
 
   box.addEventListener('click', (event) => {
+    // 「Markdownとして表示」はリンクのまま新しいタブで開き、メニューだけ閉じる
+    if (event.target.closest('a.gd-menu__item')) {
+      closeMenu(false);
+      return;
+    }
     const button = event.target.closest('[data-gd-md]');
     if (!button) return;
     closeMenu(button.closest('.gd-menu') !== null);

@@ -40,6 +40,13 @@ const GUIDES = {
     md: 'editor-guide.md',
     outDir: 'editor/guide',
     css: [...EDITOR_CSS, 'src/editor/table/table.css'],
+    label: '表形式',
+    editorUrl: 'editor/',
+    // 冒頭の入口。first は章の番号、trouble は見出しの文字（どちらも md にないとビルドが止まる）
+    entry: {
+      first: ['1', '2', '5'],
+      trouble: ['保存できないときの原因と対処法', 'エラーと注意の一覧', '操作を間違えたとき']
+    },
     appId: 'ed2-app',
     appNote: 'id="ed2-app" は、表形式エディタの画面イメージに table.css の詰めた表示を効かせるため'
   },
@@ -47,6 +54,12 @@ const GUIDES = {
     md: 'editor-graph-guide.md',
     outDir: 'editor-graph/guide',
     css: EDITOR_CSS,
+    label: '図形式',
+    editorUrl: 'editor-graph/',
+    entry: {
+      first: ['1', '2', '5'],
+      trouble: ['保存できないときの原因と対処法', 'エラーと注意の一覧', '操作を元に戻す・やり直す']
+    },
     appId: 'g-app',
     appNote: 'id="g-app" は、図形式エディタ（app.css の #g-app）と同じ入れ物にするため'
   }
@@ -70,7 +83,8 @@ function plainText(inline) {
   return inline.replace(/\*\*(.+?)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
 }
 
-function renderInline(text) {
+// refs: 本文中の見出しへの言及をリンクにする（見出しそのものの中では付けない）
+function renderInline(text, { refs = true } = {}) {
   const codes = [];
   let out = escapeHtml(text).replace(/`([^`]+)`/g, (_, code) => {
     codes.push(`<code>${code}</code>`);
@@ -79,6 +93,11 @@ function renderInline(text) {
   out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => `<a href="${href}">${label}</a>`);
   out = out.replace(/(^|[^"=>])(https?:\/\/[^\s<）」]+)/g, '$1<a href="$2">$2</a>');
+  if (refs) {
+    // 番号付きは「7.4 見出し」「4. 見出し」の形。番号のないものは「〜」を参照／「〜」の手順 の形だけを拾う
+    out = out.replace(/「(\d+(?:\.\d+)?)\.? [^「」<>]+」/g, (all, num) => `<a class="gd-ref" data-ref="n:${num}">${all}</a>`);
+    out = out.replace(/「([^「」<>]{1,40})」(?=を参照|の手順)/g, (all, name) => `<a class="gd-ref" data-ref="t:${encodeURIComponent(name)}">${all}</a>`);
+  }
   return out.replace(/\u0000(\d+)\u0000/g, (_, i) => codes[Number(i)]);
 }
 
@@ -143,9 +162,14 @@ function renderBlocks(lines, ctx) {
     const heading = trimmed.match(/^(#{1,6}) (.*)$/);
     if (heading) {
       const level = heading[1].length;
-      const id = slugify(plainText(heading[2]));
+      const text = plainText(heading[2]);
+      const id = slugify(text);
       ctx.ids.add(id);
-      out.push(`<h${level} id="${id}">${renderInline(heading[2])}</h${level}>`);
+      ctx.headings.push({ level, id, text });
+      const anchor = level >= 2 && level <= 4
+        ? `<a class="gd-anchor" href="#${id}" aria-label="「${escapeHtml(text)}」へのリンクをコピー">#</a>`
+        : '';
+      out.push(`<h${level} id="${id}">${renderInline(heading[2], { refs: false })}${anchor}</h${level}>`);
       i++;
       continue;
     }
@@ -255,7 +279,8 @@ function includeParts(html, partsDirs, depth = 0) {
 }
 
 // 「LLMに質問する：」の部品。押したときの動きは src/guide/ask.js
-function askBox(mdName) {
+// mdUrl: 公開中の md（「Markdownとして表示」で開く）
+function askBox(mdUrl) {
   return `<div class="gd-ask">
 <span class="gd-ask__label" id="gd-ask-label">LLMに質問する：</span>
 <div class="gd-split" role="group" aria-labelledby="gd-ask-label">
@@ -263,7 +288,7 @@ function askBox(mdName) {
 <button type="button" class="g-btn g-btn--small gd-split__toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="gd-ask-menu" aria-label="ほかの方法を選ぶ">${iconSvg('chevron-down')}</button>
 <div class="gd-menu" id="gd-ask-menu" role="menu" hidden>
 <button type="button" class="gd-menu__item" role="menuitem" data-gd-md="copy">${iconSvg('copy')}<span><span class="gd-menu__title">Markdownをコピー</span><span class="gd-menu__desc">AI のチャット欄に貼り付けて質問します</span></span></button>
-<button type="button" class="gd-menu__item" role="menuitem" data-gd-md="download">${iconSvg('download')}<span><span class="gd-menu__title">Markdownをダウンロード</span><span class="gd-menu__desc">${escapeHtml(mdName)} として保存します</span></span></button>
+<a class="gd-menu__item" role="menuitem" href="${escapeHtml(mdUrl)}" target="_blank" rel="noopener">${iconSvg('link-external')}<span><span class="gd-menu__title">Markdownとして表示</span><span class="gd-menu__desc">新しいタブで開きます。URLをAIに渡せます</span></span></a>
 </div>
 </div>
 </div>`;
@@ -282,17 +307,148 @@ function cutChapters(lines, untilChapter) {
   return lines.slice(0, end);
 }
 
+// md の「## 目次」の節（次の --- まで）は HTML 版では左の目次に置き換えるので落とす
+function dropTocSection(lines) {
+  const start = lines.findIndex((l) => /^## 目次\s*$/.test(l));
+  if (start < 0) return lines;
+  let end = start + 1;
+  while (end < lines.length && !/^(## |-{3,}\s*$)/.test(lines[end])) end++;
+  if (end < lines.length && /^-{3,}\s*$/.test(lines[end])) end++;
+  return [...lines.slice(0, start), ...lines.slice(end)];
+}
+
+// 目次・入口に出す短い名前（「5.2 駅（駅タブ）」→「5.2 駅」）
+function shortTitle(text) {
+  return /^\d/.test(text) ? text.replace(/（[^）]*）$/, '') : text;
+}
+
+function findChapter(headings, num) {
+  const h = headings.find((x) => x.level <= 3 && (x.text.startsWith(`${num}. `) || x.text.startsWith(`${num} `)));
+  if (!h) throw new Error(`見出し「${num} …」が見つかりません`);
+  return h;
+}
+
+function findByText(headings, text) {
+  const hits = headings.filter((x) => x.level >= 2 && x.text === text);
+  return hits.length === 1 ? hits[0] : null;
+}
+
+// 本文中の見出しへの言及（renderInline が付けた data-ref）を、実際の見出しへのリンクにする
+function resolveRefs(body, headings, mdName) {
+  return body.replace(/<a class="gd-ref" data-ref="([nt]):([^"]+)">(.*?)<\/a>/g, (_, kind, key, label) => {
+    const h = kind === 'n' ? findChapter(headings, key) : findByText(headings, decodeURIComponent(key));
+    if (!h) {
+      console.warn(`  ${mdName}: 「${decodeURIComponent(key)}」に当たる見出しが 1 つに決まらないため、リンクにしません`);
+      return label;
+    }
+    return `<a class="gd-ref" href="#${h.id}">${label}</a>`;
+  });
+}
+
+// 各章の終わりに「次の章」へのリンクを置く（章の区切りの <hr> の手前）
+function addNextLinks(body, headings) {
+  const chapters = headings.filter((h) => h.level === 2);
+  chapters.slice(1).forEach((ch) => {
+    const link = `<a class="gd-next" href="#${ch.id}"><span class="gd-next__label">次の章</span><span class="gd-next__title">${escapeHtml(ch.text)}</span>${iconSvg('arrow-right')}</a>`;
+    const open = `<h2 id="${ch.id}">`;
+    const withHr = `<hr>\n${open}`;
+    body = body.includes(withHr) ? body.replace(withHr, `${link}\n${withHr}`) : body.replace(open, `${link}\n${open}`);
+  });
+  return body;
+}
+
+// タイトルの下の入口（初めての方／困ったとき）
+function entryBox(conf, headings) {
+  const item = (h) => `<li><a href="#${h.id}">${escapeHtml(shortTitle(h.text))}</a></li>`;
+  const first = conf.entry.first.map((num) => item(findChapter(headings, num))).join('');
+  const trouble = conf.entry.trouble.map((text) => {
+    const h = findByText(headings, text);
+    if (!h) throw new Error(`${conf.md}: 入口の見出し「${text}」が見つからないか、複数あります`);
+    return item(h);
+  }).join('');
+  return `<div class="gd-entry">
+<section class="gd-entry__col" aria-labelledby="gd-entry-first">
+<p class="gd-entry__title" id="gd-entry-first">${iconSvg('book')}初めての方</p>
+<p class="gd-entry__desc">この順に読むと、編集を始められます。</p>
+<ul class="gd-entry__list">${first}</ul>
+</section>
+<section class="gd-entry__col" aria-labelledby="gd-entry-trouble">
+<p class="gd-entry__title" id="gd-entry-trouble">${iconSvg('question')}困ったとき</p>
+<p class="gd-entry__desc">よくある困りごとの対処法です。</p>
+<ul class="gd-entry__list">${trouble}</ul>
+</section>
+</div>`;
+}
+
+// 表形式／図形式のマニュアルの切り替え
+function switcher(key, toRoot, cls) {
+  const links = Object.entries(GUIDES).map(([k, g]) => k === key
+    ? `<a href="#top" aria-current="page">${g.label}</a>`
+    : `<a href="${toRoot}/${g.outDir}/">${g.label}</a>`).join('');
+  return `<nav class="${cls}" aria-label="マニュアルの切り替え">${links}</nav>`;
+}
+
+// 左の目次（章と節）。今読んでいる場所の強調と開閉は src/guide/nav.js
+function sidebar(key, headings, toRoot) {
+  const chapters = [];
+  headings.forEach((h) => {
+    if (h.level === 2) chapters.push({ h, sections: [] });
+    else if (h.level === 3 && chapters.length) chapters[chapters.length - 1].sections.push(h);
+  });
+  const link = (h, cls) => `<a class="${cls}" href="#${h.id}" data-toc="${h.id}">${escapeHtml(shortTitle(h.text))}</a>`;
+  const items = chapters.map(({ h, sections }) => `<li class="gd-toc__chapter">${link(h, 'gd-toc__link gd-toc__link--chapter')}` +
+    (sections.length ? `<ol class="gd-toc__sections">${sections.map((s) => `<li>${link(s, 'gd-toc__link')}</li>`).join('')}</ol>` : '') +
+    '</li>').join('\n');
+  return `<nav class="gd-sidebar" id="gd-sidebar" aria-label="目次">
+<div class="gd-sidebar__inner">
+${switcher(key, toRoot, 'gd-switch gd-switch--sidebar')}
+<p class="gd-sidebar__title">目次</p>
+<ol class="gd-toc">
+${items}
+</ol>
+</div>
+</nav>
+<div class="gd-backdrop" hidden></div>`;
+}
+
+// ページ上部に固定するヘッダー
+function header(key, conf, toRoot) {
+  return `<header class="g-header gd-header">
+    <button type="button" class="g-btn g-icon-btn g-btn--invisible gd-header__toc" aria-controls="gd-sidebar" aria-expanded="false" aria-label="目次を開く">${iconSvg('rows')}</button>
+    <a class="g-header__left gd-header__home" href="#top" aria-label="ページの先頭へ">
+        <img class="g-header__logo" src="${toRoot}/assets/icons/rewis_logo_w.svg" alt="">
+        <span class="g-header__title">| 操作マニュアル</span>
+    </a>
+    ${switcher(key, toRoot, 'gd-switch gd-switch--header')}
+    <div class="gd-search" role="search">
+        <button type="button" class="g-btn g-icon-btn g-btn--invisible gd-search__open" aria-label="マニュアル内を検索">${iconSvg('search')}</button>
+        <div class="gd-search__box">
+            ${iconSvg('search')}
+            <input type="search" class="gd-search__input" placeholder="マニュアル内を検索" aria-label="マニュアル内を検索" autocomplete="off" spellcheck="false"
+                role="combobox" aria-expanded="false" aria-controls="gd-search-results" aria-autocomplete="list">
+            <kbd class="gd-search__key" aria-hidden="true">/</kbd>
+            <button type="button" class="g-btn g-icon-btn g-btn--invisible g-btn--small gd-search__close" aria-label="検索を閉じる">${iconSvg('x')}</button>
+        </div>
+        <div class="gd-search__results" id="gd-search-results" role="listbox" aria-label="検索結果" hidden></div>
+    </div>
+    <div class="gd-header__right">
+        <a class="g-btn g-btn--invisible gd-header__editor" href="${toRoot}/${conf.editorUrl}" target="_blank" rel="noopener" title="${conf.label}エディタを新しいタブで開きます">${iconSvg('pencil')}<span>エディタを開く</span></a>
+    </div>
+</header>`;
+}
+
 function build(key) {
   const conf = GUIDES[key];
   const outDir = join(ROOT, conf.outDir);
   const md = readFileSync(join(ROOT, conf.md), 'utf8').replace(/\r\n/g, '\n');
   const allLines = md.split('\n');
-  const lines = cutChapters(allLines, conf.untilChapter);
+  const lines = dropTocSection(cutChapters(allLines, conf.untilChapter));
   const toRoot = relative(outDir, ROOT).replace(/\\/g, '/');
 
   const usedFigures = [];
   const ctx = {
     ids: new Set(),
+    headings: [],
     figure(name) {
       const path = join(outDir, 'figures', `${name}.html`);
       if (!existsSync(path)) throw new Error(`図がありません: ${relative(ROOT, path)}`);
@@ -321,9 +477,12 @@ function build(key) {
   // 他の md へのリンクも GitHub 上のものにする
   body = body.replace(/href="(?!https?:|#)([^"]+\.md)(#[^"]*)?"/g, (_, file, hash) => `href="${REPO_BLOB}${file}${hash || ''}"`);
 
-  // タイトルの下に「LLMに質問する：」（md の全文をコピー・ダウンロードする）を置く
+  body = resolveRefs(body, ctx.headings, conf.md);
+  body = addNextLinks(body, ctx.headings);
+
+  // タイトルの下に「LLMに質問する：」（md の全文をコピー・ダウンロード）と入口（初めての方／困ったとき）を置く
   if (!body.includes('</h1>')) throw new Error(`${conf.md} にタイトル（# 見出し）がありません`);
-  body = body.replace('</h1>', `</h1>\n${askBox(conf.md)}`);
+  body = body.replace('</h1>', `</h1>\n${askBox(`${toRoot}/${conf.md}`)}\n${entryBox(conf, ctx.headings)}`);
 
   const html = `<!DOCTYPE html>
 <!-- 自動生成: node tools/build-guide.js ${key}（${conf.md} と ${conf.outDir}/figures/ から）。このファイルを直接編集しないこと -->
@@ -347,21 +506,21 @@ ${conf.css.map((href) => `    <link rel="stylesheet" href="${toRoot}/${href}">`)
 
     <link rel="stylesheet" href="${toRoot}/src/guide/guide.css">
 </head>
-<body>
-    <header class="g-header">
-        <div class="g-header__left">
-            <img class="g-header__logo" src="${toRoot}/assets/icons/rewis_logo_w.svg" alt="">
-            <div class="g-header__title">| 操作マニュアル</div>
-        </div>
-    </header>
+<body id="top">
+    ${header(key, conf, toRoot)}
+    <div class="gd-layout">
+${sidebar(key, ctx.headings, toRoot)}
     <!-- ${conf.appNote} -->
     <main id="${conf.appId}" class="gd-doc">
 ${body}
     </main>
+    </div>
+    <div class="gd-toast" role="status" aria-live="polite" hidden></div>
     <!-- 「LLMに質問する：」でコピー・ダウンロードする md の全文（AI 向けの前置きも含めて、md のまま） -->
-    <script type="application/json" id="gd-md-source" data-filename="${escapeHtml(conf.md)}">${JSON.stringify(md).replace(/</g, '\\u003c')}</script>
+    <script type="application/json" id="gd-md-source">${JSON.stringify(md).replace(/</g, '\\u003c')}</script>
     <script type="module" src="${toRoot}/src/guide/player.js"></script>
     <script type="module" src="${toRoot}/src/guide/ask.js"></script>
+    <script type="module" src="${toRoot}/src/guide/nav.js"></script>
 </body>
 </html>
 `;
