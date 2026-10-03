@@ -538,6 +538,9 @@ html { scroll-padding-top: calc(var(--gd-header-h) + 16px); }
 }
 .gd-search__box:focus-within .gd-search__key { display: none; }
 .gd-search__close { display: none; }
+/* ヘッダーの白文字ボタンの指定が効くと、白い入力欄の上で × が見えなくなる */
+.g-header .gd-search__close { color: var(--fgColor-muted); }
+.g-header .gd-search__close:hover:not(:disabled) { background: var(--bgColor-neutral-muted, var(--bgColor-muted)); }
 .gd-search__results {
   position: absolute;
   top: calc(100% + 6px);
@@ -684,8 +687,10 @@ html { scroll-padding-top: calc(var(--gd-header-h) + 16px); }
 .gd-next__title { flex: 1; font-weight: 600; color: var(--fgColor-accent); }
 .gd-next svg { flex: none; color: var(--fgColor-accent); }
 
-/* 見出しの「#」（押すとその見出しの URL をコピー） */
+/* 見出しのリンクアイコン（押すとその見出しの URL をコピー） */
 .gd-doc a.gd-anchor {
+  display: inline-flex;
+  vertical-align: middle;
   margin-left: 0.35em;
   padding: 0 0.2em;
   color: var(--fgColor-muted);

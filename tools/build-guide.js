@@ -168,7 +168,7 @@ function renderBlocks(lines, ctx) {
       ctx.ids.add(id);
       ctx.headings.push({ level, id, text });
       const anchor = level >= 2 && level <= 4
-        ? `<a class="gd-anchor" href="#${id}" aria-label="「${escapeHtml(text)}」へのリンクをコピー">#</a>`
+        ? `<a class="gd-anchor" href="#${id}" aria-label="「${escapeHtml(text)}」へのリンクをコピー">${iconSvg('link', 14)}</a>`
         : '';
       out.push(`<h${level} id="${id}">${renderInline(heading[2], { refs: false })}${anchor}</h${level}>`);
       i++;
