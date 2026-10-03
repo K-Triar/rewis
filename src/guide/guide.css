@@ -415,6 +415,45 @@ body {
   color: var(--fgColor-muted);
 }
 
+/* ヘルプマーク：3つの方法の違いを説明するパネル */
+.gd-help { position: relative; display: inline-flex; }
+.gd-help__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--fgColor-muted);
+  cursor: pointer;
+}
+.gd-help__btn:hover,
+.gd-help__btn[aria-expanded="true"] { color: var(--fgColor-accent); }
+.gd-help__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  box-sizing: border-box;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 14px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--overlay-bgColor, var(--bgColor-default));
+  box-shadow: var(--shadow-floating-small);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
+}
+.gd-help__panel[hidden] { display: none; }
+.gd-help__title { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.gd-help__list { margin: 0; }
+.gd-help__list dt { margin-top: 8px; font-weight: 600; }
+.gd-help__list dt:first-child { margin-top: 0; }
+.gd-help__list dd { margin: 0; color: var(--fgColor-muted); }
+
 /* ==== ページの骨組み：固定ヘッダー・左の目次・本文（src/guide/nav.js と組で動く） ==== */
 :root {
   --gd-header-h: var(--header-height);

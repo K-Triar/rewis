@@ -1,5 +1,6 @@
 // 操作マニュアルの「LLMに質問する：」。ページに埋め込んだ md の全文（#gd-md-source）を
 // クリップボードにコピーする。メニューの「Markdownとして表示」「Markdownをダウンロード」は公開中の md へのただのリンク（ここでは閉じるだけ）。
+// ヘルプマーク（.gd-help）は3つの方法の違いを説明するパネルを開閉する。
 // 既定はコピー（チャット欄に貼れば全文が確実に読まれる。ファイルの添付は拾い読みされることがある）。
 
 const source = document.getElementById('gd-md-source');
@@ -104,4 +105,28 @@ if (source && box) {
   document.addEventListener('click', (event) => {
     if (!box.contains(event.target)) closeMenu(false);
   });
+
+  // ヘルプマーク：3つの方法の違いを説明するパネルを開閉する
+  const helpBtn = box.querySelector('.gd-help__btn');
+  const helpPanel = box.querySelector('.gd-help__panel');
+  if (helpBtn && helpPanel) {
+    function setHelp(open) {
+      helpPanel.hidden = !open;
+      helpBtn.setAttribute('aria-expanded', String(open));
+    }
+    helpBtn.addEventListener('click', () => {
+      closeMenu(false);
+      setHelp(helpPanel.hidden);
+    });
+    toggle.addEventListener('click', () => setHelp(false));
+    document.addEventListener('click', (event) => {
+      if (!helpBtn.parentElement.contains(event.target)) setHelp(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !helpPanel.hidden) {
+        setHelp(false);
+        helpBtn.focus();
+      }
+    });
+  }
 }

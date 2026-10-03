@@ -294,6 +294,20 @@ function askBox(mdUrl) {
 <a class="gd-menu__item" role="menuitem" href="${escapeHtml(mdUrl)}" download="${escapeHtml(mdFile)}">${iconSvg('download')}<span><span class="gd-menu__title">Markdownをダウンロード</span><span class="gd-menu__desc">ファイルで保存します</span></span></a>
 </div>
 </div>
+<div class="gd-help">
+<button type="button" class="gd-help__btn" aria-expanded="false" aria-controls="gd-ask-help" aria-label="3つの方法の違いを表示">${iconSvg('question')}</button>
+<div class="gd-help__panel" id="gd-ask-help" hidden>
+<p class="gd-help__title">AIに渡す3つの方法</p>
+<dl class="gd-help__list">
+<dt>Markdownをコピー（推奨）</dt>
+<dd>チャット欄に貼り付けて質問します。全文を渡せるので最も確実です。ただしAIによっては入力できる文字数に上限があり、長いと後半が脱落することがあります。</dd>
+<dt>Markdownとして表示</dt>
+<dd>新しいタブで開きます。リンクを共有したり、必要な部分だけコピーして貼り付けたりできます。ただしAIによってはリンクを開けないことがあります。開けても一部しか読まれないことがあります。</dd>
+<dt>Markdownをダウンロード</dt>
+<dd>ファイルで保存します。AIに添付すると、質問に関係しそうな部分だけが読まれ、ほかの説明が抜け落ちるおそれがあります。</dd>
+</dl>
+</div>
+</div>
 </div>`;
 }
 
