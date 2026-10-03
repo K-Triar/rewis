@@ -1,0 +1,54 @@
+<figure class="gd-figure" data-w="640" data-h="440">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="gd-browser">
+        <span class="gd-browser__btn"><i data-icon="arrow-left"></i></span>
+        <div class="gd-browser__url" data-g="url">k-triar.github.io/rewis/</div>
+      </div>
+
+      <!-- 公開ページ（PC 幅のメニュー） -->
+      <div class="gd-public" data-g="public" style="display:flex; gap:16px;">
+        <aside class="surface">
+          <nav>
+            <ul class="side-nav-list">
+              <li class="side-nav-item is-active"><a class="side-nav-link"><span class="icon icon-home"></span><span>ホーム</span></a></li>
+              <li class="side-nav-item"><a class="side-nav-link"><span class="icon icon-walking"></span><span>乗換案内</span></a></li>
+              <li class="side-nav-item"><a class="side-nav-link"><span class="icon icon-train"></span><span>路線・運行情報</span></a></li>
+            </ul>
+            <hr class="side-nav-divider">
+            <ul class="side-nav-list">
+              <li class="side-nav-item small"><a class="side-nav-link"><span>REWISについて</span></a></li>
+              <li class="side-nav-item small"><a class="side-nav-link" data-g="menu-editor"><span>事業者向けページ</span></a></li>
+              <li class="side-nav-item small"><a class="side-nav-link"><span>お知らせ</span></a></li>
+            </ul>
+          </nav>
+        </aside>
+        <div class="surface" style="flex:1 1 auto; opacity:0.6;"></div>
+      </div>
+
+      <!-- 移動した先：表形式エディタ -->
+      <div data-g="editor" hidden style="flex:1 1 auto; display:flex; flex-direction:column;">
+        <header class="g-header">
+          <div class="g-header__left">
+            <img class="g-header__logo" src="{{ROOT}}/assets/icons/rewis_logo_w.svg" alt="">
+            <div class="g-header__title">| 路線データ編集システム</div>
+          </div>
+        </header>
+        <div class="g-view g-view--centered" style="background:var(--bgColor-muted);">
+          <div class="g-card g-start-card">
+            <div class="g-card__header">路線データ編集を始める</div>
+            <div class="g-card__body" style="height:120px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>公開ページのメニューから開く</figcaption>
+  <script type="text/x-gd-steps">
+    click @menu-editor
+    hide  @public
+    show  @editor
+    text  @url k-triar.github.io/rewis/editor/
+    wait  1500
+  </script>
+</figure>

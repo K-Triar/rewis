@@ -10,7 +10,8 @@ body {
   overflow: auto;
   background: var(--bgColor-default);
 }
-.gd-doc#ed2-app { display: block; }
+.gd-doc#ed2-app,
+.gd-doc#g-app { display: block; }
 
 .gd-doc {
   max-width: 860px;
@@ -105,6 +106,10 @@ body {
   color: var(--fgColor-default);
   background: var(--bgColor-default);
   transition: opacity 0.3s;
+  /* 画面イメージの中の z-index（ダイアログ・ポップアップなど）を図の中に閉じ込め、
+     カーソル・波紋・囲み枠・キー表示がいつもその上に重なるようにする */
+  isolation: isolate;
+  z-index: 0;
 }
 .gd-stage.is-fading { opacity: 0; }
 /* 手順の show / hide は hidden 属性で切り替える（display を直接書いた要素にも効かせる） */
@@ -206,6 +211,39 @@ body {
 .gd-control:hover { background: #fff; color: var(--fgColor-accent); }
 .gd-control:focus-visible { outline: 2px solid var(--rewis-blue); outline-offset: 1px; }
 
+/* 押したキー（Esc・Ctrl+Z・Shift など）を画面の下に出す */
+.gd-keycap {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  z-index: 35;
+  transform: translateX(-50%);
+  padding: 3px 12px;
+  border: 1px solid #8c959f;
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--fgColor-default);
+  font: 600 13px/1.5 var(--fontStack-sansSerif);
+  box-shadow: 0 2px 6px rgba(31, 35, 40, 0.15);
+  pointer-events: none;
+  transition: transform 0.1s;
+}
+.gd-keycap.is-pressed { transform: translateX(-50%) translateY(2px); border-bottom-width: 1px; }
+
+/* ホイールを回しているときのカーソル（上下の矢印を添える） */
+.gd-cursor.is-wheel::after {
+  content: '↕';
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--rewis-blue);
+  color: #fff;
+  font: 700 12px/1.4 var(--fontStack-sansSerif);
+}
+
 /* ---- 画面いっぱい前提のエディタの部品を、図の枠の中に収める ---- */
 .gd-app {
   display: flex;
@@ -219,6 +257,11 @@ body {
 /* 図はいつも PC の幅で描くので、狭い画面向けの縦積みにしない */
 .gd-stage .ed2-split { flex-direction: row; }
 .gd-stage .ed2-split__form { order: 0; width: 360px; }
+/* 図形式の 3 列の画面。図は幅 1100px 未満で描くので、実物の狭い画面と同じ列幅にそろえる */
+.gd-stage .g-workspace { grid-template-columns: 200px 1fr 260px; }
+/* 操作ガイドの吹き出しと暗くする幕（実物は画面全体に固定） */
+.gd-stage .g-guide-backdrop,
+.gd-stage .g-guide-balloon { position: absolute; }
 /* 図の中ではスクロールバーを出さない（はみ出した部分は枠で切る） */
 .gd-stage * { scrollbar-width: none; }
 .gd-stage *::-webkit-scrollbar { display: none; }

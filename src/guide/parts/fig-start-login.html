@@ -1,0 +1,52 @@
+<figure class="gd-figure" data-w="560" data-h="420">
+  <div class="gd-stage">
+    <div class="gd-app" style="background:var(--bgColor-muted);">
+      <div class="g-view g-view--centered">
+        <div class="g-card g-start-card">
+          <div class="g-card__header">路線データ編集を始める</div>
+          <div class="g-card__body">
+            <div class="g-field__label">① ログイン</div>
+            <div class="g-field" data-g="form">
+              <div class="g-field__label">Workers API URL<button type="button" class="g-icon-btn g-btn--invisible g-btn--small" data-g="help"><i data-icon="question"></i></button></div>
+              <input type="url" class="g-input" placeholder="https://your-worker.workers.dev" data-g="url">
+              <div class="g-field__label">ユーザーID</div>
+              <input type="text" class="g-input" data-g="user">
+              <div class="g-field__label">パスワード</div>
+              <input type="password" class="g-input" data-g="pass">
+              <button type="button" class="g-btn g-btn--primary" data-g="login">ログイン</button>
+            </div>
+            <div class="g-field" data-g="done" hidden>
+              <div class="g-field__label">k_triar でログイン中</div>
+            </div>
+            <div class="g-field__label" style="margin-top:var(--stack-gap-normal);">② データを読み込む</div>
+            <button type="button" class="g-btn g-btn--primary" disabled data-g="load">路線網と運行情報を読み込む</button>
+          </div>
+        </div>
+      </div>
+      <div class="g-overlay gd-popover" data-g="tip" hidden>
+        <div style="max-width:260px;">REWIS のデータを保存しているサーバーの URL です。管理者から教えてもらった値を入れてください。</div>
+      </div>
+    </div>
+  </div>
+  <figcaption>「？」で説明を見て、3 つの項目を入力してログインする</figcaption>
+  <script type="text/x-gd-steps">
+    spot  @load
+    wait  300
+    spot  off
+    click @help
+    show  @tip
+    place @tip @help
+    wait  2600
+    hide  @tip
+    type  @url https://rewis.example.workers.dev
+    type  @user k_triar
+    type  @pass rewis2026
+    click @login
+    hide  @form
+    show  @done
+    enable @load
+    spot  @done
+    spot  @load
+    wait  800
+  </script>
+</figure>

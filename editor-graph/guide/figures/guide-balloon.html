@@ -1,0 +1,231 @@
+<figure class="gd-figure" data-w="1040" data-h="560">
+  <div class="gd-stage">
+    <div class="gd-app">
+      {{> header}}
+      <div class="g-page-header">
+        <div class="g-status-row">
+          <div class="g-status-row__docs">
+            <div class="g-status-doc"><span>路線網</span><span class="g-label" data-g="net">版 12</span><span class="g-label g-label--attention" hidden="" data-g="unsaved">未保存の変更あり</span></div>
+            <div class="g-status-doc"><span>運行情報</span><span class="g-label" data-g="ops">版 5</span><span class="g-label g-label--attention" hidden="" data-g="ops-unsaved">未保存の変更あり</span></div><button type="button" class="g-btn g-btn--invisible g-btn--small" data-g="errors"><i data-icon="x-circle-fill"></i><span data-g="errors-n">エラー 0</span></button>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small" style="color: var(--fgColor-attention);" data-g="warnings"><i data-icon="alert-fill"></i><span data-g="warnings-n">注意 1</span></button>
+          </div>
+          <div class="g-status-actions">
+            <button type="button" class="g-icon-btn g-btn--invisible" aria-label="元に戻す（Ctrl+Z）" title="元に戻す（Ctrl+Z）" disabled="" data-g="undo"><i data-icon="undo"></i></button>
+            <button type="button" class="g-icon-btn g-btn--invisible" aria-label="やり直す（Ctrl+Y）" title="やり直す（Ctrl+Y）" disabled="" data-g="redo"><i data-icon="redo"></i></button>
+            <button type="button" class="g-btn g-btn--primary g-save-btn" disabled="" data-g="save"><i data-icon="upload"></i>サーバーに保存</button>
+            <button type="button" class="g-btn" data-g="switch"><i data-icon="table"></i>表形式で編集</button>
+            <button type="button" class="g-btn g-btn--invisible" data-g="guide"><i data-icon="question"></i>操作ガイド</button>
+          </div>
+        </div>
+        <div class="g-banner g-banner--success" hidden="" data-g="banner"></div>
+        <nav class="g-underline-nav">
+          <button type="button" class="g-underline-nav__item is-selected" data-g="tab-stations">駅</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-lines">路線</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-services">運行系統</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-transfers">乗換・駅グループ</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-operations">運行情報</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-companies">鉄道会社</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-vehicle-types">車両種別</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-history">履歴</button>
+          <button type="button" class="g-underline-nav__item" data-g="tab-data">データの読込と書出</button>
+        </nav>
+      </div>
+      <div class="g-main">
+        <div class="g-workspace">
+          <div class="g-ws-left">
+            <div class="g-ws-left__title">駅</div>
+            <div class="g-search-field"><i data-icon="search" data-size="14"></i><input type="text" class="g-input" placeholder="駅名・かなで検索"></div><button type="button" class="g-btn"><i data-icon="plus"></i>駅を追加</button>
+            <div class="g-list g-ws-left__list">
+              <button type="button" class="g-list__item g-list__item--row"><span>ルリ中央</span><span class="g-list__item-id">KL01</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>港町</span><span class="g-list__item-id">KL02</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>白樺台</span><span class="g-list__item-id">KL03</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>東ルリ</span><span class="g-list__item-id">KL04</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>湖畔公園</span><span class="g-list__item-id">CR02</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>森の宿</span><span class="g-list__item-id">CR03</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>小石浜</span><span class="g-list__item-id">CR04</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>白樺台</span><span class="g-list__item-id">CR05</span></button>
+              <button type="button" class="g-list__item g-list__item--row"><span>灯台前</span><span class="g-list__item-id">KL05</span><span class="g-label">図にない</span></button>
+            </div>
+          </div>
+          <div class="g-ws-canvas">
+            <div class="g-ws-toolbar">
+              <button type="button" class="g-icon-btn" aria-label="拡大" title="拡大"><i data-icon="zoom-in"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="縮小" title="縮小"><i data-icon="zoom-out"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="全体表示" title="全体表示"><i data-icon="screen-full"></i></button><span class="g-ws-toolbar__sep"></span><button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。"><i data-icon="question"></i></button>
+            </div>
+            <div class="g-banner" hidden=""></div>
+            <div class="g-ws-canvas-host">
+              <svg class="g-canvas" width="100%" height="100%">
+                <rect class="g-canvas-bg" x="0" y="0" width="100%" height="100%"></rect>
+                <g class="g-world" transform="translate(150,60) scale(0.6)">
+                  <g class="g-node" data-station-id="KL01">
+                    <rect class="g-node__body" x="-78" y="-30" width="156" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="-10" text-anchor="middle">ルリ中央</text>
+                    <circle class="g-port" cx="-54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-54" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="-54" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="-18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-18" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="-18" cy="12" r="13" data-platform-id="2"></circle>
+                    <circle class="g-port" cx="18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="18" y="12" text-anchor="middle" dominant-baseline="central">3</text>
+                    <circle class="g-port__hit" cx="18" cy="12" r="13" data-platform-id="3"></circle>
+                    <circle class="g-port" cx="54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="54" y="12" text-anchor="middle" dominant-baseline="central">4</text>
+                    <circle class="g-port__hit" cx="54" cy="12" r="13" data-platform-id="4"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL02">
+                    <rect class="g-node__body" x="170" y="-30" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="-10" text-anchor="middle">港町</text>
+                    <circle class="g-port" cx="194" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="194" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="230" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="12" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL03">
+                    <rect class="g-node__body" x="170" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="194" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="194" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="182" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="230" y="182" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="182" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL04">
+                    <rect class="g-node__body" x="400" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="160" text-anchor="middle">東ルリ</text>
+                    <circle class="g-port" cx="460" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="460" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR02">
+                    <rect class="g-node__body" x="400" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="330" text-anchor="middle">湖畔公園</text>
+                    <circle class="g-port" cx="460" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="460" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR03">
+                    <rect class="g-node__body" x="170" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="330" text-anchor="middle">森の宿</text>
+                    <circle class="g-port" cx="194" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="194" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="352" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="230" y="352" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="352" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR04">
+                    <rect class="g-node__body" x="-60" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="330" text-anchor="middle">小石浜</text>
+                    <circle class="g-port" cx="0" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="0" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR05">
+                    <rect class="g-node__body" x="-60" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="0" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="0" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="g-ws-right">
+            <p>駅を選んでください。</p>
+            <p class="g-ws-right__note">図の駅をクリックするか、左の一覧から選んでください。背景をダブルクリックすると、新しい駅を作成できます。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div data-g="gs1" hidden="">
+      <div class="g-guide-backdrop" style="left: 0px; top: 0px; width: 1918px; height: 185px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 561px; width: 1918px; height: 323px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 185px; width: 1px; height: 376px;"></div>
+      <div class="g-guide-backdrop" style="left: 201px; top: 185px; width: 1717px; height: 376px;"></div>
+      <div class="g-overlay g-guide-balloon" style="width: 320px; top: 569px; left: 8px;">
+        <div class="g-dialog__title">駅の一覧</div>
+        <p class="g-dialog__message">駅を探してクリックすると、図の中で選ばれます。図にまだない駅は、クリックすると図の中央に置かれます。</p>
+        <p class="g-ws-right__note">1 / 4</p>
+        <div class="g-guide-balloon__nav">
+          <button type="button" class="g-btn">閉じる</button>
+          <div class="g-guide-balloon__spacer"></div><button type="button" class="g-btn g-btn--primary" data-g="gs1-next">次へ</button>
+        </div>
+      </div>
+    </div>
+    <div data-g="gs2" hidden="">
+      <div class="g-guide-backdrop" style="left: 0px; top: 0px; width: 1918px; height: 185px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 561px; width: 1918px; height: 323px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 185px; width: 201px; height: 376px;"></div>
+      <div class="g-guide-backdrop" style="left: 781px; top: 185px; width: 1137px; height: 376px;"></div>
+      <div class="g-overlay g-guide-balloon" style="width: 320px; top: 569px; left: 201px;">
+        <div class="g-dialog__title">図</div>
+        <p class="g-dialog__message">駅の四角はドラッグで動かせます。何もない場所をダブルクリックすると、そこに新しい駅を作れます。ホイールで拡大・縮小、背景のドラッグで表示位置を動かせます。</p>
+        <p class="g-ws-right__note">2 / 4</p>
+        <div class="g-guide-balloon__nav">
+          <button type="button" class="g-btn">閉じる</button>
+          <div class="g-guide-balloon__spacer"></div><button type="button" class="g-btn">戻る</button>
+          <button type="button" class="g-btn g-btn--primary" data-g="gs2-next">次へ</button>
+        </div>
+      </div>
+    </div>
+    <div data-g="gs3" hidden="">
+      <div class="g-guide-backdrop" style="left: 0px; top: 0px; width: 1918px; height: 185px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 561px; width: 1918px; height: 323px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 185px; width: 781px; height: 376px;"></div>
+      <div class="g-guide-backdrop" style="left: 1041px; top: 185px; width: 877px; height: 376px;"></div>
+      <div class="g-overlay g-guide-balloon" style="width: 320px; top: 569px; left: 781px;">
+        <div class="g-dialog__title">駅の設定</div>
+        <p class="g-dialog__message">選んだ駅の名前やのりばを編集します。変更はすぐに反映され、元に戻すボタンで取り消せます。</p>
+        <p class="g-ws-right__note">3 / 4</p>
+        <div class="g-guide-balloon__nav">
+          <button type="button" class="g-btn">閉じる</button>
+          <div class="g-guide-balloon__spacer"></div><button type="button" class="g-btn">戻る</button>
+          <button type="button" class="g-btn g-btn--primary" data-g="gs3-next">次へ</button>
+        </div>
+      </div>
+    </div>
+    <div data-g="gs4" hidden="">
+      <div class="g-guide-backdrop" style="left: 0px; top: 0px; width: 1918px; height: 101px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 133px; width: 1918px; height: 751px;"></div>
+      <div class="g-guide-backdrop" style="left: 0px; top: 101px; width: 607.125px; height: 32px;"></div>
+      <div class="g-guide-backdrop" style="left: 755px; top: 101px; width: 1163px; height: 32px;"></div>
+      <div class="g-overlay g-guide-balloon" style="width: 320px; top: 141px; left: 607px;">
+        <div class="g-dialog__title">サーバーに保存</div>
+        <p class="g-dialog__message">編集が終わったら、ここからサーバーに保存します。保存するまで、ほかの人には見えません。</p>
+        <p class="g-ws-right__note">4 / 4</p>
+        <div class="g-guide-balloon__nav">
+          <button type="button" class="g-btn">閉じる</button>
+          <div class="g-guide-balloon__spacer"></div><button type="button" class="g-btn">戻る</button>
+          <button type="button" class="g-btn g-btn--primary" data-g="gs4-next">終わる</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>［操作ガイド］を押すと、画面の各部分を順に指しながら吹き出しで説明する（駅タブの例）</figcaption>
+  <script type="text/x-gd-steps">
+    click @guide
+    show  @gs1
+    wait  1800
+    click @gs1-next
+    hide  @gs1
+    show  @gs2
+    wait  1800
+    click @gs2-next
+    hide  @gs2
+    show  @gs3
+    wait  1800
+    click @gs3-next
+    hide  @gs3
+    show  @gs4
+    wait  1800
+    click @gs4-next
+    hide  @gs4
+    wait  400
+  </script>
+</figure>

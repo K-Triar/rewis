@@ -1,0 +1,62 @@
+<figure class="gd-figure" data-w="800" data-h="176">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <header class="g-header">
+        <div class="g-header__left">
+          <img class="g-header__logo" src="{{ROOT}}/assets/icons/rewis_logo_w.svg" alt="">
+          <div class="g-header__title">| 路線データ編集システム</div>
+        </div>
+        <div class="g-header__right">
+          <span>k_triar でログイン中</span>
+          <button class="g-btn g-btn--invisible" type="button"><i data-icon="sign-out"></i>ログアウト</button>
+        </div>
+      </header>
+
+      <!-- 図形式エディタの状態の行 -->
+      <div class="g-page-header" data-g="graph">
+        <div class="g-status-row">
+          <div class="g-status-row__docs">
+            <div class="g-status-doc"><span>路線網</span><span class="g-label">版 12</span></div>
+            <div class="g-status-doc"><span>運行情報</span><span class="g-label">版 5</span></div>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="x-circle-fill"></i>エラー 0</button>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="alert-fill"></i>注意 0</button>
+          </div>
+          <div class="g-status-actions">
+            <button type="button" class="g-icon-btn g-btn--invisible" disabled><i data-icon="undo"></i></button>
+            <button type="button" class="g-icon-btn g-btn--invisible" disabled><i data-icon="redo"></i></button>
+            <button type="button" class="g-btn g-btn--primary g-save-btn" disabled><i data-icon="upload"></i>サーバーに保存</button>
+            <button type="button" class="g-btn" data-g="to-table"><i data-icon="table"></i>表形式で編集</button>
+            <button type="button" class="g-btn g-btn--invisible"><i data-icon="question"></i>操作ガイド</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 移動した先：表形式エディタの状態の行 -->
+      <div class="g-page-header" data-g="table" hidden>
+        <div class="g-status-row">
+          <div class="g-status-row__docs">
+            <div class="g-status-doc"><span>路線網</span><span class="g-label">版 12</span></div>
+            <div class="g-status-doc"><span>運行情報</span><span class="g-label">版 5</span></div>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="x-circle-fill"></i>エラー 0</button>
+            <button type="button" class="g-btn g-btn--invisible g-btn--small"><i data-icon="alert-fill"></i>注意 0</button>
+          </div>
+          <div class="g-status-actions">
+            <button type="button" class="g-btn g-btn--primary g-save-btn" disabled><i data-icon="upload"></i>サーバーに保存</button>
+            <button type="button" class="g-btn" data-g="to-graph"><i data-icon="workflow"></i>図形式で編集</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>図形式エディタの状態の行から表形式エディタへ移る</figcaption>
+  <script type="text/x-gd-steps">
+    spot  @to-table 表形式で編集
+    spot  off
+    click @to-table
+    hide  @graph
+    show  @table
+    wait  600
+    spot  @to-graph 図形式で編集
+    wait  1200
+  </script>
+</figure>

@@ -18,6 +18,13 @@
 //   check @x / uncheck @x チェック欄・ラジオボタンを押してオン / オフにする
 //   scroll @x             x が見えるところまで、x を囲むスクロール領域を動かす
 //   spot  @x [見出し]      x を枠で囲む（spot off で消す）
+//   dblclick @x           x をダブルクリックする
+//   drag  @x @y [@a ...]  x を押したまま y まで動かして離す。@a… も同じだけ一緒に動かす
+//                         （@a:1 / @a:2 は線（line）の始点 / 終点だけを動かす）
+//   wheel @x 倍率          カーソルの位置でホイールを回し、x（図の g-world）を拡大・縮小する
+//   attr  @x 名前 値       属性を書き換える（SVG の座標などを一度に変える）
+//   key   文字列           押したキーを画面下に一瞬表示する（例: key Esc / key Ctrl+Z）
+//   hold  文字列           押したままのキーを表示し続ける（hold off で消す。例: hold Shift）
 
 const MOVE_MS = 650;
 const STEP_GAP_MS = 380;
@@ -25,6 +32,7 @@ const TYPE_MS = 70;
 const END_WAIT_MS = 1800;
 const ABORT = Symbol('abort');
 
+const DRAG_MS = 900;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function parseSteps(source) {
@@ -70,6 +78,11 @@ class FigurePlayer {
     this.spot.className = 'gd-spot';
     this.spot.hidden = true;
     this.scaler.appendChild(this.spot);
+
+    this.keycap = document.createElement('div');
+    this.keycap.className = 'gd-keycap';
+    this.keycap.hidden = true;
+    this.scaler.appendChild(this.keycap);
 
     this.cursor = document.createElement('div');
     this.cursor.className = 'gd-cursor';
@@ -158,6 +171,9 @@ class FigurePlayer {
   reset() {
     this.stage.innerHTML = this.initialHtml;
     this.spot.hidden = true;
+    this.keycap.hidden = true;
+    this.held = null;
+    this.cursor.classList.remove('is-wheel');
     this.resetCursor();
   }
 
@@ -241,6 +257,62 @@ class FigurePlayer {
     el.classList.remove('gd-pressed');
   }
 
+  // 要素の中心（ドラッグの始点・終点に使う）
+  centerOf(el) {
+    const r = this.rectOf(el);
+    return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+  }
+
+  // 図の座標での移動量 (dx, dy) を、el の座標系での移動量に直す（SVG の中は拡大縮小されている）
+  localDelta(el, dx, dy) {
+    if (!(el instanceof SVGElement) || el instanceof SVGSVGElement) return { dx, dy };
+    const ctm = el.parentNode.getScreenCTM();
+    if (!ctm) return { dx, dy };
+    const k = this.scale / Math.hypot(ctm.a, ctm.b);
+    return { dx: dx * k, dy: dy * k };
+  }
+
+  // 一緒に動かす要素の、動かし始めの状態を覚える
+  moverOf(target) {
+    const [name, end] = target.split(':');
+    const el = this.find(name);
+    if (end) {
+      const x = `x${end}`;
+      const y = `y${end}`;
+      const x0 = Number(el.getAttribute(x));
+      const y0 = Number(el.getAttribute(y));
+      return (dx, dy) => {
+        const d = this.localDelta(el, dx, dy);
+        el.setAttribute(x, x0 + d.dx);
+        el.setAttribute(y, y0 + d.dy);
+      };
+    }
+    if (el instanceof SVGElement) {
+      const base = el.getAttribute('transform') || '';
+      return (dx, dy) => {
+        const d = this.localDelta(el, dx, dy);
+        el.setAttribute('transform', `translate(${d.dx},${d.dy}) ${base}`.trim());
+      };
+    }
+    const base = el.style.transform;
+    return (dx, dy) => { el.style.transform = `translate(${dx}px, ${dy}px) ${base}`.trim(); };
+  }
+
+  // 一定時間かけて、t = 0〜1 で fn を呼ぶ
+  async animate(ms, runId, fn) {
+    const frames = Math.max(1, Math.round(ms / 30));
+    for (let i = 1; i <= frames; i++) {
+      await this.sleep(ms / frames, runId);
+      const t = i / frames;
+      fn(t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+    }
+  }
+
+  showKey(label) {
+    this.keycap.textContent = label;
+    this.keycap.hidden = !label;
+  }
+
   async run(step, runId) {
     const { cmd, target, rest } = step;
     switch (cmd) {
@@ -261,13 +333,82 @@ class FigurePlayer {
         await this.moveTo(el, runId);
         await this.press(el, runId);
         el.classList.add('gd-focus');
+        // 数値の欄は「-」だけのような途中の値を受け付けないので、入れた文字は別に持っておく
+        const before = el.value;
+        let typed = '';
         for (const ch of rest) {
-          el.value += ch;
+          typed += ch;
+          el.value = before + typed;
           await this.sleep(TYPE_MS, runId);
         }
         await this.sleep(150, runId);
         el.classList.remove('gd-focus');
         break;
+      }
+      case 'dblclick': {
+        const el = this.find(target);
+        await this.moveTo(el, runId);
+        await this.press(el, runId);
+        await this.sleep(60, runId);
+        await this.press(el, runId);
+        break;
+      }
+      case 'drag': {
+        // 押したまま動かす。カーソルの移動は CSS の transition ではなく、一緒に動く要素と同じ刻みで動かす
+        const from = this.find(target);
+        const names = rest.split(/\s+/).filter(Boolean);
+        const to = this.find(names.shift());
+        await this.moveTo(from, runId);
+        const start = { ...this.cursorPos };
+        const goal = this.centerOf(to);
+        const movers = names.map((n) => this.moverOf(n));
+        this.cursor.classList.add('is-pressing');
+        await this.sleep(200, runId);
+        this.cursor.style.transition = 'none';
+        await this.animate(DRAG_MS, runId, (t) => {
+          const dx = (goal.x - start.x) * t;
+          const dy = (goal.y - start.y) * t;
+          this.placeCursor(start.x + dx, start.y + dy);
+          movers.forEach((move) => move(dx, dy));
+        });
+        this.cursor.style.transition = '';
+        await this.sleep(120, runId);
+        this.cursor.classList.remove('is-pressing');
+        break;
+      }
+      case 'wheel': {
+        // world の transform（translate(x,y) scale(k)）を、カーソルの位置を中心に拡大・縮小する
+        const el = this.find(target);
+        const factor = Number(rest) || 1.2;
+        const m = (el.getAttribute('transform') || '').match(/translate\(([-\d.]+)[ ,]+([-\d.]+)\)\s*scale\(([-\d.]+)\)/);
+        const [tx, ty, k] = m ? m.slice(1).map(Number) : [0, 0, 1];
+        const svgRect = this.rectOf(el.ownerSVGElement);
+        const svgScale = el.ownerSVGElement.getBoundingClientRect().width / this.scale / svgRect.w || 1;
+        const cx = (this.cursorPos.x - svgRect.x) / svgScale;
+        const cy = (this.cursorPos.y - svgRect.y) / svgScale;
+        this.cursor.classList.add('is-wheel');
+        await this.animate(700, runId, (t) => {
+          const f = 1 + (factor - 1) * t;
+          el.setAttribute('transform', `translate(${cx - (cx - tx) * f},${cy - (cy - ty) * f}) scale(${k * f})`);
+        });
+        this.cursor.classList.remove('is-wheel');
+        break;
+      }
+      case 'key':
+        this.showKey(rest ? `${target} ${rest}` : target);
+        this.keycap.classList.add('is-pressed');
+        await this.sleep(700, runId);
+        this.keycap.classList.remove('is-pressed');
+        this.showKey(this.held);
+        break;
+      case 'hold':
+        this.held = target === 'off' ? null : target;
+        this.showKey(this.held);
+        return;
+      case 'attr': {
+        const [name, ...value] = rest.split(/\s+/);
+        this.find(target).setAttribute(name, value.join(' '));
+        return;
       }
       case 'select': {
         // 選択欄を押して、値を選んだ状態にする（ブラウザのドロップダウンは出さない）
@@ -305,8 +446,9 @@ class FigurePlayer {
       // 画面の変化は待たずに続けて反映する（押した結果が一度に変わるように）
       case 'clear': this.find(target).value = ''; return;
       case 'value': this.find(target).value = rest; return;
-      case 'show': this.find(target).hidden = false; return;
-      case 'hide': this.find(target).hidden = true; return;
+      // SVG の要素には hidden プロパティがないので、属性で切り替える
+      case 'show': this.find(target).removeAttribute('hidden'); return;
+      case 'hide': this.find(target).setAttribute('hidden', ''); return;
       case 'add': this.find(target).classList.add(...rest.split(/\s+/)); return;
       case 'remove': this.find(target).classList.remove(...rest.split(/\s+/)); return;
       case 'text': this.find(target).textContent = rest; return;

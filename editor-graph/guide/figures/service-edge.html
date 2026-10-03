@@ -1,0 +1,805 @@
+<figure class="gd-figure" data-w="840" data-h="556">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-main">
+        <div class="g-workspace" style="grid-template-columns: 1fr 260px;" data-g="ws0">
+          <div class="g-ws-left" hidden="">
+            <div class="g-ws-left__title">運行系統</div>
+            <div class="g-svc-filter">
+              <div class="g-field"><label class="g-field__label">路線</label>
+                <select class="g-select">
+                  <option value="" selected="">全路線</option>
+                  <option value="KT-L">瑠璃本線</option>
+                  <option value="KT-C">瑠璃環状線</option>
+                  <option value="CR-K">湖畔線</option>
+                </select>
+              </div>
+              <div class="g-field"><label class="g-field__label">種別</label>
+                <select class="g-select" disabled="">
+                  <option value="" selected="">全種別</option>
+                </select>
+              </div>
+            </div>
+            <div class="g-list g-ws-left__list">
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#0078d7;"></span><span>白樺台</span></div>
+              <div class="g-svc-row__line2">瑠璃本線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item is-selected">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#2e8b57;"></span><span>ルリ中央</span></div>
+              <div class="g-svc-row__line2">湖畔線 普通 → 瑠璃本線 快速</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#e67e22;"></span><span>（環状）瑠璃環状線</span></div>
+              <div class="g-svc-row__line2">瑠璃環状線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#2e8b57;"></span><span>森の宿</span></div>
+              <div class="g-svc-row__line2">湖畔線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#0078d7;"></span><span>東ルリ</span></div>
+              <div class="g-svc-row__line2">瑠璃本線 普通</div>
+              <div class="g-svc-row__badges"><span class="g-label"><i data-icon="eye-closed" data-size="12"></i>運休中</span></div></button>
+            </div><button type="button" class="g-btn"><i data-icon="plus"></i>運行系統を追加</button>
+          </div>
+          <div class="g-ws-canvas">
+            <div class="g-ws-toolbar">
+              <button type="button" class="g-icon-btn" aria-label="拡大" title="拡大"><i data-icon="zoom-in"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="縮小" title="縮小"><i data-icon="zoom-out"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="全体表示" title="全体表示"><i data-icon="screen-full"></i></button><span class="g-ws-toolbar__sep"></span><button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。"><i data-icon="question"></i></button>
+            </div>
+            <div class="g-banner" hidden=""></div>
+            <div class="g-ws-canvas-host">
+              <svg class="g-canvas" width="100%" height="100%">
+                <rect class="g-canvas-bg" x="0" y="0" width="100%" height="100%"></rect>
+                <g class="g-world" transform="translate(130,63) scale(0.7)">
+                  <line class="g-route-line" x1="-54" y1="12" x2="194" y2="12" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="-54" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="194" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="194" y2="182"></line>
+                  <line class="g-route-line" x1="18" y1="12" x2="194" y2="12" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="18" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="230" y2="182" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="230" y2="182"></line>
+                  <line class="g-route-line" x1="230" y1="182" x2="18" y2="12" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="230" y1="182" x2="18" y2="12"></line>
+                  <line class="g-route-line" x1="460" y1="182" x2="460" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="460" y1="182" x2="460" y2="352"></line>
+                  <line class="g-route-line" x1="460" y1="352" x2="194" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="460" y1="352" x2="194" y2="352"></line>
+                  <line class="g-route-line" x1="194" y1="352" x2="0" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="194" y1="352" x2="0" y2="352"></line>
+                  <line class="g-route-line" x1="0" y1="352" x2="0" y2="182" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="0" y1="352" x2="0" y2="182"></line>
+                  <line class="g-route-line" x1="0" y1="182" x2="230" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="0" y1="182" x2="230" y2="352"></line>
+                  <line class="g-route-line" x1="-54" y1="12" x2="194" y2="12" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="-54" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="194" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="194" y2="182"></line>
+                  <line class="g-route-line" x1="194" y1="182" x2="460" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="182" x2="460" y2="182"></line>
+                  <g class="g-node" data-station-id="KL01">
+                    <rect class="g-node__body" x="-78" y="-30" width="156" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="-10" text-anchor="middle">ルリ中央</text>
+                    <circle class="g-port" cx="-54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-54" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="-54" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="-18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-18" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="-18" cy="12" r="13" data-platform-id="2"></circle>
+                    <circle class="g-port" cx="18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="18" y="12" text-anchor="middle" dominant-baseline="central">3</text>
+                    <circle class="g-port__hit" cx="18" cy="12" r="13" data-platform-id="3"></circle>
+                    <circle class="g-port" cx="54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="54" y="12" text-anchor="middle" dominant-baseline="central">4</text>
+                    <circle class="g-port__hit" cx="54" cy="12" r="13" data-platform-id="4"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL02">
+                    <rect class="g-node__body" x="170" y="-30" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="-10" text-anchor="middle">港町</text>
+                    <circle class="g-port" cx="194" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="194" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="230" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="12" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL03">
+                    <rect class="g-node__body" x="170" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="194" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="194" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="182" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="230" y="182" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="182" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL04">
+                    <rect class="g-node__body" x="400" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="160" text-anchor="middle">東ルリ</text>
+                    <circle class="g-port" cx="460" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="460" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR02">
+                    <rect class="g-node__body" x="400" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="330" text-anchor="middle">湖畔公園</text>
+                    <circle class="g-port" cx="460" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="460" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR03">
+                    <rect class="g-node__body" x="170" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="330" text-anchor="middle">森の宿</text>
+                    <circle class="g-port" cx="194" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="194" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="352" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="230" y="352" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="352" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR04">
+                    <rect class="g-node__body" x="-60" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="330" text-anchor="middle">小石浜</text>
+                    <circle class="g-port" cx="0" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="0" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR05">
+                    <rect class="g-node__body" x="-60" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="0" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="0" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <line class="g-edge" x1="194" y1="352" x2="460" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-edge-hit" x1="194" y1="352" x2="460" y2="352"></line>
+                  <g class="g-edge-label" transform="translate(327,352)" data-g="lbl1">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">50秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(353.6,352) rotate(0)" fill="#2e8b57"></polygon>
+                  <line class="g-edge" x1="460" y1="352" x2="460" y2="182" stroke="#2e8b57"></line>
+                  <line class="g-edge-hit" x1="460" y1="352" x2="460" y2="182"></line>
+                  <g class="g-edge-label" transform="translate(460,267)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">70秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(460,250) rotate(-90)" fill="#2e8b57"></polygon>
+                  <line class="g-edge" x1="460" y1="182" x2="230" y2="12" stroke="#0078d7"></line>
+                  <line class="g-edge-hit" x1="460" y1="182" x2="230" y2="12"></line>
+                  <g class="g-edge-label" transform="translate(345,97)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">100秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(322,80) rotate(-143.5)" fill="#0078d7"></polygon>
+                  <line class="g-edge" x1="230" y1="12" x2="-18" y2="12" stroke="#0078d7"></line>
+                  <line class="g-edge-hit" x1="230" y1="12" x2="-18" y2="12"></line>
+                  <g class="g-edge-label" transform="translate(106,12)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">80秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(81.2,12) rotate(180)" fill="#0078d7"></polygon>
+                  <g class="g-boundary-badge" transform="translate(460,128)">
+                    <rect x="-20" y="-10" width="40" height="20" rx="10"></rect>
+                    <text text-anchor="middle" dy="4">直通</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(204,338)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">1</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(470,338)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">2</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(470,168)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">3</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(240,-2)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">4</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(-8,-2)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">5</text>
+                  </g>
+                </g>
+              </svg>
+            </div>
+            <div class="g-ws-ribbon">
+              <div class="g-rb-row">
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">1</span><span class="g-rb-item__label">森の宿</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #2e8b57;"></span><span class="g-rb-conn__label">50秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">2</span><span class="g-rb-item__label">湖畔公園</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #2e8b57;"></span><span class="g-rb-conn__label">70秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">3</span><span class="g-rb-item__label">東ルリ</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"><span class="g-label g-label--accent">直通</span></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #0078d7;"></span><span class="g-rb-conn__label">100秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">4</span><span class="g-rb-item__label">港町</span></div>
+                <div class="g-rb-item__row2">2</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #0078d7;"></span><span class="g-rb-conn__label">80秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">5</span><span class="g-rb-item__label">ルリ中央</span></div>
+                <div class="g-rb-item__row2">2</div>
+                <div class="g-rb-item__badges"></div></button>
+              </div>
+            </div>
+          </div>
+          <div class="g-ws-right">
+            <div class="g-field"><label class="g-field__label">行先</label>
+              <div class="g-svc-headsign-row"><input type="text" class="g-input" value="ルリ中央"><button type="button" class="g-btn g-btn--small">終点の駅名にする</button></div>
+            </div>
+            <div class="g-field"><label class="g-field__label">メモ（任意）</label><input type="text" class="g-input"></div>
+            <div class="g-checkbox"><input type="checkbox" checked=""><span>運行中</span></div>
+            <div class="g-checkbox"><input type="checkbox"><span>環状運転</span></div>
+            <p>5 駅・5分0秒</p>
+            <p class="g-ws-right__note">湖畔線 普通 → 瑠璃本線 快速</p>
+            <div class="g-svc-actions">
+              <button type="button" class="g-btn g-btn--primary"><i data-icon="plus"></i>駅を末尾に追加</button>
+              <button type="button" class="g-btn"><i data-icon="copy"></i>複製</button>
+              <button type="button" class="g-btn"><i data-icon="arrow-both"></i>逆方向を作成</button>
+              <button type="button" class="g-btn g-btn--danger"><i data-icon="trash"></i>運行系統を削除</button>
+            </div>
+          </div>
+        </div>
+        <div class="g-workspace" style="grid-template-columns: 1fr 260px;" data-g="ws1" hidden="">
+          <div class="g-ws-left" hidden="">
+            <div class="g-ws-left__title">運行系統</div>
+            <div class="g-svc-filter">
+              <div class="g-field"><label class="g-field__label">路線</label>
+                <select class="g-select">
+                  <option value="" selected="">全路線</option>
+                  <option value="KT-L">瑠璃本線</option>
+                  <option value="KT-C">瑠璃環状線</option>
+                  <option value="CR-K">湖畔線</option>
+                </select>
+              </div>
+              <div class="g-field"><label class="g-field__label">種別</label>
+                <select class="g-select" disabled="">
+                  <option value="" selected="">全種別</option>
+                </select>
+              </div>
+            </div>
+            <div class="g-list g-ws-left__list">
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#0078d7;"></span><span>白樺台</span></div>
+              <div class="g-svc-row__line2">瑠璃本線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item is-selected">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#2e8b57;"></span><span>ルリ中央</span></div>
+              <div class="g-svc-row__line2">湖畔線 普通 → 瑠璃本線 快速</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#e67e22;"></span><span>（環状）瑠璃環状線</span></div>
+              <div class="g-svc-row__line2">瑠璃環状線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#2e8b57;"></span><span>森の宿</span></div>
+              <div class="g-svc-row__line2">湖畔線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#0078d7;"></span><span>東ルリ</span></div>
+              <div class="g-svc-row__line2">瑠璃本線 普通</div>
+              <div class="g-svc-row__badges"><span class="g-label"><i data-icon="eye-closed" data-size="12"></i>運休中</span></div></button>
+            </div><button type="button" class="g-btn"><i data-icon="plus"></i>運行系統を追加</button>
+          </div>
+          <div class="g-ws-canvas">
+            <div class="g-ws-toolbar">
+              <button type="button" class="g-icon-btn" aria-label="拡大" title="拡大"><i data-icon="zoom-in"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="縮小" title="縮小"><i data-icon="zoom-out"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="全体表示" title="全体表示"><i data-icon="screen-full"></i></button><span class="g-ws-toolbar__sep"></span><button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。"><i data-icon="question"></i></button>
+            </div>
+            <div class="g-banner" hidden=""></div>
+            <div class="g-ws-canvas-host">
+              <svg class="g-canvas" width="100%" height="100%">
+                <rect class="g-canvas-bg" x="0" y="0" width="100%" height="100%"></rect>
+                <g class="g-world" transform="translate(130,63) scale(0.7)">
+                  <line class="g-route-line" x1="-54" y1="12" x2="194" y2="12" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="-54" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="194" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="194" y2="182"></line>
+                  <line class="g-route-line" x1="18" y1="12" x2="194" y2="12" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="18" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="230" y2="182" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="230" y2="182"></line>
+                  <line class="g-route-line" x1="230" y1="182" x2="18" y2="12" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="230" y1="182" x2="18" y2="12"></line>
+                  <line class="g-route-line" x1="460" y1="182" x2="460" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="460" y1="182" x2="460" y2="352"></line>
+                  <line class="g-route-line" x1="460" y1="352" x2="194" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="460" y1="352" x2="194" y2="352"></line>
+                  <line class="g-route-line" x1="194" y1="352" x2="0" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="194" y1="352" x2="0" y2="352"></line>
+                  <line class="g-route-line" x1="0" y1="352" x2="0" y2="182" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="0" y1="352" x2="0" y2="182"></line>
+                  <line class="g-route-line" x1="0" y1="182" x2="230" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="0" y1="182" x2="230" y2="352"></line>
+                  <line class="g-route-line" x1="-54" y1="12" x2="194" y2="12" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="-54" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="194" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="194" y2="182"></line>
+                  <line class="g-route-line" x1="194" y1="182" x2="460" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="182" x2="460" y2="182"></line>
+                  <g class="g-node" data-station-id="KL01">
+                    <rect class="g-node__body" x="-78" y="-30" width="156" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="-10" text-anchor="middle">ルリ中央</text>
+                    <circle class="g-port" cx="-54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-54" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="-54" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="-18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-18" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="-18" cy="12" r="13" data-platform-id="2"></circle>
+                    <circle class="g-port" cx="18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="18" y="12" text-anchor="middle" dominant-baseline="central">3</text>
+                    <circle class="g-port__hit" cx="18" cy="12" r="13" data-platform-id="3"></circle>
+                    <circle class="g-port" cx="54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="54" y="12" text-anchor="middle" dominant-baseline="central">4</text>
+                    <circle class="g-port__hit" cx="54" cy="12" r="13" data-platform-id="4"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL02">
+                    <rect class="g-node__body" x="170" y="-30" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="-10" text-anchor="middle">港町</text>
+                    <circle class="g-port" cx="194" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="194" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="230" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="12" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL03">
+                    <rect class="g-node__body" x="170" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="194" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="194" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="182" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="230" y="182" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="182" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL04">
+                    <rect class="g-node__body" x="400" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="160" text-anchor="middle">東ルリ</text>
+                    <circle class="g-port" cx="460" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="460" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR02">
+                    <rect class="g-node__body" x="400" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="330" text-anchor="middle">湖畔公園</text>
+                    <circle class="g-port" cx="460" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="460" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR03">
+                    <rect class="g-node__body" x="170" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="330" text-anchor="middle">森の宿</text>
+                    <circle class="g-port" cx="194" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="194" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="352" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="230" y="352" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="352" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR04">
+                    <rect class="g-node__body" x="-60" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="330" text-anchor="middle">小石浜</text>
+                    <circle class="g-port" cx="0" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="0" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR05">
+                    <rect class="g-node__body" x="-60" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="0" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="0" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <line class="g-edge-underlay" x1="194" y1="352" x2="460" y2="352"></line>
+                  <line class="g-edge" x1="194" y1="352" x2="460" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-edge-hit" x1="194" y1="352" x2="460" y2="352"></line>
+                  <g class="g-edge-label" transform="translate(327,352)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4" data-g="lbl1-t">50秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(353.6,352) rotate(0)" fill="#2e8b57"></polygon>
+                  <line class="g-edge" x1="460" y1="352" x2="460" y2="182" stroke="#2e8b57"></line>
+                  <line class="g-edge-hit" x1="460" y1="352" x2="460" y2="182"></line>
+                  <g class="g-edge-label" transform="translate(460,267)" data-g="lbl2">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">70秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(460,250) rotate(-90)" fill="#2e8b57"></polygon>
+                  <line class="g-edge" x1="460" y1="182" x2="230" y2="12" stroke="#0078d7"></line>
+                  <line class="g-edge-hit" x1="460" y1="182" x2="230" y2="12"></line>
+                  <g class="g-edge-label" transform="translate(345,97)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">100秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(322,80) rotate(-143.5)" fill="#0078d7"></polygon>
+                  <line class="g-edge" x1="230" y1="12" x2="-18" y2="12" stroke="#0078d7"></line>
+                  <line class="g-edge-hit" x1="230" y1="12" x2="-18" y2="12"></line>
+                  <g class="g-edge-label" transform="translate(106,12)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">80秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(81.2,12) rotate(180)" fill="#0078d7"></polygon>
+                  <g class="g-boundary-badge" transform="translate(460,128)">
+                    <rect x="-20" y="-10" width="40" height="20" rx="10"></rect>
+                    <text text-anchor="middle" dy="4">直通</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(204,338)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">1</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(470,338)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">2</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(470,168)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">3</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(240,-2)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">4</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(-8,-2)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">5</text>
+                  </g>
+                </g>
+              </svg>
+            </div>
+            <div class="g-ws-ribbon">
+              <div class="g-rb-row">
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">1</span><span class="g-rb-item__label">森の宿</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn is-selected"><span class="g-rb-conn__line" style="border-color: #2e8b57;"></span><span class="g-rb-conn__label">50秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">2</span><span class="g-rb-item__label">湖畔公園</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #2e8b57;"></span><span class="g-rb-conn__label">70秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">3</span><span class="g-rb-item__label">東ルリ</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"><span class="g-label g-label--accent">直通</span></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #0078d7;"></span><span class="g-rb-conn__label">100秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">4</span><span class="g-rb-item__label">港町</span></div>
+                <div class="g-rb-item__row2">2</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #0078d7;"></span><span class="g-rb-conn__label">80秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">5</span><span class="g-rb-item__label">ルリ中央</span></div>
+                <div class="g-rb-item__row2">2</div>
+                <div class="g-rb-item__badges"></div></button>
+              </div>
+            </div>
+          </div>
+          <div class="g-ws-right">
+            <div class="g-field__label">森の宿 → 湖畔公園</div>
+            <div class="g-field"><label class="g-field__label">次の駅まで（秒）</label><input type="number" class="g-input" data-g="run" value="50">
+              <div class="g-field__error"></div>
+            </div>
+            <div class="g-field"><label class="g-field__label">路線</label>
+              <select class="g-select" data-g="line-sel">
+                <option value="KT-L">瑠璃本線</option>
+                <option value="KT-C">瑠璃環状線</option>
+                <option value="CR-K" selected="">湖畔線</option>
+              </select>
+            </div>
+            <div class="g-field"><label class="g-field__label">種別</label>
+              <select class="g-select" data-g="cat-sel">
+                <option value="Lo" selected="">普通</option>
+              </select>
+            </div>
+            <div class="g-svc-actions">
+              <button type="button" class="g-btn g-btn--small" data-g="to-end">ここから終点まで同じにする</button>
+              <button type="button" class="g-btn g-btn--small" data-g="from-start">始発からここまで同じにする</button>
+            </div>
+            <div class="g-svc-actions">
+              <button type="button" class="g-btn g-btn--small"><i data-icon="plus"></i>この駅間に駅を追加</button>
+            </div>
+          </div>
+        </div>
+        <div class="g-workspace" style="grid-template-columns: 1fr 260px;" data-g="ws2" hidden="">
+          <div class="g-ws-left" hidden="">
+            <div class="g-ws-left__title">運行系統</div>
+            <div class="g-svc-filter">
+              <div class="g-field"><label class="g-field__label">路線</label>
+                <select class="g-select">
+                  <option value="" selected="">全路線</option>
+                  <option value="KT-L">瑠璃本線</option>
+                  <option value="KT-C">瑠璃環状線</option>
+                  <option value="CR-K">湖畔線</option>
+                </select>
+              </div>
+              <div class="g-field"><label class="g-field__label">種別</label>
+                <select class="g-select" disabled="">
+                  <option value="" selected="">全種別</option>
+                </select>
+              </div>
+            </div>
+            <div class="g-list g-ws-left__list">
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#0078d7;"></span><span>白樺台</span></div>
+              <div class="g-svc-row__line2">瑠璃本線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item is-selected">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#2e8b57;"></span><span>ルリ中央</span></div>
+              <div class="g-svc-row__line2">湖畔線 普通 → 瑠璃本線 快速</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#e67e22;"></span><span>（環状）瑠璃環状線</span></div>
+              <div class="g-svc-row__line2">瑠璃環状線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#2e8b57;"></span><span>森の宿</span></div>
+              <div class="g-svc-row__line2">湖畔線 普通</div>
+              <div class="g-svc-row__badges"></div></button>
+              <button type="button" class="g-list__item">
+              <div class="g-svc-row__line1"><span class="g-svc-dot" style="background:#0078d7;"></span><span>東ルリ</span></div>
+              <div class="g-svc-row__line2">瑠璃本線 普通</div>
+              <div class="g-svc-row__badges"><span class="g-label"><i data-icon="eye-closed" data-size="12"></i>運休中</span></div></button>
+            </div><button type="button" class="g-btn"><i data-icon="plus"></i>運行系統を追加</button>
+          </div>
+          <div class="g-ws-canvas">
+            <div class="g-ws-toolbar">
+              <button type="button" class="g-icon-btn" aria-label="拡大" title="拡大"><i data-icon="zoom-in"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="縮小" title="縮小"><i data-icon="zoom-out"></i></button>
+              <button type="button" class="g-icon-btn" aria-label="全体表示" title="全体表示"><i data-icon="screen-full"></i></button><span class="g-ws-toolbar__sep"></span><button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。"><i data-icon="question"></i></button>
+            </div>
+            <div class="g-banner" hidden=""></div>
+            <div class="g-ws-canvas-host">
+              <svg class="g-canvas" width="100%" height="100%">
+                <rect class="g-canvas-bg" x="0" y="0" width="100%" height="100%"></rect>
+                <g class="g-world" transform="translate(130,63) scale(0.7)">
+                  <line class="g-route-line" x1="-54" y1="12" x2="194" y2="12" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="-54" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="194" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="194" y2="182"></line>
+                  <line class="g-route-line" x1="18" y1="12" x2="194" y2="12" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="18" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="230" y2="182" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="230" y2="182"></line>
+                  <line class="g-route-line" x1="230" y1="182" x2="18" y2="12" stroke="#e67e22"></line>
+                  <line class="g-route-hit" x1="230" y1="182" x2="18" y2="12"></line>
+                  <line class="g-route-line" x1="460" y1="182" x2="460" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="460" y1="182" x2="460" y2="352"></line>
+                  <line class="g-route-line" x1="460" y1="352" x2="194" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="460" y1="352" x2="194" y2="352"></line>
+                  <line class="g-route-line" x1="194" y1="352" x2="0" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="194" y1="352" x2="0" y2="352"></line>
+                  <line class="g-route-line" x1="0" y1="352" x2="0" y2="182" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="0" y1="352" x2="0" y2="182"></line>
+                  <line class="g-route-line" x1="0" y1="182" x2="230" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-route-hit" x1="0" y1="182" x2="230" y2="352"></line>
+                  <line class="g-route-line" x1="-54" y1="12" x2="194" y2="12" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="-54" y1="12" x2="194" y2="12"></line>
+                  <line class="g-route-line" x1="194" y1="12" x2="194" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="12" x2="194" y2="182"></line>
+                  <line class="g-route-line" x1="194" y1="182" x2="460" y2="182" stroke="#0078d7"></line>
+                  <line class="g-route-hit" x1="194" y1="182" x2="460" y2="182"></line>
+                  <g class="g-node" data-station-id="KL01">
+                    <rect class="g-node__body" x="-78" y="-30" width="156" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="-10" text-anchor="middle">ルリ中央</text>
+                    <circle class="g-port" cx="-54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-54" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="-54" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="-18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="-18" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="-18" cy="12" r="13" data-platform-id="2"></circle>
+                    <circle class="g-port" cx="18" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="18" y="12" text-anchor="middle" dominant-baseline="central">3</text>
+                    <circle class="g-port__hit" cx="18" cy="12" r="13" data-platform-id="3"></circle>
+                    <circle class="g-port" cx="54" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="54" y="12" text-anchor="middle" dominant-baseline="central">4</text>
+                    <circle class="g-port__hit" cx="54" cy="12" r="13" data-platform-id="4"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL02">
+                    <rect class="g-node__body" x="170" y="-30" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="-10" text-anchor="middle">港町</text>
+                    <circle class="g-port" cx="194" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="194" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="12" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="12" r="9"></circle>
+                    <text class="g-port__label" x="230" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="12" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL03">
+                    <rect class="g-node__body" x="170" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="194" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="194" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="182" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="230" y="182" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="182" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="KL04">
+                    <rect class="g-node__body" x="400" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="160" text-anchor="middle">東ルリ</text>
+                    <circle class="g-port" cx="460" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="460" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR02">
+                    <rect class="g-node__body" x="400" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="460" y="330" text-anchor="middle">湖畔公園</text>
+                    <circle class="g-port" cx="460" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="460" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="460" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR03">
+                    <rect class="g-node__body" x="170" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="230" y="330" text-anchor="middle">森の宿</text>
+                    <circle class="g-port" cx="194" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="194" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="194" cy="352" r="13" data-platform-id="1"></circle>
+                    <circle class="g-port" cx="230" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="230" y="352" text-anchor="middle" dominant-baseline="central">2</text>
+                    <circle class="g-port__hit" cx="230" cy="352" r="13" data-platform-id="2"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR04">
+                    <rect class="g-node__body" x="-60" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="330" text-anchor="middle">小石浜</text>
+                    <circle class="g-port" cx="0" cy="352" r="9"></circle>
+                    <text class="g-port__label" x="0" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="352" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <g class="g-node" data-station-id="CR05">
+                    <rect class="g-node__body" x="-60" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                    <text class="g-node__name" x="0" y="160" text-anchor="middle">白樺台</text>
+                    <circle class="g-port" cx="0" cy="182" r="9"></circle>
+                    <text class="g-port__label" x="0" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                    <circle class="g-port__hit" cx="0" cy="182" r="13" data-platform-id="1"></circle>
+                  </g>
+                  <line class="g-edge-underlay" x1="194" y1="352" x2="460" y2="352"></line>
+                  <line class="g-edge" x1="194" y1="352" x2="460" y2="352" stroke="#2e8b57"></line>
+                  <line class="g-edge-hit" x1="194" y1="352" x2="460" y2="352"></line>
+                  <g class="g-edge-label" transform="translate(327,352)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">50秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(353.6,352) rotate(0)" fill="#2e8b57"></polygon>
+                  <line class="g-edge-underlay" x1="460" y1="352" x2="460" y2="182"></line>
+                  <line class="g-edge" x1="460" y1="352" x2="460" y2="182" stroke="#2e8b57"></line>
+                  <line class="g-edge-hit" x1="460" y1="352" x2="460" y2="182"></line>
+                  <g class="g-edge-label" transform="translate(460,267)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">70秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(460,250) rotate(-90)" fill="#2e8b57"></polygon>
+                  <line class="g-edge" x1="460" y1="182" x2="230" y2="12" stroke="#0078d7"></line>
+                  <line class="g-edge-hit" x1="460" y1="182" x2="230" y2="12"></line>
+                  <g class="g-edge-label" transform="translate(345,97)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">100秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(322,80) rotate(-143.5)" fill="#0078d7"></polygon>
+                  <line class="g-edge" x1="230" y1="12" x2="-18" y2="12" stroke="#0078d7"></line>
+                  <line class="g-edge-hit" x1="230" y1="12" x2="-18" y2="12"></line>
+                  <g class="g-edge-label" transform="translate(106,12)">
+                    <rect x="-22" y="-11" width="44" height="22" rx="4"></rect>
+                    <text text-anchor="middle" dy="4">80秒</text>
+                  </g>
+                  <polygon class="g-edge-arrow" points="-5,-4 5,0 -5,4" transform="translate(81.2,12) rotate(180)" fill="#0078d7"></polygon>
+                  <g class="g-boundary-badge" transform="translate(460,128)">
+                    <rect x="-20" y="-10" width="40" height="20" rx="10"></rect>
+                    <text text-anchor="middle" dy="4">直通</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(204,338)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">1</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(470,338)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">2</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(470,168)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">3</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(240,-2)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">4</text>
+                  </g>
+                  <g class="g-stop-badge" transform="translate(-8,-2)">
+                    <circle r="10"></circle>
+                    <text text-anchor="middle" dy="4">5</text>
+                  </g>
+                </g>
+              </svg>
+            </div>
+            <div class="g-ws-ribbon">
+              <div class="g-rb-row">
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">1</span><span class="g-rb-item__label">森の宿</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn is-selected"><span class="g-rb-conn__line" style="border-color: #2e8b57;"></span><span class="g-rb-conn__label">50秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">2</span><span class="g-rb-item__label">湖畔公園</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #2e8b57;"></span><span class="g-rb-conn__label">70秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">3</span><span class="g-rb-item__label">東ルリ</span></div>
+                <div class="g-rb-item__row2">1</div>
+                <div class="g-rb-item__badges"><span class="g-label g-label--accent">直通</span></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #0078d7;"></span><span class="g-rb-conn__label">100秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">4</span><span class="g-rb-item__label">港町</span></div>
+                <div class="g-rb-item__row2">2</div>
+                <div class="g-rb-item__badges"></div></button>
+                <button type="button" class="g-rb-conn"><span class="g-rb-conn__line" style="border-color: #0078d7;"></span><span class="g-rb-conn__label">80秒</span></button>
+                <button type="button" class="g-rb-item" draggable="true" tabindex="0"><span class="g-rb-item__grabber" aria-hidden="true"><i data-icon="grabber" data-size="12"></i></span>
+                <div class="g-rb-item__row1"><span class="g-counter">5</span><span class="g-rb-item__label">ルリ中央</span></div>
+                <div class="g-rb-item__row2">2</div>
+                <div class="g-rb-item__badges"></div></button>
+              </div>
+            </div>
+          </div>
+          <div class="g-ws-right">
+            <div class="g-field__label" data-g="range-head">森の宿 → 東ルリ（2 駅間）</div>
+            <div class="g-field"><label class="g-field__label">路線</label>
+              <select class="g-select">
+                <option value="KT-L">瑠璃本線</option>
+                <option value="KT-C">瑠璃環状線</option>
+                <option value="CR-K" selected="">湖畔線</option>
+              </select>
+            </div>
+            <div class="g-field"><label class="g-field__label">種別</label>
+              <select class="g-select">
+                <option value="Lo" selected="">普通</option>
+              </select>
+            </div>
+            <div class="g-svc-actions">
+              <button type="button" class="g-btn g-btn--small">ここから終点まで同じにする</button>
+              <button type="button" class="g-btn g-btn--small">始発からここまで同じにする</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <figcaption>秒数の札をクリックすると駅間が選ばれ、秒数と路線・種別を設定できる。Shift を押しながら別の駅間をクリックすると範囲選択になる</figcaption>
+  <script type="text/x-gd-steps">
+    click @lbl1
+    hide  @ws0
+    show  @ws1
+    wait  400
+    clear @run
+    type  @run 55
+    key   Enter
+    text  @lbl1-t 55秒
+    spot  @line-sel 路線
+    spot  @to-end
+    spot  @from-start
+    spot  off
+    hold  Shift
+    click @lbl2
+    hold  off
+    hide  @ws1
+    show  @ws2
+    spot  @range-head 範囲選択（2 駅間）
+    wait  600
+  </script>
+</figure>

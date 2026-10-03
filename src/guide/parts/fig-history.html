@@ -1,0 +1,70 @@
+<figure class="gd-figure" data-w="900" data-h="470">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view">
+        <div class="g-single-col g-single-col--wide">
+          <div style="display:flex; gap:var(--stack-gap-condensed);">
+            <button type="button" class="g-btn g-toggle-btn" aria-pressed="true">路線網</button>
+            <button type="button" class="g-btn g-toggle-btn" aria-pressed="false">運行情報</button>
+          </div>
+          <div class="g-history-detail">
+            <div class="g-history-detail__list">
+              <div class="g-card">
+                <div class="g-card__header">路線網 の履歴</div>
+                <div class="g-card__body">
+                  <div class="g-list">
+                    <button type="button" class="g-list__item"><div>版 13</div><div class="g-ws-right__note">2026/10/03 18:40</div><div class="g-ws-right__note">k_triar / rewis-editor-graph</div></button>
+                    <button type="button" class="g-list__item" data-g="v12"><div>版 12</div><div class="g-ws-right__note">2026/10/02 22:15</div><div class="g-ws-right__note">luli_ops / rewis-editor-graph</div></button>
+                    <button type="button" class="g-list__item"><div>版 11</div><div class="g-ws-right__note">2026/10/01 20:03</div><div class="g-ws-right__note">k_triar / rewis-editor-graph</div><div class="g-ws-right__note">ロールバック元: 9</div></button>
+                    <button type="button" class="g-list__item"><div>版 10</div><div class="g-ws-right__note">2026/09/30 19:47</div><div class="g-ws-right__note">k_triar / rewis-editor-graph</div></button>
+                  </div>
+                  <button type="button" class="g-btn">さらに読み込む</button>
+                </div>
+              </div>
+            </div>
+            <div class="g-history-detail__panel" data-g="panel" hidden>
+              <div class="g-card">
+                <div class="g-card__header">版 12</div>
+                <div class="g-card__body">
+                  <p class="g-ws-right__note">2026/10/02 22:15</p>
+                  <p class="g-ws-right__note">更新した人: luli_ops / client: rewis-editor-graph</p>
+                  <div style="display:flex; flex-direction:column; gap:var(--stack-gap-condensed);">
+                    <button type="button" class="g-btn" data-g="compare">今のデータと比べる</button>
+                    <button type="button" class="g-btn" data-g="load">この版を編集中のデータにする</button>
+                    <button type="button" class="g-btn g-btn--danger" data-g="rollback">この版に戻す</button>
+                  </div>
+                  <div data-g="diff" hidden>
+                    <table class="g-diff-table">
+                      <thead><tr><th>項目</th><th>今のデータ</th><th>この版</th></tr></thead>
+                      <tbody>
+                        <tr><td>鉄道会社</td><td>3</td><td>3</td></tr>
+                        <tr><td>駅</td><td>5</td><td>4</td></tr>
+                        <tr><td>路線</td><td>4</td><td>3</td></tr>
+                        <tr><td>運行系統</td><td>4</td><td>3</td></tr>
+                        <tr><td>乗換</td><td>3</td><td>2</td></tr>
+                        <tr><td>駅グループ</td><td>2</td><td>1</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>版を選ぶと右側に詳しい情報とボタンが表示される。［今のデータと比べる］で件数の差がわかる</figcaption>
+  <script type="text/x-gd-steps">
+    click @v12
+    add   @v12 is-selected
+    show  @panel
+    wait  500
+    click @compare
+    show  @diff
+    spot  @diff
+    spot  @load この版を編集中のデータにする
+    spot  @rollback この版に戻す
+    spot  off
+  </script>
+</figure>

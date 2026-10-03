@@ -1,0 +1,418 @@
+<figure class="gd-figure" data-w="840" data-h="516">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-main">
+        <div class="g-tr-root">
+          <div class="g-tr-pane-switch">
+            <button type="button" class="g-btn g-toggle-btn" aria-pressed="true">乗換</button>
+            <button type="button" class="g-btn g-toggle-btn" aria-pressed="false">乗換の既定値と駅グループ</button>
+          </div>
+          <div class="g-tr-body">
+            <div class="g-workspace" style="grid-template-columns: 1fr 260px;" data-g="ws0">
+              <div class="g-ws-left" hidden="">
+                <div class="g-ws-left__title">乗換</div>
+                <p class="g-ws-left__note">のりばの点、または駅の本体からドラッグすると、乗換を登録できます。何も選んでいないときは、右側に乗換の一覧が出ます。</p>
+              </div>
+              <div class="g-ws-canvas">
+                <div class="g-ws-toolbar">
+                  <button type="button" class="g-icon-btn" aria-label="拡大" title="拡大"><i data-icon="zoom-in"></i></button>
+                  <button type="button" class="g-icon-btn" aria-label="縮小" title="縮小"><i data-icon="zoom-out"></i></button>
+                  <button type="button" class="g-icon-btn" aria-label="全体表示" title="全体表示"><i data-icon="screen-full"></i></button><span class="g-ws-toolbar__sep"></span><button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。"><i data-icon="question"></i></button>
+                  <button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="このタブでは、駅の移動は Shift を押しながらのドラッグだけです。ドラッグだけで始めると、乗換の登録になります。"><i data-icon="question"></i></button>
+                </div>
+                <div class="g-banner" hidden=""></div>
+                <div class="g-ws-canvas-host">
+                  <svg class="g-canvas" width="100%" height="100%">
+                    <rect class="g-canvas-bg" x="0" y="0" width="100%" height="100%"></rect>
+                    <g class="g-world" transform="translate(100,142) scale(0.9)">
+                      <line class="g-walk-line" x1="230" y1="170" x2="0" y2="170"></line>
+                      <line class="g-walk-hit" x1="230" y1="170" x2="0" y2="170"></line>
+                      <polygon class="g-walk-arrow" points="-5,-4 5,0 -5,4" transform="translate(34.5,170) rotate(180)"></polygon>
+                      <polygon class="g-walk-arrow" points="-5,-4 5,0 -5,4" transform="translate(195.5,170) rotate(360)"></polygon>
+                      <foreignObject x="87" y="160" width="56" height="20">
+                        <div class="g-walk-badge"><span class="g-walk-icon" aria-hidden="true"></span>45秒</div>
+                      </foreignObject>
+                      <g class="g-node" data-station-id="KL01">
+                        <rect class="g-node__body" x="-78" y="-30" width="156" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="-10" text-anchor="middle">ルリ中央</text>
+                        <circle class="g-port" cx="-54" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="-54" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="-54" cy="12" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="-18" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="-18" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="-18" cy="12" r="13" data-platform-id="2"></circle>
+                        <circle class="g-port" cx="18" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="18" y="12" text-anchor="middle" dominant-baseline="central">3</text>
+                        <circle class="g-port__hit" cx="18" cy="12" r="13" data-platform-id="3"></circle>
+                        <circle class="g-port" cx="54" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="54" y="12" text-anchor="middle" dominant-baseline="central">4</text>
+                        <circle class="g-port__hit" cx="54" cy="12" r="13" data-platform-id="4"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="KL02">
+                        <rect class="g-node__body" x="170" y="-30" width="120" height="60" rx="6" ry="6" data-g="b-KL02"></rect>
+                        <text class="g-node__name" x="230" y="-10" text-anchor="middle">港町</text>
+                        <circle class="g-port" cx="194" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="194" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="12" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="230" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="12" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-intra-badge" transform="translate(290,-30)">
+                        <rect x="-52" y="-10" width="52" height="20" rx="10"></rect>
+                        <text x="-26" text-anchor="middle" dy="4">乗換 1</text>
+                      </g>
+                      <g class="g-node" data-station-id="KL03">
+                        <rect class="g-node__body" x="170" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="160" text-anchor="middle">白樺台</text>
+                        <circle class="g-port" cx="194" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="194" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="182" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="230" y="182" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="182" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="KL04">
+                        <rect class="g-node__body" x="400" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="460" y="160" text-anchor="middle">東ルリ</text>
+                        <circle class="g-port" cx="460" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="460" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="460" cy="182" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR02">
+                        <rect class="g-node__body" x="400" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="460" y="330" text-anchor="middle">湖畔公園</text>
+                        <circle class="g-port" cx="460" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="460" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="460" cy="352" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR03">
+                        <rect class="g-node__body" x="170" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="330" text-anchor="middle">森の宿</text>
+                        <circle class="g-port" cx="194" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="194" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="352" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="230" y="352" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="352" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR04">
+                        <rect class="g-node__body" x="-60" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="330" text-anchor="middle">小石浜</text>
+                        <circle class="g-port" cx="0" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="0" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="0" cy="352" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR05">
+                        <rect class="g-node__body" x="-60" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="160" text-anchor="middle">白樺台</text>
+                        <circle class="g-port" cx="0" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="0" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="0" cy="182" r="13" data-platform-id="1"></circle>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <div class="g-ws-right">
+                <div class="g-field__label">乗換</div>
+                <div class="g-search-field"><i data-icon="search" data-size="14"></i><input type="text" class="g-input" placeholder="駅名・かなで絞り込み"></div>
+                <div class="g-list">
+                  <button type="button" class="g-list__item">港町 1 → 港町 2</button>
+                  <button type="button" class="g-list__item">白樺台 → 白樺台</button>
+                </div>
+              </div>
+            </div>
+            <div class="g-workspace" style="grid-template-columns: 1fr 260px;" data-g="ws1" hidden="">
+              <div class="g-ws-left" hidden="">
+                <div class="g-ws-left__title">乗換</div>
+                <p class="g-ws-left__note">のりばの点、または駅の本体からドラッグすると、乗換を登録できます。何も選んでいないときは、右側に乗換の一覧が出ます。</p>
+              </div>
+              <div class="g-ws-canvas">
+                <div class="g-ws-toolbar">
+                  <button type="button" class="g-icon-btn" aria-label="拡大" title="拡大"><i data-icon="zoom-in"></i></button>
+                  <button type="button" class="g-icon-btn" aria-label="縮小" title="縮小"><i data-icon="zoom-out"></i></button>
+                  <button type="button" class="g-icon-btn" aria-label="全体表示" title="全体表示"><i data-icon="screen-full"></i></button><span class="g-ws-toolbar__sep"></span><button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。"><i data-icon="question"></i></button>
+                  <button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="このタブでは、駅の移動は Shift を押しながらのドラッグだけです。ドラッグだけで始めると、乗換の登録になります。"><i data-icon="question"></i></button>
+                </div>
+                <div class="g-banner" hidden=""></div>
+                <div class="g-ws-canvas-host">
+                  <svg class="g-canvas" width="100%" height="100%">
+                    <rect class="g-canvas-bg" x="0" y="0" width="100%" height="100%"></rect>
+                    <g class="g-world" transform="translate(100,142) scale(0.9)">
+                      <line class="g-walk-line" x1="230" y1="170" x2="0" y2="170"></line>
+                      <line class="g-walk-hit" x1="230" y1="170" x2="0" y2="170"></line>
+                      <polygon class="g-walk-arrow" points="-5,-4 5,0 -5,4" transform="translate(34.5,170) rotate(180)"></polygon>
+                      <polygon class="g-walk-arrow" points="-5,-4 5,0 -5,4" transform="translate(195.5,170) rotate(360)"></polygon>
+                      <foreignObject x="87" y="160" width="56" height="20">
+                        <div class="g-walk-badge"><span class="g-walk-icon" aria-hidden="true"></span>45秒</div>
+                      </foreignObject>
+                      <g class="g-node" data-station-id="KL01">
+                        <rect class="g-node__body" x="-78" y="-30" width="156" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="-10" text-anchor="middle">ルリ中央</text>
+                        <circle class="g-port" cx="-54" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="-54" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="-54" cy="12" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="-18" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="-18" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="-18" cy="12" r="13" data-platform-id="2"></circle>
+                        <circle class="g-port" cx="18" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="18" y="12" text-anchor="middle" dominant-baseline="central">3</text>
+                        <circle class="g-port__hit" cx="18" cy="12" r="13" data-platform-id="3"></circle>
+                        <circle class="g-port" cx="54" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="54" y="12" text-anchor="middle" dominant-baseline="central">4</text>
+                        <circle class="g-port__hit" cx="54" cy="12" r="13" data-platform-id="4"></circle>
+                      </g>
+                      <g class="g-node is-selected" data-station-id="KL02">
+                        <rect class="g-node__body" x="170" y="-30" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="-10" text-anchor="middle">港町</text>
+                        <circle class="g-port" cx="194" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="194" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="12" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="230" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="12" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-intra-badge" transform="translate(290,-30)">
+                        <rect x="-52" y="-10" width="52" height="20" rx="10"></rect>
+                        <text x="-26" text-anchor="middle" dy="4">乗換 1</text>
+                      </g>
+                      <g class="g-node" data-station-id="KL03">
+                        <rect class="g-node__body" x="170" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="160" text-anchor="middle">白樺台</text>
+                        <circle class="g-port" cx="194" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="194" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="182" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="230" y="182" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="182" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="KL04">
+                        <rect class="g-node__body" x="400" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="460" y="160" text-anchor="middle">東ルリ</text>
+                        <circle class="g-port" cx="460" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="460" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="460" cy="182" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR02">
+                        <rect class="g-node__body" x="400" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="460" y="330" text-anchor="middle">湖畔公園</text>
+                        <circle class="g-port" cx="460" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="460" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="460" cy="352" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR03">
+                        <rect class="g-node__body" x="170" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="330" text-anchor="middle">森の宿</text>
+                        <circle class="g-port" cx="194" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="194" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="352" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="230" y="352" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="352" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR04">
+                        <rect class="g-node__body" x="-60" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="330" text-anchor="middle">小石浜</text>
+                        <circle class="g-port" cx="0" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="0" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="0" cy="352" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR05">
+                        <rect class="g-node__body" x="-60" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="160" text-anchor="middle">白樺台</text>
+                        <circle class="g-port" cx="0" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="0" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="0" cy="182" r="13" data-platform-id="1"></circle>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <div class="g-ws-right">
+                <div class="g-field__label">港町</div>
+                <div class="g-tr-intra-table" data-g="table">
+                  <table class="g-tr-intra-grid">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>1</th>
+                        <th>2</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th>1</th>
+                        <td>—</td>
+                        <td><input type="number" class="g-input" value="20"></td>
+                      </tr>
+                      <tr>
+                        <th>2</th>
+                        <td><input type="number" class="g-input g-tr-intra-reversed" title="逆向きの登録と同じ時間です" data-g="rev" value="20"></td>
+                        <td>—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="g-field__label">徒歩連絡</div>
+                <p class="g-ws-right__note">この駅の徒歩連絡はありません。</p>
+              </div>
+            </div>
+            <div class="g-workspace" style="grid-template-columns: 1fr 260px;" data-g="ws2" hidden="">
+              <div class="g-ws-left" hidden="">
+                <div class="g-ws-left__title">乗換</div>
+                <p class="g-ws-left__note">のりばの点、または駅の本体からドラッグすると、乗換を登録できます。何も選んでいないときは、右側に乗換の一覧が出ます。</p>
+              </div>
+              <div class="g-ws-canvas">
+                <div class="g-ws-toolbar">
+                  <button type="button" class="g-icon-btn" aria-label="拡大" title="拡大"><i data-icon="zoom-in"></i></button>
+                  <button type="button" class="g-icon-btn" aria-label="縮小" title="縮小"><i data-icon="zoom-out"></i></button>
+                  <button type="button" class="g-icon-btn" aria-label="全体表示" title="全体表示"><i data-icon="screen-full"></i></button><span class="g-ws-toolbar__sep"></span><button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="駅の配置は、［サーバーに保存］を押すとほかの人にも共有されます。"><i data-icon="question"></i></button>
+                  <button type="button" class="g-icon-btn g-btn--invisible g-btn--small" aria-label="説明" title="このタブでは、駅の移動は Shift を押しながらのドラッグだけです。ドラッグだけで始めると、乗換の登録になります。"><i data-icon="question"></i></button>
+                </div>
+                <div class="g-banner" hidden=""></div>
+                <div class="g-ws-canvas-host">
+                  <svg class="g-canvas" width="100%" height="100%">
+                    <rect class="g-canvas-bg" x="0" y="0" width="100%" height="100%"></rect>
+                    <g class="g-world" transform="translate(100,142) scale(0.9)">
+                      <line class="g-walk-line" x1="230" y1="170" x2="0" y2="170"></line>
+                      <line class="g-walk-hit" x1="230" y1="170" x2="0" y2="170"></line>
+                      <polygon class="g-walk-arrow" points="-5,-4 5,0 -5,4" transform="translate(34.5,170) rotate(180)"></polygon>
+                      <polygon class="g-walk-arrow" points="-5,-4 5,0 -5,4" transform="translate(195.5,170) rotate(360)"></polygon>
+                      <foreignObject x="87" y="160" width="56" height="20">
+                        <div class="g-walk-badge"><span class="g-walk-icon" aria-hidden="true"></span>45秒</div>
+                      </foreignObject>
+                      <g class="g-node" data-station-id="KL01">
+                        <rect class="g-node__body" x="-78" y="-30" width="156" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="-10" text-anchor="middle">ルリ中央</text>
+                        <circle class="g-port" cx="-54" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="-54" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="-54" cy="12" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="-18" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="-18" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="-18" cy="12" r="13" data-platform-id="2"></circle>
+                        <circle class="g-port" cx="18" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="18" y="12" text-anchor="middle" dominant-baseline="central">3</text>
+                        <circle class="g-port__hit" cx="18" cy="12" r="13" data-platform-id="3"></circle>
+                        <circle class="g-port" cx="54" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="54" y="12" text-anchor="middle" dominant-baseline="central">4</text>
+                        <circle class="g-port__hit" cx="54" cy="12" r="13" data-platform-id="4"></circle>
+                      </g>
+                      <g class="g-node is-selected" data-station-id="KL02">
+                        <rect class="g-node__body" x="170" y="-30" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="-10" text-anchor="middle">港町</text>
+                        <circle class="g-port" cx="194" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="194" y="12" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="12" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="12" r="9"></circle>
+                        <text class="g-port__label" x="230" y="12" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="12" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-intra-badge" transform="translate(290,-30)">
+                        <rect x="-52" y="-10" width="52" height="20" rx="10"></rect>
+                        <text x="-26" text-anchor="middle" dy="4">乗換 2</text>
+                      </g>
+                      <g class="g-node" data-station-id="KL03">
+                        <rect class="g-node__body" x="170" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="160" text-anchor="middle">白樺台</text>
+                        <circle class="g-port" cx="194" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="194" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="182" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="230" y="182" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="182" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="KL04">
+                        <rect class="g-node__body" x="400" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="460" y="160" text-anchor="middle">東ルリ</text>
+                        <circle class="g-port" cx="460" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="460" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="460" cy="182" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR02">
+                        <rect class="g-node__body" x="400" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="460" y="330" text-anchor="middle">湖畔公園</text>
+                        <circle class="g-port" cx="460" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="460" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="460" cy="352" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR03">
+                        <rect class="g-node__body" x="170" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="230" y="330" text-anchor="middle">森の宿</text>
+                        <circle class="g-port" cx="194" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="194" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="194" cy="352" r="13" data-platform-id="1"></circle>
+                        <circle class="g-port" cx="230" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="230" y="352" text-anchor="middle" dominant-baseline="central">2</text>
+                        <circle class="g-port__hit" cx="230" cy="352" r="13" data-platform-id="2"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR04">
+                        <rect class="g-node__body" x="-60" y="310" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="330" text-anchor="middle">小石浜</text>
+                        <circle class="g-port" cx="0" cy="352" r="9"></circle>
+                        <text class="g-port__label" x="0" y="352" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="0" cy="352" r="13" data-platform-id="1"></circle>
+                      </g>
+                      <g class="g-node" data-station-id="CR05">
+                        <rect class="g-node__body" x="-60" y="140" width="120" height="60" rx="6" ry="6"></rect>
+                        <text class="g-node__name" x="0" y="160" text-anchor="middle">白樺台</text>
+                        <circle class="g-port" cx="0" cy="182" r="9"></circle>
+                        <text class="g-port__label" x="0" y="182" text-anchor="middle" dominant-baseline="central">1</text>
+                        <circle class="g-port__hit" cx="0" cy="182" r="13" data-platform-id="1"></circle>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <div class="g-ws-right">
+                <div class="g-field__label">港町</div>
+                <div class="g-tr-intra-table" data-g="table2">
+                  <table class="g-tr-intra-grid">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>1</th>
+                        <th>2</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th>1</th>
+                        <td>—</td>
+                        <td><input type="number" class="g-input" value="20"></td>
+                      </tr>
+                      <tr>
+                        <th>2</th>
+                        <td><input type="number" class="g-input" value="30"></td>
+                        <td>—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="g-field__label">徒歩連絡</div>
+                <p class="g-ws-right__note">この駅の徒歩連絡はありません。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <figcaption>のりばが 2 つ以上ある駅を選ぶと「駅の中の乗換時間」の表が出る。斜体のマスは、往復とも同じ時間で登録した乗換の逆向き側</figcaption>
+  <script type="text/x-gd-steps">
+    click @b-KL02
+    hide  @ws0
+    show  @ws1
+    spot  @table 駅の中の乗換時間
+    spot  @rev 斜体：逆向き側
+    spot  off
+    clear @rev
+    type  @rev 30
+    key   Enter
+    hide  @ws1
+    show  @ws2
+    spot  @table2 その向きだけ別の時間になる
+    wait  600
+  </script>
+</figure>

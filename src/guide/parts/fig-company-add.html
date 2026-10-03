@@ -1,0 +1,49 @@
+<figure class="gd-figure" data-w="760" data-h="460">
+  <div class="gd-stage">
+    <div class="gd-app">
+      <div class="g-view" data-g="view">
+        {{> companies-view}}
+      </div>
+      <div class="g-overlay gd-popover" data-g="pop" hidden>
+        <div class="g-popover-form">
+          <div class="g-field">
+            <label class="g-field__label">会社ID</label>
+            <input type="text" class="g-input" placeholder="例: KT" data-g="pop-id">
+            <div class="g-field__hint">英数字・_・- のみ、1〜64文字</div>
+          </div>
+          <div class="g-field"><label class="g-field__label">会社名</label><input type="text" class="g-input" data-g="pop-name"></div>
+          <div class="g-field__error"></div>
+          <div class="g-popover-actions">
+            <button type="button" class="g-btn">キャンセル</button>
+            <button type="button" class="g-btn g-btn--primary" data-g="pop-ok">作成</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <figcaption>［鉄道会社を追加］で吹き出しが開く。一覧の会社をクリックすると会社名の欄と［鉄道会社を削除］が開く</figcaption>
+  <script type="text/x-gd-steps">
+    click  @co-add
+    show   @pop
+    place  @pop @co-add
+    type   @pop-id MT
+    type   @pop-name みなと鉄道
+    click  @pop-ok
+    hide   @pop
+    show   @co-MT
+    show   @co-MT-detail
+    spot   @co-MT-detail
+    spot   off
+    remove @co-MT is-selected
+    hide   @co-MT-detail
+    click  @co-CR
+    add    @co-CR is-selected
+    show   @co-CR-detail
+    wait   400
+    click  @co-CR-del
+    hide   @co-CR-del
+    show   @co-CR-blocked
+    spot   @co-CR-blocked 使われているため削除できません。
+    wait   300
+  </script>
+</figure>

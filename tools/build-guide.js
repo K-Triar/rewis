@@ -1,12 +1,14 @@
 // 操作マニュアル（editor-guide.md など）から、画面イメージ付きの HTML 版を生成する。
 //   node tools/build-guide.js            … すべて生成
 //   node tools/build-guide.js editor     … 表形式エディタのガイドだけ生成
+//   node tools/build-guide.js graph      … 図形式エディタのガイドだけ生成
 //
 // 本文は md をそのまま変換する（文言は md が正本。HTML 側で本文を直接書き換えない）。
 // 図は <ガイドの出力先>/figures/<名前>.html に書き、md の入れたい位置に
 // <!-- figure: 名前 --> と書く（GitHub 上では表示されない）。
 // 図の中の <i data-icon="アイコン名"></i> は、エディタと同じ Octicons の SVG に置き換える。
-// 複数の図で使う部品は figures/_parts/ に置き、図の中に {{> 部品名}} と書いて読み込む。
+// 複数の図で使う部品は、図の中に {{> 部品名}} と書いて読み込む。部品は
+// そのガイドの figures/_parts/ → 両ガイド共通の src/guide/parts/ の順に探す。
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -16,10 +18,37 @@ import { ICONS } from '../src/editor/common/icons.js';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_BLOB = 'https://github.com/K-Triar/rewis/blob/main/';
 
+const SHARED_PARTS = join(ROOT, 'src/guide/parts');
+
+// 画面イメージを描くためのエディタの CSS（両エディタ共通の分）
+const EDITOR_CSS = [
+  'src/editor/common/primer/tokens/colors-base.css',
+  'src/editor/common/primer/tokens/colors-semantic.css',
+  'src/editor/common/primer/tokens/typography.css',
+  'src/editor/common/primer/tokens/spacing.css',
+  'src/editor/common/primer/tokens/borders.css',
+  'src/editor/common/primer/tokens/motion.css',
+  'src/editor/common/css/theme.css',
+  'src/editor/common/css/components.css',
+  'src/editor/common/css/app.css'
+];
+
+// css: エディタ本体の index.html と同じものを読み込む
+// appId: 本文の <main> に付ける id。エディタの CSS が #ed2-app（表形式）/ #g-app（図形式）の中だけに効かせている指定を、図にも効かせるため
 const GUIDES = {
   editor: {
     md: 'editor-guide.md',
-    outDir: 'editor/guide'
+    outDir: 'editor/guide',
+    css: [...EDITOR_CSS, 'src/editor/table/table.css'],
+    appId: 'ed2-app',
+    appNote: 'id="ed2-app" は、表形式エディタの画面イメージに table.css の詰めた表示を効かせるため'
+  },
+  graph: {
+    md: 'editor-graph-guide.md',
+    outDir: 'editor-graph/guide',
+    css: EDITOR_CSS,
+    appId: 'g-app',
+    appNote: 'id="g-app" は、図形式エディタ（app.css の #g-app）と同じ入れ物にするため'
   }
 };
 
@@ -206,13 +235,14 @@ function checkFigure(name, html) {
   });
 }
 
-// 図の中の {{> 名前}} を figures/_parts/名前.html に置き換える（ヘッダーなど複数の図で同じ部品）
-function includeParts(html, partsDir, depth = 0) {
+// 図の中の {{> 名前}} を部品に置き換える（ヘッダーなど複数の図で同じ部品）。
+// partsDirs の前のものほど優先する（ガイド固有の _parts/ → 共通の src/guide/parts/）
+function includeParts(html, partsDirs, depth = 0) {
   if (depth > 5) throw new Error('部品の読み込みが深すぎます');
   return html.replace(/\{\{> ([\w-]+)\}\}/g, (_, name) => {
-    const path = join(partsDir, `${name}.html`);
-    if (!existsSync(path)) throw new Error(`部品がありません: ${relative(ROOT, path)}`);
-    return includeParts(readFileSync(path, 'utf8').trim(), partsDir, depth + 1);
+    const path = partsDirs.map((dir) => join(dir, `${name}.html`)).find((p) => existsSync(p));
+    if (!path) throw new Error(`部品がありません: ${name}（${partsDirs.map((d) => relative(ROOT, d)).join(' / ')}）`);
+    return includeParts(readFileSync(path, 'utf8').trim(), partsDirs, depth + 1);
   });
 }
 
@@ -244,7 +274,7 @@ function build(key) {
       const path = join(outDir, 'figures', `${name}.html`);
       if (!existsSync(path)) throw new Error(`図がありません: ${relative(ROOT, path)}`);
       usedFigures.push(name);
-      const html = includeParts(readFileSync(path, 'utf8').trim(), join(outDir, 'figures', '_parts'));
+      const html = includeParts(readFileSync(path, 'utf8').trim(), [join(outDir, 'figures', '_parts'), SHARED_PARTS]);
       checkFigure(name, html);
       return html
         .replace(/<i data-icon="([\w-]+)"(?: data-size="(\d+)")?><\/i>/g, (_, n, s) => iconSvg(n, s ? Number(s) : 16))
@@ -283,16 +313,7 @@ function build(key) {
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
 
     <!-- 画面イメージは実際のエディタと同じ CSS で描く -->
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/primer/tokens/colors-base.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/primer/tokens/colors-semantic.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/primer/tokens/typography.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/primer/tokens/spacing.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/primer/tokens/borders.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/primer/tokens/motion.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/css/theme.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/css/components.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/common/css/app.css">
-    <link rel="stylesheet" href="${toRoot}/src/editor/table/table.css">
+${conf.css.map((href) => `    <link rel="stylesheet" href="${toRoot}/${href}">`).join('\n')}
     <!-- 公開ページの画面イメージ用（layout.css はページ全体の骨組みなので読み込まない） -->
     <link rel="stylesheet" href="${toRoot}/assets/design-system/tokens.css">
     <link rel="stylesheet" href="${toRoot}/assets/design-system/components.css">
@@ -306,8 +327,8 @@ function build(key) {
             <div class="g-header__title">| 操作マニュアル</div>
         </div>
     </header>
-    <!-- id="ed2-app" は、表形式エディタの画面イメージに table.css の詰めた表示を効かせるため -->
-    <main id="ed2-app" class="gd-doc">
+    <!-- ${conf.appNote} -->
+    <main id="${conf.appId}" class="gd-doc">
 ${body}
     </main>
     <script type="module" src="${toRoot}/src/guide/player.js"></script>
