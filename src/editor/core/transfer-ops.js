@@ -39,18 +39,43 @@ function sameEndpoint(a, b) {
   return a.stationId === b.stationId && (a.platformId ?? null) === (b.platformId ?? null);
 }
 
+// 経路探索（route-search.js）と同じく、逆向きは bidirectional:true の登録だけを数える。
+// 順向きの登録があれば、そちらを優先する。
 export function lookupIntraTransfer(network, stationId, fromPlatformId, toPlatformId) {
   const from = { stationId, platformId: fromPlatformId ?? null };
   const to = { stationId, platformId: toPlatformId ?? null };
-  for (const transfer of network.transfers || []) {
-    if (sameEndpoint(transfer.from, from) && sameEndpoint(transfer.to, to)) {
-      return { transfer, reversed: false };
-    }
-    if (sameEndpoint(transfer.from, to) && sameEndpoint(transfer.to, from)) {
-      return { transfer, reversed: true };
-    }
-  }
+  const transfers = network.transfers || [];
+  const forward = transfers.find((t) => sameEndpoint(t.from, from) && sameEndpoint(t.to, to));
+  if (forward) return { transfer: forward, reversed: false };
+  const backward = transfers.find((t) => t.bidirectional && sameEndpoint(t.from, to) && sameEndpoint(t.to, from));
+  if (backward) return { transfer: backward, reversed: true };
   return null;
+}
+
+// 駅の中の乗換表の1マス（from→to）に秒数を設定した結果の transfers を返す。seconds が null なら空にする。
+// 変化がなければ渡した配列をそのまま返す。
+// 往復登録の逆向き側のマスは、元の登録を片道にしたうえで、このマスの向きを片道で登録する。
+export function setIntraTransferSeconds(transfers, stationId, fromPlatformId, toPlatformId, seconds) {
+  const looked = lookupIntraTransfer({ transfers }, stationId, fromPlatformId, toPlatformId);
+  const createCell = () => createTransfer({
+    from: { stationId, platformId: fromPlatformId },
+    to: { stationId, platformId: toPlatformId },
+    seconds,
+    bidirectional: false
+  });
+  if (!looked) {
+    return seconds == null ? transfers : [...transfers, createCell()];
+  }
+  const { transfer, reversed } = looked;
+  if (!reversed) {
+    if (seconds == null) return transfers.filter((t) => t.id !== transfer.id);
+    if (seconds === transfer.seconds) return transfers;
+    return transfers.map((t) => (t.id === transfer.id ? updateTransfer(t, { seconds }) : t));
+  }
+  if (seconds === transfer.seconds) return transfers;
+  // 先に元の登録を片道にしてから追加する（E_TRANSFER_DUP にならない）
+  const next = transfers.map((t) => (t.id === transfer.id ? updateTransfer(t, { bidirectional: false }) : t));
+  return seconds == null ? next : [...next, createCell()];
 }
 
 export function validateTransferDraft(network, transfer, { excludeId } = {}) {

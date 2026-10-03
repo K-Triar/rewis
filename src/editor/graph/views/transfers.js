@@ -325,6 +325,14 @@ function mountGraphPane(container, ctx) {
 
     const bidirInput = h('input', { type: 'checkbox', checked: !!transfer.bidirectional });
     bidirInput.addEventListener('change', () => {
+      // 逆向きが別に登録されていると、往復にすると重複になる
+      const error = transferOps.validateTransferDraft(network, transferOps.updateTransfer(transfer, { bidirectional: bidirInput.checked }), { excludeId: transfer.id });
+      if (error) {
+        bidirInput.checked = !!transfer.bidirectional;
+        errorEl.textContent = error;
+        return;
+      }
+      errorEl.textContent = '';
       mutateTransfer(transfer.id, (t) => transferOps.updateTransfer(t, { bidirectional: bidirInput.checked }));
     });
     workspace.right.appendChild(h('div', { class: 'g-checkbox' }, bidirInput, h('span', {}, '逆向きにも同じ時間で乗り換えられる')));
@@ -414,37 +422,25 @@ function mountGraphPane(container, ctx) {
         });
         input.addEventListener('change', async () => {
           const raw = input.value.trim();
+          let value = null;
           if (raw === '') {
-            if (looked) {
-              if (looked.reversed) {
-                const ok = await confirmDialog('逆向きの乗換も一緒に削除されます。', { confirmLabel: '削除する', danger: true });
-                if (!ok) { input.value = looked.transfer.seconds; return; }
-              }
-              store.mutateDoc('network', (doc) => {
-                doc.transfers = doc.transfers.filter((t) => t.id !== looked.transfer.id);
-              });
-              refreshView();
+            // 往復登録を順向きのマスから消すと、逆向きも消える
+            if (looked && !looked.reversed && looked.transfer.bidirectional) {
+              const ok = await confirmDialog('逆向きの乗換も一緒に削除されます。', { confirmLabel: '削除する', danger: true });
+              if (!ok) { input.value = looked.transfer.seconds; return; }
             }
-            return;
-          }
-          const value = Number(raw);
-          if (!Number.isInteger(value) || value < 0) {
-            input.value = looked ? looked.transfer.seconds : '';
-            await alertDialog('乗換秒数は0以上の整数で入力してください。');
-            return;
-          }
-          if (looked) {
-            mutateTransfer(looked.transfer.id, (t) => transferOps.updateTransfer(t, { seconds: value }));
           } else {
-            const draft = transferOps.createTransfer({
-              from: { stationId: station.id, platformId: fromP.id },
-              to: { stationId: station.id, platformId: toP.id },
-              seconds: value,
-              bidirectional: false
-            });
-            store.mutateDoc('network', (doc) => { doc.transfers.push(draft); });
-            refreshView();
+            value = Number(raw);
+            if (!Number.isInteger(value) || value < 0) {
+              input.value = looked ? looked.transfer.seconds : '';
+              await alertDialog('乗換秒数は0以上の整数で入力してください。');
+              return;
+            }
           }
+          const next = transferOps.setIntraTransferSeconds(network.transfers, station.id, fromP.id, toP.id, value);
+          if (next === network.transfers) return;
+          store.mutateDoc('network', (doc) => { doc.transfers = next; });
+          refreshView();
         });
         row.appendChild(h('td', {}, input));
       });
