@@ -899,7 +899,7 @@ function renderLineDiagram(lineId) {
     // 横線上の矢印の先端が曲線の終わりから届く距離（矢印の中心 +5px、半分の長さ 5px）
     const THROUGH_ARROW_REACH = 10;
     // 横線のうち、最後に合流する曲線の先を濃いまま伸ばす長さ
-    const THROUGH_SOLID_AFTER = 8;
+    const THROUGH_SOLID_AFTER = 4;
     // 横線の終わりのぼかしのグラデーションの分割数
     const THROUGH_FADE_STEPS = 12;
 
@@ -1336,8 +1336,6 @@ function renderLineDiagram(lineId) {
             throughRowsToPlace.push(through);
         }
     });
-    // 直通の分岐がある路線は、横線のぼかしの分だけ路線図と駅名の間を広げる
-    lineLayoutEl.classList.toggle('has-through', throughRowsToPlace.length > 0);
     placeThroughBranches();
 
     if (line.loop) {
