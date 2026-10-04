@@ -377,6 +377,10 @@
     padding-left: var(--space-3);
     padding-right: var(--space-5);
 }
+.line-layout.has-through .op-diagram-headers,
+.line-layout.has-through .op-diagram-cells {
+    padding-right: calc(var(--space-5) + 12px);
+}
 
 .service-label {
     width: 32px;
@@ -624,10 +628,10 @@
 
 .diagram-node {
     position: relative;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: var(--radius-circle);
-    border: 5px solid #020C38;
+    border: 6px solid #020C38;
     background: var(--color-bg-surface);
     z-index: 4;
 }

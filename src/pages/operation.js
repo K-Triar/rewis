@@ -898,6 +898,8 @@ function renderLineDiagram(lineId) {
     const THROUGH_PAD = 18;
     // 横線上の矢印の先端が曲線の終わりから届く距離（矢印の中心 +5px、半分の長さ 5px）
     const THROUGH_ARROW_REACH = 10;
+    // 横線のうち、最後に合流する曲線の先を濃いまま伸ばす長さ
+    const THROUGH_SOLID_AFTER = 8;
 
     // 片方向だけの直通に付ける、進む向きの白い矢印（線の内側に収まる軸付きの →）。
     // placement:
@@ -1097,12 +1099,13 @@ function renderLineDiagram(lineId) {
                 const start = curveEnd(fromCat) - origin;
                 const end = labelLeft - origin;
                 if (end <= start) return;
-                // 終わりのぼかしは右端の列の曲線が合流した先（横線上の矢印があればその先）から、
+                // 終わりのぼかしは、右端の列の曲線が合流した先（横線上の矢印があればその先）を
+                // THROUGH_SOLID_AFTER だけ濃いまま伸ばしてから（合流点で途切れて見えないように）、
                 // 長くても最後の 28px だけ
                 let solidEnd = curveEnd(toCat);
                 if (arrowCat) solidEnd = Math.max(solidEnd, curveEnd(arrowCat) + THROUGH_ARROW_REACH);
-                const fadeFrom = Math.max(solidEnd - origin, end - 28);
-                const fadeTo = Math.max(fadeFrom + 1, end - 4);
+                const fadeTo = end - 2;
+                const fadeFrom = Math.min(fadeTo - 1, Math.max(solidEnd + THROUGH_SOLID_AFTER - origin, end - 28));
 
                 const gradId = `op-through-grad${++throughGradSeq}`;
                 const defs = document.createElementNS(SVG_NS, 'defs');
@@ -1328,6 +1331,8 @@ function renderLineDiagram(lineId) {
             throughRowsToPlace.push(through);
         }
     });
+    // 直通の分岐がある路線は、横線のぼかしの分だけ路線図と駅名の間を広げる
+    lineLayoutEl.classList.toggle('has-through', throughRowsToPlace.length > 0);
     placeThroughBranches();
 
     if (line.loop) {
