@@ -367,6 +367,17 @@
     display: flex;
     flex-direction: row;
     align-items: stretch;
+    /* 駅の丸・ピルの中心と、線・ぼかし・曲線の端を置く高さ（行の上端から） */
+    --node-y: 50%;
+}
+/* 駅の行は、乗換の一覧で行が高くなっても、丸を駅名の行の中心にそろえる。
+   上の余白（--space-3）＋駅名の行の高さの半分。乗換の一覧が無い行（高さ 48px）では 50% と同じ */
+.op-body-row--station {
+    --station-name-lh: 24px;
+    --node-y: calc(var(--space-3) + var(--station-name-lh) / 2);
+}
+.op-body-row--station .op-station-cell {
+    justify-content: flex-start;
 }
 
 .op-diagram-headers,
@@ -407,6 +418,7 @@
 
 .op-station-cell {
     flex: 1;
+    min-width: 0; /* 乗換の一覧が長いときに、行からはみ出さず折り返す */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -424,10 +436,10 @@
     z-index: 2;
 }
 .diagram-line.line-start {
-    top: 50%;
+    top: var(--node-y);
 }
 .diagram-line.line-end {
-    bottom: 50%;
+    bottom: calc(100% - var(--node-y));
 }
 
 /*
@@ -451,10 +463,10 @@
     animation: diagram-line-blink 2s step-start infinite;
 }
 .diagram-line-glow.affected-start {
-    top: 50%;
+    top: var(--node-y);
 }
 .diagram-line-glow.affected-end {
-    bottom: 50%;
+    bottom: calc(100% - var(--node-y));
 }
 /*
  * box-shadow は要素の上下端でも減衰するため、区間（セル）ごとに分けると境目に
@@ -485,21 +497,21 @@
  * 続かない端（影響区間の端の駅）は、駅の中心を中心とする半円のキャップで丸く閉じる。
  * 本体は駅の中心まで届かせ、キャップはその外側（半径 22px）に出す。
  */
-.diagram-line-glow.affected-start:not(.glow-cont-top) { top: calc(50% - 22px); }
-.diagram-line-glow.affected-end:not(.glow-cont-bottom) { bottom: calc(50% - 22px); }
+.diagram-line-glow.affected-start:not(.glow-cont-top) { top: calc(var(--node-y) - 22px); }
+.diagram-line-glow.affected-end:not(.glow-cont-bottom) { bottom: calc(100% - var(--node-y) - 22px); }
 
 .op-diagram-cell--loop {
     overflow: visible;
 }
 
 /*
- * 環状・ラケット型の曲線 SVG は 64×48 固定で、駅の中心（セルの縦中央）に合わせて
+ * 環状・ラケット型の曲線 SVG は 64×48 固定で、駅の中心（--node-y）に合わせて
  * 置く。<svg> は置換要素なので top/bottom 両指定では伸びない点に注意。
  * 行の高さに追従する縦線は .diagram-line（div）側で描く。
  */
 .diagram-loop-svg {
     position: absolute;
-    top: calc(50% - 24px);
+    top: calc(var(--node-y) - 24px);
     left: 0;
     width: 64px;
     height: 48px;
@@ -508,7 +520,7 @@
 }
 /* 環状線の始点: 駅中心の上に 24px の直線を挟むため 72px（JS の LOOP_TOP_STRAIGHT と対応） */
 .diagram-loop-svg--top {
-    top: calc(50% - 48px);
+    top: calc(var(--node-y) - 48px);
     height: 72px;
 }
 .diagram-loop-svg--bottom {
@@ -517,14 +529,14 @@
 /* ラケット型の戻る駅: 曲線（駅中心+16px から上）に続く専用線の縦線部分 */
 .diagram-line.loop-corner-start,
 .diagram-line-glow.loop-corner-start {
-    top: calc(50% + 16px);
+    top: calc(var(--node-y) + 16px);
 }
 /*
  * 専用線の曲線のぼかし（SVG）と直線のぼかし（div）の接合位置。曲線の付け根から 12px
  * 直線側へ離す（operation.js の LOOP_GLOW_JOIN と対応）。セルが低くても下端を越えないよう min で抑える
  */
 .diagram-line-glow.glow-join-corner {
-    top: min(calc(50% + 28px), 100%);
+    top: min(calc(var(--node-y) + 28px), 100%);
 }
 .diagram-line-glow.glow-join-loop-bottom {
     bottom: 12px;
@@ -614,7 +626,7 @@
     position: absolute;
     left: 13px;
     right: 23px;
-    top: 50%;
+    top: var(--node-y);
     height: 22px;
     transform: translateY(-50%);
     background: #000000;
@@ -623,7 +635,10 @@
 }
 
 .diagram-node {
-    position: relative;
+    position: absolute;
+    top: var(--node-y);
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 24px;
     height: 24px;
     border-radius: var(--radius-circle);
@@ -651,13 +666,142 @@
 }
 
 .station-name-main {
+    line-height: var(--station-name-lh, inherit);
     font-weight: var(--font-weight-bold);
     color: var(--color-heading);
 }
 
-.station-transfer {
+/* ===== 駅の乗換・徒歩連絡 =====
+   乗換先の路線は、路線図の線と同じ「路線色の細い縦帯」＋路線名で示し、その路線のページへの
+   リンクにする。運行情報がある路線だけ、路線一覧の運行情報の行と同じ状態の淡色の帯に載せ、
+   路線名の後ろに記号と見出しを出す。 */
+.op-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-top: var(--space-1);
+}
+.op-links__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+}
+.op-links__label,
+.op-loop-return__kind {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.op-xfer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
     color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-xs);
+}
+.op-xfer:hover .op-xfer__name {
+    color: var(--color-text);
+    text-decoration: underline;
+}
+.op-xfer:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+.op-xfer__mark {
+    flex: none;
+    width: 4px;
+    height: 13px;
+    border-radius: 2px;
+    background-color: var(--line-color);
+}
+
+/* 運行情報の状態（記号＋見出し）。色は状態の文字色トークン */
+.op-xfer__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: var(--font-weight-bold);
+}
+.op-xfer__status-icon {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    stroke-width: 5;
+}
+.op-xfer--warning { --status-text: var(--color-status-warning-text); --status-bg: var(--color-status-warning-bg); --status-line: var(--color-status-warning); }
+.op-xfer--suspend { --status-text: var(--color-status-suspend-text); --status-bg: var(--color-status-suspend-bg); --status-line: var(--color-status-suspend); }
+.op-xfer--alert {
+    padding: 1px 8px 1px 6px;
+    margin: 0 -2px;
+    background: var(--status-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-line) 35%, transparent);
+    color: var(--color-text);
+}
+.op-xfer--alert .op-xfer__status {
+    margin-left: 2px;
+    color: var(--status-text);
+}
+
+.op-walk {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+}
+.op-walk__icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    background-color: var(--color-text-secondary);
+    -webkit-mask: url(../icons/walking.svg) center / contain no-repeat;
+    mask: url(../icons/walking.svg) center / contain no-repeat;
+}
+.op-walk__name {
+    font-weight: var(--font-weight-bold);
+}
+.op-walk__time {
+    color: var(--color-text-secondary);
+}
+
+/* 環状・ラケット型の「◯◯の次は◯◯へ戻る」。記号は路線図の折り返しと同じ形を路線色で */
+.op-station-cell--loop {
+    align-items: flex-start;
+}
+.op-loop-return {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+}
+.op-loop-return__icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: var(--line-color);
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.op-loop-return__to {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
 }
 
 /* .share-result-wrapper / .notice-section / .loading-section / @keyframes fadeIn は design-system/components.css 側の共通クラス */
