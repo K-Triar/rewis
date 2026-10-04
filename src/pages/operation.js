@@ -900,6 +900,8 @@ function renderLineDiagram(lineId) {
     const THROUGH_ARROW_REACH = 10;
     // 横線のうち、最後に合流する曲線の先を濃いまま伸ばす長さ
     const THROUGH_SOLID_AFTER = 8;
+    // 横線の終わりのぼかしのグラデーションの分割数
+    const THROUGH_FADE_STEPS = 12;
 
     // 片方向だけの直通に付ける、進む向きの白い矢印（線の内側に収まる軸付きの →）。
     // placement:
@@ -1116,13 +1118,16 @@ function renderLineDiagram(lineId) {
                 grad.setAttribute('x2', String(fadeTo));
                 grad.setAttribute('y1', '0');
                 grad.setAttribute('y2', '0');
-                [[0, 1], [1, 0]].forEach(([offset, opacity]) => {
+                // 直線的に薄くすると、始まりで濃さの変化が急に切り替わって縦の境目が見える
+                // （マッハバンド）。smoothstep の S 字で始まりと終わりをなめらかにする
+                for (let i = 0; i <= THROUGH_FADE_STEPS; i++) {
+                    const t = i / THROUGH_FADE_STEPS;
                     const stop = document.createElementNS(SVG_NS, 'stop');
-                    stop.setAttribute('offset', String(offset));
+                    stop.setAttribute('offset', t.toFixed(3));
                     stop.style.stopColor = color;
-                    stop.style.stopOpacity = String(opacity);
+                    stop.style.stopOpacity = (1 - t * t * (3 - 2 * t)).toFixed(3);
                     grad.appendChild(stop);
-                });
+                }
                 defs.appendChild(grad);
                 svg.appendChild(defs);
 
