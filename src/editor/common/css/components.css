@@ -108,6 +108,14 @@
 }
 .g-field__hint { font: var(--text-body-shorthand-small); color: var(--fgColor-muted); }
 .g-field__error { font: var(--text-body-shorthand-small); color: var(--fgColor-danger); }
+.g-disclosure > summary {
+  font: var(--text-body-shorthand-small);
+  color: var(--fgColor-muted);
+  cursor: pointer;
+  width: fit-content;
+}
+.g-disclosure > summary:hover { color: var(--fgColor-default); }
+.g-disclosure[open] > summary { margin-bottom: var(--stack-gap-condensed); }
 
 /* チェックボックス */
 .g-checkbox {

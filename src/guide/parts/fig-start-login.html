@@ -7,12 +7,11 @@
           <div class="g-card__body">
             <div class="g-field__label">① ログイン</div>
             <div class="g-field" data-g="form">
-              <div class="g-field__label">Workers API URL<button type="button" class="g-icon-btn g-btn--invisible g-btn--small" data-g="help"><i data-icon="question"></i></button></div>
-              <input type="url" class="g-input" placeholder="https://your-worker.workers.dev" data-g="url">
               <div class="g-field__label">ユーザーID</div>
               <input type="text" class="g-input" data-g="user">
               <div class="g-field__label">パスワード</div>
               <input type="password" class="g-input" data-g="pass">
+              <details class="g-disclosure"><summary>詳細設定</summary></details>
               <button type="button" class="g-btn g-btn--primary" data-g="login">ログイン</button>
             </div>
             <div class="g-field" data-g="done" hidden>
@@ -24,22 +23,13 @@
           <div class="g-start-card__manual">初めての方は、先に<span class="g-start-card__manual-link"><i data-icon="book"></i>操作マニュアル</span>をご覧ください。</div>
         </div>
       </div>
-      <div class="g-overlay gd-popover" data-g="tip" hidden>
-        <div style="max-width:260px;">REWIS のデータを保存しているサーバーの URL です。管理者から教えてもらった値を入れてください。</div>
-      </div>
     </div>
   </div>
-  <figcaption>「？」で説明を見て、3 つの項目を入力してログインする</figcaption>
+  <figcaption>ユーザーIDとパスワードを入力してログインする</figcaption>
   <script type="text/x-gd-steps">
     spot  @load
     wait  300
     spot  off
-    click @help
-    show  @tip
-    place @tip @help
-    wait  2600
-    hide  @tip
-    type  @url https://rewis.example.workers.dev
     type  @user k_triar
     type  @pass rewis2026
     click @login

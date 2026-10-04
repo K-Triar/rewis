@@ -1,10 +1,9 @@
 import { h, clear } from '../dom.js';
-import { helpTip } from '../components/help-tip.js';
+import { apiBaseField } from '../components/api-base-field.js';
 import { alertDialog, confirmDialog } from '../components/dialog.js';
 import * as api from '../api.js';
 import { validateNetwork, validateOperations } from '../../../shared/schema-v2.js';
 
-const API_URL_HELP = 'REWIS のデータを保存しているサーバーの URL です。管理者から教えてもらった値を入れてください。';
 const KIND_LABEL = { network: '路線網', operations: '運行情報' };
 
 function summarizeCounts(kind, doc) {
@@ -67,26 +66,26 @@ export function renderDataView(container, ctx) {
         return;
       }
 
-      const apiBaseInput = h('input', {
-        type: 'url', class: 'g-input', placeholder: 'https://your-worker.workers.dev', value: api.getSavedApiBase()
-      });
-      apiBaseInput.addEventListener('change', () => { apiBaseInput.value = api.saveApiBase(apiBaseInput.value); });
+      const apiBase = apiBaseField();
       const userIdInput = h('input', { type: 'text', class: 'g-input', autocomplete: 'username' });
       const passwordInput = h('input', { type: 'password', class: 'g-input', autocomplete: 'current-password' });
 
       body.appendChild(h('div', { class: 'g-field' },
-        h('div', { class: 'g-field__label' }, 'Workers API URL', helpTip(API_URL_HELP)),
-        apiBaseInput,
         h('div', { class: 'g-field__label' }, 'ユーザーID'),
         userIdInput,
         h('div', { class: 'g-field__label' }, 'パスワード'),
         passwordInput,
+        apiBase.element,
         h('button', {
           class: 'g-btn g-btn--primary',
           type: 'button',
           onClick: async () => {
-            const base = apiBaseInput.value.trim();
-            if (!base) { setStatus('Workers API URL を先に設定してください。', 'attention'); return; }
+            const base = api.saveApiBase(apiBase.input.value);
+            if (!base) {
+              apiBase.element.open = true;
+              setStatus('詳細設定の Workers API URL を入力してください。', 'attention');
+              return;
+            }
             try {
               await api.login(base, userIdInput.value.trim(), passwordInput.value);
               setStatus(null);

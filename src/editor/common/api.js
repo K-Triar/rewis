@@ -7,18 +7,25 @@ export function normalizeBase(value) {
   return String(value || '').trim().replace(/\/$/, '');
 }
 
-export function getSavedApiBase() {
-  return localStorage.getItem(API_BASE_KEY) || '';
+// 本番の Worker URL。公開ページと同じ assets/js/rewis_public_config.js を正本にする
+export function getDefaultApiBase() {
+  const config = globalThis.REWIS_PUBLIC_DATA_SOURCE;
+  return normalizeBase(config && config.workerApiBase);
 }
 
+export function getSavedApiBase() {
+  return localStorage.getItem(API_BASE_KEY) || getDefaultApiBase();
+}
+
+// 既定値と同じ値や空欄は保存せず、既定値に戻す（ローカル Worker で試すときだけ上書きが残る）
 export function saveApiBase(value) {
   const normalized = normalizeBase(value);
-  if (normalized) {
+  if (normalized && normalized !== getDefaultApiBase()) {
     localStorage.setItem(API_BASE_KEY, normalized);
   } else {
     localStorage.removeItem(API_BASE_KEY);
   }
-  return normalized;
+  return getSavedApiBase();
 }
 
 export function getSavedSession() {
