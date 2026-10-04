@@ -293,17 +293,17 @@
     line-height: var(--line-height-tight);
     font-weight: var(--font-weight-bold);
 }
-.status-card--normal .status-card-icon { color: var(--color-status-normal); }
-.status-card--warning .status-card-icon { color: var(--color-status-warning); }
-.status-card--suspend .status-card-icon { color: var(--color-status-suspend); }
+.status-card--normal .status-card-icon { color: var(--color-status-normal-text); }
+.status-card--warning .status-card-icon { color: var(--color-status-warning-text); }
+.status-card--suspend .status-card-icon { color: var(--color-status-suspend-text); }
 
 .status-card-text {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
 }
-.status-card--normal .status-card-text { color: var(--color-status-normal); }
-.status-card--warning .status-card-text { color: var(--color-status-warning); }
-.status-card--suspend .status-card-text { color: var(--color-status-suspend); }
+.status-card--normal .status-card-text { color: var(--color-status-normal-text); }
+.status-card--warning .status-card-text { color: var(--color-status-warning-text); }
+.status-card--suspend .status-card-text { color: var(--color-status-suspend-text); }
 
 .status-card--link {
     cursor: pointer;

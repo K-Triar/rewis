@@ -30,6 +30,14 @@
     --color-status-warning-bg: #fdf1e6;
     --color-status-suspend-bg: #fdecea;
 
+    /* 状態を「文字・記号」で示すときの色（状態テキスト、○△× のグリフ等）。
+       上の基本色は白地・淡色トーン上で 4.5:1 に届かないため、色相・彩度はそのままに
+       明度だけ下げて WCAG AA を満たす値にしたもの。基本色は枠線・グロー・面など
+       文字以外の目印に使い、文字には必ずこちらを使う。 */
+    --color-status-normal-text: #367D39;  /* -bg 上 4.65:1 / 白地 5.06:1 */
+    --color-status-warning-text: #A85913; /* -bg 上 4.61:1 / 白地 5.12:1 */
+    --color-status-suspend-text: #DA0011; /* -bg 上 4.60:1 / 白地 5.26:1 */
+
     /* 注意書きバナー */
     --color-notice-bg: #fff3cd;
     --color-notice-border: #ffc107;

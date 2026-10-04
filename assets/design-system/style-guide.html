@@ -138,7 +138,12 @@
             <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-warning-bg)"></div>status-warning-bg</div>
             <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-suspend-bg)"></div>status-suspend-bg</div>
         </div>
-        <p class="guide-note">status-* は route-start / secondary / danger のエイリアス。運行状況など3段階ステータス表示の枠線・文字色に使う。status-*-bg はそれぞれの淡色トーンで、枠線+背景色で状態を示すカード構成（ホームの運行状況カード等）に使う。</p>
+        <div class="guide-row">
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-normal-text)"></div>status-normal-text</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-warning-text)"></div>status-warning-text</div>
+            <div class="guide-swatch"><div class="guide-swatch-color" style="background:var(--color-status-suspend-text)"></div>status-suspend-text</div>
+        </div>
+        <p class="guide-note">status-* は route-start / secondary / danger のエイリアス。運行状況など3段階ステータス表示の枠線・グローなど文字以外の目印に使う。status-*-bg はそれぞれの淡色トーンで、枠線+背景色で状態を示すカード構成（ホームの運行状況カード等）に使う。status-*-text は状態テキストや ○△× のグリフなど文字に使う色で、-bg 上・白地上どちらでも WCAG AA（4.5:1 以上）を満たす。</p>
     </section>
 
     <section class="guide-section">

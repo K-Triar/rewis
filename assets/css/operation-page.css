@@ -144,13 +144,13 @@
     font-size: 1.4rem;
     font-weight: var(--font-weight-bold);
     line-height: 1;
-    color: var(--color-status-normal);
+    color: var(--color-status-normal-text);
 }
 .line-notice-row--warning .line-notice-icon {
-    color: var(--color-status-warning);
+    color: var(--color-status-warning-text);
 }
 .line-notice-row--suspend .line-notice-icon {
-    color: var(--color-status-suspend);
+    color: var(--color-status-suspend-text);
 }
 
 .line-notice-main {
@@ -321,10 +321,10 @@
 
 .alert-icon {
     font-weight: var(--font-weight-bold);
-    color: var(--color-status-warning);
+    color: var(--color-status-warning-text);
 }
 .alert-item--suspend .alert-icon {
-    color: var(--color-status-suspend);
+    color: var(--color-status-suspend-text);
 }
 
 .alert-title {
