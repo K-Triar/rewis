@@ -432,10 +432,10 @@ ${items}
 function header(key, conf, toRoot) {
   return `<header class="g-header gd-header">
     <button type="button" class="g-btn g-icon-btn g-btn--invisible gd-header__toc" aria-controls="gd-sidebar" aria-expanded="false" aria-label="目次を開く">${iconSvg('rows')}</button>
-    <a class="g-header__left gd-header__home" href="#top" aria-label="ページの先頭へ">
-        <img class="g-header__logo" src="${toRoot}/assets/icons/rewis_logo_w.svg" alt="">
-        <span class="g-header__title">| 操作マニュアル</span>
-    </a>
+    <div class="g-header__left gd-header__brand">
+        <a class="g-header__home" href="${toRoot}/" title="REWIS ホームへ"><img class="g-header__logo" src="${toRoot}/assets/icons/rewis_logo_w.svg" alt="REWIS ホーム"></a>
+        <a class="gd-header__home" href="#top" aria-label="ページの先頭へ"><span class="g-header__title">| 操作マニュアル</span></a>
+    </div>
     ${switcher(key, toRoot, 'gd-switch gd-switch--header')}
     <div class="gd-search" role="search">
         <button type="button" class="g-btn g-icon-btn g-btn--invisible gd-search__open" aria-label="マニュアル内を検索">${iconSvg('search')}</button>
@@ -534,6 +534,7 @@ ${body}
     </main>
     </div>
     <div class="gd-toast" role="status" aria-live="polite" hidden></div>
+    <button type="button" class="g-btn g-icon-btn gd-totop" aria-label="ページの先頭へ戻る" title="ページの先頭へ戻る" hidden>${iconSvg('arrow-up')}</button>
     <!-- 「LLMに質問する：」でコピー・ダウンロードする md の全文（AI 向けの前置きも含めて、md のまま） -->
     <script type="application/json" id="gd-md-source">${JSON.stringify(md).replace(/</g, '\\u003c')}</script>
     <script type="module" src="${toRoot}/src/guide/player.js"></script>

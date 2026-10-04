@@ -461,6 +461,9 @@ body {
 }
 /* 見出しへ移ったとき、固定ヘッダーの下に隠れないようにする */
 html { scroll-padding-top: calc(var(--gd-header-h) + 16px); }
+/* 目次・検索・本文中のリンクで移るときはなめらかにスクロールする（動きを減らす設定の人には、すぐに移る） */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 .gd-header {
   position: sticky;
@@ -470,6 +473,8 @@ html { scroll-padding-top: calc(var(--gd-header-h) + 16px); }
   gap: 12px;
   padding-inline: 12px 16px;
 }
+/* ロゴは REWIS ホームへ、「| 操作マニュアル」はページの先頭へ */
+.gd-header__brand { flex: none; }
 .gd-header__home { flex: none; color: #fff; text-decoration: none; }
 .gd-header__toc { display: none; flex: none; }
 .gd-header__right {
@@ -726,12 +731,30 @@ html { scroll-padding-top: calc(var(--gd-header-h) + 16px); }
 }
 .gd-toast[hidden] { display: none; }
 
+/* 右下の「↑」：ページの先頭へ戻る（目次の引き出しより下に重ねる） */
+.gd-totop {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 990;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: var(--shadow-floating-medium);
+}
+.gd-totop svg { width: 20px; height: 20px; }
+.gd-totop[hidden] { display: none; }
+@media (max-width: 767px) {
+  .gd-totop { right: 16px; bottom: 16px; }
+}
+@media print { .gd-totop { display: none; } }
+
 /* ---- 幅に合わせた切り替え ---- */
 /* エディタと左右に並べたときなど：目次は引き出しにする */
 @media (max-width: 1099px) {
   .gd-header__toc { display: inline-flex; }
   /* 検索欄の幅を取るため「| 操作マニュアル」は省く */
-  .gd-header .g-header__title { display: none; }
+  .gd-header__home { display: none; }
   .gd-layout > .gd-doc { padding-inline: 16px; }
   .gd-sidebar {
     position: fixed;
@@ -764,7 +787,7 @@ html { scroll-padding-top: calc(var(--gd-header-h) + 16px); }
 /* スマホ幅：切り替えは目次の中へ、検索は虫眼鏡だけにする */
 @media (max-width: 767px) {
   .gd-header { gap: 4px; padding-inline: 4px 8px; }
-  .gd-header .g-header__title { display: none; }
+  .gd-header__home { display: none; }
   .gd-switch--header { display: none; }
   .gd-switch--sidebar { display: inline-flex; }
   /* スマホ幅では虫眼鏡を右側（「エディタを開く」の隣）に置く */

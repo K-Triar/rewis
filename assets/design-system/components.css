@@ -834,7 +834,7 @@
 .icon-walking { mask-image: url(../icons/walking.svg); -webkit-mask-image: url(../icons/walking.svg); }
 .icon-train { mask-image: url(../icons/train.svg); -webkit-mask-image: url(../icons/train.svg); }
 .icon-menu { mask-image: url(../icons/menu.svg); -webkit-mask-image: url(../icons/menu.svg); }
-.icon-info, .icon-business, .icon-news { display: none; }
+.icon-info, .icon-business, .icon-news, .icon-corporate { display: none; }
 
 /* =========================================================
    Side navigation（サイドバー）

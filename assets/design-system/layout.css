@@ -59,6 +59,18 @@ html.no-scroll {
     gap: var(--space-3);
 }
 
+/* ロゴだけを REWIS ホームへのリンクにする（「| ページ名」はリンクにしない） */
+.page-header__home {
+    display: block;
+    border-radius: var(--radius-sm);
+}
+
+.page-header__home:focus-visible,
+.page-footer__home:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 4px;
+}
+
 .page-header__logo {
     height: 3rem;
     width: auto;
@@ -103,6 +115,13 @@ html.no-scroll {
     align-items: center;
     justify-content: space-between;
     gap: var(--space-5);
+}
+
+/* 運営元ロゴ。Kトライア瑠璃公式サイトへのリンク */
+.page-footer__home {
+    display: block;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
 }
 
 .page-footer__logo {

@@ -36,7 +36,9 @@ body {
   align-items: center;
   gap: var(--space-sm);
 }
-.g-header__logo { height: 28px; }
+.g-header__home { flex: none; display: block; border-radius: var(--borderRadius-small, 3px); }
+.g-header__home:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.g-header__logo { height: 28px; display: block; }
 .g-header__title {
   font: var(--text-title-shorthand-small);
   color: #fff;

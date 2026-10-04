@@ -61,8 +61,16 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
     clear(header);
     const session = api.getSavedSession();
 
+    // ロゴだけを REWIS ホームへのリンクにする。読み込んだデータはこのタブにしかないので新しいタブで開く。
+    // 「| 路線データ編集システム」は押してもトップへ飛ばない（名前と行き先が食い違って混乱するため）
     const left = h('div', { class: 'g-header__left' },
-      h('img', { class: 'g-header__logo', src: '../assets/icons/rewis_logo_w.svg', alt: '' }),
+      h('a', {
+        class: 'g-header__home',
+        href: '../',
+        target: '_blank',
+        rel: 'noopener',
+        title: 'REWIS ホームを新しいタブで開きます'
+      }, h('img', { class: 'g-header__logo', src: '../assets/icons/rewis_logo_w.svg', alt: 'REWIS ホーム' })),
       h('div', { class: 'g-header__title' }, '| 路線データ編集システム')
     );
 

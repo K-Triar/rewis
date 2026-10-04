@@ -2,6 +2,7 @@
 //   ・左の目次：今読んでいる章・節を強調し、その章の節だけを開く。幅が狭いときは引き出しにする
 //   ・見出しの「#」：その見出しの URL をコピーする
 //   ・検索：本文（画面イメージの中は除く）を段落・項目ごとに探し、押すとその場所へ移って強調する
+//   ・右下の「↑」：ある程度読み進めたら出し、押すとページの先頭へ戻る
 
 const header = document.querySelector('.gd-header');
 const doc = document.querySelector('.gd-doc');
@@ -32,10 +33,55 @@ function flash(el) {
   setTimeout(() => el.classList.remove('gd-flash'), 1800);
 }
 
+// 移るときはなめらかにスクロールする（目次などのリンクは guide.css の scroll-behavior で同じ動きになる）。
+// 動きを減らす設定の人には、すぐに移る
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const scrollBehavior = () => (reduceMotion.matches ? 'auto' : 'smooth');
+
+// スクロールが止まってから呼ぶ。scrollend がないブラウザや、動かなかったときは時間で区切る
+function afterScroll(callback) {
+  if (reduceMotion.matches) { callback(); return; }
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    window.removeEventListener('scrollend', finish);
+    clearTimeout(timer);
+    callback();
+  };
+  window.addEventListener('scrollend', finish, { once: true });
+  const timer = setTimeout(finish, 900);
+}
+
 function goTo(el, { center = false } = {}) {
-  if (center) el.scrollIntoView({ block: 'center' });
-  else window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - headerOffset() + 4 });
-  flash(el);
+  const behavior = scrollBehavior();
+  if (center) el.scrollIntoView({ block: 'center', behavior });
+  else window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - headerOffset() + 4, behavior });
+  // 着いてから光らせる（移っている間に光り終わらないように）
+  afterScroll(() => flash(el));
+}
+
+// ---- 右下の「↑」：ページの先頭へ ----
+
+const toTop = document.querySelector('.gd-totop');
+if (toTop) {
+  const updateToTop = () => { toTop.hidden = window.scrollY < window.innerHeight * 0.8; };
+  let toTopTicking = false;
+  window.addEventListener('scroll', () => {
+    if (toTopTicking) return;
+    toTopTicking = true;
+    requestAnimationFrame(() => { toTopTicking = false; updateToTop(); });
+  }, { passive: true });
+  updateToTop();
+  toTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: scrollBehavior() });
+    // 押したボタンは先頭に着くと消えるので、キーボードで操作している人のためにタイトルへフォーカスを移す
+    const title = document.querySelector('.gd-doc h1');
+    if (title && toTop.matches(':focus-visible')) {
+      title.setAttribute('tabindex', '-1');
+      title.focus({ preventScroll: true });
+    }
+  });
 }
 
 // ---- 左の目次 ----
