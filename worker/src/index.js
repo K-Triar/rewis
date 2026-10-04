@@ -6,15 +6,20 @@ import { compilePublic } from '../../src/shared/compile-public.js';
 const NEW_HISTORY_PREFIX = 'data:hist:';
 const OLD_HISTORY_PREFIX = 'data:history:';
 
+// 認証不要・読み取り専用の公開エンドポイント。他サイトのブラウザからも読めるよう CORS を * で開放する。
+const PUBLIC_GET_PATHS = new Set(['/v2/public', '/data/public']);
+const PUBLIC_CACHE_CONTROL = 'public, max-age=30, s-maxage=30';
+
 export default {
   async fetch(request, env) {
     try {
-      if (request.method === 'OPTIONS') {
-        return new Response(null, { headers: corsHeaders(request, env) });
-      }
-
       const url = new URL(request.url);
       const path = url.pathname;
+
+      if (request.method === 'OPTIONS') {
+        const headers = PUBLIC_GET_PATHS.has(path) ? publicCorsHeaders() : corsHeaders(request, env);
+        return new Response(null, { headers });
+      }
 
       if (request.method === 'GET' && path === '/health') {
         return json({ ok: true, service: 'rewis-editor-api' }, 200, request, env);
@@ -137,14 +142,14 @@ async function handleLogout(request, env) {
 async function handleGetPublicData(request, env) {
   const latest = await getLatestRecord(env);
   if (!latest) {
-    return json({ error: 'not_initialized' }, 404, request, env);
+    return jsonPublicError({ error: 'not_initialized' }, 404);
   }
 
   const meta = latest.meta || {};
-  return jsonNoCache({
+  return jsonPublic({
     data: toPublicV1(latest.data),
     meta: { revision: meta.revision ?? 0, updatedAt: meta.updatedAt || null }
-  }, 200, request, env);
+  }, request);
 }
 
 async function handleGetLatestData(request, env) {
@@ -590,8 +595,8 @@ async function handleV2Rollback(kind, request, env) {
 
 async function handleV2GetPublic(request, env) {
   const text = await env.DATA_KV.get('v2:public:latest');
-  if (!text) return json({ error: 'not_initialized' }, 404, request, env);
-  return jsonNoCache(JSON.parse(text), 200, request, env);
+  if (!text) return jsonPublicError({ error: 'not_initialized' }, 404);
+  return jsonPublic(JSON.parse(text), request);
 }
 
 async function handleV2AdminImport(request, env) {
@@ -819,6 +824,40 @@ function jsonNoCache(data, status, request, env) {
   });
 }
 
+// 公開エンドポイント用。内容ハッシュの ETag を付け、If-None-Match が一致すれば 304 を返す。
+async function jsonPublic(data, request) {
+  const body = JSON.stringify(data, null, 2);
+  const etag = '"' + (await sha256Hex(body)).slice(0, 32) + '"';
+  const headers = {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': PUBLIC_CACHE_CONTROL,
+    'ETag': etag,
+    ...publicCorsHeaders()
+  };
+  if (ifNoneMatchIncludes(request, etag)) {
+    return new Response(null, { status: 304, headers });
+  }
+  return new Response(body, { status: 200, headers });
+}
+
+function jsonPublicError(data, status) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      ...publicCorsHeaders()
+    }
+  });
+}
+
+function ifNoneMatchIncludes(request, etag) {
+  const raw = request.headers.get('If-None-Match');
+  if (!raw) return false;
+  if (raw.trim() === '*') return true;
+  return raw.split(',').some((t) => t.trim().replace(/^W\//, '') === etag);
+}
+
 function generateETag() {
   const str = Date.now().toString() + Math.random().toString(36);
   return '"' + str.split('').reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0) | 0, 0).toString(16) + '"';
@@ -845,6 +884,17 @@ function corsHeaders(request, env) {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
+  };
+}
+
+// 公開エンドポイント用。Cookie / Authorization を使わない前提なので Allow-Credentials は付けない。
+// Origin によって値が変わらないので Vary: Origin も不要。
+function publicCorsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400'
   };
 }
 

@@ -360,3 +360,90 @@ wrangler deploy
    - **`wrangler deploy --env localtest` は絶対に実行しないでください。**
 2. エディタ（v1: `editor.html`）の Workers API URL に `http://127.0.0.1:8787` を入れ、ユーザー `dev`・パスワード `dev-password` でログインします。
 3. エディタは VS Code の Live Server（ポート 5502）で開きます。
+
+## 11. 公開APIの外部利用
+
+運行情報・路線データの公開 JSON は、他サイト（GitHub Pages などの静的サイト）のブラウザ JS から直接読めます。認証は不要です。
+
+### エンドポイント
+
+本番の Worker URL は `https://rewis-editor-api.56drich.workers.dev` です。
+
+| メソッド | パス | 内容 |
+|---|---|---|
+| GET | `/v2/public` | v2 の公開データ `{ network, notices, masters, ... }`。**外部利用はこちらを推奨します** |
+| GET | `/data/public` | 旧形式（v1）の公開データ `{ data, meta }` |
+
+- データがまだ無い場合は `404 { "error": "not_initialized" }` を返します。
+- 上記以外（`/auth/*`、`/data/save`、`/data/latest`、`/data/history*`、`/data/rollback`、`/v2/doc/*`、`/v2/history/*`、`/v2/rollback/*`、`/v2/admin/*`）は外部サイトからは使えません。
+
+### CORS とキャッシュの方針
+
+- 上の 2 つ（とそのプリフライト `OPTIONS`）だけ `Access-Control-Allow-Origin: *` を返します。どのオリジンからでも読めます。
+- Cookie や `Authorization` は使いません。`Access-Control-Allow-Credentials` は付けないので、`fetch` に `credentials: 'include'` を指定しないでください。
+- 保存系・認証系は従来どおり `ALLOWED_ORIGIN` に書かれたオリジンだけに限定しています。
+- `Cache-Control: public, max-age=30, s-maxage=30` です。運行情報の鮮度を優先し、30 秒と短めにしています。
+- `ETag` は内容のハッシュです。`If-None-Match` が一致すれば `304 Not Modified` を返します（ブラウザが自動で使います）。
+- 短時間に何度も取得する必要はありません。ポーリングする場合は 30 秒以上の間隔を空けてください。
+
+### fetch の例
+
+```js
+const API = 'https://rewis-editor-api.56drich.workers.dev';
+
+const res = await fetch(API + '/v2/public');
+if (!res.ok) throw new Error('REWIS のデータを取得できませんでした: ' + res.status);
+const pub = await res.json();
+console.log(pub.network.stations.length, '駅', pub.notices.length, '件の運行情報');
+```
+
+### 乗換探索の最小例
+
+探索（`src/shared/route-search.js`）とモデル構築（`src/shared/model.js`）は DOM に依存しない ES モジュールです。GitHub Pages から直接 import できます（GitHub Pages は静的ファイルに `Access-Control-Allow-Origin: *` を付けて配信します）。
+
+```html
+<script type="module">
+  import { buildModel } from 'https://k-triar.github.io/rewis/src/shared/model.js';
+  import { buildSearchGraph, searchRoutes } from 'https://k-triar.github.io/rewis/src/shared/route-search.js';
+
+  const API = 'https://rewis-editor-api.56drich.workers.dev';
+  const pub = await (await fetch(API + '/v2/public')).json();
+
+  const model = buildModel(pub.network, pub.notices, pub.masters);
+  const graph = buildSearchGraph(model);   // 例: buildSearchGraph(model, { ownCompanyOnly: true })
+
+  const [from, to] = pub.network.stations;  // 実際は駅名などから駅 ID を選んでください
+  const routes = searchRoutes(model, graph, {
+    fromStationId: from.id,
+    toStationId: to.id,
+    maxRoutes: 3
+  });
+
+  for (const route of routes) {
+    console.log(`所要 ${route.totalDuration} 秒・乗換 ${route.transferCount} 回`);
+    for (const leg of route.legs) {
+      if (leg.type === 'ride') {
+        const first = leg.stops[0];
+        const last = leg.stops[leg.stops.length - 1];
+        console.log(`  ${leg.headsign}: ${model.stationName(first.stationId)} → ${model.stationName(last.stationId)}`);
+      } else {
+        console.log(`  ${leg.kind === 'walk' ? '徒歩連絡' : '乗換'} ${leg.duration} 秒`);
+      }
+    }
+  }
+</script>
+```
+
+- 上の URL は `main` ブランチの最新を指します。内部関数の引数や戻り値は予告なく変わることがあります。安定させたい場合は、jsDelivr でコミットを固定して読み込むか（`https://cdn.jsdelivr.net/gh/K-Triar/rewis@<コミットハッシュ>/src/shared/route-search.js`）、ファイルをコピーして使ってください。
+- import が依存先（`./ids.js`、`./schema-v2.js` など）を相対パスで読み込むので、コピーする場合は依存先もまとめてコピーしてください。
+
+### ライセンスと出典表記のお願い
+
+- **データ**：API が返す鉄道データ（路線・駅・系統・ダイヤ・運行情報等）は AGPL の対象外で、自由に利用・改変・再配布できます。
+- **コード**：`src/shared/*.js` は **AGPL-3.0-or-later** です（詳しくはルートの [README のライセンス節](../README.md#ライセンス)）。
+  - `fetch` で JSON を読んで自分のコードで処理するだけなら、コードのライセンスは関係しません。
+  - ファイルをコピーして自サイトから配信する場合は、AGPL に従った配布になります（ライセンス表示を残し、改変した場合は改変後のソースも公開してください）。
+  - import して自分のコードと組み合わせる場合、組み合わせた全体が AGPL の義務を負うと解釈される可能性があります。自分のコードも AGPL 互換のライセンスで公開しておくのが安全です。
+- **出典表記**：利用する場合は、ページ内に「データ出典: REWIS（Kトライア全世界鉄道情報システム） <https://k-triar.github.io/rewis/>」のように表記してください。
+- **免責**：データの正確性・完全性・可用性は保証しません。API は予告なく変更・停止することがあります。本 API を使ったことによる損害について、責任を負いません。
+- REWIS および Kトライア瑠璃のロゴは AGPL の対象外です。許諾なく使用しないでください。
