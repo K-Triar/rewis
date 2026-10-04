@@ -142,6 +142,8 @@ npm test
 
 保存用 API（`worker/`）のローカルエミュレーションや KV のバインド、本番デプロイについては、[`worker/README.md`](worker/README.md) を参照してください。
 
+公開データ（`GET /v2/public` ほか）は、他サイトのブラウザ JS からも読めます。エンドポイントや乗換探索の組み込み例は [`worker/README.md` の「公開APIの外部利用」](worker/README.md#11-公開apiの外部利用) を参照してください。
+
 ## ドキュメント
 
 | 文書 | 内容 |
@@ -149,7 +151,7 @@ npm test
 | [`editor-guide.md`](editor-guide.md)（[HTML 版](https://k-triar.github.io/rewis/editor/guide/)） | 表形式エディタの操作マニュアル。HTML 版は画面イメージ付き |
 | [`editor-graph-guide.md`](editor-graph-guide.md)（[HTML 版](https://k-triar.github.io/rewis/editor-graph/guide/)） | 図形式エディタの操作マニュアル。HTML 版は画面イメージ付き |
 | [`editor-v1/readme.md`](editor-v1/readme.md) | 旧エディタ（v1・閲覧専用）の操作ガイド |
-| [`worker/README.md`](worker/README.md) | Workers 保存用APIの仕様とセットアップ手順 |
+| [`worker/README.md`](worker/README.md) | Workers 保存用APIの仕様とセットアップ手順、[公開APIの外部利用](worker/README.md#11-公開apiの外部利用) |
 
 ## ライセンス
 
