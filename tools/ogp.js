@@ -1,4 +1,5 @@
 // 全ページ共通の OGP（Discord などのリンクプレビュー）用 meta を作る。
+// 手書きページには検索エンジン向けの description・canonical もあわせて入れる。
 // 書式（サイト名・テーマ色・画像・カード種別）をここに集約する。
 // 手書きページ向けの一括挿入は node tools/ogp.js、ガイドは tools/build-guide.js から使う。
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -25,9 +26,17 @@ export function ogpBlock({ title, description, path }) {
   ].join('\n');
 }
 
+// 検索エンジン向け（description は検索結果の説明文、canonical は正規 URL）
+export function seoBlock({ description, path }) {
+  return [
+    `    <meta name="description" content="${esc(description)}">`,
+    `    <link rel="canonical" href="${SITE_URL}${path}">`
+  ].join('\n');
+}
+
 // 手書きページ（ガイド以外）
 const PAGES = [
-  ['index.html', 'ホーム - REWIS', '情報で、世界がつながる。Kトライア瑠璃の鉄道情報システム REWIS', ''],
+  ['index.html', 'REWIS - Kトライア全世界鉄道情報システム｜乗換案内・運行情報', '情報で、世界がつながる。Kトライア全世界鉄道情報システム REWIS は、Minecraft サーバー内の鉄道網の乗換案内と、各社・各路線の運行状況をお届けします。', ''],
   ['about/index.html', 'REWISについて - REWIS', 'Kトライア全世界鉄道情報システム REWIS の概要をご紹介します。', 'about/'],
   ['information/index.html', 'お知らせ - REWIS', 'REWISの最新情報とお知らせです。サービスの更新情報やメンテナンス情報をお届けします。', 'information/'],
   ['operation/index.html', '路線・運行情報 - REWIS', '各路線の詳細情報と運行状況を確認できます。鉄道会社や方面から探して、最新の運行情報をチェック。', 'operation/'],
@@ -43,7 +52,7 @@ const PAGES = [
   ['editor.html', null, null, 'editor/']
 ];
 
-const OGP_LINE = /^[ \t]*<meta (?:property="og:[^"]*"|name="twitter:[^"]*"|name="theme-color")[^>]*>\r?\n/gm;
+const OGP_LINE = /^[ \t]*<(?:meta (?:property="og:[^"]*"|name="twitter:[^"]*"|name="theme-color"|name="description")|link rel="canonical")[^>]*>\r?\n/gm;
 
 function apply() {
   const byPath = Object.fromEntries(PAGES.filter((p) => p[1]).map((p) => [p[3], p]));
@@ -52,7 +61,7 @@ function apply() {
     let html = readFileSync(file, 'utf8');
     const eol = html.includes('\r\n') ? '\r\n' : '\n';
     html = html.replace(OGP_LINE, '');
-    const block = ogpBlock({ title: t, description: d, path }).replace(/\n/g, eol);
+    const block = `${seoBlock({ description: d, path })}\n${ogpBlock({ title: t, description: d, path })}`.replace(/\n/g, eol);
     html = html.replace(/([ \t]*<title>[^\n]*<\/title>\r?\n)/, `$1${block}${eol}`);
     writeFileSync(file, html);
     console.log('ogp:', file);
