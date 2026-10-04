@@ -1007,6 +1007,7 @@ function renderLineDiagram(lineId) {
         row.appendChild(rowDiagram);
         row.appendChild(stationCell);
 
+        const bars = [];
         lanes.forEach((b, k) => {
             const color = throughColor(b);
             const suspension = branchSuspension(b);
@@ -1014,6 +1015,7 @@ function renderLineDiagram(lineId) {
             const curveCats = cats.filter(c => b.categoryIds.has(c.id));
             // 横線上に矢印を置いた種別のうち最も右のもの（終わりのぼかしは矢印より先から）
             let arrowOnBarCat = null;
+            let barSvg = null;
             curveCats.forEach(c => {
                 // 曲線は各列のセル内に、直線部分の縦線より下のレイヤーで描く（続く線から分かれて見える）
                 const cell = cellByCat.get(c.id);
@@ -1042,20 +1044,23 @@ function renderLineDiagram(lineId) {
                     cell.appendChild(buildThroughArrow(x, y, height, side, placement, flows.has('out')));
                     if (placement === 'horizontal') arrowOnBarCat = c.id;
                 }
+                if (!barSvg) barSvg = svg;
                 cell.appendChild(svg);
             });
 
-            // 横線＋路線名。左端は最も左の列の曲線の終わり。位置は描画後に測って決める
+            // 路線名。横線は最も左の列の曲線と同じ SVG に描く（div で描くと画素への合わせ方が
+            // 曲線とずれ、合流するところで角がのぞく）。長さは描画後に測って決める
             const branch = document.createElement('div');
             branch.className = 'op-through-branch';
             branch.style.top = `${y}px`;
             branch.style.setProperty('--through-color', color);
             if (suspension === 'all') branch.classList.add('is-suspended');
-            branch.dataset.fromCat = curveCats[0].id;
-            branch.dataset.toCat = curveCats[curveCats.length - 1].id;
-            if (arrowOnBarCat) branch.dataset.arrowCat = arrowOnBarCat;
-            const bar = document.createElement('span');
-            bar.className = 'op-through-bar';
+            bars.push({
+                branch, svg: barSvg, y, color,
+                fromCat: curveCats[0].id,
+                toCat: curveCats[curveCats.length - 1].id,
+                arrowCat: arrowOnBarCat,
+            });
             const label = document.createElement('a');
             label.className = 'op-through-label';
             label.href = `?line=${encodeURIComponent(b.otherLineId)}`;
@@ -1070,31 +1075,60 @@ function renderLineDiagram(lineId) {
                 ev.preventDefault();
                 showLineDetail(b.otherLineId, { syncUrl: true });
             });
-            branch.appendChild(bar);
             branch.appendChild(label);
             row.appendChild(branch);
         });
-        return { row, cellByCat, stationCell };
+        return { row, cellByCat, stationCell, bars };
     }
 
-    // 分岐行の横線は曲線の終わり（列の中心 + 半径）から始め、路線名は駅名の左端にそろえる
+    // 分岐行の横線は曲線の終わり（列の中心 + 半径）から駅名の左端まで。路線名は駅名の左端にそろえる
     const throughRowsToPlace = [];
+    let throughGradSeq = 0;
     function placeThroughBranches() {
-        throughRowsToPlace.forEach(({ row, cellByCat, stationCell }) => {
+        throughRowsToPlace.forEach(({ row, cellByCat, stationCell, bars }) => {
             const rowLeft = row.getBoundingClientRect().left;
             const labelLeft = stationCell.getBoundingClientRect().left - rowLeft;
-            row.querySelectorAll('.op-through-branch').forEach(branch => {
-                const curveEnd = catId => {
-                    const rect = cellByCat.get(catId).getBoundingClientRect();
-                    return rect.left - rowLeft + rect.width / 2 + THROUGH_R;
-                };
-                const left = curveEnd(branch.dataset.fromCat);
-                branch.style.left = `${left}px`;
-                branch.style.setProperty('--through-bar-width', `${Math.max(0, labelLeft - left)}px`);
-                // 終わりのぼかしは右端の列の曲線が合流した先（横線上の矢印があればその先）から始める
-                let solidEnd = curveEnd(branch.dataset.toCat);
-                if (branch.dataset.arrowCat) solidEnd = Math.max(solidEnd, curveEnd(branch.dataset.arrowCat) + THROUGH_ARROW_REACH);
-                branch.style.setProperty('--through-fade-start', `${Math.max(0, solidEnd - left)}px`);
+            const cellLeft = catId => cellByCat.get(catId).getBoundingClientRect().left - rowLeft;
+            const curveEnd = catId => cellLeft(catId) + 16 + THROUGH_R;
+            bars.forEach(({ branch, svg, y, color, fromCat, toCat, arrowCat }) => {
+                branch.style.left = `${labelLeft}px`;
+                // SVG（最も左の列のセル）内の座標に直す
+                const origin = cellLeft(fromCat);
+                const start = curveEnd(fromCat) - origin;
+                const end = labelLeft - origin;
+                if (end <= start) return;
+                // 終わりのぼかしは右端の列の曲線が合流した先（横線上の矢印があればその先）から、
+                // 長くても最後の 28px だけ
+                let solidEnd = curveEnd(toCat);
+                if (arrowCat) solidEnd = Math.max(solidEnd, curveEnd(arrowCat) + THROUGH_ARROW_REACH);
+                const fadeFrom = Math.max(solidEnd - origin, end - 28);
+                const fadeTo = Math.max(fadeFrom + 1, end - 4);
+
+                const gradId = `op-through-grad${++throughGradSeq}`;
+                const defs = document.createElementNS(SVG_NS, 'defs');
+                const grad = document.createElementNS(SVG_NS, 'linearGradient');
+                grad.setAttribute('id', gradId);
+                grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+                grad.setAttribute('x1', String(fadeFrom));
+                grad.setAttribute('x2', String(fadeTo));
+                grad.setAttribute('y1', '0');
+                grad.setAttribute('y2', '0');
+                [[0, 1], [1, 0]].forEach(([offset, opacity]) => {
+                    const stop = document.createElementNS(SVG_NS, 'stop');
+                    stop.setAttribute('offset', String(offset));
+                    stop.style.stopColor = color;
+                    stop.style.stopOpacity = String(opacity);
+                    grad.appendChild(stop);
+                });
+                defs.appendChild(grad);
+                svg.appendChild(defs);
+
+                const bar = document.createElementNS(SVG_NS, 'path');
+                bar.setAttribute('d', `M ${start} ${y} L ${end} ${y}`);
+                bar.setAttribute('stroke', `url(#${gradId})`);
+                bar.setAttribute('stroke-width', String(DIAGRAM_LINE_W));
+                svg.appendChild(bar);
+                svg.setAttribute('width', String(Math.ceil(end)));
             });
         });
     }

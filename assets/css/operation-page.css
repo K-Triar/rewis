@@ -554,7 +554,8 @@
     padding: 0;
     overflow: visible;
 }
-/* 曲線は続く縦線（z-index 2）の下に描き、線から分かれて見せる */
+/* 曲線と横線は続く縦線（z-index 2）の下に描き、線から分かれて見せる。
+   直通しない種別の縦線と交差するところも縦線が上になる */
 .op-through-curve {
     position: absolute;
     top: 0;
@@ -574,22 +575,14 @@
 .op-through-stub {
     z-index: 1;
 }
-/* 横線は曲線の終わりから駅名の左端まで（--through-bar-width は JS で測って設定）、
-   路線名は駅名と左端をそろえる */
+/* 路線名（駅名と左端をそろえる位置は JS で設定）。横線は曲線と同じ SVG に描く */
 .op-through-branch {
     position: absolute;
     right: 0;
     height: 0;
     display: flex;
     align-items: center;
-    /* 直通しない種別の縦線（z-index 2）と交差するところは縦線を上にする */
     z-index: 1;
-}
-.op-through-bar {
-    flex: none;
-    width: var(--through-bar-width, 0);
-    height: var(--diagram-line-w);
-    background: linear-gradient(90deg, var(--through-color) 0, var(--through-color) max(var(--through-fade-start, 0px), calc(100% - 28px)), transparent calc(100% - 4px));
 }
 .op-through-label {
     flex: none;
