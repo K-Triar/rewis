@@ -544,11 +544,18 @@ function buildAlertItem(notice) {
 function computeThroughBranches(line) {
     const order = line.stations || [];
     const groups = new Map();
-    function add(junctionId, otherId, innerId, categoryId, flow) {
+    const lastIdx = order.length - 1;
+    const loopStart = line.loop ? line.loop.startIndex : -1;
+    // adjacentId は分岐駅の隣の停車駅（直通列車がこの路線内で分岐駅の次／前に止まる駅）
+    function add(junctionId, otherId, adjacentId, categoryId, flow) {
         const idx = order.indexOf(junctionId);
-        const innerIdx = order.indexOf(innerId);
-        if (idx === -1 || innerIdx === -1 || innerIdx === idx) return;
-        const usedSide = innerIdx < idx ? 'up' : 'down';
+        const adjIdx = order.indexOf(adjacentId);
+        if (idx === -1 || adjIdx === -1 || adjIdx === idx) return;
+        let usedSide = adjIdx < idx ? 'up' : 'down';
+        // 環状・ラケット型で、終端駅⇔始点（戻る駅）を専用線経由で隣り合う場合は専用線の側。
+        // 終端駅では下の折り返し、環状線の始点では上の半円、ラケット型の戻る駅では下から合流する
+        if (line.loop && idx === loopStart && adjIdx === lastIdx) usedSide = loopStart === 0 ? 'up' : 'down';
+        else if (line.loop && idx === lastIdx && adjIdx === loopStart) usedSide = 'down';
         const drawSide = usedSide === 'up' ? 'down' : 'up';
         const key = `${idx}|${drawSide}|${otherId}`;
         if (!groups.has(key)) {
@@ -562,13 +569,14 @@ function computeThroughBranches(line) {
     (model.activeServices || []).forEach(service => {
         const sections = service.sections || [];
         const stopId = i => service.stops[i] && service.stops[i].stationId;
+        // 隣の停車駅。区間が1駅だけ（from === to）なら判定できない
         for (let i = 0; i < sections.length - 1; i++) {
             const cur = sections[i];
             const next = sections[i + 1];
             if (cur.lineId === line.id && next.lineId !== line.id) {
-                add(stopId(cur.to), next.lineId, stopId(cur.from), cur.categoryId, 'out');
+                if (cur.to > cur.from) add(stopId(cur.to), next.lineId, stopId(cur.to - 1), cur.categoryId, 'out');
             } else if (next.lineId === line.id && cur.lineId !== line.id) {
-                add(stopId(next.from), cur.lineId, stopId(next.to), next.categoryId, 'in');
+                if (next.to > next.from) add(stopId(next.from), cur.lineId, stopId(next.from + 1), next.categoryId, 'in');
             }
         }
     });
@@ -836,14 +844,12 @@ function renderLineDiagram(lineId) {
 
     // 他路線への直通の分岐。駅の上下（drawSide）ごとに1行の分岐行へまとめる
     const throughByRow = new Map();
-    if (!hasLoop) {
-        computeThroughBranches(line).forEach(b => {
-            if (!cats.some(c => b.categoryIds.has(c.id))) return;
-            const key = `${b.idx}|${b.drawSide}`;
-            if (!throughByRow.has(key)) throughByRow.set(key, []);
-            throughByRow.get(key).push(b);
-        });
-    }
+    computeThroughBranches(line).forEach(b => {
+        if (!cats.some(c => b.categoryIds.has(c.id))) return;
+        const key = `${b.idx}|${b.drawSide}`;
+        if (!throughByRow.has(key)) throughByRow.set(key, []);
+        throughByRow.get(key).push(b);
+    });
     function throughTargetAt(idx, side, categoryId) {
         const list = throughByRow.get(`${idx}|${side}`) || [];
         return list.find(b => b.categoryIds.has(categoryId)) || null;
@@ -937,14 +943,32 @@ function renderLineDiagram(lineId) {
         const rowDiagram = document.createElement('div');
         rowDiagram.className = 'op-diagram-cells';
         const neighbor = side === 'down' ? idx + 1 : idx - 1;
-        const segKey = neighbor >= 0 && neighbor <= lastIdx ? edgeKey(idx, neighbor) : null;
+        // 環状・ラケット型の終端駅の下は、下の行の折り返しへ続く専用線の区間
+        const toLoopBottom = hasLoop && side === 'down' && idx === lastIdx;
+        let segKey = null;
+        if (toLoopBottom) segKey = 'loop';
+        else if (neighbor >= 0 && neighbor <= lastIdx) segKey = edgeKey(idx, neighbor);
+
+        if (hasLoop) {
+            // 専用線の列は、分岐行が専用線の範囲（戻る駅〜終端駅〜折り返し）の中にあれば通す
+            const loopCell = document.createElement('div');
+            loopCell.className = 'op-diagram-cell op-diagram-cell--loop op-through-cell';
+            if (Math.min(idx, neighbor) >= loopStartIdx) {
+                if (loopSeverity) loopCell.appendChild(buildGlow(loopSeverity, null, { top: true, bottom: true }));
+                loopCell.appendChild(buildLoopBar(null));
+            }
+            rowDiagram.appendChild(loopCell);
+        }
+
         const cellByCat = new Map();
         const continuingCats = new Set();
         cats.forEach(c => {
             const bounds = boundsByCat[c.id];
             const cell = document.createElement('div');
             cell.className = 'op-diagram-cell op-through-cell';
-            const continues = segKey && Math.min(idx, neighbor) >= bounds.min && Math.max(idx, neighbor) <= bounds.max;
+            const continues = toLoopBottom
+                ? bounds.max === lastIdx
+                : segKey && Math.min(idx, neighbor) >= bounds.min && Math.max(idx, neighbor) <= bounds.max;
             if (continues) {
                 continuingCats.add(c.id);
                 const sev = getEdgeSeverity(segKey, c.id);
