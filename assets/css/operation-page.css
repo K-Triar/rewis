@@ -433,10 +433,8 @@
     width: 6px;
     z-index: 1;
     pointer-events: none;
-    box-shadow: -6px 0 10px 3px var(--color-status-warning), 6px 0 10px 3px var(--color-status-warning);
 }
 .diagram-line-glow.affected--suspend {
-    box-shadow: -6px 0 10px 3px var(--color-status-suspend), 6px 0 10px 3px var(--color-status-suspend);
     animation: diagram-line-blink 2s step-start infinite;
 }
 .diagram-line-glow.affected-start {
@@ -449,6 +447,37 @@
 .op-diagram-cell--loop {
     overflow: visible;
 }
+/*
+ * box-shadow は要素の上下端でも減衰するため、区間（セル）ごとに分けると境目に
+ * 濃淡の縞ができる。横方向だけ減衰するグラデーションで描き、隣のセルへ続く端は
+ * 減衰させず（glow-cont-*）、続かない端だけ半円のキャップで丸く閉じる。
+ * グラデーションの断面は、専用線の曲線のぼかし（operation.js の LOOP_GLOW_W=20px の
+ * 実線を σ=5px でぼかし、不透明度 0.84）と同じになるよう計算した値。
+ */
+.diagram-line-glow {
+    --glow-color: var(--color-status-warning);
+    --glow-fade-top: 22px;
+    --glow-fade-bottom: 22px;
+    width: 44px;
+    background-image:
+        radial-gradient(circle 22px at 50% 100%, color-mix(in srgb, var(--glow-color) 80.2%, transparent) 0.0%, color-mix(in srgb, var(--glow-color) 78.7%, transparent) 9.1%, color-mix(in srgb, var(--glow-color) 74.1%, transparent) 18.2%, color-mix(in srgb, var(--glow-color) 66.1%, transparent) 27.3%, color-mix(in srgb, var(--glow-color) 55.0%, transparent) 36.4%, color-mix(in srgb, var(--glow-color) 42.0%, transparent) 45.5%, color-mix(in srgb, var(--glow-color) 28.9%, transparent) 54.5%, color-mix(in srgb, var(--glow-color) 17.8%, transparent) 63.6%, color-mix(in srgb, var(--glow-color) 9.7%, transparent) 72.7%, color-mix(in srgb, var(--glow-color) 4.6%, transparent) 81.8%, color-mix(in srgb, var(--glow-color) 1.9%, transparent) 90.9%, transparent 100.0%),
+        radial-gradient(circle 22px at 50% 0, color-mix(in srgb, var(--glow-color) 80.2%, transparent) 0.0%, color-mix(in srgb, var(--glow-color) 78.7%, transparent) 9.1%, color-mix(in srgb, var(--glow-color) 74.1%, transparent) 18.2%, color-mix(in srgb, var(--glow-color) 66.1%, transparent) 27.3%, color-mix(in srgb, var(--glow-color) 55.0%, transparent) 36.4%, color-mix(in srgb, var(--glow-color) 42.0%, transparent) 45.5%, color-mix(in srgb, var(--glow-color) 28.9%, transparent) 54.5%, color-mix(in srgb, var(--glow-color) 17.8%, transparent) 63.6%, color-mix(in srgb, var(--glow-color) 9.7%, transparent) 72.7%, color-mix(in srgb, var(--glow-color) 4.6%, transparent) 81.8%, color-mix(in srgb, var(--glow-color) 1.9%, transparent) 90.9%, transparent 100.0%),
+        linear-gradient(90deg, transparent 0.0%, color-mix(in srgb, var(--glow-color) 1.9%, transparent) 4.5%, color-mix(in srgb, var(--glow-color) 4.6%, transparent) 9.1%, color-mix(in srgb, var(--glow-color) 9.7%, transparent) 13.6%, color-mix(in srgb, var(--glow-color) 17.8%, transparent) 18.2%, color-mix(in srgb, var(--glow-color) 28.9%, transparent) 22.7%, color-mix(in srgb, var(--glow-color) 42.0%, transparent) 27.3%, color-mix(in srgb, var(--glow-color) 55.0%, transparent) 31.8%, color-mix(in srgb, var(--glow-color) 66.1%, transparent) 36.4%, color-mix(in srgb, var(--glow-color) 74.1%, transparent) 40.9%, color-mix(in srgb, var(--glow-color) 78.7%, transparent) 45.5%, color-mix(in srgb, var(--glow-color) 80.2%, transparent) 50.0%, color-mix(in srgb, var(--glow-color) 78.7%, transparent) 54.5%, color-mix(in srgb, var(--glow-color) 74.1%, transparent) 59.1%, color-mix(in srgb, var(--glow-color) 66.1%, transparent) 63.6%, color-mix(in srgb, var(--glow-color) 55.0%, transparent) 68.2%, color-mix(in srgb, var(--glow-color) 42.0%, transparent) 72.7%, color-mix(in srgb, var(--glow-color) 28.9%, transparent) 77.3%, color-mix(in srgb, var(--glow-color) 17.8%, transparent) 81.8%, color-mix(in srgb, var(--glow-color) 9.7%, transparent) 86.4%, color-mix(in srgb, var(--glow-color) 4.6%, transparent) 90.9%, color-mix(in srgb, var(--glow-color) 1.9%, transparent) 95.5%, transparent 100.0%);
+    background-size: 100% var(--glow-fade-top), 100% var(--glow-fade-bottom), 100% calc(100% - var(--glow-fade-top) - var(--glow-fade-bottom));
+    background-position: 0 0, 0 100%, 0 var(--glow-fade-top);
+    background-repeat: no-repeat;
+}
+.diagram-line-glow.affected--suspend {
+    --glow-color: var(--color-status-suspend);
+}
+.diagram-line-glow.glow-cont-top { --glow-fade-top: 0px; }
+.diagram-line-glow.glow-cont-bottom { --glow-fade-bottom: 0px; }
+/*
+ * 続かない端（影響区間の端の駅）は、駅の中心を中心とする半円のキャップで丸く閉じる。
+ * 本体は駅の中心まで届かせ、キャップはその外側（半径 22px）に出す。
+ */
+.diagram-line-glow.affected-start:not(.glow-cont-top) { top: calc(50% - 22px); }
+.diagram-line-glow.affected-end:not(.glow-cont-bottom) { bottom: calc(50% - 22px); }
 
 /*
  * 環状・ラケット型の曲線 SVG は 64×48 固定で、駅の中心（セルの縦中央）に合わせて
@@ -482,15 +511,21 @@
 .diagram-loop-svg.diagram-loop-glow {
     z-index: 1;
     overflow: visible;
-}
-.diagram-loop-glow path {
-    stroke: var(--color-status-warning);
-}
-.diagram-loop-glow.affected--suspend path {
-    stroke: var(--color-status-suspend);
+    color: var(--color-status-warning);
 }
 .diagram-loop-glow.affected--suspend {
+    color: var(--color-status-suspend);
     animation: diagram-line-blink 2s step-start infinite;
+}
+/*
+ * 専用線の曲線のぼかし（SVG）と直線のぼかし（div）の接合位置。曲線の付け根から 12px
+ * 直線側へ離す（operation.js の LOOP_GLOW_JOIN と対応）。セルが低くても下端を越えないよう min で抑える
+ */
+.diagram-line-glow.glow-join-corner {
+    top: min(calc(50% + 28px), 100%);
+}
+.diagram-line-glow.glow-join-loop-bottom {
+    bottom: 12px;
 }
 
 .diagram-pill {

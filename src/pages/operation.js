@@ -18,8 +18,9 @@ import {
 
 let model = null;
 let opCurrentLineId = null;
-// 専用線のぼかし用 SVG <filter> の id をページ内で一意にするための連番
-let loopGlowFilterSeq = 0;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+// 専用線のぼかし用 SVG <filter>/<clipPath> の id をページ内で一意にするための連番
+let loopGlowSeq = 0;
 
 function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
@@ -605,10 +606,14 @@ function renderLineDiagram(lineId) {
             .map(({ notice }) => notice));
     }
 
-    function buildGlow(severity, extraClass) {
+    // cont: 上端/下端が隣のセルのぼかしへ続いている側。続く側はぼかしの減衰が隣と
+    // 二重に重ならないよう、CSS で隣へはみ出して作った一様な部分だけを切り出す。
+    function buildGlow(severity, extraClass, cont) {
         const glow = document.createElement('div');
         glow.className = `diagram-line-glow affected--${severity}`;
         if (extraClass) glow.classList.add(extraClass);
+        if (cont && cont.top) glow.classList.add('glow-cont-top');
+        if (cont && cont.bottom) glow.classList.add('glow-cont-bottom');
         return glow;
     }
 
@@ -624,6 +629,15 @@ function renderLineDiagram(lineId) {
     const LOOP_R = 16;
     const LOOP_ROWH = 48;
     const LOOP_TOP_STRAIGHT = 24;
+    // 専用線の曲線のぼかし。CSS の .diagram-line-glow のグラデーションはこの値から計算した断面
+    const LOOP_GLOW_W = 20;
+    const LOOP_GLOW_SIGMA = 5;
+    const LOOP_GLOW_OPACITY = 0.84;
+    // 接合位置で切り落とすぶん、実線を直線方向へ延ばす長さ（ぼかしの減衰が収まる 3σ 以上）
+    const LOOP_GLOW_EXT = 20;
+    // 曲線の付け根ちょうどで切ると、曲線のぼかしのうち直線側へにじむぶんが失われて段差に
+    // なるので、接合位置は曲線から直線方向へこの長さだけ離す（CSS の glow-join-* と対応）
+    const LOOP_GLOW_JOIN = 12;
 
     // SVG は曲線部分だけを固定サイズ（64×48、伸縮なし）で描き、行の高さに応じて
     // 伸びる必要がある縦の直線部分は通常の diagram-line（div）で描く。
@@ -632,39 +646,29 @@ function renderLineDiagram(lineId) {
     // 縦横比から 48px に固定される）、行が 48px を超えると（駅名の行高・乗換表記の
     // 折返しなど）SVG の下端とセル下端の間に隙間ができていた。
     //
-    // glowSeverity を渡すと、同じ形の曲線を影響区間のぼかし（.diagram-line-glow の
-    // box-shadow 相当: 幅24px・ぼかし5px）として描く。隣接する div のぼかしと端で
-    // 薄まって継ぎ目が見えないよう、端点はそれぞれ直線方向へ 12px 延ばして重ねる。
+    // glowSeverity を渡すと、同じ形の曲線を影響区間のぼかしとして描く。直線部分の
+    // .diagram-line-glow（横方向のグラデーション）と同じ断面になるよう、幅 LOOP_GLOW_W の
+    // 実線を標準偏差 LOOP_GLOW_SIGMA でぼかす（CSS 側のグラデーションはこの断面から計算）。
+    // 直線部分と重なって濃くならないよう、実線は接合位置の先まで延ばしたうえで、
+    // ぼかした結果を接合位置で clipPath により切り落とす。
     function buildLoopArcSvg(kind, glowSeverity) {
         const isGlow = !!glowSeverity;
         // 'top' だけは駅中心の上に短い直線を挟むぶん SVG を上へ伸ばす（CSS の --top と対応）
         const svgH = kind === 'top' ? LOOP_ROWH + LOOP_TOP_STRAIGHT : LOOP_ROWH;
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const svg = document.createElementNS(SVG_NS, 'svg');
         svg.setAttribute('width', String(LOOP_CELL * 2));
         svg.setAttribute('height', String(svgH));
         svg.setAttribute('viewBox', `0 0 ${LOOP_CELL * 2} ${svgH}`);
         svg.classList.add('diagram-loop-svg');
         if (kind === 'top') svg.classList.add('diagram-loop-svg--top');
         if (kind === 'bottom') svg.classList.add('diagram-loop-svg--bottom');
-        if (isGlow) svg.classList.add('diagram-loop-glow', `affected--${glowSeverity}`);
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+        const path = document.createElementNS(SVG_NS, 'path');
         path.setAttribute('fill', 'none');
         if (isGlow) {
-            // ぼかしが SVG の枠外まで広がるので filter 領域も広く取る（SVG 自体は overflow: visible）
-            const filterId = `diagram-loop-glow-${++loopGlowFilterSeq}`;
-            const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            filter.setAttribute('id', filterId);
-            filter.setAttribute('filterUnits', 'userSpaceOnUse');
-            filter.setAttribute('x', '-48');
-            filter.setAttribute('y', '-48');
-            filter.setAttribute('width', String(LOOP_CELL * 2 + 96));
-            filter.setAttribute('height', String(svgH + 96));
-            const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
-            blur.setAttribute('stdDeviation', '5');
-            filter.appendChild(blur);
-            svg.appendChild(filter);
-            path.setAttribute('filter', `url(#${filterId})`);
-            path.setAttribute('stroke-width', '24');
+            path.setAttribute('stroke', 'currentColor');
+            path.setAttribute('stroke-opacity', String(LOOP_GLOW_OPACITY));
+            path.setAttribute('stroke-width', String(LOOP_GLOW_W));
             path.setAttribute('stroke-linecap', 'butt');
         } else {
             path.setAttribute('stroke', line.color || 'var(--color-primary)');
@@ -672,7 +676,7 @@ function renderLineDiagram(lineId) {
             // 端点の接線方向へ 3px はみ出させ、隣接する div の縦線と重ねて継ぎ目を防ぐ
             path.setAttribute('stroke-linecap', 'square');
         }
-        const ext = isGlow ? 12 : 0;
+        const ext = isGlow ? LOOP_GLOW_EXT : 0;
         const cy = svgH - LOOP_ROWH / 2;
         const loopX = LOOP_CELL / 2;
         const mainX = LOOP_CELL + LOOP_CELL / 2;
@@ -682,16 +686,58 @@ function renderLineDiagram(lineId) {
             // 下ろす（node に斜めに刺さらないよう、終端側の直線→U字と同じ見え方にする）。
             // 駅中心より下の専用線の縦線は div
             const arcY = cy - LOOP_TOP_STRAIGHT;
-            d = `M ${mainX} ${cy} L ${mainX} ${arcY} A ${LOOP_R} ${LOOP_R} 0 0 0 ${loopX} ${arcY} L ${loopX} ${cy + ext}`;
+            d = `M ${mainX} ${cy + ext} L ${mainX} ${arcY} A ${LOOP_R} ${LOOP_R} 0 0 0 ${loopX} ${arcY} L ${loopX} ${cy + ext}`;
         } else if (kind === 'bottom') {
             // 終端駅の下：本線から間を空けずに半円で折り返して環状運転専用線へつなぐ
-            d = `M ${mainX} ${-ext} L ${mainX} 0 A ${LOOP_R} ${LOOP_R} 0 0 1 ${loopX} 0 L ${loopX} ${-ext}`;
+            const top = isGlow ? -(LOOP_GLOW_JOIN + ext) : 0;
+            d = `M ${mainX} ${top} L ${mainX} 0 A ${LOOP_R} ${LOOP_R} 0 0 1 ${loopX} 0 L ${loopX} ${top}`;
         } else if (kind === 'corner') {
             // ラケット型の戻る駅：専用線（駅中心+R から下は div）を曲げて本線へ合流させる
-            d = `M ${loopX} ${cy + LOOP_R + ext} L ${loopX} ${cy + LOOP_R} A ${LOOP_R} ${LOOP_R} 0 0 1 ${loopX + LOOP_R} ${cy} L ${mainX} ${cy}`;
+            d = `M ${loopX} ${cy + LOOP_R + (isGlow ? LOOP_GLOW_JOIN + ext : 0)} L ${loopX} ${cy + LOOP_R} A ${LOOP_R} ${LOOP_R} 0 0 1 ${loopX + LOOP_R} ${cy} L ${mainX} ${cy}`;
         }
         path.setAttribute('d', d);
-        svg.appendChild(path);
+        if (!isGlow) {
+            svg.appendChild(path);
+            return svg;
+        }
+        svg.classList.add('diagram-loop-glow', `affected--${glowSeverity}`);
+        // 直線部分（div のぼかし）との接合位置。'top' と 'corner' はそれより下、
+        // 'bottom' はそれより上が div 側の担当
+        const seq = ++loopGlowSeq;
+        const defs = document.createElementNS(SVG_NS, 'defs');
+        const filter = document.createElementNS(SVG_NS, 'filter');
+        filter.setAttribute('id', `diagram-loop-glow-f${seq}`);
+        filter.setAttribute('filterUnits', 'userSpaceOnUse');
+        filter.setAttribute('x', '-60');
+        filter.setAttribute('y', '-60');
+        filter.setAttribute('width', String(LOOP_CELL * 2 + 120));
+        filter.setAttribute('height', String(svgH + 120));
+        const blur = document.createElementNS(SVG_NS, 'feGaussianBlur');
+        blur.setAttribute('stdDeviation', String(LOOP_GLOW_SIGMA));
+        filter.appendChild(blur);
+        const clip = document.createElementNS(SVG_NS, 'clipPath');
+        clip.setAttribute('id', `diagram-loop-glow-c${seq}`);
+        clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+        const rect = document.createElementNS(SVG_NS, 'rect');
+        const joinY = kind === 'bottom' ? -LOOP_GLOW_JOIN : kind === 'corner' ? cy + LOOP_R + LOOP_GLOW_JOIN : cy;
+        rect.setAttribute('x', '-60');
+        rect.setAttribute('width', String(LOOP_CELL * 2 + 120));
+        if (kind === 'bottom') {
+            rect.setAttribute('y', String(joinY));
+            rect.setAttribute('height', String(svgH + 60 - joinY));
+        } else {
+            rect.setAttribute('y', '-60');
+            rect.setAttribute('height', String(joinY + 60));
+        }
+        clip.appendChild(rect);
+        defs.appendChild(filter);
+        defs.appendChild(clip);
+        svg.appendChild(defs);
+        const g = document.createElementNS(SVG_NS, 'g');
+        g.setAttribute('clip-path', `url(#diagram-loop-glow-c${seq})`);
+        path.setAttribute('filter', `url(#diagram-loop-glow-f${seq})`);
+        g.appendChild(path);
+        svg.appendChild(g);
         return svg;
     }
 
@@ -720,8 +766,14 @@ function renderLineDiagram(lineId) {
                 barModifier = 'loop-corner-start';
             }
             if (loopSeverity) {
+                // 縦線部分は本線と同じ .diagram-line-glow。上端は上のセルか曲線へ、
+                // 下端は下のセルか終端駅の下の折り返しへ必ず続く
                 if (kind) loopCell.appendChild(buildLoopArcSvg(kind, loopSeverity));
-                loopCell.appendChild(buildGlow(loopSeverity, barModifier === 'line-start' ? 'affected-start' : barModifier));
+                const glow = buildGlow(loopSeverity, barModifier === 'line-start' ? 'affected-start' : barModifier,
+                    { top: true, bottom: true });
+                if (kind === 'corner') glow.classList.add('glow-join-corner');
+                if (idx === loopTerminalIdx) glow.classList.add('glow-join-loop-bottom');
+                loopCell.appendChild(glow);
             }
             if (kind) loopCell.appendChild(buildLoopArcSvg(kind));
             loopCell.appendChild(buildLoopBar(barModifier));
@@ -806,11 +858,21 @@ function renderLineDiagram(lineId) {
                     if (idx < lastIdx) bottomSev = getEdgeSeverity(edgeKey(idx, idx + 1), c.id);
                     else if (line.loop) bottomSev = getEdgeSeverity('loop', c.id);
                 }
+                // 終端駅の下半分は、下の行の折り返しの曲線のぼかしへ続く
+                const joinsLoopBottom = idx === lastIdx && hasLoop;
                 if (topSev && topSev === bottomSev) {
-                    cell.appendChild(buildGlow(topSev, null));
+                    const glow = buildGlow(topSev, null, { top: true, bottom: true });
+                    if (joinsLoopBottom) glow.classList.add('glow-join-loop-bottom');
+                    cell.appendChild(glow);
                 } else {
-                    if (topSev) cell.appendChild(buildGlow(topSev, 'affected-end'));
-                    if (bottomSev) cell.appendChild(buildGlow(bottomSev, 'affected-start'));
+                    if (topSev) cell.appendChild(buildGlow(topSev, 'affected-end', { top: true }));
+                    // 環状線の始点駅は、駅中心から上へ伸びる専用線の曲線のぼかしとつなぐ
+                    const joinsLoopArc = idx === 0 && hasLoop && loopStartIdx === 0 && !!loopSeverity;
+                    if (bottomSev) {
+                        const glow = buildGlow(bottomSev, 'affected-start', { top: joinsLoopArc, bottom: true });
+                        if (joinsLoopBottom) glow.classList.add('glow-join-loop-bottom');
+                        cell.appendChild(glow);
+                    }
                 }
 
                 const lineBar = document.createElement('div');
