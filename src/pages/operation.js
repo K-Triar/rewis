@@ -897,7 +897,6 @@ function renderLineDiagram(lineId) {
     const THROUGH_LANE_GAP = 24;
     const THROUGH_PAD = 18;
     // 横線上の矢印の先端が曲線の終わりから届く距離（矢印の中心 +5px、半分の長さ 5px）
-    const THROUGH_ARROW_REACH = 10;
     // 横線のうち、最後に合流する曲線の先を濃いまま伸ばす長さ
     const THROUGH_SOLID_AFTER = 4;
     // 横線の終わりのぼかしのグラデーションの分割数
@@ -909,10 +908,10 @@ function renderLineDiagram(lineId) {
     // placement:
     //   'vertical'   その種別の線が分岐駅で終わるとき。駅と曲線の間の縦の部分（分岐行の端）
     //   'horizontal' 続く線から分かれるとき。縦の部分は自分の線と重なるので、曲線を抜けた
-    //                先の横線（次の列の縦線にはかからない位置）
+    //                先の横線（曲線の終わりから barOffset の位置。次の列の縦線にはかからない）
     //   'arc'        環状線の始点で、縦の部分が上の半円の付け根と重なるとき。曲線の中ほど
     // outward は分岐駅から他路線へ向かう向き
-    function buildThroughArrow(x, y, height, side, placement, outward) {
+    function buildThroughArrow(x, y, height, side, placement, outward, barOffset) {
         const svg = document.createElementNS(SVG_NS, 'svg');
         svg.classList.add('op-through-arrow');
         svg.setAttribute('width', String(32 + THROUGH_R));
@@ -930,14 +929,13 @@ function renderLineDiagram(lineId) {
             ty = side === 'down' ? y - THROUGH_R + k : y + THROUGH_R - k;
             angle = side === 'down' ? 45 : -45;
         } else {
-            tx = x + THROUGH_R + 5;
+            tx = x + THROUGH_R + barOffset;
             ty = y;
             angle = 0;
         }
         if (!outward) angle += 180;
         const arrow = document.createElementNS(SVG_NS, 'path');
-        // 線幅 12px に収まる大きさ（全長 10px・幅 7.6px）。横線上では曲線の終わりから
-        // THROUGH_ARROW_REACH までに収まり、次の列の縦線にかからない
+        // 線幅 12px に収まる大きさ（全長 10px・幅 7.6px）
         arrow.setAttribute('d', 'M -5 0 L 4.2 0 M 0.4 -3.8 L 4.2 0 L 0.4 3.8');
         arrow.setAttribute('fill', 'none');
         arrow.setAttribute('stroke', '#fff');
@@ -1021,6 +1019,7 @@ function renderLineDiagram(lineId) {
             const curveCats = cats.filter(c => b.categoryIds.has(c.id));
             // 横線上に矢印を置いた種別のうち最も右のもの（終わりのぼかしは矢印より先から）
             let arrowOnBarCat = null;
+            let arrowReach = 0;
             let barSvg = null;
             curveCats.forEach(c => {
                 // 曲線は各列のセル内に、直線部分の縦線より下のレイヤーで描く（続く線から分かれて見える）
@@ -1047,8 +1046,14 @@ function renderLineDiagram(lineId) {
                     // 環状線の始点の上は、上の半円が同じ列（最初の種別の列）から左へ折り返している
                     if (placement === 'vertical' && hasLoop && loopStartIdx === 0 && idx === 0 && side === 'up'
                         && c.id === cats[0].id) placement = 'arc';
-                    cell.appendChild(buildThroughArrow(x, y, height, side, placement, flows.has('out')));
-                    if (placement === 'horizontal') arrowOnBarCat = c.id;
+                    // 横線上の矢印の中心（曲線の終わりからの距離）。曲線の終わりから次の列の
+                    // 縦線までは 10px しかないので、右に列があるときは曲線の終わりに少しかけて置く
+                    const barOffset = cats[catIndex.get(c.id) + 1] ? 2 : 5;
+                    cell.appendChild(buildThroughArrow(x, y, height, side, placement, flows.has('out'), barOffset));
+                    if (placement === 'horizontal') {
+                        arrowOnBarCat = c.id;
+                        arrowReach = barOffset + 5;
+                    }
                 }
                 if (!barSvg) barSvg = svg;
                 cell.appendChild(svg);
@@ -1066,6 +1071,7 @@ function renderLineDiagram(lineId) {
                 fromCat: curveCats[0].id,
                 toCat: curveCats[curveCats.length - 1].id,
                 arrowCat: arrowOnBarCat,
+                arrowReach,
             });
             const label = document.createElement('a');
             label.className = 'op-through-label';
@@ -1096,7 +1102,7 @@ function renderLineDiagram(lineId) {
             const labelLeft = stationCell.getBoundingClientRect().left - rowLeft;
             const cellLeft = catId => cellByCat.get(catId).getBoundingClientRect().left - rowLeft;
             const curveEnd = catId => cellLeft(catId) + 16 + THROUGH_R;
-            bars.forEach(({ branch, svg, y, color, fromCat, toCat, arrowCat }) => {
+            bars.forEach(({ branch, svg, y, color, fromCat, toCat, arrowCat, arrowReach }) => {
                 branch.style.left = `${labelLeft}px`;
                 // SVG（最も左の列のセル）内の座標に直す
                 const origin = cellLeft(fromCat);
@@ -1107,7 +1113,7 @@ function renderLineDiagram(lineId) {
                 // THROUGH_SOLID_AFTER だけ濃いまま伸ばしてから（合流点で途切れて見えないように）、
                 // 長くても最後の 28px だけ
                 let solidEnd = curveEnd(toCat);
-                if (arrowCat) solidEnd = Math.max(solidEnd, curveEnd(arrowCat) + THROUGH_ARROW_REACH);
+                if (arrowCat) solidEnd = Math.max(solidEnd, curveEnd(arrowCat) + arrowReach);
                 // 横線が短いとき（1列だけの路線で横線上に矢印があるなど）は、ぼかしの長さ
                 // THROUGH_FADE_MIN を濃いまま伸ばす分より優先する
                 const fadeTo = end - 2;
