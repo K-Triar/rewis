@@ -22,6 +22,8 @@ let opCurrentLineId = null;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 // 専用線のぼかし用 SVG <filter>/<clipPath> の id をページ内で一意にするための連番
 let loopGlowSeq = 0;
+// 路線図の線の太さ（CSS の --diagram-line-w と対応。駅の丸の内側の白い点と同じ幅）
+const DIAGRAM_LINE_W = 11;
 
 function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
@@ -733,8 +735,8 @@ function renderLineDiagram(lineId) {
             path.setAttribute('stroke-linecap', 'butt');
         } else {
             path.setAttribute('stroke', line.color || 'var(--color-primary)');
-            path.setAttribute('stroke-width', '6');
-            // 端点の接線方向へ 3px はみ出させ、隣接する div の縦線と重ねて継ぎ目を防ぐ
+            path.setAttribute('stroke-width', String(DIAGRAM_LINE_W));
+            // 端点の接線方向へ線幅の半分はみ出させ、隣接する div の縦線と重ねて継ぎ目を防ぐ
             path.setAttribute('stroke-linecap', 'square');
         }
         const ext = isGlow ? LOOP_GLOW_EXT : 0;
@@ -894,8 +896,10 @@ function renderLineDiagram(lineId) {
     const THROUGH_LANE_FIRST = 30;
     const THROUGH_LANE_GAP = 24;
     const THROUGH_PAD = 18;
+    // 横線上の矢印の先端が曲線の終わりから届く距離（矢印の中心 +5px、半分の長さ 5px）
+    const THROUGH_ARROW_REACH = 10;
 
-    // 片方向だけの直通に付ける、進む向きの白く細い矢印（線の内側に収まる軸付きの →）。
+    // 片方向だけの直通に付ける、進む向きの白い矢印（線の内側に収まる軸付きの →）。
     // placement:
     //   'vertical'   その種別の線が分岐駅で終わるとき。駅と曲線の間の縦の部分（分岐行の端）
     //   'horizontal' 続く線から分かれるとき。縦の部分は自分の線と重なるので、曲線を抜けた
@@ -911,7 +915,7 @@ function renderLineDiagram(lineId) {
         let tx, ty, angle;
         if (placement === 'vertical') {
             tx = x;
-            ty = side === 'down' ? 5 : height - 5;
+            ty = side === 'down' ? 6 : height - 6;
             angle = awayFromStation;
         } else if (placement === 'arc') {
             // 曲線（中心 (x+R, y∓R) の四分円）の中点。接線は斜め45°
@@ -920,16 +924,18 @@ function renderLineDiagram(lineId) {
             ty = side === 'down' ? y - THROUGH_R + k : y + THROUGH_R - k;
             angle = side === 'down' ? 45 : -45;
         } else {
-            tx = x + THROUGH_R + 6;
+            tx = x + THROUGH_R + 5;
             ty = y;
             angle = 0;
         }
         if (!outward) angle += 180;
         const arrow = document.createElementNS(SVG_NS, 'path');
-        arrow.setAttribute('d', 'M -3.5 0 L 3 0 M 0.6 -2.4 L 3 0 L 0.6 2.4');
+        // 線幅 11px に収まる大きさ（全長 10px・幅 7.6px）。横線上では曲線の終わりから
+        // THROUGH_ARROW_REACH までに収まり、次の列の縦線にかからない
+        arrow.setAttribute('d', 'M -5 0 L 4.2 0 M 0.4 -3.8 L 4.2 0 L 0.4 3.8');
         arrow.setAttribute('fill', 'none');
         arrow.setAttribute('stroke', '#fff');
-        arrow.setAttribute('stroke-width', '1.5');
+        arrow.setAttribute('stroke-width', '1.8');
         arrow.setAttribute('stroke-linecap', 'round');
         arrow.setAttribute('stroke-linejoin', 'round');
         arrow.setAttribute('transform', `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) rotate(${angle})`);
@@ -1006,6 +1012,8 @@ function renderLineDiagram(lineId) {
             const suspension = branchSuspension(b);
             const y = laneY(k);
             const curveCats = cats.filter(c => b.categoryIds.has(c.id));
+            // 横線上に矢印を置いた種別のうち最も右のもの（終わりのぼかしは矢印より先から）
+            let arrowOnBarCat = null;
             curveCats.forEach(c => {
                 // 曲線は各列のセル内に、直線部分の縦線より下のレイヤーで描く（続く線から分かれて見える）
                 const cell = cellByCat.get(c.id);
@@ -1022,7 +1030,7 @@ function renderLineDiagram(lineId) {
                 path.setAttribute('fill', 'none');
                 const catColor = throughColor(b, c.id);
                 path.setAttribute('stroke', catColor);
-                path.setAttribute('stroke-width', '6');
+                path.setAttribute('stroke-width', String(DIAGRAM_LINE_W));
                 svg.appendChild(path);
                 // 片方向だけの直通は、進む向きの矢印を置く
                 const flows = b.flowsByCat.get(c.id);
@@ -1032,6 +1040,7 @@ function renderLineDiagram(lineId) {
                     if (placement === 'vertical' && hasLoop && loopStartIdx === 0 && idx === 0 && side === 'up'
                         && c.id === cats[0].id) placement = 'arc';
                     cell.appendChild(buildThroughArrow(x, y, height, side, placement, flows.has('out')));
+                    if (placement === 'horizontal') arrowOnBarCat = c.id;
                 }
                 cell.appendChild(svg);
             });
@@ -1044,6 +1053,7 @@ function renderLineDiagram(lineId) {
             if (suspension === 'all') branch.classList.add('is-suspended');
             branch.dataset.fromCat = curveCats[0].id;
             branch.dataset.toCat = curveCats[curveCats.length - 1].id;
+            if (arrowOnBarCat) branch.dataset.arrowCat = arrowOnBarCat;
             const bar = document.createElement('span');
             bar.className = 'op-through-bar';
             const label = document.createElement('a');
@@ -1081,8 +1091,10 @@ function renderLineDiagram(lineId) {
                 const left = curveEnd(branch.dataset.fromCat);
                 branch.style.left = `${left}px`;
                 branch.style.setProperty('--through-bar-width', `${Math.max(0, labelLeft - left)}px`);
-                // 終わりのぼかしは右端の列の曲線が合流した先から始める
-                branch.style.setProperty('--through-fade-start', `${Math.max(0, curveEnd(branch.dataset.toCat) - left)}px`);
+                // 終わりのぼかしは右端の列の曲線が合流した先（横線上の矢印があればその先）から始める
+                let solidEnd = curveEnd(branch.dataset.toCat);
+                if (branch.dataset.arrowCat) solidEnd = Math.max(solidEnd, curveEnd(branch.dataset.arrowCat) + THROUGH_ARROW_REACH);
+                branch.style.setProperty('--through-fade-start', `${Math.max(0, solidEnd - left)}px`);
             });
         });
     }

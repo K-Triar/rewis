@@ -358,6 +358,8 @@
 .line-layout {
     display: flex;
     flex-direction: column;
+    /* 路線図の線の太さ（operation.js の DIAGRAM_LINE_W と対応。駅の丸の内側の白い点と同じ幅） */
+    --diagram-line-w: 11px;
 }
 
 .op-header-row,
@@ -417,7 +419,7 @@
     transform: translateX(-50%);
     top: 0;
     bottom: 0;
-    width: 6px;
+    width: var(--diagram-line-w);
     background: #020C38;
     z-index: 2;
 }
@@ -586,7 +588,7 @@
 .op-through-bar {
     flex: none;
     width: var(--through-bar-width, 0);
-    height: 6px;
+    height: var(--diagram-line-w);
     background: linear-gradient(90deg, var(--through-color) 0, var(--through-color) max(var(--through-fade-start, 0px), calc(100% - 28px)), transparent calc(100% - 4px));
 }
 .op-through-label {
