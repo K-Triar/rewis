@@ -111,13 +111,6 @@
     opacity: 0.92;
 }
 
-.home-hero-note {
-    margin-top: var(--space-2);
-    font-size: var(--font-size-sm);
-    line-height: var(--line-height-base);
-    opacity: 0.8;
-}
-
 @media (max-width: 768px) {
     /* layout.css は .page-container に margin-top:76px（ヘッダー高さ分）を
        付けている。hero だけを同じ分だけ上に引き上げ（margin-top:-76px）、
