@@ -407,6 +407,7 @@
 
 .op-station-cell {
     flex: 1;
+    min-width: 0; /* 乗換の一覧が長いときに、行からはみ出さず折り返す */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -656,9 +657,9 @@
 }
 
 /* ===== 駅の乗換・徒歩連絡 =====
-   乗換先の路線は、路線一覧・乗換案内と同じ車両アイコン（路線色）＋路線名で示し、
-   その路線のページへのリンクにする。運行情報がある路線には状態の記号を添える。
-   試作: #line-layout[data-xfer] が a（チップ）/ b（ラインカラー・マーク）/ c（ラベル付きリスト） */
+   乗換先の路線は、路線図の線と同じ「路線色の細い縦帯」＋路線名で示し、その路線のページへの
+   リンクにする。運行情報がある路線は、路線一覧の運行情報の行と同じ状態の配色・記号・見出しで示す。
+   試作: #line-layout[data-xstat] が 1（淡色の帯）/ 2（後置バッジ）/ 3（駅の下に告知の行） */
 .op-links {
     display: flex;
     flex-direction: column;
@@ -671,11 +672,11 @@
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-1) var(--space-2);
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
 }
 .op-links__label,
-.op-loop-return__kind,
-.visually-hidden {
+.op-loop-return__kind {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -687,38 +688,46 @@
 .op-xfer {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
     line-height: 1.5;
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     text-decoration: none;
-    border-radius: var(--radius-pill);
-    transition: background-color var(--duration-fast) var(--ease-standard);
+    border-radius: var(--radius-xs);
+}
+.op-xfer:hover .op-xfer__name {
+    color: var(--color-text);
+    text-decoration: underline;
 }
 .op-xfer:focus-visible {
     outline: 2px solid var(--color-primary);
-    outline-offset: 1px;
+    outline-offset: 2px;
 }
 .op-xfer__mark {
     flex: none;
-    width: 14px;
-    height: 14px;
+    width: 4px;
+    height: 13px;
+    border-radius: 2px;
     background-color: var(--line-color);
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-position: center;
 }
+
+/* 運行情報の状態（記号＋見出し）。色は状態の文字色トークン */
 .op-xfer__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: var(--font-weight-bold);
+}
+.op-xfer__status-icon {
     flex: none;
     width: 12px;
     height: 12px;
     stroke-width: 5;
 }
-.op-xfer--warning .op-xfer__status { color: var(--color-status-warning-text); }
-.op-xfer--suspend .op-xfer__status { color: var(--color-status-suspend-text); }
+.op-xfer--warning { --status-text: var(--color-status-warning-text); --status-bg: var(--color-status-warning-bg); --status-line: var(--color-status-warning); }
+.op-xfer--suspend { --status-text: var(--color-status-suspend-text); --status-bg: var(--color-status-suspend-bg); --status-line: var(--color-status-suspend); }
+.op-xfer--alert .op-xfer__status { color: var(--status-text); }
 
 .op-walk {
     display: inline-flex;
@@ -726,7 +735,7 @@
     gap: 5px;
     font-size: var(--font-size-xs);
     line-height: 1.5;
-    color: var(--color-text);
+    color: var(--color-text-secondary);
 }
 .op-walk__icon {
     flex: none;
@@ -737,17 +746,98 @@
     mask: url(../icons/walking.svg) center / contain no-repeat;
 }
 .op-walk__time {
-    color: var(--color-text-secondary);
+    color: var(--color-text-muted);
 }
 
-/* 環状・ラケット型の「◯◯へ戻る」 */
+/* --- 案1: 淡色の帯。運行情報がある路線だけ、状態の淡色の面に載せて名前の後ろに見出しを出す --- */
+[data-xstat="1"] .op-xfer--alert {
+    padding: 1px 8px 1px 6px;
+    margin: 0 -2px;
+    background: var(--status-bg);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-line) 35%, transparent);
+    color: var(--color-text);
+}
+[data-xstat="1"] .op-xfer--alert .op-xfer__status {
+    margin-left: 2px;
+}
+
+/* --- 案2: 後置バッジ。名前はそのまま、後ろに状態色の塗りのバッジ --- */
+[data-xstat="2"] .op-xfer--alert {
+    color: var(--color-text);
+}
+[data-xstat="2"] .op-xfer--alert .op-xfer__status {
+    padding: 0 6px 0 4px;
+    border-radius: var(--radius-xs);
+    background: var(--status-text);
+    color: #fff;
+    font-size: 0.6875rem;
+    line-height: 18px;
+}
+
+/* --- 案3: 一覧の中は記号だけ、駅の下に1路線1行の告知 --- */
+.op-xfer-alerts {
+    display: none;
+}
+[data-xstat="3"] .op-xfer--alert .op-xfer__status-text {
+    display: none;
+}
+[data-xstat="3"] .op-xfer-alerts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    margin-top: 2px;
+}
+.op-xfer-alert {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 3px 10px 3px 8px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--status-line);
+    background: var(--status-bg);
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    color: var(--color-text);
+    text-decoration: none;
+}
+.op-xfer-alert--warning { --status-text: var(--color-status-warning-text); --status-bg: var(--color-status-warning-bg); --status-line: var(--color-status-warning); }
+.op-xfer-alert--suspend { --status-text: var(--color-status-suspend-text); --status-bg: var(--color-status-suspend-bg); --status-line: var(--color-status-suspend); }
+.op-xfer-alert__icon {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    stroke-width: 5;
+    color: var(--status-text);
+}
+.op-xfer-alert__line {
+    font-weight: var(--font-weight-bold);
+}
+.op-xfer-alert__heading {
+    font-weight: var(--font-weight-bold);
+    color: var(--status-text);
+}
+.op-xfer-alert__heading::after {
+    content: ' ›';
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-regular);
+}
+.op-xfer-alert:hover .op-xfer-alert__line {
+    text-decoration: underline;
+}
+
+/* 環状・ラケット型の「◯◯の次は◯◯へ戻る」。記号は路線図の折り返しと同じ形を路線色で */
+.op-station-cell--loop {
+    align-items: flex-start;
+}
 .op-loop-return {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     line-height: 1.5;
-    color: var(--color-text);
+    color: var(--color-text-secondary);
 }
 .op-loop-return__icon {
     flex: none;
@@ -762,104 +852,6 @@
 .op-loop-return__to {
     font-weight: var(--font-weight-bold);
     color: var(--color-heading);
-}
-.op-station-cell--loop {
-    align-items: flex-start;
-}
-
-/* --- A: チップ --- */
-[data-xfer="a"] .op-xfer {
-    padding: 2px 9px 2px 6px;
-    background: var(--color-bg-subtle);
-}
-[data-xfer="a"] .op-xfer:hover {
-    background: #e6e6e6;
-}
-[data-xfer="a"] .op-xfer--warning { background: var(--color-status-warning-bg); }
-[data-xfer="a"] .op-xfer--suspend { background: var(--color-status-suspend-bg); }
-[data-xfer="a"] .op-walk {
-    padding: 1px 9px 1px 6px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-pill);
-}
-[data-xfer="a"] .op-loop-return {
-    padding: 4px 12px 4px 8px;
-    border-radius: var(--radius-pill);
-    background: var(--color-bg-subtle);
-}
-[data-xfer="a"] .op-loop-return__from { display: none; }
-
-/* --- B: ラインカラー・マーク（駅の案内サインのような細い縦帯） --- */
-[data-xfer="b"] .op-links__list {
-    gap: 2px var(--space-3);
-}
-[data-xfer="b"] .op-xfer {
-    gap: 6px;
-    color: var(--color-text-secondary);
-    font-weight: var(--font-weight-medium);
-}
-[data-xfer="b"] .op-xfer__mark {
-    width: 4px;
-    height: 13px;
-    border-radius: 2px;
-    -webkit-mask-image: none !important;
-    mask-image: none !important;
-}
-[data-xfer="b"] .op-xfer:hover .op-xfer__name {
-    color: var(--color-text);
-    text-decoration: underline;
-}
-[data-xfer="b"] .op-walk {
-    color: var(--color-text-secondary);
-}
-[data-xfer="b"] .op-walk__time {
-    color: var(--color-text-muted);
-}
-[data-xfer="b"] .op-loop-return__from { display: none; }
-
-/* --- C: ラベル付きリスト（「乗換」「徒歩」の見出しタグ＋一覧） --- */
-[data-xfer="c"] .op-links {
-    gap: 3px;
-}
-[data-xfer="c"] .op-links__group {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: var(--space-2);
-    align-items: start;
-}
-[data-xfer="c"] .op-links__label,
-[data-xfer="c"] .op-loop-return__kind {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip: auto;
-    margin-top: 2px;
-    padding: 0 5px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xs);
-    font-size: 0.6875rem;
-    font-weight: var(--font-weight-bold);
-    line-height: 16px;
-    color: var(--color-text-secondary);
-}
-[data-xfer="c"] .op-links__list {
-    gap: 0 var(--space-3);
-}
-[data-xfer="c"] .op-xfer:hover .op-xfer__name {
-    text-decoration: underline;
-}
-[data-xfer="c"] .op-walk__icon {
-    display: none;
-}
-[data-xfer="c"] .op-loop-return {
-    font-size: var(--font-size-xs);
-}
-[data-xfer="c"] .op-loop-return__kind {
-    margin-top: 0;
-}
-[data-xfer="c"] .op-loop-return__from {
-    color: var(--color-text-secondary);
 }
 
 /* .share-result-wrapper / .notice-section / .loading-section / @keyframes fadeIn は design-system/components.css 側の共通クラス */

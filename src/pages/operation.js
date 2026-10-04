@@ -602,7 +602,7 @@ function renderLineDiagram(lineId) {
 
     const lineLayoutEl = document.getElementById('line-layout');
     lineLayoutEl.innerHTML = '';
-    lineLayoutEl.dataset.xfer = XFER_VARIANT;
+    lineLayoutEl.dataset.xstat = XSTAT_VARIANT;
 
     const cats = line.categories || [];
 
@@ -1352,10 +1352,11 @@ function renderLineDiagram(lineId) {
 // ========================================
 // 駅の乗換・徒歩連絡と、環状・ラケット型の「戻る」表示
 // ========================================
-// 試作の切り替え（?xfer=a|b|c）。A: チップ / B: ラインカラー・マーク / C: ラベル付きリスト
-const XFER_VARIANT = (() => {
-    const v = new URLSearchParams(window.location.search).get('xfer');
-    return ['a', 'b', 'c'].includes(v) ? v : 'a';
+// 試作の切り替え（?xstat=1|2|3）。乗換先の路線に運行情報があるときの見せ方
+// 1: 淡色の帯（路線名の後ろに状態） / 2: 後置バッジ / 3: 駅の下に告知の行
+const XSTAT_VARIANT = (() => {
+    const v = new URLSearchParams(window.location.search).get('xstat');
+    return ['1', '2', '3'].includes(v) ? v : '1';
 })();
 
 function formatWalkTime(min, max) {
@@ -1364,11 +1365,25 @@ function formatWalkTime(min, max) {
     return `${formatSeconds(min)}〜${formatSeconds(max)}`;
 }
 
-// 乗換先の路線に運行情報があれば、その状態（'suspend' | 'warning'）を返す
-function lineAlertState(lineId) {
+// 乗換先の路線に運行情報があれば、状態（'suspend' | 'warning'）と見出し（代表の1件。
+// 複数あれば「ほか」を付ける）を返す。見出しは路線一覧の運行情報の行と同じもの
+function lineAlert(lineId) {
     const list = model.noticesByLine.get(lineId) || [];
     if (list.length === 0) return null;
-    return list.some(isSuspendNotice) ? 'suspend' : 'warning';
+    const rep = model.primaryNotice(lineId) || list[0];
+    const heading = rep.status?.heading || '運行情報';
+    return {
+        state: list.some(isSuspendNotice) ? 'suspend' : 'warning',
+        heading: list.length > 1 ? `${heading} ほか` : heading,
+    };
+}
+
+function openLineOnClick(el, lineId) {
+    el.href = `?line=${encodeURIComponent(lineId)}`;
+    el.addEventListener('click', ev => {
+        ev.preventDefault();
+        showLineDetail(lineId, { syncUrl: true });
+    });
 }
 
 function buildLinkGroup(modifier, labelText) {
@@ -1406,6 +1421,7 @@ function buildStationLinks(stId, lineId) {
     const wrap = document.createElement('div');
     wrap.className = 'op-links';
 
+    const alerts = [];
     if (otherLineIds.length > 0) {
         const { group, list } = buildLinkGroup('transfer', '乗換');
         otherLineIds.forEach(lid => {
@@ -1413,15 +1429,12 @@ function buildStationLinks(stId, lineId) {
             const item = document.createElement('li');
             const link = document.createElement('a');
             link.className = 'op-xfer';
-            link.href = `?line=${encodeURIComponent(lid)}`;
+            openLineOnClick(link, lid);
             link.style.setProperty('--line-color', (other && other.color) || 'var(--color-primary)');
 
             const mark = document.createElement('span');
             mark.className = 'op-xfer__mark';
             mark.setAttribute('aria-hidden', 'true');
-            const iconPath = `../assets/icons/${((other && other.vehicleTypeId) || 'TC').toUpperCase()}.svg`;
-            mark.style.webkitMaskImage = `url(${iconPath})`;
-            mark.style.maskImage = `url(${iconPath})`;
 
             const name = document.createElement('span');
             name.className = 'op-xfer__name';
@@ -1430,24 +1443,25 @@ function buildStationLinks(stId, lineId) {
             link.appendChild(mark);
             link.appendChild(name);
 
-            const state = lineAlertState(lid);
-            if (state) {
-                link.classList.add(`op-xfer--${state}`);
-                link.appendChild(createStatusIcon(state, 'status-icon op-xfer__status'));
-                const sr = document.createElement('span');
-                sr.className = 'visually-hidden';
-                sr.textContent = state === 'suspend' ? '（運転見合わせ）' : '（運行情報あり）';
-                link.appendChild(sr);
+            const alert = lineAlert(lid);
+            if (alert) {
+                link.classList.add('op-xfer--alert', `op-xfer--${alert.state}`);
+                const status = document.createElement('span');
+                status.className = 'op-xfer__status';
+                status.appendChild(createStatusIcon(alert.state, 'status-icon op-xfer__status-icon'));
+                const heading = document.createElement('span');
+                heading.className = 'op-xfer__status-text';
+                heading.textContent = alert.heading;
+                status.appendChild(heading);
+                link.appendChild(status);
+                alerts.push({ lineId: lid, ...alert });
             }
 
-            link.addEventListener('click', ev => {
-                ev.preventDefault();
-                showLineDetail(lid, { syncUrl: true });
-            });
             item.appendChild(link);
             list.appendChild(item);
         });
         wrap.appendChild(group);
+        if (alerts.length > 0) wrap.appendChild(buildTransferAlerts(alerts));
     }
 
     if (rangeByStation.size > 0) {
@@ -1477,6 +1491,31 @@ function buildStationLinks(stId, lineId) {
     }
 
     return wrap;
+}
+
+// 案3: 運行情報がある乗換先を、駅の下に1路線1行の告知として並べる（路線一覧の運行情報の行と同じ配色）
+function buildTransferAlerts(alerts) {
+    const box = document.createElement('div');
+    box.className = 'op-xfer-alerts';
+    alerts.forEach(({ lineId, state, heading }) => {
+        const row = document.createElement('a');
+        row.className = `op-xfer-alert op-xfer-alert--${state}`;
+        openLineOnClick(row, lineId);
+        row.tabIndex = -1;
+        row.appendChild(createStatusIcon(state, 'status-icon op-xfer-alert__icon'));
+        const name = document.createElement('span');
+        name.className = 'op-xfer-alert__line';
+        name.textContent = model.lineName(lineId);
+        const text = document.createElement('span');
+        text.className = 'op-xfer-alert__heading';
+        text.textContent = heading;
+        row.appendChild(name);
+        row.appendChild(text);
+        box.appendChild(row);
+    });
+    // 乗換の一覧の中の状態と同じ内容なので、読み上げは一覧の側だけにする
+    box.setAttribute('aria-hidden', 'true');
+    return box;
 }
 
 // 専用線の下端の行に置く「◯◯へ戻る」。記号は路線図の折り返しと同じ形（下で折り返して上へ）
