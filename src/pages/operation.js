@@ -1181,7 +1181,7 @@ function renderLineDiagram(lineId) {
         const station = model.stationById.get(stId);
 
         const row = document.createElement('div');
-        row.className = 'op-body-row';
+        row.className = 'op-body-row op-body-row--station';
 
         const rowDiagram = document.createElement('div');
         rowDiagram.className = 'op-diagram-cells';
