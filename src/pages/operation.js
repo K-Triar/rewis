@@ -380,9 +380,11 @@ function showLineDetail(lineId, options) {
     detailView.setAttribute('aria-hidden', 'false');
 
     const icon = document.getElementById('line-detail-icon');
+    const companyEl = document.getElementById('line-detail-company');
     const nameEl = document.getElementById('line-detail-name');
 
     applyLineTypeIcon(icon, line);
+    companyEl.textContent = model.companyById.get(line.companyId)?.name || '';
     nameEl.textContent = line.name;
 
     renderLineAlertBox(lineId);

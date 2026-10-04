@@ -274,8 +274,19 @@
     mask-position: center;
 }
 
+/* 会社名＋路線名の2行（行の高さ計40px）を、隣のアイコン（40px）と上下中央でそろえる */
+.line-detail-company {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 16px;
+    color: var(--color-text-secondary);
+}
+
 .line-detail-name {
+    margin: 0;
     font-size: var(--font-size-lg);
+    line-height: 24px;
     font-weight: var(--font-weight-bold);
     color: var(--color-heading);
 }
