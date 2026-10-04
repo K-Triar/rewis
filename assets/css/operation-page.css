@@ -539,6 +539,82 @@
     animation: diagram-line-blink 2s step-start infinite;
 }
 
+/* ===== 他路線への直通の分岐 ===== */
+.line-layout {
+    /* 運行情報で直通運転を中止している分岐の線と路線名 */
+    --color-through-suspended: #c4c9d0;
+}
+.op-through-row {
+    position: relative;
+}
+.op-through-cell {
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+}
+/* 曲線は続く縦線（z-index 2）の下に描き、線から分かれて見せる */
+.op-through-curve {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    overflow: visible;
+    pointer-events: none;
+}
+.op-through-arrow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    overflow: visible;
+    pointer-events: none;
+}
+.op-through-stub {
+    z-index: 1;
+}
+/* 横線は曲線の終わりから駅名の左端まで（--through-bar-width は JS で測って設定）、
+   路線名は駅名と左端をそろえる */
+.op-through-branch {
+    position: absolute;
+    right: 0;
+    height: 0;
+    display: flex;
+    align-items: center;
+    /* 直通しない種別の縦線（z-index 2）と交差するところは縦線を上にする */
+    z-index: 1;
+}
+.op-through-bar {
+    flex: none;
+    width: var(--through-bar-width, 0);
+    height: 6px;
+    background: linear-gradient(90deg, var(--through-color) 0, var(--through-color) max(var(--through-fade-start, 0px), calc(100% - 28px)), transparent calc(100% - 4px));
+}
+.op-through-label {
+    flex: none;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--through-color);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.op-through-label::after {
+    content: ' ›';
+}
+.op-through-branch.is-suspended .op-through-label {
+    color: var(--color-text-muted);
+}
+.op-through-note {
+    margin-left: var(--space-1);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-sm);
+    background: var(--color-status-suspend-bg);
+    color: var(--color-status-suspend-text);
+    font-size: var(--font-size-xs);
+}
+.op-through-label:hover {
+    text-decoration: underline;
+}
+
 .diagram-pill {
     position: absolute;
     left: 13px;
