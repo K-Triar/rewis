@@ -71,6 +71,14 @@ async function loadOperationData() {
         showLoading();
 
         ({ model } = await loadPublicModel({}));
+        // 試作の確認用（?demoloop=1）：環状・ラケット型の路線が今のデータに無いので、貿易港線を環状、
+        // 地下鉄中央線を鍛冶ヶ淵で戻るラケット型として表示する。案を決めたら消す
+        if (new URLSearchParams(window.location.search).has('demoloop')) {
+            [['KT-B', 0], ['KT-U', 2]].forEach(([id, startIndex]) => {
+                const l = model.lineById.get(id);
+                if (l) l.loop = { startIndex };
+            });
+        }
         renderLineListView();
         loadOperationFromUrlParams();
     } catch (err) {
@@ -594,6 +602,7 @@ function renderLineDiagram(lineId) {
 
     const lineLayoutEl = document.getElementById('line-layout');
     lineLayoutEl.innerHTML = '';
+    lineLayoutEl.dataset.xfer = XFER_VARIANT;
 
     const cats = line.categories || [];
 
@@ -1288,45 +1297,8 @@ function renderLineDiagram(lineId) {
 
         stationCell.appendChild(nameMain);
 
-        const lineIds = model.linesByStation.get(stId) || [];
-        if (lineIds.length > 1) {
-            const others = lineIds
-                .filter(lid => lid !== lineId)
-                .map(lid => model.lineName(lid))
-                .filter(Boolean);
-            if (others.length > 0) {
-                const transfer = document.createElement('div');
-                transfer.className = 'station-transfer';
-                transfer.textContent = `乗換：${others.join('・')}`;
-                stationCell.appendChild(transfer);
-            }
-        }
-
-        const walks = model.walkTransfersByStation.get(stId) || [];
-        if (walks.length > 0) {
-            // のりばごとに複数登録された同じ駅への徒歩連絡は、所要時間の幅で1つにまとめる
-            const rangeByStation = new Map();
-            walks.forEach(w => {
-                const range = rangeByStation.get(w.toStationId);
-                if (range) {
-                    range.min = Math.min(range.min, w.seconds);
-                    range.max = Math.max(range.max, w.seconds);
-                } else {
-                    rangeByStation.set(w.toStationId, { min: w.seconds, max: w.seconds });
-                }
-            });
-            const walkText = Array.from(rangeByStation, ([toStationId, { min, max }]) => {
-                let time;
-                if (min === max) time = formatSeconds(min);
-                else if (max < 60) time = `${Math.round(min)}〜${formatSeconds(max)}`;
-                else time = `${formatSeconds(min)}〜${formatSeconds(max)}`;
-                return `${model.stationName(toStationId)}（${time}）`;
-            }).join('・');
-            const walk = document.createElement('div');
-            walk.className = 'station-transfer';
-            walk.textContent = `徒歩：${walkText}`;
-            stationCell.appendChild(walk);
-        }
+        const links = buildStationLinks(stId, lineId);
+        if (links) stationCell.appendChild(links);
 
         const upBranches = throughByRow.get(`${idx}|up`);
         if (upBranches) {
@@ -1368,15 +1340,183 @@ function renderLineDiagram(lineId) {
         const stationCell = document.createElement('div');
         stationCell.className = 'op-station-cell';
         const loopStationId = order[line.loop.startIndex];
-        const transfer = document.createElement('div');
-        transfer.className = 'station-transfer';
-        transfer.textContent = `↺ ${model.stationName(loopStationId)} へ戻る`;
-        stationCell.appendChild(transfer);
+        stationCell.classList.add('op-station-cell--loop');
+        stationCell.appendChild(buildLoopReturn(line, order[order.length - 1], loopStationId));
 
         row.appendChild(rowDiagram);
         row.appendChild(stationCell);
         lineLayoutEl.appendChild(row);
     }
+}
+
+// ========================================
+// 駅の乗換・徒歩連絡と、環状・ラケット型の「戻る」表示
+// ========================================
+// 試作の切り替え（?xfer=a|b|c）。A: チップ / B: ラインカラー・マーク / C: ラベル付きリスト
+const XFER_VARIANT = (() => {
+    const v = new URLSearchParams(window.location.search).get('xfer');
+    return ['a', 'b', 'c'].includes(v) ? v : 'a';
+})();
+
+function formatWalkTime(min, max) {
+    if (min === max) return formatSeconds(min);
+    if (max < 60) return `${Math.round(min)}〜${formatSeconds(max)}`;
+    return `${formatSeconds(min)}〜${formatSeconds(max)}`;
+}
+
+// 乗換先の路線に運行情報があれば、その状態（'suspend' | 'warning'）を返す
+function lineAlertState(lineId) {
+    const list = model.noticesByLine.get(lineId) || [];
+    if (list.length === 0) return null;
+    return list.some(isSuspendNotice) ? 'suspend' : 'warning';
+}
+
+function buildLinkGroup(modifier, labelText) {
+    const group = document.createElement('div');
+    group.className = `op-links__group op-links__group--${modifier}`;
+    const label = document.createElement('span');
+    label.className = 'op-links__label';
+    label.textContent = labelText;
+    const list = document.createElement('ul');
+    list.className = 'op-links__list';
+    list.setAttribute('aria-label', labelText);
+    group.appendChild(label);
+    group.appendChild(list);
+    return { group, list };
+}
+
+function buildStationLinks(stId, lineId) {
+    const otherLineIds = (model.linesByStation.get(stId) || [])
+        .filter(lid => lid !== lineId && model.lineName(lid));
+
+    // のりばごとに複数登録された同じ駅への徒歩連絡は、所要時間の幅で1つにまとめる
+    const rangeByStation = new Map();
+    (model.walkTransfersByStation.get(stId) || []).forEach(w => {
+        const range = rangeByStation.get(w.toStationId);
+        if (range) {
+            range.min = Math.min(range.min, w.seconds);
+            range.max = Math.max(range.max, w.seconds);
+        } else {
+            rangeByStation.set(w.toStationId, { min: w.seconds, max: w.seconds });
+        }
+    });
+
+    if (otherLineIds.length === 0 && rangeByStation.size === 0) return null;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'op-links';
+
+    if (otherLineIds.length > 0) {
+        const { group, list } = buildLinkGroup('transfer', '乗換');
+        otherLineIds.forEach(lid => {
+            const other = model.lineById.get(lid);
+            const item = document.createElement('li');
+            const link = document.createElement('a');
+            link.className = 'op-xfer';
+            link.href = `?line=${encodeURIComponent(lid)}`;
+            link.style.setProperty('--line-color', (other && other.color) || 'var(--color-primary)');
+
+            const mark = document.createElement('span');
+            mark.className = 'op-xfer__mark';
+            mark.setAttribute('aria-hidden', 'true');
+            const iconPath = `../assets/icons/${((other && other.vehicleTypeId) || 'TC').toUpperCase()}.svg`;
+            mark.style.webkitMaskImage = `url(${iconPath})`;
+            mark.style.maskImage = `url(${iconPath})`;
+
+            const name = document.createElement('span');
+            name.className = 'op-xfer__name';
+            name.textContent = model.lineName(lid);
+
+            link.appendChild(mark);
+            link.appendChild(name);
+
+            const state = lineAlertState(lid);
+            if (state) {
+                link.classList.add(`op-xfer--${state}`);
+                link.appendChild(createStatusIcon(state, 'status-icon op-xfer__status'));
+                const sr = document.createElement('span');
+                sr.className = 'visually-hidden';
+                sr.textContent = state === 'suspend' ? '（運転見合わせ）' : '（運行情報あり）';
+                link.appendChild(sr);
+            }
+
+            link.addEventListener('click', ev => {
+                ev.preventDefault();
+                showLineDetail(lid, { syncUrl: true });
+            });
+            item.appendChild(link);
+            list.appendChild(item);
+        });
+        wrap.appendChild(group);
+    }
+
+    if (rangeByStation.size > 0) {
+        const { group, list } = buildLinkGroup('walk', '徒歩');
+        rangeByStation.forEach(({ min, max }, toStationId) => {
+            const item = document.createElement('li');
+            item.className = 'op-walk';
+
+            const icon = document.createElement('span');
+            icon.className = 'op-walk__icon';
+            icon.setAttribute('aria-hidden', 'true');
+
+            const name = document.createElement('span');
+            name.className = 'op-walk__name';
+            name.textContent = model.stationName(toStationId);
+
+            const time = document.createElement('span');
+            time.className = 'op-walk__time';
+            time.textContent = `徒歩${formatWalkTime(min, max)}`;
+
+            item.appendChild(icon);
+            item.appendChild(name);
+            item.appendChild(time);
+            list.appendChild(item);
+        });
+        wrap.appendChild(group);
+    }
+
+    return wrap;
+}
+
+// 専用線の下端の行に置く「◯◯へ戻る」。記号は路線図の折り返しと同じ形（下で折り返して上へ）
+function buildLoopReturn(line, terminalStationId, returnStationId) {
+    const isRing = line.loop.startIndex === 0;
+    const el = document.createElement('div');
+    el.className = 'op-loop-return';
+    el.style.setProperty('--line-color', line.color || 'var(--color-primary)');
+
+    const kind = document.createElement('span');
+    kind.className = 'op-loop-return__kind';
+    kind.textContent = isRing ? '環状運転' : 'ループ運転';
+
+    const icon = document.createElementNS(SVG_NS, 'svg');
+    icon.setAttribute('viewBox', '0 0 16 16');
+    icon.setAttribute('class', 'op-loop-return__icon');
+    icon.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', 'M12 2.5V9a4 4 0 0 1-8 0V3.5M1.5 6 4 3.5 6.5 6');
+    icon.appendChild(path);
+
+    const text = document.createElement('span');
+    text.className = 'op-loop-return__text';
+    const from = document.createElement('span');
+    from.className = 'op-loop-return__from';
+    from.textContent = `${model.stationName(terminalStationId)} の次は `;
+    const to = document.createElement('strong');
+    to.className = 'op-loop-return__to';
+    to.textContent = model.stationName(returnStationId);
+    const tail = document.createElement('span');
+    tail.className = 'op-loop-return__tail';
+    tail.textContent = ' へ戻る';
+    text.appendChild(from);
+    text.appendChild(to);
+    text.appendChild(tail);
+
+    el.appendChild(kind);
+    el.appendChild(icon);
+    el.appendChild(text);
+    return el;
 }
 
 // 日時フォーマット（2025年12月6日 20時00分）

@@ -655,8 +655,210 @@
     color: var(--color-heading);
 }
 
-.station-transfer {
+/* ===== 駅の乗換・徒歩連絡 =====
+   乗換先の路線は、路線一覧・乗換案内と同じ車両アイコン（路線色）＋路線名で示し、
+   その路線のページへのリンクにする。運行情報がある路線には状態の記号を添える。
+   試作: #line-layout[data-xfer] が a（チップ）/ b（ラインカラー・マーク）/ c（ラベル付きリスト） */
+.op-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-top: var(--space-1);
+}
+.op-links__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+}
+.op-links__label,
+.op-loop-return__kind,
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.op-xfer {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: var(--font-size-xs);
+    line-height: 1.5;
+    color: var(--color-text);
+    text-decoration: none;
+    border-radius: var(--radius-pill);
+    transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.op-xfer:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+.op-xfer__mark {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    background-color: var(--line-color);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+.op-xfer__status {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    stroke-width: 5;
+}
+.op-xfer--warning .op-xfer__status { color: var(--color-status-warning-text); }
+.op-xfer--suspend .op-xfer__status { color: var(--color-status-suspend-text); }
+
+.op-walk {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    color: var(--color-text);
+}
+.op-walk__icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    background-color: var(--color-text-secondary);
+    -webkit-mask: url(../icons/walking.svg) center / contain no-repeat;
+    mask: url(../icons/walking.svg) center / contain no-repeat;
+}
+.op-walk__time {
+    color: var(--color-text-secondary);
+}
+
+/* 環状・ラケット型の「◯◯へ戻る」 */
+.op-loop-return {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-text);
+}
+.op-loop-return__icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: var(--line-color);
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.op-loop-return__to {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+}
+.op-station-cell--loop {
+    align-items: flex-start;
+}
+
+/* --- A: チップ --- */
+[data-xfer="a"] .op-xfer {
+    padding: 2px 9px 2px 6px;
+    background: var(--color-bg-subtle);
+}
+[data-xfer="a"] .op-xfer:hover {
+    background: #e6e6e6;
+}
+[data-xfer="a"] .op-xfer--warning { background: var(--color-status-warning-bg); }
+[data-xfer="a"] .op-xfer--suspend { background: var(--color-status-suspend-bg); }
+[data-xfer="a"] .op-walk {
+    padding: 1px 9px 1px 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+}
+[data-xfer="a"] .op-loop-return {
+    padding: 4px 12px 4px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--color-bg-subtle);
+}
+[data-xfer="a"] .op-loop-return__from { display: none; }
+
+/* --- B: ラインカラー・マーク（駅の案内サインのような細い縦帯） --- */
+[data-xfer="b"] .op-links__list {
+    gap: 2px var(--space-3);
+}
+[data-xfer="b"] .op-xfer {
+    gap: 6px;
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+[data-xfer="b"] .op-xfer__mark {
+    width: 4px;
+    height: 13px;
+    border-radius: 2px;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+}
+[data-xfer="b"] .op-xfer:hover .op-xfer__name {
+    color: var(--color-text);
+    text-decoration: underline;
+}
+[data-xfer="b"] .op-walk {
+    color: var(--color-text-secondary);
+}
+[data-xfer="b"] .op-walk__time {
+    color: var(--color-text-muted);
+}
+[data-xfer="b"] .op-loop-return__from { display: none; }
+
+/* --- C: ラベル付きリスト（「乗換」「徒歩」の見出しタグ＋一覧） --- */
+[data-xfer="c"] .op-links {
+    gap: 3px;
+}
+[data-xfer="c"] .op-links__group {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--space-2);
+    align-items: start;
+}
+[data-xfer="c"] .op-links__label,
+[data-xfer="c"] .op-loop-return__kind {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    margin-top: 2px;
+    padding: 0 5px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xs);
+    font-size: 0.6875rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 16px;
+    color: var(--color-text-secondary);
+}
+[data-xfer="c"] .op-links__list {
+    gap: 0 var(--space-3);
+}
+[data-xfer="c"] .op-xfer:hover .op-xfer__name {
+    text-decoration: underline;
+}
+[data-xfer="c"] .op-walk__icon {
+    display: none;
+}
+[data-xfer="c"] .op-loop-return {
+    font-size: var(--font-size-xs);
+}
+[data-xfer="c"] .op-loop-return__kind {
+    margin-top: 0;
+}
+[data-xfer="c"] .op-loop-return__from {
     color: var(--color-text-secondary);
 }
 
