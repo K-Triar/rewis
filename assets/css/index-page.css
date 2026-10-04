@@ -289,9 +289,17 @@
 }
 
 .status-card-icon {
-    font-size: 1.6rem;
-    line-height: var(--line-height-tight);
-    font-weight: var(--font-weight-bold);
+    display: flex;
+    justify-content: center;
+}
+.status-card-icon .status-icon {
+    width: 32px;
+    height: 32px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 .status-card--normal .status-card-icon { color: var(--color-status-normal-text); }
 .status-card--warning .status-card-icon { color: var(--color-status-warning-text); }

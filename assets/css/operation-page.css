@@ -139,12 +139,19 @@
     border-right: 1px dashed var(--color-border);
 }
 
-/* 状態アイコンは home の運行状況カードと同じ文字グリフ（○/△/×）で統一する */
+/* 状態アイコンは home の運行状況カードと同じ SVG（○/△/×）で統一する */
 .line-notice-icon {
-    font-size: 1.4rem;
-    font-weight: var(--font-weight-bold);
-    line-height: 1;
+    display: flex;
     color: var(--color-status-normal-text);
+}
+.status-icon {
+    width: 1.6em;
+    height: 1.6em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 .line-notice-row--warning .line-notice-icon {
     color: var(--color-status-warning-text);
@@ -294,14 +301,13 @@
     background: var(--color-status-warning-bg);
     font-size: var(--font-size-base);
 }
+.alert-item--normal {
+    border-color: var(--color-status-normal);
+    background: var(--color-status-normal-bg);
+}
 .alert-item--suspend {
     border-color: var(--color-status-suspend);
     background: var(--color-status-suspend-bg);
-}
-.alert-item--normal {
-    border-style: dashed;
-    border-color: var(--color-border);
-    background: var(--color-bg-subtle);
 }
 
 .alert-header {
@@ -320,8 +326,13 @@
 }
 
 .alert-icon {
+    display: inline-flex;
+    vertical-align: middle;
     font-weight: var(--font-weight-bold);
     color: var(--color-status-warning-text);
+}
+.alert-item--normal .alert-icon {
+    color: var(--color-status-normal-text);
 }
 .alert-item--suspend .alert-icon {
     color: var(--color-status-suspend-text);
@@ -443,10 +454,6 @@
 .diagram-line-glow.affected-end {
     bottom: 50%;
 }
-
-.op-diagram-cell--loop {
-    overflow: visible;
-}
 /*
  * box-shadow は要素の上下端でも減衰するため、区間（セル）ごとに分けると境目に
  * 濃淡の縞ができる。横方向だけ減衰するグラデーションで描き、隣のセルへ続く端は
@@ -479,6 +486,10 @@
 .diagram-line-glow.affected-start:not(.glow-cont-top) { top: calc(50% - 22px); }
 .diagram-line-glow.affected-end:not(.glow-cont-bottom) { bottom: calc(50% - 22px); }
 
+.op-diagram-cell--loop {
+    overflow: visible;
+}
+
 /*
  * 環状・ラケット型の曲線 SVG は 64×48 固定で、駅の中心（セルの縦中央）に合わせて
  * 置く。<svg> は置換要素なので top/bottom 両指定では伸びない点に注意。
@@ -506,6 +517,16 @@
 .diagram-line-glow.loop-corner-start {
     top: calc(50% + 16px);
 }
+/*
+ * 専用線の曲線のぼかし（SVG）と直線のぼかし（div）の接合位置。曲線の付け根から 12px
+ * 直線側へ離す（operation.js の LOOP_GLOW_JOIN と対応）。セルが低くても下端を越えないよう min で抑える
+ */
+.diagram-line-glow.glow-join-corner {
+    top: min(calc(50% + 28px), 100%);
+}
+.diagram-line-glow.glow-join-loop-bottom {
+    bottom: 12px;
+}
 
 /* 専用線の曲線部分の影響区間ぼかし（.diagram-line-glow の SVG 版。色と点滅を揃える） */
 .diagram-loop-svg.diagram-loop-glow {
@@ -516,16 +537,6 @@
 .diagram-loop-glow.affected--suspend {
     color: var(--color-status-suspend);
     animation: diagram-line-blink 2s step-start infinite;
-}
-/*
- * 専用線の曲線のぼかし（SVG）と直線のぼかし（div）の接合位置。曲線の付け根から 12px
- * 直線側へ離す（operation.js の LOOP_GLOW_JOIN と対応）。セルが低くても下端を越えないよう min で抑える
- */
-.diagram-line-glow.glow-join-corner {
-    top: min(calc(50% + 28px), 100%);
-}
-.diagram-line-glow.glow-join-loop-bottom {
-    bottom: 12px;
 }
 
 .diagram-pill {

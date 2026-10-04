@@ -3,6 +3,7 @@
 // ========================================
 import { loadPublicModel } from '../shared/data-source.js';
 import { setupInstallPrompt } from '../shared/install-prompt.js';
+import { createStatusIcon } from '../shared/status-icon.js';
 import { computeAffectedIndices } from '../shared/model.js';
 import { ownCompanyIds } from '../shared/ids.js';
 import {
@@ -59,16 +60,6 @@ function getCauseHeading(notice) {
     if (cause.heading) return cause.heading;
     const tpl = (model.masters?.causes || []).find(c => c.code === cause.code);
     return tpl ? (tpl.heading || tpl.label) : null;
-}
-
-function getLatestNoticeUpdatedAt() {
-    let latest = null;
-    model.noticesByLine.forEach(list => {
-        list.forEach(n => {
-            if (!latest || n.updatedAt > latest) latest = n.updatedAt;
-        });
-    });
-    return latest;
 }
 
 // データ読み込み
@@ -209,7 +200,7 @@ function buildLineNoticeRow(notice, lineId) {
     iconCol.className = 'line-notice-icon-col';
     const icon = document.createElement('span');
     icon.className = 'line-notice-icon';
-    icon.textContent = isSuspend ? '×' : '△';
+    icon.appendChild(createStatusIcon(isSuspend ? 'suspend' : 'warning'));
     icon.setAttribute('aria-hidden', 'true');
     iconCol.appendChild(icon);
 
@@ -265,7 +256,7 @@ function buildLineNoticeNormalRow(lineId) {
     iconCol.className = 'line-notice-icon-col';
     const icon = document.createElement('span');
     icon.className = 'line-notice-icon';
-    icon.textContent = '○';
+    icon.appendChild(createStatusIcon('normal'));
     icon.setAttribute('aria-hidden', 'true');
     iconCol.appendChild(icon);
 
@@ -462,24 +453,45 @@ function renderLineAlertBox(lineId) {
 
     const list = model.noticesByLine.get(lineId) || [];
     if (list.length === 0) {
-        const item = document.createElement('div');
-        item.className = 'alert-item alert-item--normal';
-
-        const inner = document.createElement('div');
-        inner.className = 'alert-body';
-        const metaTime = getLatestNoticeUpdatedAt();
-        const timeText = metaTime ? formatJaDateTime(metaTime) : null;
-        inner.textContent = timeText
-            ? `現在、列車の遅れなどの情報はありません。（${timeText} 時点）`
-            : '現在、列車の遅れなどの情報はありません。';
-        item.appendChild(inner);
-        box.appendChild(item);
+        box.appendChild(buildNormalAlertItem());
         return;
     }
 
     const rep = model.primaryNotice(lineId);
     const ordered = [rep, ...list.filter(n => n !== rep)];
     ordered.forEach(notice => box.appendChild(buildAlertItem(notice)));
+}
+
+function buildNormalAlertItem() {
+    const item = document.createElement('div');
+    item.className = 'alert-item alert-item--normal';
+
+    const header = document.createElement('div');
+    header.className = 'alert-header';
+
+    const main = document.createElement('div');
+    main.className = 'alert-main';
+
+    const icon = document.createElement('span');
+    icon.className = 'alert-icon';
+    icon.appendChild(createStatusIcon('normal'));
+    icon.setAttribute('aria-hidden', 'true');
+
+    const title = document.createElement('span');
+    title.className = 'alert-title';
+    title.textContent = '平常運転';
+
+    main.appendChild(icon);
+    main.appendChild(title);
+    header.appendChild(main);
+
+    const body = document.createElement('div');
+    body.className = 'alert-body';
+    body.textContent = '現在、列車の遅れなどの情報はありません。';
+
+    item.appendChild(header);
+    item.appendChild(body);
+    return item;
 }
 
 function buildAlertItem(notice) {
@@ -496,7 +508,7 @@ function buildAlertItem(notice) {
 
     const icon = document.createElement('span');
     icon.className = 'alert-icon';
-    icon.textContent = isSuspend ? '×' : '△';
+    icon.appendChild(createStatusIcon(isSuspend ? 'suspend' : 'warning'));
     icon.setAttribute('aria-hidden', 'true');
 
     const title = document.createElement('span');

@@ -1,11 +1,11 @@
 import { loadPublicModel } from '../shared/data-source.js';
 import { setupBottomSheet, setupNoopLinks } from '../shared/ui-dom.js';
 import { setupInstallPrompt } from '../shared/install-prompt.js';
+import { createStatusIcon } from '../shared/status-icon.js';
 
 const targetLineNames = ['瑠璃線', '貿易港線', '地下鉄中央線'];
 const statusRank = { normal: 0, warning: 1, suspend: 2 };
 const rankToState = ['normal', 'warning', 'suspend'];
-const STATE_SYMBOLS = { normal: '○', warning: '△', suspend: '×' };
 const STATE_LABELS = { normal: '平常運転', warning: '運行情報あり', suspend: '運転見合わせ' };
 
 const summaryEl = document.getElementById('home-status-summary');
@@ -184,7 +184,7 @@ function renderStatusCard(lineName, state, lineId = null, forceLink = false) {
 
     const icon = document.createElement('div');
     icon.className = 'status-card-icon';
-    icon.textContent = STATE_SYMBOLS[state];
+    icon.appendChild(createStatusIcon(state));
     icon.setAttribute('aria-hidden', 'true');
 
     const label = document.createElement('div');
