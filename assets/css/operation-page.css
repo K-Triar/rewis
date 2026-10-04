@@ -359,7 +359,7 @@
     display: flex;
     flex-direction: column;
     /* 路線図の線の太さ（operation.js の DIAGRAM_LINE_W と対応。駅の丸の内側の白い点と同じ幅） */
-    --diagram-line-w: 11px;
+    --diagram-line-w: 12px;
 }
 
 .op-header-row,

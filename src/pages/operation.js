@@ -23,7 +23,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 // 専用線のぼかし用 SVG <filter>/<clipPath> の id をページ内で一意にするための連番
 let loopGlowSeq = 0;
 // 路線図の線の太さ（CSS の --diagram-line-w と対応。駅の丸の内側の白い点と同じ幅）
-const DIAGRAM_LINE_W = 11;
+const DIAGRAM_LINE_W = 12;
 
 function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
@@ -930,7 +930,7 @@ function renderLineDiagram(lineId) {
         }
         if (!outward) angle += 180;
         const arrow = document.createElementNS(SVG_NS, 'path');
-        // 線幅 11px に収まる大きさ（全長 10px・幅 7.6px）。横線上では曲線の終わりから
+        // 線幅 12px に収まる大きさ（全長 10px・幅 7.6px）。横線上では曲線の終わりから
         // THROUGH_ARROW_REACH までに収まり、次の列の縦線にかからない
         arrow.setAttribute('d', 'M -5 0 L 4.2 0 M 0.4 -3.8 L 4.2 0 L 0.4 3.8');
         arrow.setAttribute('fill', 'none');
