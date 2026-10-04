@@ -358,6 +358,8 @@
 .line-layout {
     display: flex;
     flex-direction: column;
+    /* 路線図の線の太さ（operation.js の DIAGRAM_LINE_W と対応。駅の丸の内側の白い点と同じ幅） */
+    --diagram-line-w: 12px;
 }
 
 .op-header-row,
@@ -417,7 +419,7 @@
     transform: translateX(-50%);
     top: 0;
     bottom: 0;
-    width: 6px;
+    width: var(--diagram-line-w);
     background: #020C38;
     z-index: 2;
 }
@@ -539,6 +541,75 @@
     animation: diagram-line-blink 2s step-start infinite;
 }
 
+/* ===== 他路線への直通の分岐 ===== */
+.line-layout {
+    /* 運行情報で直通運転を中止している分岐の線と路線名 */
+    --color-through-suspended: #c4c9d0;
+}
+.op-through-row {
+    position: relative;
+}
+.op-through-cell {
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+}
+/* 曲線と横線は続く縦線（z-index 2）の下に描き、線から分かれて見せる。
+   直通しない種別の縦線と交差するところも縦線が上になる */
+.op-through-curve {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    overflow: visible;
+    pointer-events: none;
+}
+.op-through-arrow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    overflow: visible;
+    pointer-events: none;
+}
+.op-through-stub {
+    z-index: 1;
+}
+/* 路線名（駅名と左端をそろえる位置は JS で設定）。横線は曲線と同じ SVG に描く */
+.op-through-branch {
+    position: absolute;
+    right: 0;
+    height: 0;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+}
+.op-through-label {
+    flex: none;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--through-color);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.op-through-label::after {
+    content: ' ›';
+}
+.op-through-branch.is-suspended .op-through-label {
+    color: var(--color-text-muted);
+}
+.op-through-note {
+    margin-left: var(--space-1);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-sm);
+    background: var(--color-status-suspend-bg);
+    color: var(--color-status-suspend-text);
+    font-size: var(--font-size-xs);
+}
+.op-through-label:hover {
+    text-decoration: underline;
+}
+
 .diagram-pill {
     position: absolute;
     left: 13px;
@@ -553,10 +624,10 @@
 
 .diagram-node {
     position: relative;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: var(--radius-circle);
-    border: 5px solid #020C38;
+    border: 6px solid #020C38;
     background: var(--color-bg-surface);
     z-index: 4;
 }

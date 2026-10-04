@@ -22,6 +22,8 @@ let opCurrentLineId = null;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 // 専用線のぼかし用 SVG <filter>/<clipPath> の id をページ内で一意にするための連番
 let loopGlowSeq = 0;
+// 路線図の線の太さ（CSS の --diagram-line-w と対応。駅の丸の内側の白い点と同じ幅）
+const DIAGRAM_LINE_W = 12;
 
 function applyLineTypeIcon(el, line) {
     if (!el || !line) return;
@@ -535,6 +537,55 @@ function buildAlertItem(notice) {
 }
 
 // ========================================
+// 他路線への直通（運行系統の sections が路線をまたぐ箇所）
+// ========================================
+// 返り値: [{ idx, drawSide, otherLineId, categoryIds:Set, flowsByCat:Map(種別→Set('out'|'in')) }]
+// 'out' はこの路線から他路線へ、'in' は他路線からこの路線へ直通する列車がある
+// usedSide は直通列車がこの路線内で走る側（'up' = 駅の並びの前側）。分岐の曲線は
+// 線路の続きとして見えるよう、その反対側（drawSide）に描く。
+function computeThroughBranches(line) {
+    const order = line.stations || [];
+    const groups = new Map();
+    const lastIdx = order.length - 1;
+    const loopStart = line.loop ? line.loop.startIndex : -1;
+    // adjacentId は分岐駅の隣の停車駅（直通列車がこの路線内で分岐駅の次／前に止まる駅）
+    function add(junctionId, otherId, adjacentId, categoryId, flow) {
+        const idx = order.indexOf(junctionId);
+        const adjIdx = order.indexOf(adjacentId);
+        if (idx === -1 || adjIdx === -1 || adjIdx === idx) return;
+        let usedSide = adjIdx < idx ? 'up' : 'down';
+        // 環状・ラケット型で、終端駅⇔始点（戻る駅）を専用線経由で隣り合う場合は専用線の側。
+        // 終端駅では下の折り返し、環状線の始点では上の半円、ラケット型の戻る駅では下から合流する
+        if (line.loop && idx === loopStart && adjIdx === lastIdx) usedSide = loopStart === 0 ? 'up' : 'down';
+        else if (line.loop && idx === lastIdx && adjIdx === loopStart) usedSide = 'down';
+        const drawSide = usedSide === 'up' ? 'down' : 'up';
+        const key = `${idx}|${drawSide}|${otherId}`;
+        if (!groups.has(key)) {
+            groups.set(key, { idx, drawSide, otherLineId: otherId, categoryIds: new Set(), flowsByCat: new Map() });
+        }
+        const g = groups.get(key);
+        g.categoryIds.add(categoryId);
+        if (!g.flowsByCat.has(categoryId)) g.flowsByCat.set(categoryId, new Set());
+        g.flowsByCat.get(categoryId).add(flow);
+    }
+    (model.activeServices || []).forEach(service => {
+        const sections = service.sections || [];
+        const stopId = i => service.stops[i] && service.stops[i].stationId;
+        // 隣の停車駅。区間が1駅だけ（from === to）なら判定できない
+        for (let i = 0; i < sections.length - 1; i++) {
+            const cur = sections[i];
+            const next = sections[i + 1];
+            if (cur.lineId === line.id && next.lineId !== line.id) {
+                if (cur.to > cur.from) add(stopId(cur.to), next.lineId, stopId(cur.to - 1), cur.categoryId, 'out');
+            } else if (next.lineId === line.id && cur.lineId !== line.id) {
+                if (next.to > next.from) add(stopId(next.from), cur.lineId, stopId(next.from + 1), next.categoryId, 'in');
+            }
+        }
+    });
+    return Array.from(groups.values());
+}
+
+// ========================================
 // 路線図＋駅リスト
 // ========================================
 function renderLineDiagram(lineId) {
@@ -684,8 +735,8 @@ function renderLineDiagram(lineId) {
             path.setAttribute('stroke-linecap', 'butt');
         } else {
             path.setAttribute('stroke', line.color || 'var(--color-primary)');
-            path.setAttribute('stroke-width', '6');
-            // 端点の接線方向へ 3px はみ出させ、隣接する div の縦線と重ねて継ぎ目を防ぐ
+            path.setAttribute('stroke-width', String(DIAGRAM_LINE_W));
+            // 端点の接線方向へ線幅の半分はみ出させ、隣接する div の縦線と重ねて継ぎ目を防ぐ
             path.setAttribute('stroke-linecap', 'square');
         }
         const ext = isGlow ? LOOP_GLOW_EXT : 0;
@@ -793,6 +844,313 @@ function renderLineDiagram(lineId) {
         return loopCell;
     }
 
+    // 他路線への直通の分岐。駅の上下（drawSide）ごとに1行の分岐行へまとめる
+    const throughByRow = new Map();
+    computeThroughBranches(line).forEach(b => {
+        if (!cats.some(c => b.categoryIds.has(c.id))) return;
+        const key = `${b.idx}|${b.drawSide}`;
+        if (!throughByRow.has(key)) throughByRow.set(key, []);
+        throughByRow.get(key).push(b);
+    });
+    function throughTargetAt(idx, side, categoryId) {
+        const list = throughByRow.get(`${idx}|${side}`) || [];
+        return list.find(b => b.categoryIds.has(categoryId)) || null;
+    }
+
+    // 運行情報で中止になっている直通の向き（他路線ID → Set('out'|'in')）。
+    // target は運行情報の路線（＝この路線）から見た向き
+    const suspendedThrough = new Map();
+    noticeList.forEach(notice => {
+        (notice.throughServices || []).forEach(ts => {
+            if (!ts || ts.state !== 'suspended' || !ts.lineId) return;
+            if (!suspendedThrough.has(ts.lineId)) suspendedThrough.set(ts.lineId, new Set());
+            const set = suspendedThrough.get(ts.lineId);
+            if (ts.target !== 'through_to_affected') set.add('out');
+            if (ts.target !== 'affected_to_through') set.add('in');
+        });
+    });
+    // 種別の直通がすべての向きで中止なら 'all'、一部の向きだけなら 'some'、中止なしなら null
+    function catSuspension(b, categoryId) {
+        const stopped = suspendedThrough.get(b.otherLineId);
+        const flows = Array.from(b.flowsByCat.get(categoryId) || []);
+        if (!stopped || flows.length === 0) return null;
+        const hit = flows.filter(f => stopped.has(f)).length;
+        if (hit === 0) return null;
+        return hit === flows.length ? 'all' : 'some';
+    }
+    // 分岐全体（路線名の札）: すべての種別が全面中止なら 'all'、どれかに中止があれば 'some'
+    function branchSuspension(b) {
+        const states = Array.from(b.flowsByCat.keys()).map(id => catSuspension(b, id));
+        if (states.every(st => st === 'all')) return 'all';
+        return states.some(Boolean) ? 'some' : null;
+    }
+    // categoryId を渡すとその種別の曲線の色、省略すると横線の色（全種別が全面中止のときだけ灰色）
+    function throughColor(b, categoryId) {
+        const suspended = categoryId ? catSuspension(b, categoryId) : branchSuspension(b) === 'all';
+        if (suspended) return 'var(--color-through-suspended)';
+        const other = model.lineById.get(b.otherLineId);
+        return (other && other.color) || 'var(--color-primary)';
+    }
+
+    const THROUGH_R = 16;
+    const THROUGH_LANE_FIRST = 30;
+    const THROUGH_LANE_GAP = 24;
+    const THROUGH_PAD = 18;
+    // 横線上の矢印の先端が曲線の終わりから届く距離（矢印の中心 +5px、半分の長さ 5px）
+    // 横線のうち、最後に合流する曲線の先を濃いまま伸ばす長さ
+    const THROUGH_SOLID_AFTER = 4;
+    // 横線の終わりのぼかしのグラデーションの分割数
+    const THROUGH_FADE_STEPS = 12;
+    // 横線の終わりのぼかしの最低限の長さ
+    const THROUGH_FADE_MIN = 8;
+
+    // 片方向だけの直通に付ける、進む向きの白い矢印（線の内側に収まる軸付きの →）。
+    // placement:
+    //   'vertical'   その種別の線が分岐駅で終わるとき。駅と曲線の間の縦の部分（分岐行の端）
+    //   'horizontal' 続く線から分かれるとき。縦の部分は自分の線と重なるので、曲線を抜けた
+    //                先の横線（曲線の終わりから barOffset の位置。次の列の縦線にはかからない）
+    //   'arc'        環状線の始点で、縦の部分が上の半円の付け根と重なるとき。曲線の中ほど
+    // outward は分岐駅から他路線へ向かう向き
+    function buildThroughArrow(x, y, height, side, placement, outward, barOffset) {
+        const svg = document.createElementNS(SVG_NS, 'svg');
+        svg.classList.add('op-through-arrow');
+        svg.setAttribute('width', String(32 + THROUGH_R));
+        svg.setAttribute('height', String(height));
+        const awayFromStation = side === 'down' ? 90 : -90;
+        let tx, ty, angle;
+        if (placement === 'vertical') {
+            tx = x;
+            ty = side === 'down' ? 6 : height - 6;
+            angle = awayFromStation;
+        } else if (placement === 'arc') {
+            // 曲線（中心 (x+R, y∓R) の四分円）の中点。接線は斜め45°
+            const k = THROUGH_R * Math.SQRT1_2;
+            tx = x + THROUGH_R - k;
+            ty = side === 'down' ? y - THROUGH_R + k : y + THROUGH_R - k;
+            angle = side === 'down' ? 45 : -45;
+        } else {
+            tx = x + THROUGH_R + barOffset;
+            ty = y;
+            angle = 0;
+        }
+        if (!outward) angle += 180;
+        const arrow = document.createElementNS(SVG_NS, 'path');
+        // 線幅 12px に収まる大きさ（全長 10px・幅 7.6px）
+        arrow.setAttribute('d', 'M -5 0 L 4.2 0 M 0.4 -3.8 L 4.2 0 L 0.4 3.8');
+        arrow.setAttribute('fill', 'none');
+        arrow.setAttribute('stroke', '#fff');
+        arrow.setAttribute('stroke-width', '1.8');
+        arrow.setAttribute('stroke-linecap', 'round');
+        arrow.setAttribute('stroke-linejoin', 'round');
+        arrow.setAttribute('transform', `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) rotate(${angle})`);
+        svg.appendChild(arrow);
+        return svg;
+    }
+
+    // 駅の上（side='up'）または下（'down'）に挟む分岐行。直通する種別の線を曲線で
+    // 横へ曲げ、他路線の色で右端の路線名へつなぐ。直通しない種別の線はそのまま通す。
+    function buildThroughRow(idx, side, branches) {
+        const row = document.createElement('div');
+        row.className = 'op-body-row op-through-row';
+
+        const catIndex = new Map(cats.map((c, i) => [c.id, i]));
+        const leftmost = b => Math.min(...cats.filter(c => b.categoryIds.has(c.id)).map(c => catIndex.get(c.id)));
+        // 右の列から曲がるものほど駅に近いレーンにすると、横線どうしが交差しない
+        const lanes = branches.slice().sort((a, b) => leftmost(b) - leftmost(a));
+        const height = THROUGH_LANE_FIRST + (lanes.length - 1) * THROUGH_LANE_GAP + THROUGH_PAD;
+        const laneY = k => {
+            const fromJunction = THROUGH_LANE_FIRST + k * THROUGH_LANE_GAP;
+            return side === 'down' ? fromJunction : height - fromJunction;
+        };
+        row.style.height = `${height}px`;
+
+        const rowDiagram = document.createElement('div');
+        rowDiagram.className = 'op-diagram-cells';
+        const neighbor = side === 'down' ? idx + 1 : idx - 1;
+        // 環状・ラケット型の終端駅の下は、下の行の折り返しへ続く専用線の区間
+        const toLoopBottom = hasLoop && side === 'down' && idx === lastIdx;
+        let segKey = null;
+        if (toLoopBottom) segKey = 'loop';
+        else if (neighbor >= 0 && neighbor <= lastIdx) segKey = edgeKey(idx, neighbor);
+
+        if (hasLoop) {
+            // 専用線の列は、分岐行が専用線の範囲（戻る駅〜終端駅〜折り返し）の中にあれば通す
+            const loopCell = document.createElement('div');
+            loopCell.className = 'op-diagram-cell op-diagram-cell--loop op-through-cell';
+            if (Math.min(idx, neighbor) >= loopStartIdx) {
+                if (loopSeverity) loopCell.appendChild(buildGlow(loopSeverity, null, { top: true, bottom: true }));
+                loopCell.appendChild(buildLoopBar(null));
+            }
+            rowDiagram.appendChild(loopCell);
+        }
+
+        const cellByCat = new Map();
+        const continuingCats = new Set();
+        cats.forEach(c => {
+            const bounds = boundsByCat[c.id];
+            const cell = document.createElement('div');
+            cell.className = 'op-diagram-cell op-through-cell';
+            const continues = toLoopBottom
+                ? bounds.max === lastIdx
+                : segKey && Math.min(idx, neighbor) >= bounds.min && Math.max(idx, neighbor) <= bounds.max;
+            if (continues) {
+                continuingCats.add(c.id);
+                const sev = getEdgeSeverity(segKey, c.id);
+                if (sev) cell.appendChild(buildGlow(sev, null, { top: true, bottom: true }));
+                const bar = document.createElement('div');
+                bar.className = 'diagram-line';
+                bar.style.backgroundColor = line.color || 'var(--color-primary)';
+                cell.appendChild(bar);
+            }
+            cellByCat.set(c.id, cell);
+            rowDiagram.appendChild(cell);
+        });
+
+        const stationCell = document.createElement('div');
+        stationCell.className = 'op-station-cell';
+        row.appendChild(rowDiagram);
+        row.appendChild(stationCell);
+
+        const bars = [];
+        lanes.forEach((b, k) => {
+            const color = throughColor(b);
+            const suspension = branchSuspension(b);
+            const y = laneY(k);
+            const curveCats = cats.filter(c => b.categoryIds.has(c.id));
+            // 横線上に矢印を置いた種別のうち最も右のもの（終わりのぼかしは矢印より先から）
+            let arrowOnBarCat = null;
+            let arrowReach = 0;
+            let barSvg = null;
+            curveCats.forEach(c => {
+                // 曲線は各列のセル内に、直線部分の縦線より下のレイヤーで描く（続く線から分かれて見える）
+                const cell = cellByCat.get(c.id);
+                const svg = document.createElementNS(SVG_NS, 'svg');
+                svg.classList.add('op-through-curve');
+                svg.setAttribute('width', String(32 + THROUGH_R));
+                svg.setAttribute('height', String(height));
+                const path = document.createElementNS(SVG_NS, 'path');
+                const x = 16;
+                const d = side === 'down'
+                    ? `M ${x} 0 L ${x} ${y - THROUGH_R} A ${THROUGH_R} ${THROUGH_R} 0 0 0 ${x + THROUGH_R} ${y} L ${x + THROUGH_R + 1} ${y}`
+                    : `M ${x} ${height} L ${x} ${y + THROUGH_R} A ${THROUGH_R} ${THROUGH_R} 0 0 1 ${x + THROUGH_R} ${y} L ${x + THROUGH_R + 1} ${y}`;
+                path.setAttribute('d', d);
+                path.setAttribute('fill', 'none');
+                const catColor = throughColor(b, c.id);
+                path.setAttribute('stroke', catColor);
+                path.setAttribute('stroke-width', String(DIAGRAM_LINE_W));
+                svg.appendChild(path);
+                // 片方向だけの直通は、進む向きの矢印を置く
+                const flows = b.flowsByCat.get(c.id);
+                if (flows && flows.size === 1) {
+                    let placement = continuingCats.has(c.id) ? 'horizontal' : 'vertical';
+                    // 環状線の始点の上は、上の半円が同じ列（最初の種別の列）から左へ折り返している
+                    if (placement === 'vertical' && hasLoop && loopStartIdx === 0 && idx === 0 && side === 'up'
+                        && c.id === cats[0].id) placement = 'arc';
+                    // 横線上の矢印の中心（曲線の終わりからの距離）。曲線の終わりから次の列の
+                    // 縦線までは 10px しかないので、右に列があるときは曲線の終わりに少しかけて置く
+                    const barOffset = cats[catIndex.get(c.id) + 1] ? 2 : 5;
+                    cell.appendChild(buildThroughArrow(x, y, height, side, placement, flows.has('out'), barOffset));
+                    if (placement === 'horizontal') {
+                        arrowOnBarCat = c.id;
+                        arrowReach = barOffset + 5;
+                    }
+                }
+                if (!barSvg) barSvg = svg;
+                cell.appendChild(svg);
+            });
+
+            // 路線名。横線は最も左の列の曲線と同じ SVG に描く（div で描くと画素への合わせ方が
+            // 曲線とずれ、合流するところで角がのぞく）。長さは描画後に測って決める
+            const branch = document.createElement('div');
+            branch.className = 'op-through-branch';
+            branch.style.top = `${y}px`;
+            branch.style.setProperty('--through-color', color);
+            if (suspension === 'all') branch.classList.add('is-suspended');
+            bars.push({
+                branch, svg: barSvg, y, color,
+                fromCat: curveCats[0].id,
+                toCat: curveCats[curveCats.length - 1].id,
+                arrowCat: arrowOnBarCat,
+                arrowReach,
+            });
+            const label = document.createElement('a');
+            label.className = 'op-through-label';
+            label.href = `?line=${encodeURIComponent(b.otherLineId)}`;
+            label.textContent = model.lineName(b.otherLineId) || b.otherLineId;
+            if (suspension) {
+                const note = document.createElement('span');
+                note.className = 'op-through-note';
+                note.textContent = suspension === 'all' ? '直通中止' : '一部直通中止';
+                label.appendChild(note);
+            }
+            label.addEventListener('click', ev => {
+                ev.preventDefault();
+                showLineDetail(b.otherLineId, { syncUrl: true });
+            });
+            branch.appendChild(label);
+            row.appendChild(branch);
+        });
+        return { row, cellByCat, stationCell, bars };
+    }
+
+    // 分岐行の横線は曲線の終わり（列の中心 + 半径）から駅名の左端まで。路線名は駅名の左端にそろえる
+    const throughRowsToPlace = [];
+    let throughGradSeq = 0;
+    function placeThroughBranches() {
+        throughRowsToPlace.forEach(({ row, cellByCat, stationCell, bars }) => {
+            const rowLeft = row.getBoundingClientRect().left;
+            const labelLeft = stationCell.getBoundingClientRect().left - rowLeft;
+            const cellLeft = catId => cellByCat.get(catId).getBoundingClientRect().left - rowLeft;
+            const curveEnd = catId => cellLeft(catId) + 16 + THROUGH_R;
+            bars.forEach(({ branch, svg, y, color, fromCat, toCat, arrowCat, arrowReach }) => {
+                branch.style.left = `${labelLeft}px`;
+                // SVG（最も左の列のセル）内の座標に直す
+                const origin = cellLeft(fromCat);
+                const start = curveEnd(fromCat) - origin;
+                const end = labelLeft - origin;
+                if (end <= start) return;
+                // 終わりのぼかしは、右端の列の曲線が合流した先（横線上の矢印があればその先）を
+                // THROUGH_SOLID_AFTER だけ濃いまま伸ばしてから（合流点で途切れて見えないように）、
+                // 長くても最後の 28px だけ
+                let solidEnd = curveEnd(toCat);
+                if (arrowCat) solidEnd = Math.max(solidEnd, curveEnd(arrowCat) + arrowReach);
+                // 横線が短いとき（1列だけの路線で横線上に矢印があるなど）は、ぼかしの長さ
+                // THROUGH_FADE_MIN を濃いまま伸ばす分より優先する
+                const fadeTo = end - 2;
+                const fadeFrom = Math.min(fadeTo - THROUGH_FADE_MIN, Math.max(solidEnd + THROUGH_SOLID_AFTER - origin, end - 28));
+
+                const gradId = `op-through-grad${++throughGradSeq}`;
+                const defs = document.createElementNS(SVG_NS, 'defs');
+                const grad = document.createElementNS(SVG_NS, 'linearGradient');
+                grad.setAttribute('id', gradId);
+                grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+                grad.setAttribute('x1', String(fadeFrom));
+                grad.setAttribute('x2', String(fadeTo));
+                grad.setAttribute('y1', '0');
+                grad.setAttribute('y2', '0');
+                // 直線的に薄くすると、始まりで濃さの変化が急に切り替わって縦の境目が見える
+                // （マッハバンド）。smoothstep の S 字で始まりと終わりをなめらかにする
+                for (let i = 0; i <= THROUGH_FADE_STEPS; i++) {
+                    const t = i / THROUGH_FADE_STEPS;
+                    const stop = document.createElementNS(SVG_NS, 'stop');
+                    stop.setAttribute('offset', t.toFixed(3));
+                    stop.style.stopColor = color;
+                    stop.style.stopOpacity = (1 - t * t * (3 - 2 * t)).toFixed(3);
+                    grad.appendChild(stop);
+                }
+                defs.appendChild(grad);
+                svg.appendChild(defs);
+
+                const bar = document.createElementNS(SVG_NS, 'path');
+                bar.setAttribute('d', `M ${start} ${y} L ${end} ${y}`);
+                bar.setAttribute('stroke', `url(#${gradId})`);
+                bar.setAttribute('stroke-width', String(DIAGRAM_LINE_W));
+                svg.appendChild(bar);
+                svg.setAttribute('width', String(Math.ceil(end)));
+            });
+        });
+    }
+
     // ヘッダー行（種別名）
     const headerRow = document.createElement('div');
     headerRow.className = 'op-header-row';
@@ -896,6 +1254,17 @@ function renderLineDiagram(lineId) {
                 if (idx === bounds.min && idx === bounds.max) lineBar.style.display = 'none';
 
                 cell.appendChild(lineBar);
+
+                // この種別の線が途切れる側に直通の分岐があれば、駅中心から他路線の色で分岐行へつなぐ
+                [['up', isLineStart, 'line-end'], ['down', isLineEnd || idx === bounds.max, 'line-start']].forEach(([side, ends, half]) => {
+                    if (!ends) return;
+                    const b = throughTargetAt(idx, side, c.id);
+                    if (!b) return;
+                    const stub = document.createElement('div');
+                    stub.className = `diagram-line ${half} op-through-stub`;
+                    stub.style.backgroundColor = throughColor(b, c.id);
+                    cell.appendChild(stub);
+                });
             }
 
             if (stopsByCat[c.id].has(stId)) {
@@ -959,10 +1328,25 @@ function renderLineDiagram(lineId) {
             stationCell.appendChild(walk);
         }
 
+        const upBranches = throughByRow.get(`${idx}|up`);
+        if (upBranches) {
+            const through = buildThroughRow(idx, 'up', upBranches);
+            lineLayoutEl.appendChild(through.row);
+            throughRowsToPlace.push(through);
+        }
+
         row.appendChild(rowDiagram);
         row.appendChild(stationCell);
         lineLayoutEl.appendChild(row);
+
+        const downBranches = throughByRow.get(`${idx}|down`);
+        if (downBranches) {
+            const through = buildThroughRow(idx, 'down', downBranches);
+            lineLayoutEl.appendChild(through.row);
+            throughRowsToPlace.push(through);
+        }
     });
+    placeThroughBranches();
 
     if (line.loop) {
         const row = document.createElement('div');
