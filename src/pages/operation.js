@@ -895,35 +895,45 @@ function renderLineDiagram(lineId) {
     const THROUGH_LANE_GAP = 24;
     const THROUGH_PAD = 18;
 
-    // 片方向だけの直通に付ける、進む向きの白く細い矢印（線の内側に収まる ›）。
-    // その種別の線が分岐駅で終わるなら駅と曲線の間の縦の部分（分岐行の端）に上下向きで、
-    // 続く線から分かれるなら縦の部分は自分の線と重なるので、曲線を抜けた先の横線に左右向きで
-    // 置く（次の列の縦線にはかからない位置）。outward は分岐駅から他路線へ向かう向き
-    function buildThroughArrow(x, y, height, side, onVertical, outward) {
+    // 片方向だけの直通に付ける、進む向きの白く細い矢印（線の内側に収まる軸付きの →）。
+    // placement:
+    //   'vertical'   その種別の線が分岐駅で終わるとき。駅と曲線の間の縦の部分（分岐行の端）
+    //   'horizontal' 続く線から分かれるとき。縦の部分は自分の線と重なるので、曲線を抜けた
+    //                先の横線（次の列の縦線にはかからない位置）
+    //   'arc'        環状線の始点で、縦の部分が上の半円の付け根と重なるとき。曲線の中ほど
+    // outward は分岐駅から他路線へ向かう向き
+    function buildThroughArrow(x, y, height, side, placement, outward) {
         const svg = document.createElementNS(SVG_NS, 'svg');
         svg.classList.add('op-through-arrow');
         svg.setAttribute('width', String(32 + THROUGH_R));
         svg.setAttribute('height', String(height));
+        const awayFromStation = side === 'down' ? 90 : -90;
         let tx, ty, angle;
-        if (onVertical) {
+        if (placement === 'vertical') {
             tx = x;
-            ty = side === 'down' ? 4 : height - 4;
-            const awayFromStation = side === 'down' ? 90 : -90;
-            angle = outward ? awayFromStation : awayFromStation + 180;
+            ty = side === 'down' ? 5 : height - 5;
+            angle = awayFromStation;
+        } else if (placement === 'arc') {
+            // 曲線（中心 (x+R, y∓R) の四分円）の中点。接線は斜め45°
+            const k = THROUGH_R * Math.SQRT1_2;
+            tx = x + THROUGH_R - k;
+            ty = side === 'down' ? y - THROUGH_R + k : y + THROUGH_R - k;
+            angle = side === 'down' ? 45 : -45;
         } else {
-            tx = x + THROUGH_R + 5;
+            tx = x + THROUGH_R + 6;
             ty = y;
-            angle = outward ? 0 : 180;
+            angle = 0;
         }
-        const chevron = document.createElementNS(SVG_NS, 'path');
-        chevron.setAttribute('d', 'M -1.4 -2.4 L 1.4 0 L -1.4 2.4');
-        chevron.setAttribute('fill', 'none');
-        chevron.setAttribute('stroke', '#fff');
-        chevron.setAttribute('stroke-width', '1.6');
-        chevron.setAttribute('stroke-linecap', 'round');
-        chevron.setAttribute('stroke-linejoin', 'round');
-        chevron.setAttribute('transform', `translate(${tx} ${ty}) rotate(${angle})`);
-        svg.appendChild(chevron);
+        if (!outward) angle += 180;
+        const arrow = document.createElementNS(SVG_NS, 'path');
+        arrow.setAttribute('d', 'M -3.5 0 L 3 0 M 0.6 -2.4 L 3 0 L 0.6 2.4');
+        arrow.setAttribute('fill', 'none');
+        arrow.setAttribute('stroke', '#fff');
+        arrow.setAttribute('stroke-width', '1.5');
+        arrow.setAttribute('stroke-linecap', 'round');
+        arrow.setAttribute('stroke-linejoin', 'round');
+        arrow.setAttribute('transform', `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) rotate(${angle})`);
+        svg.appendChild(arrow);
         return svg;
     }
 
@@ -1017,7 +1027,11 @@ function renderLineDiagram(lineId) {
                 // 片方向だけの直通は、進む向きの矢印を置く
                 const flows = b.flowsByCat.get(c.id);
                 if (flows && flows.size === 1) {
-                    cell.appendChild(buildThroughArrow(x, y, height, side, !continuingCats.has(c.id), flows.has('out')));
+                    let placement = continuingCats.has(c.id) ? 'horizontal' : 'vertical';
+                    // 環状線の始点の上は、上の半円が同じ列（最初の種別の列）から左へ折り返している
+                    if (placement === 'vertical' && hasLoop && loopStartIdx === 0 && idx === 0 && side === 'up'
+                        && c.id === cats[0].id) placement = 'arc';
+                    cell.appendChild(buildThroughArrow(x, y, height, side, placement, flows.has('out')));
                 }
                 cell.appendChild(svg);
             });
