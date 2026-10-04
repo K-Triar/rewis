@@ -902,6 +902,8 @@ function renderLineDiagram(lineId) {
     const THROUGH_SOLID_AFTER = 4;
     // 横線の終わりのぼかしのグラデーションの分割数
     const THROUGH_FADE_STEPS = 12;
+    // 横線の終わりのぼかしの最低限の長さ
+    const THROUGH_FADE_MIN = 8;
 
     // 片方向だけの直通に付ける、進む向きの白い矢印（線の内側に収まる軸付きの →）。
     // placement:
@@ -1106,8 +1108,10 @@ function renderLineDiagram(lineId) {
                 // 長くても最後の 28px だけ
                 let solidEnd = curveEnd(toCat);
                 if (arrowCat) solidEnd = Math.max(solidEnd, curveEnd(arrowCat) + THROUGH_ARROW_REACH);
+                // 横線が短いとき（1列だけの路線で横線上に矢印があるなど）は、ぼかしの長さ
+                // THROUGH_FADE_MIN を濃いまま伸ばす分より優先する
                 const fadeTo = end - 2;
-                const fadeFrom = Math.min(fadeTo - 1, Math.max(solidEnd + THROUGH_SOLID_AFTER - origin, end - 28));
+                const fadeFrom = Math.min(fadeTo - THROUGH_FADE_MIN, Math.max(solidEnd + THROUGH_SOLID_AFTER - origin, end - 28));
 
                 const gradId = `op-through-grad${++throughGradSeq}`;
                 const defs = document.createElementNS(SVG_NS, 'defs');
