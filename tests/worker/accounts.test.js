@@ -333,3 +333,31 @@ test('管理 API は更新後のユーザーを返す（一覧を読み直さな
   const cancel = await call(env, '/auth/admin/invite/revoke', { method: 'POST', token: admin, body: { userId: 'tester' } });
   assert.deepEqual([cancel.body.user.status, cancel.body.user.invite], ['active', null]);
 });
+
+test('推測されやすいパスワードは弾き、普通の文や長いパスワードは通す', async () => {
+  const { passwordProblem } = await import('../../worker/src/accounts.js');
+  const weak = [
+    'aaaaaaaaaaaa', 'abababababab', '123456789012', '098765432109', 'abcdefghijkl', 'qwertyuiopas',
+    '1qaz2wsx3edc', '201905061234', 'Password1234', 'P@ssw0rd!2024', 'rewis12345678', 'RewisRewis12', '!!!!????1234'
+  ];
+  for (const pw of weak) assert.equal(passwordProblem(pw, 'someone'), 'password_too_common', pw);
+
+  // ユーザーIDを除くと短すぎるもの
+  assert.equal(passwordProblem('ktriar123456', 'ktriar'), 'password_too_common');
+  assert.equal(passwordProblem('ktriar-new-password', 'ktriar'), null);
+
+  const ok = ['correct horse battery', 'new-password-123', 'tanaka-password-1', 'kyou-ha-ii-tenki', 'えきめいをちゃんとおぼえる電車'];
+  for (const pw of ok) assert.equal(passwordProblem(pw, 'someone'), null, pw);
+  assert.equal(passwordProblem('short', 'someone'), 'password_too_short');
+});
+
+test('招待リンクでも推測されやすいパスワードは 400 になり、リンクは使えるまま', async () => {
+  const env = makeEnv();
+  const admin = await adminToken(env);
+  const invite = await call(env, '/auth/admin/invite', { method: 'POST', token: admin, body: { userId: 'newbie', purpose: 'new' } });
+  const weak = await call(env, '/auth/invite/accept', { method: 'POST', body: { token: invite.body.token, password: 'Password1234' } });
+  assert.equal(weak.status, 400);
+  assert.equal(weak.body.error, 'password_too_common');
+  const ok = await call(env, '/auth/invite/accept', { method: 'POST', body: { token: invite.body.token, password: NEW_PASSWORD } });
+  assert.equal(ok.status, 200);
+});

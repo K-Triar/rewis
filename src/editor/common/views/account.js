@@ -86,7 +86,7 @@ export function renderAccountView(container, ctx) {
           currentInput,
           h('div', { class: 'g-field__label' }, '新しいパスワード'),
           newInput,
-          h('div', { class: 'g-field__hint' }, `${MIN_PASSWORD_LENGTH}文字以上。文字の種類の決まりはありません。`),
+          h('div', { class: 'g-field__hint' }, `${MIN_PASSWORD_LENGTH}文字以上。文字の種類の決まりはありません。連続した文字の並びや、よく使われる語に数字を足しただけのものは使えません。`),
           h('div', { class: 'g-field__label' }, '新しいパスワード（確認）'),
           confirmInput,
           status,

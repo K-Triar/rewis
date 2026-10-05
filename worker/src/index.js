@@ -260,7 +260,7 @@ async function handleChangePassword(request, env) {
   if (!record || !(await verifyPassword(currentPassword, record.credential, env))) {
     return json({ error: 'invalid_credentials' }, 401, request, env);
   }
-  const problem = passwordProblem(newPassword);
+  const problem = passwordProblem(newPassword, auth.userId);
   if (problem) return json({ error: problem }, 400, request, env);
 
   await putUser(env, {
@@ -298,7 +298,7 @@ async function handleInviteAccept(request, env) {
   const found = await findInvite(env, body.token);
   if (!found) return json({ error: 'invalid_invite' }, 404, request, env);
 
-  const problem = passwordProblem(password);
+  const problem = passwordProblem(password, found.record.userId);
   if (problem) return json({ error: problem }, 400, request, env);
 
   const cleared = await removeInvite(env, found.record);
