@@ -8,6 +8,8 @@ import { renderDataView } from './views/data-view.js';
 import { renderCompaniesView } from './views/companies.js';
 import { renderVehicleTypesView } from './views/vehicle-types.js';
 import { renderHistoryView } from './views/history.js';
+import { renderAccountView } from './views/account.js';
+import { renderInviteView, takeInviteTokenFromUrl } from './views/invite-view.js';
 import { renderStatusRow } from './components/status-row.js';
 import { manualLink } from './components/manual-link.js';
 import { openIssuesDrawer } from './components/issues-drawer.js';
@@ -20,8 +22,12 @@ const COMMON_TABS = [
   { id: 'companies', label: '鉄道会社', render: renderCompaniesView, selfWraps: true },
   { id: 'vehicle-types', label: '車両種別', render: renderVehicleTypesView, selfWraps: true },
   { id: 'history', label: '履歴', render: renderHistoryView, selfWraps: true },
-  { id: 'data', label: 'データの読込と書出', render: renderDataView, selfWraps: true }
+  { id: 'data', label: 'データの読込と書出', render: renderDataView, selfWraps: true },
+  { id: 'account', label: 'アカウント', render: renderAccountView, selfWraps: true }
 ];
+
+// データを読み込む前でも開けるタブ
+const TABS_WITHOUT_DATA = new Set(['data', 'account']);
 
 // options:
 //   rootId        画面を描く要素の id
@@ -40,6 +46,8 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
   let pendingFocus = null;
   let forceStartView = false;
   let saveBannerTimer = null;
+  // 招待リンク・再設定リンク（#invite=...）から開いたときは、まずパスワード設定の画面を出す
+  let inviteToken = takeInviteTokenFromUrl();
 
   const root = document.getElementById(rootId);
 
@@ -267,8 +275,20 @@ export function createEditorApp({ rootId, store, tabs, resolveIssue, switchView,
     }
     clear(main);
 
+    if (inviteToken) {
+      activeTabHandle = renderInviteView(main, {
+        inviteToken,
+        onDone() {
+          inviteToken = null;
+          refreshStatus();
+          renderMain();
+        }
+      });
+      return;
+    }
+
     const networkLoaded = !!store.state.docs.network;
-    if ((!networkLoaded || forceStartView) && activeTabId !== 'data') {
+    if ((!networkLoaded || forceStartView) && !TABS_WITHOUT_DATA.has(activeTabId)) {
       activeTabHandle = renderStartView(main, ctx);
       return;
     }

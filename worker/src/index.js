@@ -2,6 +2,27 @@ import { validateV1 } from '../../src/shared/validate-v1.js';
 import { toPublicV1 } from '../../src/shared/public-v1.js';
 import { validateNetwork, validateOperations } from '../../src/shared/schema-v2.js';
 import { compilePublic } from '../../src/shared/compile-public.js';
+import {
+  isAdmin,
+  isValidUserId,
+  passwordProblem,
+  hashPassword,
+  verifyPassword,
+  needsRehash,
+  burnPasswordCheck,
+  getUser,
+  putUser,
+  deleteUser,
+  findLegacyUser,
+  getOrAdoptUser,
+  listUsers,
+  publicUser,
+  createInvite,
+  findInvite,
+  removeInvite,
+  toBase64Url,
+  sha256Hex
+} from './accounts.js';
 
 const NEW_HISTORY_PREFIX = 'data:hist:';
 const OLD_HISTORY_PREFIX = 'data:history:';
@@ -31,6 +52,38 @@ export default {
 
       if (request.method === 'POST' && path === '/auth/logout') {
         return handleLogout(request, env);
+      }
+
+      if (request.method === 'GET' && path === '/auth/me') {
+        return handleMe(request, env);
+      }
+
+      if (request.method === 'POST' && path === '/auth/password') {
+        return handleChangePassword(request, env);
+      }
+
+      if (request.method === 'POST' && path === '/auth/invite/check') {
+        return handleInviteCheck(request, env);
+      }
+
+      if (request.method === 'POST' && path === '/auth/invite/accept') {
+        return handleInviteAccept(request, env);
+      }
+
+      if (request.method === 'GET' && path === '/auth/admin/users') {
+        return handleAdminListUsers(request, env);
+      }
+
+      if (request.method === 'POST' && path === '/auth/admin/invite') {
+        return handleAdminInvite(request, env);
+      }
+
+      if (request.method === 'POST' && path === '/auth/admin/invite/revoke') {
+        return handleAdminRevokeInvite(request, env);
+      }
+
+      if (request.method === 'POST' && path === '/auth/admin/disable') {
+        return handleAdminSetDisabled(request, env);
       }
 
       if (request.method === 'GET' && path === '/data/public') {
@@ -107,28 +160,73 @@ async function handleLogin(request, env) {
     return json({ error: 'missing_credentials' }, 400, request, env);
   }
 
-  const users = await loadUsers(env);
-  const target = users.find((u) => u.userId === userId);
-  if (!target || !target.passwordHash) {
-    return json({ error: 'invalid_credentials' }, 401, request, env);
+  if (await isRateLimited(request, env, [`login:${userId.toLowerCase()}`])) {
+    return json({ error: 'too_many_attempts' }, 429, request, env);
   }
 
-  const passwordHash = await sha256Hex(password + String(env.PASSWORD_SALT || ''));
-  if (!safeEqual(passwordHash, String(target.passwordHash).toLowerCase())) {
-    return json({ error: 'invalid_credentials' }, 401, request, env);
+  // KV の記録が正本。なければ旧方式（AUTH_USERS_JSON）を見る
+  let record = await getUser(env, userId);
+  let credential = record ? record.credential : null;
+  if (!record) {
+    const legacy = findLegacyUser(env, userId);
+    if (legacy) credential = { alg: 'legacy-sha256', hash: legacy.passwordHash };
   }
 
+  if (!credential) {
+    await burnPasswordCheck(password, env);
+    return json({ error: 'invalid_credentials' }, 401, request, env);
+  }
+  if (!(await verifyPassword(password, credential, env))) {
+    return json({ error: 'invalid_credentials' }, 401, request, env);
+  }
+  if (record && record.disabled) {
+    return json({ error: 'account_disabled' }, 403, request, env);
+  }
+
+  // 旧方式のユーザーは、ここで新しい方式の記録に移す（反復回数を上げたときの計算し直しも兼ねる）
+  if (!record || needsRehash(credential, env)) {
+    const base = record || {
+      userId,
+      status: 'active',
+      disabled: false,
+      sessionsValidAfter: 0,
+      invite: null,
+      createdAt: new Date().toISOString(),
+      createdBy: 'legacy'
+    };
+    record = await putUser(env, { ...base, credential: await hashPassword(password, env) });
+  }
+
+  return json(await issueSession(env, userId), 200, request, env);
+}
+
+async function issueSession(env, userId) {
   const token = generateToken();
   const ttlSeconds = Math.max(60, Number(env.TOKEN_TTL_SECONDS || 1800));
-  const expiresAt = Date.now() + ttlSeconds * 1000;
+  const issuedAt = Date.now();
+  const expiresAt = issuedAt + ttlSeconds * 1000;
 
   await env.TOKEN_KV.put(
     token,
-    JSON.stringify({ userId, expiresAt }),
+    JSON.stringify({ userId, expiresAt, issuedAt }),
     { expirationTtl: ttlSeconds }
   );
 
-  return json({ token, expiresAt }, 200, request, env);
+  return { token, expiresAt, userId, isAdmin: isAdmin(userId, env) };
+}
+
+// Rate Limiting バインディング（AUTH_RATE_LIMITER）があるときだけ数える。
+// 失敗回数を KV に書くと、無料プランの KV 書き込み上限を総当たりで使い切られるおそれがあるので使わない
+async function isRateLimited(request, env, keys) {
+  const limiter = env.AUTH_RATE_LIMITER;
+  if (!limiter || typeof limiter.limit !== 'function') return false;
+  const ip = request.headers.get('CF-Connecting-IP') || '';
+  const allKeys = ip ? [...keys, `ip:${ip}`] : keys;
+  for (const key of allKeys) {
+    const { success } = await limiter.limit({ key });
+    if (!success) return true;
+  }
+  return false;
 }
 
 async function handleLogout(request, env) {
@@ -137,6 +235,175 @@ async function handleLogout(request, env) {
     await env.TOKEN_KV.delete(token);
   }
   return json({ ok: true }, 200, request, env);
+}
+
+async function handleMe(request, env) {
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+  return json({ userId: auth.userId, isAdmin: auth.isAdmin, expiresAt: auth.expiresAt }, 200, request, env);
+}
+
+// 自分のパスワードの変更。ほかの端末のログインは切れ、この端末には新しいトークンを返す
+async function handleChangePassword(request, env) {
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return json({ error: 'unauthorized' }, 401, request, env);
+
+  const body = await readJsonBody(request);
+  const currentPassword = String(body.currentPassword || '');
+  const newPassword = String(body.newPassword || '');
+
+  if (await isRateLimited(request, env, [`login:${auth.userId.toLowerCase()}`])) {
+    return json({ error: 'too_many_attempts' }, 429, request, env);
+  }
+
+  const record = await getOrAdoptUser(env, auth.userId);
+  if (!record || !(await verifyPassword(currentPassword, record.credential, env))) {
+    return json({ error: 'invalid_credentials' }, 401, request, env);
+  }
+  const problem = passwordProblem(newPassword);
+  if (problem) return json({ error: problem }, 400, request, env);
+
+  await putUser(env, {
+    ...record,
+    status: 'active',
+    credential: await hashPassword(newPassword, env),
+    sessionsValidAfter: Date.now()
+  });
+  await env.TOKEN_KV.delete(auth.token);
+  return json(await issueSession(env, auth.userId), 200, request, env);
+}
+
+async function handleInviteCheck(request, env) {
+  if (await isRateLimited(request, env, [])) {
+    return json({ error: 'too_many_attempts' }, 429, request, env);
+  }
+  const body = await readJsonBody(request);
+  const found = await findInvite(env, body.token);
+  if (!found) return json({ error: 'invalid_invite' }, 404, request, env);
+  return json({
+    userId: found.invite.userId,
+    purpose: found.invite.purpose,
+    expiresAt: found.invite.expiresAt
+  }, 200, request, env);
+}
+
+// 招待リンクからパスワードを設定する。使ったリンクは消し、以前のログインはすべて切る
+async function handleInviteAccept(request, env) {
+  if (await isRateLimited(request, env, [])) {
+    return json({ error: 'too_many_attempts' }, 429, request, env);
+  }
+  const body = await readJsonBody(request);
+  const password = String(body.password || '');
+
+  const found = await findInvite(env, body.token);
+  if (!found) return json({ error: 'invalid_invite' }, 404, request, env);
+
+  const problem = passwordProblem(password);
+  if (problem) return json({ error: problem }, 400, request, env);
+
+  const cleared = await removeInvite(env, found.record);
+  await putUser(env, {
+    ...cleared,
+    status: 'active',
+    credential: await hashPassword(password, env),
+    sessionsValidAfter: Date.now()
+  });
+  return json(await issueSession(env, found.record.userId), 200, request, env);
+}
+
+async function requireAdmin(request, env) {
+  const auth = await requireAuth(request, env);
+  if (!auth.ok) return { error: json({ error: 'unauthorized' }, 401, request, env) };
+  if (!auth.isAdmin) return { error: json({ error: 'forbidden' }, 403, request, env) };
+  return { auth };
+}
+
+async function handleAdminListUsers(request, env) {
+  const { error } = await requireAdmin(request, env);
+  if (error) return error;
+  return json({ users: await listUsers(env) }, 200, request, env);
+}
+
+// purpose: 'new'（新しいユーザーの招待）| 'reset'（既存ユーザーのパスワード再設定）。
+// 再設定リンクを発行しても、本人が新しいパスワードを設定するまでは今のパスワードで入れる
+async function handleAdminInvite(request, env) {
+  const { auth, error } = await requireAdmin(request, env);
+  if (error) return error;
+
+  const body = await readJsonBody(request);
+  const userId = String(body.userId || '').trim();
+  const purpose = body.purpose === 'reset' ? 'reset' : 'new';
+  if (purpose === 'new' && !isValidUserId(userId)) return json({ error: 'invalid_user_id' }, 400, request, env);
+
+  let record = await getOrAdoptUser(env, userId);
+  if (purpose === 'new') {
+    // まだパスワードを設定していない招待中のユーザーには、招待リンクを発行し直せる
+    if (record && record.status !== 'invited') return json({ error: 'user_exists' }, 409, request, env);
+    if (!record) {
+      record = {
+        userId,
+        status: 'invited',
+        credential: null,
+        disabled: false,
+        sessionsValidAfter: 0,
+        invite: null,
+        createdAt: new Date().toISOString(),
+        createdBy: auth.userId
+      };
+    }
+  } else {
+    if (!record || record.status !== 'active') return json({ error: 'user_not_found' }, 404, request, env);
+  }
+  if (record.disabled) return json({ error: 'user_disabled' }, 409, request, env);
+
+  // 一覧の読み直し（KV の list は反映が遅れることがある）をせずに済むよう、更新後のユーザーも返す
+  const created = await createInvite(env, record, purpose, auth.userId);
+  return json({
+    userId,
+    purpose,
+    token: created.token,
+    expiresAt: created.expiresAt,
+    user: publicUser(created.record, env)
+  }, 200, request, env);
+}
+
+// 招待中（パスワード未設定）のユーザーは記録ごと消す。既存ユーザーの再設定リンクはリンクだけ消す
+async function handleAdminRevokeInvite(request, env) {
+  const { error } = await requireAdmin(request, env);
+  if (error) return error;
+
+  const body = await readJsonBody(request);
+  const userId = String(body.userId || '').trim();
+  const record = await getUser(env, userId);
+  if (!record) return json({ error: 'user_not_found' }, 404, request, env);
+
+  const cleared = await removeInvite(env, record);
+  if (cleared.status === 'invited') {
+    await deleteUser(env, userId);
+    return json({ ok: true, user: null }, 200, request, env);
+  }
+  return json({ ok: true, user: publicUser(await putUser(env, cleared), env) }, 200, request, env);
+}
+
+// 管理者（ADMIN_USERS）と自分自身は無効にできない。管理者の指定は ADMIN_USERS でだけ変える
+async function handleAdminSetDisabled(request, env) {
+  const { auth, error } = await requireAdmin(request, env);
+  if (error) return error;
+
+  const body = await readJsonBody(request);
+  const userId = String(body.userId || '').trim();
+  const disabled = body.disabled === true;
+  if (userId === auth.userId || isAdmin(userId, env)) {
+    return json({ error: 'cannot_disable_admin' }, 400, request, env);
+  }
+
+  const record = await getOrAdoptUser(env, userId);
+  if (!record) return json({ error: 'user_not_found' }, 404, request, env);
+
+  const next = disabled
+    ? { ...(await removeInvite(env, record)), disabled: true, sessionsValidAfter: Date.now() }
+    : { ...record, disabled: false };
+  return json({ ok: true, user: publicUser(await putUser(env, next), env) }, 200, request, env);
 }
 
 async function handleGetPublicData(request, env) {
@@ -391,12 +658,6 @@ function affectedNoticeIds(errors, operationsDoc) {
     }
   });
   return Array.from(ids);
-}
-
-function isAdmin(userId, env) {
-  const raw = String(env.ADMIN_USERS || '').trim();
-  if (!raw) return false;
-  return raw.split(',').map((s) => s.trim()).filter(Boolean).includes(userId);
 }
 
 async function handleV2GetDoc(kind, request, env) {
@@ -759,36 +1020,25 @@ async function requireAuth(request, env) {
     return { ok: false };
   }
 
-  return { ok: true, userId: String(session.userId || '') };
+  // 無効化・パスワード変更より前に発行したログインは使えなくする。
+  // KV に記録がないユーザーは旧方式（AUTH_USERS_JSON）にいる間だけ通す
+  const userId = String(session.userId || '');
+  const record = await getUser(env, userId);
+  const valid = record
+    ? !record.disabled && Number(session.issuedAt || 0) >= Number(record.sessionsValidAfter || 0)
+    : !!findLegacyUser(env, userId);
+  if (!valid) {
+    await env.TOKEN_KV.delete(token);
+    return { ok: false };
+  }
+
+  return { ok: true, userId, token, expiresAt: Number(session.expiresAt), isAdmin: isAdmin(userId, env) };
 }
 
 function getBearerToken(request) {
   const auth = request.headers.get('Authorization') || '';
   if (!auth.startsWith('Bearer ')) return '';
   return auth.slice('Bearer '.length).trim();
-}
-
-async function loadUsers(env) {
-  const raw = String(env.AUTH_USERS_JSON || '').trim();
-  if (!raw) {
-    throw new Error('AUTH_USERS_JSON is not set');
-  }
-
-  let parsed = null;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new Error('AUTH_USERS_JSON is not valid JSON');
-  }
-
-  if (!Array.isArray(parsed)) {
-    throw new Error('AUTH_USERS_JSON must be an array');
-  }
-
-  return parsed.map((u) => ({
-    userId: String(u.userId || '').trim(),
-    passwordHash: String(u.passwordHash || '').trim().toLowerCase()
-  }));
 }
 
 async function readJsonBody(request) {
@@ -917,32 +1167,4 @@ function isLocalDevOrigin(origin) {
 function generateToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   return toBase64Url(bytes);
-}
-
-function toBase64Url(bytes) {
-  let binary = '';
-  for (const b of bytes) binary += String.fromCharCode(b);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-
-async function sha256Hex(input) {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  const arr = new Uint8Array(digest);
-  let out = '';
-  for (const b of arr) {
-    out += b.toString(16).padStart(2, '0');
-  }
-  return out;
-}
-
-function safeEqual(a, b) {
-  const aStr = String(a || '');
-  const bStr = String(b || '');
-  if (aStr.length !== bStr.length) return false;
-  let result = 0;
-  for (let i = 0; i < aStr.length; i += 1) {
-    result |= aStr.charCodeAt(i) ^ bStr.charCodeAt(i);
-  }
-  return result === 0;
 }
