@@ -41,12 +41,49 @@ function isStorableUserId(userId) {
   return value.length > 0 && value.length <= 64 && !/[\u0000-\u001f\u007f]/.test(value);
 }
 
-// 長さだけを見る（文字種の組み合わせは求めない）。問題がなければ null
-export function passwordProblem(password) {
+// 文字種の組み合わせは求めず、長さと「推測されやすい形」だけを見る。問題がなければ null
+export function passwordProblem(password, userId = '') {
   const value = String(password || '');
   if (value.length < MIN_PASSWORD_LENGTH) return 'password_too_short';
   if (value.length > MAX_PASSWORD_LENGTH) return 'password_too_long';
+  if (isGuessablePassword(value, userId)) return 'password_too_common';
   return null;
+}
+
+// よく使われる語。数字や記号を足しただけのもの（Password1234! など）を弾く
+const WEAK_WORDS = [
+  'password', 'passwrd', 'pass', 'qwerty', 'admin', 'login', 'letmein', 'welcome', 'iloveyou',
+  'test', 'user', 'guest', 'editor', 'rewis', 'ktriar', 'minecraft', 'traincarts', 'train', 'railway'
+];
+
+// キーボードや文字の並び（逆順も見る）。この一部をそのまま使ったもの（123456789012, qwertyuiopas など）を弾く
+const SEQUENCES = [
+  '01234567890123456789',
+  'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz',
+  'qwertyuiopasdfghjklzxcvbnmqwertyuiopasdfghjklzxcvbnm',
+  '1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik9ol0p',
+  '1q2w3e4r5t6y7u8i9o0p'
+];
+
+function isGuessablePassword(password, userId) {
+  const lower = password.toLowerCase();
+  // 使っている文字が少ない（aaaaaaaaaaaa, abababababab など）
+  if (new Set(lower).size < 5) return true;
+  // 文字や数字の並び
+  if (SEQUENCES.some((seq) => seq.includes(lower) || seq.split('').reverse().join('').includes(lower))) return true;
+  // 英字を除くと数字と記号だけ、または英字部分がよく使われる語（の繰り返し）
+  const letters = lower.replace(/[^a-z]/g, '');
+  if (letters.length === 0 && /^[\x20-\x7e]+$/.test(password)) return true;
+  // 前後の数字・記号を外し、@→a や 0→o のような置き換えを戻した形でも見る（P@ssw0rd!2024 など）
+  const core = lower.replace(/^[^a-z]+|[^a-z]+$/g, '').replace(/[@4]/g, 'a').replace(/0/g, 'o')
+    .replace(/[1!]/g, 'i').replace(/3/g, 'e').replace(/[5$]/g, 's').replace(/7/g, 't');
+  const isWeakWord = (text) => text.length > 0
+    && WEAK_WORDS.some((word) => text.replace(new RegExp(word, 'g'), '') === '');
+  if (isWeakWord(letters) || isWeakWord(core.replace(/[^a-z]/g, ''))) return true;
+  // ユーザーIDを除くと短すぎる
+  const id = String(userId || '').toLowerCase();
+  if (id.length >= 3 && lower.split(id).join('').length < 8) return true;
+  return false;
 }
 
 export function pbkdf2Iterations(env) {

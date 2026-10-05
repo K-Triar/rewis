@@ -100,7 +100,7 @@ export function renderInviteView(container, { inviteToken, onDone }) {
         userIdInput,
         h('div', { class: 'g-field__label' }, '新しいパスワード'),
         passwordInput,
-        h('div', { class: 'g-field__hint' }, `${MIN_PASSWORD_LENGTH}文字以上。文字の種類の決まりはありません。ほかのサービスと同じパスワードは使わないでください。`),
+        h('div', { class: 'g-field__hint' }, `${MIN_PASSWORD_LENGTH}文字以上。文字の種類の決まりはありません。連続した文字の並びや、よく使われる語に数字を足しただけのものは使えません。ほかのサービスと同じパスワードは使わないでください。`),
         h('div', { class: 'g-field__label' }, '新しいパスワード（確認）'),
         confirmInput,
         status,
